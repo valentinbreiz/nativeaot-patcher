@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IMsiBinder | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IMsiBinder | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Platform-specific MSI binding backend. Implemented once per arch.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder">
+
+
+
+  <h1 id="Cosmos_Kernel_Core_CPU_IMsiBinder" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder" class="text-break">
+Interface IMsiBinder  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.html">CPU</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Platform-specific MSI binding backend. Implemented once per arch.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IMsiBinder</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_CPU_IMsiBinder_IsAvailable_" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.IsAvailable*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_IMsiBinder_IsAvailable" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.IsAvailable">
+  IsAvailable
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True if the underlying interrupt controller is online and ready to route MSIs.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsAvailable { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_CPU_IMsiBinder_BindEntry_" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.BindEntry*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_IMsiBinder_BindEntry_System_Object_System_Int32_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_System_UInt32_System_UInt64__System_UInt32__" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.BindEntry(System.Object,System.Int32,Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate,System.UInt32,System.UInt64@,System.UInt32@)">
+  BindEntry(object?, int, IrqDelegate, uint, out ulong, out uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Allocate a routing slot for <code class="paramref">handler</code> and produce
+the MSI-X table entry payload (addr/data the device will write).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BindEntry(object? deviceCtx, int entryIndex, InterruptManager.IrqDelegate handler, uint targetCpu, out ulong address, out uint data)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>deviceCtx</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+    <dt><code>entryIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">IrqDelegate</a></dt>
+    <dd></dd>
+    <dt><code>targetCpu</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>address</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>data</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CPU_IMsiBinder_PrepareDevice_" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.PrepareDevice*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_IMsiBinder_PrepareDevice_System_UInt32_System_UInt32_System_UInt32_System_Int32_" data-uid="Cosmos.Kernel.Core.CPU.IMsiBinder.PrepareDevice(System.UInt32,System.UInt32,System.UInt32,System.Int32)">
+  PrepareDevice(uint, uint, uint, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Per-device prep: the binder may need to allocate per-device state
+(e.g. ARM64 ITS Interrupt Translation Table, issue a MAPD command).
+Return an opaque object the binder will receive in
+<a class="xref" href="Cosmos.Kernel.Core.CPU.IMsiBinder.html#Cosmos_Kernel_Core_CPU_IMsiBinder_BindEntry_System_Object_System_Int32_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_System_UInt32_System_UInt64__System_UInt32__">BindEntry(object?, int, IrqDelegate, uint, out ulong, out uint)</a>, or null if no state is needed (x64).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object? PrepareDevice(uint bus, uint slot, uint function, int entryCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>bus</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>slot</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>function</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>entryCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

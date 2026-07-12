@@ -113,6 +113,23 @@ Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.<
 </dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html">InterruptEvent</a></dt>
+      <dd><p>One-shot binary completion event with auto-reset semantics, designed
+to be signaled from an ISR and waited on from a normal thread.</p>
+<p><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Wait">Wait()</a> blocks the caller via <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_BlockThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_">BlockThread(uint, Thread)</a>
+until <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> is called. <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> only walks
+internal state with the spinlock held and calls
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_ReadyThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_">ReadyThread(uint, Thread)</a> — no allocation, no
+interface dispatch — so it is safe from interrupt context.</p>
+<p>Modeled after <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a> but reduced to the surface
+drivers actually need (a producer ISR and a consumer thread). Multiple
+consumers can wait; <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> wakes one. Signals are
+counted, not latched as a single bit: two <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a>s with
+two parked waiters wake both, and signals arriving while no consumer
+waits are consumed one per subsequent <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Wait">Wait()</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Monitor.html">Monitor</a></dt>
       <dd><p>A simple monitor implementation for kernel threads.</p>
 </dd>
@@ -146,8 +163,23 @@ Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.<
 Structs
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IrqLockScope.html">IrqLockScope</a></dt>
+      <dd><p>RAII scope returned by <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>. Disables
+interrupts and acquires the lock on creation; on dispose, releases the
+lock then restores the prior interrupt state. Dispose order matters:
+the lock must be released before interrupts are re-enabled so an ISR
+firing immediately after restore never sees the lock held.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html">SpinLock</a></dt>
       <dd><p>Simple spinlock for SMP synchronization.</p>
+<p>The plain <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire">Acquire()</a> / <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Release">Release()</a> pair is
+only safe for locks that are never taken from interrupt context. If an
+ISR can acquire the same lock as mainline code (e.g. a wait/signal
+pair where the ISR signals), use <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>: a single
+CPU holding the plain lock when the ISR fires will spin forever waiting
+for itself.</p>
 </dd>
     </dl>
     <dl class="jumplist">

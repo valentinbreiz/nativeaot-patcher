@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class FatTable | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class FatTable | Cosmos Gen 3 ">
+      
+      <meta name="description" content="FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry reads and writes go through the underlying  using  geometry. Cluster numbers coming from on-disk metadata are untrusted: accessors treat anything outside the volume&#39;s data clusters as end-of-chain and never let it drive I/O.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable" class="text-break">
+Class FatTable  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.html">Filesystems</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.html">Fat</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry
+reads and writes go through the underlying <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a>
+using <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a> geometry. Cluster numbers coming from
+on-disk metadata are untrusted: accessors treat anything outside the
+volume's data clusters as end-of-chain and never let it drive I/O.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class FatTable</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">FatTable</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable__ctor_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable__ctor_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Cosmos_Kernel_System_Filesystems_Fat_FatBootSector_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.#ctor(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,Cosmos.Kernel.System.Filesystems.Fat.FatBootSector)">
+  FatTable(IBlockDevice, FatBootSector)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public FatTable(IBlockDevice device, FatBootSector boot)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>boot</code> <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Fat32BadCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Fat32BadCluster">
+  Fat32BadCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>FAT32 bad-cluster marker.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint Fat32BadCluster = 268435447</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Fat32EndOfChain" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Fat32EndOfChain">
+  Fat32EndOfChain
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lowest FAT32 entry value of the end-of-chain band.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint Fat32EndOfChain = 268435448</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_FirstDataCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.FirstDataCluster">
+  FirstDataCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>First data-cluster number; clusters 0 and 1 are reserved.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint FirstDataCluster = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_FreeCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.FreeCluster">
+  FreeCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Entry value marking a free cluster.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint FreeCluster = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_AllocateChain_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.AllocateChain*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_AllocateChain_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.AllocateChain(System.UInt32)">
+  AllocateChain(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Allocate a chain of <code class="paramref">count</code> contiguous-by-FAT clusters; returns first cluster, or 0 on failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint AllocateChain(uint count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_CountFree_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.CountFree*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_CountFree" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.CountFree">
+  CountFree()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint CountFree()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_EndOfChainMarker_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.EndOfChainMarker*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_EndOfChainMarker" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.EndOfChainMarker">
+  EndOfChainMarker()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint EndOfChainMarker()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_ExtendChain_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.ExtendChain*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_ExtendChain_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.ExtendChain(System.UInt32,System.UInt32)">
+  ExtendChain(uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Append <code class="paramref">count</code> clusters to the chain whose tail is <code class="paramref">lastCluster</code>; returns new tail or 0 on failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint ExtendChain(uint lastCluster, uint count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>lastCluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_FindFree_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.FindFree*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_FindFree" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.FindFree">
+  FindFree()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint FindFree()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Free_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Free*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Free_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Free(System.UInt32)">
+  Free(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mark every cluster in the chain rooted at <code class="paramref">firstCluster</code> as free.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Free(uint firstCluster)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>firstCluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Get_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Get*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Get_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Get(System.UInt32)">
+  Get(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Get(uint cluster)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_GetChain_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.GetChain*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_GetChain_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.GetChain(System.UInt32)">
+  GetChain(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Walk the chain starting at <code class="paramref">firstCluster</code>. Stops on
+EOC, free, or bad-cluster markers, truncates at links leaving the
+volume's data clusters, and bails out if the chain exceeds the
+cluster count to defend against loops.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;uint&gt; GetChain(uint firstCluster)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>firstCluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsBadCluster_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsBadCluster*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsBadCluster_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsBadCluster(System.UInt32)">
+  IsBadCluster(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsBadCluster(uint entry)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>entry</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsDataCluster_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsDataCluster*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsDataCluster_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsDataCluster(System.UInt32)">
+  IsDataCluster(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <code class="paramref">cluster</code> addresses a data cluster this volume (and its FAT) actually has.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsDataCluster(uint cluster)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsEndOfChain_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsEndOfChain*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_IsEndOfChain_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.IsEndOfChain(System.UInt32)">
+  IsEndOfChain(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsEndOfChain(uint entry)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>entry</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Set_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Set*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatTable_Set_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatTable.Set(System.UInt32,System.UInt32)">
+  Set(uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Set(uint cluster, uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

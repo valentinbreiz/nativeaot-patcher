@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.HAL.Devices.Storage | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Devices.Storage | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Storage">
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Storage" data-uid="Cosmos.Kernel.HAL.Devices.Storage" class="text-break">Namespace Cosmos.Kernel.HAL.Devices.Storage</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Ahci.html">Ahci</a></dt>
+      <dd><p>AHCI driver entry point. Scans PCI for every
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.Enums.ClassId.html#Cosmos_Kernel_HAL_Pci_Enums_ClassId_MassStorageController">MassStorageController</a> /
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.Enums.SubclassId.html#Cosmos_Kernel_HAL_Pci_Enums_SubclassId_SataController">SataController</a> device and brings each one up
+independently — a machine with two SATA HBAs gets two
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AhciController.html">AhciController</a> instances and all of their attached SATA
+drives show up in <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Ahci.html#Cosmos_Kernel_HAL_Devices_Storage_Ahci_Ports">Ports</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AhciController.html">AhciController</a></dt>
+      <dd><p>One initialized AHCI HBA. Each controller owns its ABAR (HHDM-mapped),
+capability snapshot, port list, and a per-controller command region
+allocated from <a class="xref" href="Cosmos.Kernel.Core.Memory.PageAllocator.html">PageAllocator</a> — kernel-virtual for memset,
+physical (via <a class="xref" href="Cosmos.Kernel.Core.Memory.PageAllocator.html#Cosmos_Kernel_Core_Memory_PageAllocator_VirtualToPhysical_System_UInt64_">VirtualToPhysical(ulong)</a>) for the
+HBA's CLB / FB / CTBA registers. The driver scans PCI for every
+matching SATA/AHCI controller and instantiates one
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AhciController.html">AhciController</a> per match, so a system with two HBAs gets
+two instances and all of their ports show up in <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Ahci.html#Cosmos_Kernel_HAL_Devices_Storage_Ahci_Ports">Ports</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html">BlockDevice</a></dt>
+      <dd><p>Abstract base class for all block storage devices.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.FisRegisterH2D.html">FisRegisterH2D</a></dt>
+      <dd><p>FIS Register Host to Device.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.GenericRegisters.html">GenericRegisters</a></dt>
+      <dd><p>AHCI Generic Host Control Registers.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader.html">HbaCommandHeader</a></dt>
+      <dd><p>HBA Command Header structure.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.html">HbaCommandTable</a></dt>
+      <dd><p>HBA Command Table. <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.html#Cosmos_Kernel_HAL_Devices_Storage_HbaCommandTable_CFIS">CFIS</a> is the kernel-virtual base; the
+HBA itself addresses this table via the physical CTBA written into the
+owning <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader.html">HbaCommandHeader</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.HbaPrdtEntry.html">HbaPrdtEntry</a></dt>
+      <dd><p>HBA PRDT Entry.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Nvme.html">Nvme</a></dt>
+      <dd><p>NVMe driver entry point. Scans PCI for every
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.Enums.ClassId.html#Cosmos_Kernel_HAL_Pci_Enums_ClassId_MassStorageController">MassStorageController</a> /
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.Enums.SubclassId.html#Cosmos_Kernel_HAL_Pci_Enums_SubclassId_NvmController">NvmController</a> device and brings each one up
+independently — a machine with two M.2 SSDs gets two
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html">NvmeController</a> instances and all their namespaces show up
+in <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Nvme.html#Cosmos_Kernel_HAL_Devices_Storage_Nvme_Namespaces">Namespaces</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeAdminOp.html">NvmeAdminOp</a></dt>
+      <dd><p>NVMe admin opcodes (NVM Express 1.4 §5.x).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeCns.html">NvmeCns</a></dt>
+      <dd><p>Identify CNS values (NVM Express 1.4 §5.15).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html">NvmeController</a></dt>
+      <dd><p>One initialized NVMe controller. Owns its admin and a single IO
+queue pair, and the namespaces it discovered. The admin queue is
+polled (it only runs once at init); the I/O queue is interrupt-driven
+via MSI-X so callers of <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html#Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Read_System_UInt32_System_UInt64_System_Span_System_Byte__System_UInt16_">Read(uint, ulong, Span&lt;byte&gt;, ushort)</a> / <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html#Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Write_System_UInt32_System_UInt64_System_ReadOnlySpan_System_Byte__System_UInt16_">Write(uint, ulong, ReadOnlySpan&lt;byte&gt;, ushort)</a> can
+yield instead of burning a CPU on a spinloop, and up to
+<span class="xref">Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IoQueueDepth</span>-1 commands can be in flight concurrently
+because every slot owns its own 4 KiB DMA bounce buffer.</p>
+<p>If MSI-X is unavailable (e.g. ARM64 today, or a pathological
+PCI device with no MSI-X capability) the controller falls back to
+polled completion, but in that mode commands are serialized through
+an internal mutex.</p>
+<p>Limitations:</p>
+<ul><li>One IO submission and one IO completion queue (qid=1), depth 8.
+At most depth-1 commands are in flight (NVMe queue-full rule: a
+depth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable
+from an empty queue).</li><li>Single-PRP transfers — every command moves at most one 4 KiB
+page through the slot's bounce buffer, so PRP2 is always 0. Namespaces
+whose LBA format exceeds one page (or carries metadata) are skipped at
+discovery.</li></ul>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeIoOp.html">NvmeIoOp</a></dt>
+      <dd><p>NVMe NVM-command-set IO opcodes (NVM Express 1.4 §6.x).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace.html">NvmeNamespace</a></dt>
+      <dd><p>One NVMe namespace exposed as an <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a>.
+Reads and writes are issued one LBA at a time through the parent
+controller's per-slot bounce buffers — multiple namespaces (or
+concurrent callers on the same namespace) execute in parallel up to
+the controller's I/O queue depth minus one (the NVMe queue-full rule).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters.html">NvmeRegisters</a></dt>
+      <dd><p>NVMe controller register block accessor. Wraps the BAR0 virtual base
+(BAR0 phys + HHDM offset) and exposes the spec registers via
+<a class="xref" href="Cosmos.Kernel.Core.Native.MMIO.html">Native.MMIO</a>.</p>
+<p>Layout follows NVM Express 1.4 §3.1.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.html">PortRegisters</a></dt>
+      <dd><p>AHCI Port Registers. Carries a back-reference to the
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AhciController.html">AhciController</a> that owns the port so per-port code (SATA
+command issue, port reset) can reach controller state without going
+through globals.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Sata.html">Sata</a></dt>
+      <dd><p>SATA drive port driver. The bounce buffer is a single page allocated
+from <a class="xref" href="Cosmos.Kernel.Core.Memory.PageAllocator.html">PageAllocator</a>; the HBA DMAs to its physical address
+while <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ReadDataBlock16(ushort[])</a> / <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">WriteDataBlock8(ReadOnlySpan&lt;byte&gt;)</a>
+touch the kernel-virtual address.</p>
+<p>Error contract: command issue throws on failure (no free slot,
+device timeout, task-file error), so <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Sata.html#Cosmos_Kernel_HAL_Devices_Storage_Sata_ReadBlock_System_UInt64_System_UInt64_System_Span_System_Byte__">ReadBlock(ulong, ulong, Span&lt;byte&gt;)</a> /
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Sata.html#Cosmos_Kernel_HAL_Devices_Storage_Sata_WriteBlock_System_UInt64_System_UInt64_System_ReadOnlySpan_System_Byte__">WriteBlock(ulong, ulong, ReadOnlySpan&lt;byte&gt;)</a> never silently hand back stale bounce-buffer
+contents. All I/O on a port is serialized by an internal lock — the
+port owns a single bounce buffer.</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeCqe.html">NvmeCqe</a></dt>
+      <dd><p>NVMe Completion Queue Entry (16 bytes). Reads only — the controller
+writes these.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeSqe.html">NvmeSqe</a></dt>
+      <dd><p>NVMe Submission Queue Entry (64 bytes). Backed by raw memory; the
+helpers fill the spec-defined CDWs without using managed structs (so
+the layout stays exactly as the controller expects regardless of
+runtime padding).</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AhciSignature.html">AhciSignature</a></dt>
+      <dd><p>AHCI drive signature to identify what drive is plugged to Port.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.html">AtaCommands</a></dt>
+      <dd><p>ATA Commands.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AtaDeviceStatus.html">AtaDeviceStatus</a></dt>
+      <dd><p>ATA Device Status bits.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.CommandAndStatus.html">CommandAndStatus</a></dt>
+      <dd><p>Command and Status register bits.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.CurrentInterfaceSpeedStatus.html">CurrentInterfaceSpeedStatus</a></dt>
+      <dd><p>SATA Status: Current Interface Speed.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.DeviceDetectionStatus.html">DeviceDetectionStatus</a></dt>
+      <dd><p>SATA Status: Device Detection Status.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.FisType.html">FisType</a></dt>
+      <dd><p>FIS (Frame Information Structure) type enumeration.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.InterfacePowerManagementStatus.html">InterfacePowerManagementStatus</a></dt>
+      <dd><p>SATA Status: Interface Power Management Status.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.InterruptStatus.html">InterruptStatus</a></dt>
+      <dd><p>Interrupt Status bits.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.PortType.html">PortType</a></dt>
+      <dd><p>Port type enumeration.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

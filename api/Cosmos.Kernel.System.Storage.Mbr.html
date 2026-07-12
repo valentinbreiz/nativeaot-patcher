@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Mbr | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Mbr | Cosmos Gen 3 ">
+      
+      <meta name="description" content="MBR (Master Boot Record) partition table parser / writer. Operates on any  with 512-byte sectors.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Storage.Mbr">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Storage_Mbr" data-uid="Cosmos.Kernel.System.Storage.Mbr" class="text-break">
+Class Mbr  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.html">Storage</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>MBR (Master Boot Record) partition table parser / writer. Operates on
+any <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a> with 512-byte sectors.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class Mbr</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Mbr</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_Create_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Create*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_Create_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice)">
+  Create(IBlockDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write a fresh, empty-but-signed MBR to LBA 0. No boot code, all
+four partition slots zeroed; callers add entries via
+<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_WritePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt32_System_UInt32_">WritePartition(IBlockDevice, int, byte, uint, uint)</a>. Also wipes LBA 1 (wipefs-style):
+Create claims the whole disk label, and a stale &quot;EFI PART&quot; header
+left there from a previous GPT layout would keep winning over this
+MBR in the partition scanner, which checks GPT first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Create(IBlockDevice device)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_DeletePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.DeletePartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_DeletePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.DeletePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32)">
+  DeletePartition(IBlockDevice, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mark primary slot <code class="paramref">index</code> as empty by zeroing its 16-byte entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void DeletePartition(IBlockDevice device, int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_IsMbr_" data-uid="Cosmos.Kernel.System.Storage.Mbr.IsMbr*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_IsMbr_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_" data-uid="Cosmos.Kernel.System.Storage.Mbr.IsMbr(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice)">
+  IsMbr(IBlockDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True if LBA 0 ends with the 0xAA55 MBR signature.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsMbr(IBlockDevice device)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_MovePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.MovePartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_MovePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt32)">
+  MovePartition(IBlockDevice, int, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rewrite the StartSector field of slot <code class="paramref">index</code>, leaving systemId / sectorCount untouched. Table-level only — does not relocate data.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void MovePartition(IBlockDevice device, int index, uint newStartSector)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>newStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_Parse_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Parse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_Parse_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice)">
+  Parse(IBlockDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Parse the MBR's four primary partition entries. Empty (SystemId=0)
+entries are skipped. Extended (0x05/0x0F/0x85) entries are skipped
+here; use <a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64__">TryGetExtendedPartition(IBlockDevice, out ulong)</a>
+to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html">Ebr</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static List&lt;Mbr.PartitionEntry&gt; Parse(IBlockDevice device)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html">Mbr</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.html">PartitionEntry</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt32)">
+  ResizePartition(IBlockDevice, int, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rewrite the SectorCount field of slot <code class="paramref">index</code>, leaving systemId / startSector untouched.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ResizePartition(IBlockDevice device, int index, uint newSectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>newSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64__" data-uid="Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64@)">
+  TryGetExtendedPartition(IBlockDevice, out ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Locate the first extended partition (system ID 0x05, 0x0F, or 0x85)
+in the MBR's primary table and return its absolute start LBA.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryGetExtendedPartition(IBlockDevice device, out ulong startSector)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64__System_UInt64__" data-uid="Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64@,System.UInt64@)">
+  TryGetExtendedPartition(IBlockDevice, out ulong, out ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>As <a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_TryGetExtendedPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64__">TryGetExtendedPartition(IBlockDevice, out ulong)</a> but
+also returns the extended partition's sector count.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryGetExtendedPartition(IBlockDevice device, out ulong startSector, out ulong sectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_WritePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.WritePartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_WritePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.WritePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.Byte,System.UInt32,System.UInt32)">
+  WritePartition(IBlockDevice, int, byte, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Stamp partition <code class="paramref">index</code> (0..3) with a 32-bit
+LBA-addressed entry pointing at <code class="paramref">startSector</code> /
+<code class="paramref">sectorCount</code> with the given <code class="paramref">systemId</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WritePartition(IBlockDevice device, int index, byte systemId, uint startSector, uint sectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

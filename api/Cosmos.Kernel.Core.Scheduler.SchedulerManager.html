@@ -184,6 +184,38 @@ Class SchedulerManager
 
 
 
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_NanosecondsPerMillisecond" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.NanosecondsPerMillisecond">
+  NanosecondsPerMillisecond
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.
+Public so other kernel components (e.g. timer drivers) can share the unit conversion.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong NanosecondsPerMillisecond = 1000000</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
   <h2 class="section" id="properties">Properties
 </h2>
 
@@ -295,6 +327,43 @@ Class SchedulerManager
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static bool IsEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_IsReady_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_IsReady" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady">
+  IsReady
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_Initialize_System_UInt32_">Initialize(uint)</a> has run and per-CPU state exists.
+Blocking primitives (and drivers built on them) must check this
+before touching <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_System_UInt32_">GetCpuState(uint)</a>: with the scheduler
+feature disabled — or before its library initializer runs — there
+is exactly one execution context, so callers fall back to
+spin/polled paths instead of blocking.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsReady { get; }</code></pre>
   </div>
 
 
@@ -950,6 +1019,49 @@ This is the main entry point for preemptive scheduling.</p>
   <dl class="parameters">
     <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_ReschedulePendingFromIrq_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.ReschedulePendingFromIrq*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_ReschedulePendingFromIrq_System_UInt32_System_UIntPtr_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.ReschedulePendingFromIrq(System.UInt32,System.UIntPtr)">
+  ReschedulePendingFromIrq(uint, nuint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Runs a pending reschedule request on hardware-IRQ exit. ReadyThread
+sets the request when it wakes a thread (typically an ISR-side
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a>); device-IRQ exit doesn't
+otherwise reschedule — only the timer tick does — so a woken waiter
+would sit in the run queue for up to a full quantum. No-op when the
+timer path already staged a context switch for this interrupt: a
+second ScheduleFromInterrupt would save this frame's stack pointer
+into a thread whose real context lives elsewhere.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Current CPU ID.</p>
+</dd>
+    <dt><code>currentRsp</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uintptr">nuint</a></dt>
+    <dd><p>Current RSP (pointer to saved context on stack).</p>
+</dd>
   </dl>
 
 

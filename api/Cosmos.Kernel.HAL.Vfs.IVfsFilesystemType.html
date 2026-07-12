@@ -121,6 +121,89 @@ Interface IVfsFilesystemType
 </h2>
 
 
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryDestroy_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryDestroy*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryDestroy_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryDestroy(System.ReadOnlySpan{System.Char})">
+  TryDestroy(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Wipe the filesystem signature on the backing store so it no longer
+mounts. The underlying device is not zeroed in full.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryDestroy(ReadOnlySpan&lt;char&gt; source)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryFormat_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryFormat*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryFormat_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsFormatOptions_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryFormat(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions)">
+  TryFormat(ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lay down a fresh on-disk filesystem on the backing store identified by
+<code class="paramref">source</code>. Drivers cast <code class="paramref">options</code> to
+their own concrete <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a> type; passing
+<code>null</code> selects driver defaults. The source must not be mounted:
+<code>VfsManager.TryFormat</code>/<code>TryDestroy</code> refuse a source with a
+live mount, since rewriting the volume underneath a superblock's
+cached geometry corrupts it.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryFormat(ReadOnlySpan&lt;char&gt; source, IVfsFormatOptions? options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>options</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_TryMount_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock__" data-uid="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.TryMount(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.MountFlags,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock@)">

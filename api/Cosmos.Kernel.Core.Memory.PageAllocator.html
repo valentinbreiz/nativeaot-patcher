@@ -154,6 +154,37 @@ Class PageAllocator
 
 
 
+  <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_DefaultHhdmOffset" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.DefaultHhdmOffset">
+  DefaultHhdmOffset
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset). Public so drivers translating HHDM aliases for DMA share the same base.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong DefaultHhdmOffset = 18446603336221196288</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_PageSize" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.PageSize">
   PageSize
   
@@ -300,6 +331,38 @@ Class PageAllocator
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static ulong FreePageCount { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_PageAllocator_RatAddress_" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.RatAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_RatAddress" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.RatAddress">
+  RatAddress
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Virtual address of the RAT base (one byte per page).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong RatAddress { get; }</code></pre>
   </div>
 
 
@@ -477,6 +540,60 @@ Class PageAllocator
 
 
 
+  <a id="Cosmos_Kernel_Core_Memory_PageAllocator_GetPageCountsByType_" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.GetPageCountsByType*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_GetPageCountsByType_System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__System_UInt64__" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.GetPageCountsByType(System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@,System.UInt64@)">
+  GetPageCountsByType(out ulong, out ulong, out ulong, out ulong, out ulong, out ulong, out ulong, out ulong, out ulong, out ulong, out ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Fills out per-PageType counts by scanning the RAT. Returns zeros when
+the heap is not yet initialized. Used by the live-debug snapshot so
+the host VS Code extension can show RAT composition without pausing.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void GetPageCountsByType(out ulong empty, out ulong gcHeap, out ulong heapSmall, out ulong heapMedium, out ulong heapLarge, out ulong unmanaged, out ulong pageDirectory, out ulong pageAllocator, out ulong smt, out ulong extension, out ulong unknown)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>empty</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>gcHeap</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>heapSmall</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>heapMedium</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>heapLarge</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>unmanaged</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>pageDirectory</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>pageAllocator</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>smt</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>extension</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>unknown</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Memory_PageAllocator_GetPagePtr_" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.GetPagePtr*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_GetPagePtr_System_Void__" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.GetPagePtr(System.Void*)">
@@ -601,6 +718,52 @@ This follows the Cosmos OS memory structure with RAT at the END of heap.</p>
 </code></pre>
 </dd>
   </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Memory_PageAllocator_VirtualToPhysical_" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.VirtualToPhysical*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_PageAllocator_VirtualToPhysical_System_UInt64_" data-uid="Cosmos.Kernel.Core.Memory.PageAllocator.VirtualToPhysical(System.UInt64)">
+  VirtualToPhysical(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Convert virtual address to physical address for Higher Half Kernel mapping.
+Subtracts the Limine HHDM offset when the address is an HHDM alias;
+passes through values that look already-physical. Kernel-image
+addresses (statics, stack, code — the top-2GiB window) are higher-half
+but NOT HHDM aliases: subtracting the offset from one fabricates a
+garbage physical address, and a device DMA aimed at it corrupts
+whatever lives there. Those are rejected loudly instead — callers
+that need DMA from static data must copy it to a heap buffer first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong VirtualToPhysical(ulong virtualAddress)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>virtualAddress</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Virtual address to convert</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Physical address</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
 
 
 

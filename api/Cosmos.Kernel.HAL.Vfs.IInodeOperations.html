@@ -283,6 +283,48 @@ Interface IInodeOperations
 
 
 
+  <a id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_ReadDir_" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.ReadDir*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_ReadDir_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_Collections_Generic_IReadOnlyList_Cosmos_Kernel_HAL_Vfs_IVfsInode___" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.ReadDir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.Collections.Generic.IReadOnlyList{Cosmos.Kernel.HAL.Vfs.IVfsInode}@)">
+  ReadDir(IVfsInode, out IReadOnlyList&lt;IVfsInode&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>List the directory's children. <code class="paramref">entries</code> is
+intentionally non-nullable (empty on failure) and read-only:
+implementations return fixed or immutable collections; callers
+that need to mutate must copy.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool ReadDir(IVfsInode dir, out IReadOnlyList&lt;IVfsInode&gt; entries)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
+    <dd></dd>
+    <dt><code>entries</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rename_" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Rename_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Rename(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char})">

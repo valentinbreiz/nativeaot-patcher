@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Sata | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Sata | Cosmos Gen 3 ">
+      
+      <meta name="description" content="SATA drive port driver. The bounce buffer is a single page allocated from ; the HBA DMAs to its physical address while  /  touch the kernel-virtual address. Error contract: command issue throws on failure (no free slot, device timeout, task-file error), so  /  never silently hand back stale bounce-buffer contents. All I/O on a port is serialized by an internal lock — the port owns a single bounce buffer.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Storage_Sata" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata" class="text-break">
+Class Sata  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.html">Storage</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>SATA drive port driver. The bounce buffer is a single page allocated
+from <a class="xref" href="Cosmos.Kernel.Core.Memory.PageAllocator.html">PageAllocator</a>; the HBA DMAs to its physical address
+while <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ReadDataBlock16(ushort[])</a> / <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">WriteDataBlock8(ReadOnlySpan&lt;byte&gt;)</a>
+touch the kernel-virtual address.</p>
+<p>Error contract: command issue throws on failure (no free slot,
+device timeout, task-file error), so <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Sata.html#Cosmos_Kernel_HAL_Devices_Storage_Sata_ReadBlock_System_UInt64_System_UInt64_System_Span_System_Byte__">ReadBlock(ulong, ulong, Span&lt;byte&gt;)</a> /
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.Sata.html#Cosmos_Kernel_HAL_Devices_Storage_Sata_WriteBlock_System_UInt64_System_UInt64_System_ReadOnlySpan_System_Byte__">WriteBlock(ulong, ulong, ReadOnlySpan&lt;byte&gt;)</a> never silently hand back stale bounce-buffer
+contents. All I/O on a port is serialized by an internal lock — the
+port owns a single bounce buffer.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Sata : BlockDevice, IBlockDevice</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html">BlockDevice</a></div>
+      <div><span class="xref">Sata</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BlockCount">BlockDevice.BlockCount</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BlockSize">BlockDevice.BlockSize</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BuildDeviceName_System_String_System_UInt32_">BlockDevice.BuildDeviceName(string, uint)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BuildDeviceName_System_String_System_String_System_UInt32_">BlockDevice.BuildDeviceName(string, string, uint)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BuildDeviceName_System_String_System_UInt32_System_String_System_UInt32_">BlockDevice.BuildDeviceName(string, uint, string, uint)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata__ctor_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata__ctor_Cosmos_Kernel_HAL_Devices_Storage_PortRegisters_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.#ctor(Cosmos.Kernel.HAL.Devices.Storage.PortRegisters)">
+  Sata(PortRegisters)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Sata(PortRegisters portReg)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>portReg</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.html">PortRegisters</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_RegularSectorSize" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.RegularSectorSize">
+  RegularSectorSize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Regular sector size (512 bytes).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong RegularSectorSize = 512</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_FirmwareRev_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.FirmwareRev*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_FirmwareRev" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.FirmwareRev">
+  FirmwareRev
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string FirmwareRev { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_ModelNo_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.ModelNo*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_ModelNo" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.ModelNo">
+  ModelNo
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ModelNo { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_Name_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.Name*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_Name" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.Name">
+  Name
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Human-readable device name, unique per device instance
+(e.g. &quot;sata0&quot;, &quot;nvme0n1&quot;).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string Name { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_PortNumber_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.PortNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_PortNumber" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.PortNumber">
+  PortNumber
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint PortNumber { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SerialNo_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SerialNo*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SerialNo" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SerialNo">
+  SerialNo
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string SerialNo { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_Flush_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.Flush*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_Flush" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.Flush">
+  Flush()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Flush the device's volatile write cache so previously completed
+writes are durable. No-op on devices without a volatile cache.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void Flush()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Devices_Storage_Sata_Flush_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Default is a no-op for devices without a volatile write cache.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_PortReset_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.PortReset*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_PortReset_Cosmos_Kernel_HAL_Devices_Storage_PortRegisters_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.PortReset(Cosmos.Kernel.HAL.Devices.Storage.PortRegisters)">
+  PortReset(PortRegisters)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reset the port. Returns false when the command engine refused to
+stop — the port must then be left untouched (reprogramming CLB/FB
+on a running engine lets the HBA fetch garbage command headers and
+issue arbitrary DMA), not fixed up with a whole-HBA reset that
+would wipe every sibling port.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool PortReset(PortRegisters port)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.html">PortRegisters</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_ReadBlock_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.ReadBlock*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_ReadBlock_System_UInt64_System_UInt64_System_Span_System_Byte__" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.ReadBlock(System.UInt64,System.UInt64,System.Span{System.Byte})">
+  ReadBlock(ulong, ulong, Span&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read whole blocks starting at <code class="paramref">blockNo</code> into <code class="paramref">data</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void ReadBlock(ulong blockNo, ulong blockCount, Span&lt;byte&gt; data)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>blockNo</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Logical block address to start reading from.</p>
+</dd>
+    <dt><code>blockCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Number of blocks to read.</p>
+</dd>
+    <dt><code>data</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>Destination buffer; must be at least <code class="paramref">blockCount</code> * <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_BlockSize">BlockSize</a> bytes.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SendSata48Command_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SendSata48Command*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SendSata48Command_Cosmos_Kernel_HAL_Devices_Storage_AtaCommands_System_UInt64_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SendSata48Command(Cosmos.Kernel.HAL.Devices.Storage.AtaCommands,System.UInt64,System.UInt32)">
+  SendSata48Command(AtaCommands, ulong, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Issue an LBA48 read or write spanning <code class="paramref">count</code>
+sectors starting at <code class="paramref">start</code>. The transfer moves
+through the port's single-page bounce buffer, so
+<code class="paramref">count</code> is limited to
+<span class="xref">Cosmos.Kernel.HAL.Devices.Storage.Sata.MaxSectorsPerCommand</span>. Throws on failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SendSata48Command(AtaCommands command, ulong start, uint count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>command</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.html">AtaCommands</a></dt>
+    <dd></dd>
+    <dt><code>start</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SendSataCommand_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SendSataCommand*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_SendSataCommand_Cosmos_Kernel_HAL_Devices_Storage_AtaCommands_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.SendSataCommand(Cosmos.Kernel.HAL.Devices.Storage.AtaCommands)">
+  SendSataCommand(AtaCommands)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Issue a non-LBA command (Identify, CacheFlushExt, …). Data-in
+commands (the Identify family) read up to one sector into the
+bounce buffer; everything else runs as a non-data command with an
+empty PRDT. Throws on failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SendSataCommand(AtaCommands command)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>command</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.html">AtaCommands</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_Sata_WriteBlock_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.WriteBlock*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_Sata_WriteBlock_System_UInt64_System_UInt64_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.HAL.Devices.Storage.Sata.WriteBlock(System.UInt64,System.UInt64,System.ReadOnlySpan{System.Byte})">
+  WriteBlock(ulong, ulong, ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write whole blocks starting at <code class="paramref">blockNo</code> from <code class="paramref">data</code>.
+Completion means the device accepted the write; durability against
+power loss is only guaranteed after <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Flush">Flush()</a> returns.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan&lt;byte&gt; data)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>blockNo</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Logical block address to start writing to.</p>
+</dd>
+    <dt><code>blockCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Number of blocks to write.</p>
+</dd>
+    <dt><code>data</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>Source buffer; must be at least <code class="paramref">blockCount</code> * <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_BlockSize">BlockSize</a> bytes.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

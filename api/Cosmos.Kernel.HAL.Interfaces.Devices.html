@@ -95,6 +95,16 @@
 Interfaces
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+      <dd><p>Interface for block storage devices (SATA, NVMe, virtio-blk, etc.).
+Block-level read/write only — partitioning and filesystems sit above this.</p>
+<p>Error contract: <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_ReadBlock_System_UInt64_System_UInt64_System_Span_System_Byte__">ReadBlock(ulong, ulong, Span&lt;byte&gt;)</a>, <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_WriteBlock_System_UInt64_System_UInt64_System_ReadOnlySpan_System_Byte__">WriteBlock(ulong, ulong, ReadOnlySpan&lt;byte&gt;)</a>
+and <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Flush">Flush()</a> throw on failure (device error, timeout,
+out-of-range request). A return without an exception means the
+operation completed on the device.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.html">IGraphicDevice</a></dt>
       <dd><p>Interface for graphic devices.</p>
 </dd>

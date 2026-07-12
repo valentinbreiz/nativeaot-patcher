@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Ebr | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Ebr | Cosmos Gen 3 ">
+      
+      <meta name="description" content="EBR (Extended Boot Record) chain parser and editor. An extended partition contains a singly-linked list of EBR sectors; each EBR holds one logical partition entry plus an optional pointer to the next EBR. Convention used: Logical-entry start LBA is relative to the EBR sector that holds it.Next-EBR pointer is relative to the extended partition&#39;s start LBA (the standard convention).The first EBR always sits at the extended partition&#39;s start LBA.Each subsequent EBR is placed immediately after the prior logical&#39;s data.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Storage.Ebr">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Storage_Ebr" data-uid="Cosmos.Kernel.System.Storage.Ebr" class="text-break">
+Class Ebr  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.html">Storage</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>EBR (Extended Boot Record) chain parser and editor. An extended partition
+contains a singly-linked list of EBR sectors; each EBR holds one logical
+partition entry plus an optional pointer to the next EBR. Convention used:</p>
+<ul><li>Logical-entry start LBA is relative to the EBR sector that holds it.</li><li>Next-EBR pointer is relative to the extended partition's start LBA (the standard convention).</li><li>The first EBR always sits at the extended partition's start LBA.</li><li>Each subsequent EBR is placed immediately after the prior logical's data.</li></ul>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class Ebr</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Ebr</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_AddLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.AddLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_AddLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_UInt64_System_Byte_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.AddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.UInt64,System.Byte,System.UInt64)">
+  AddLogical(IBlockDevice, ulong, ulong, byte, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Append a logical partition to the chain. The new EBR is placed right
+after the prior logical's data, and the new logical's data area
+follows the new EBR (one sector for the EBR, then <code class="paramref">sectorCount</code> sectors).
+Returns the new logical's absolute start LBA, or 0 on failure.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static ulong AddLogical(IBlockDevice device, ulong extendedStartLba, ulong extendedSectorCount, byte systemId, ulong sectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>extendedSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_MoveLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.MoveLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_MoveLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_Int32_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.MoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.Int32,System.UInt64)">
+  MoveLogical(IBlockDevice, ulong, int, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rewrite the start LBA of the <code class="paramref">logicalIndex</code>-th logical
+partition. The hosting EBR sector stays put; only the relative offset
+inside the EBR changes. Caller is responsible for making sure data
+at the new range is what's expected (use
+<a class="xref" href="Cosmos.Kernel.System.Storage.PartitionManager.html#Cosmos_Kernel_System_Storage_PartitionManager_MoveWithData_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Cosmos_Kernel_System_Storage_PartitionManager_PartitionLocation_System_UInt64_">MoveWithData(IBlockDevice, PartitionLocation, ulong)</a> for a data-copying move).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool MoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex, ulong newAbsoluteStart)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>newAbsoluteStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_Parse_" data-uid="Cosmos.Kernel.System.Storage.Ebr.Parse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_Parse_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64)">
+  Parse(IBlockDevice, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Walk the EBR chain rooted at <code class="paramref">extendedStartLba</code> and
+return one entry per logical partition. <code>StartSector</code> values are
+absolute LBAs on <code class="paramref">device</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static List&lt;Mbr.PartitionEntry&gt; Parse(IBlockDevice device, ulong extendedStartLba)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html">Mbr</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.html">PartitionEntry</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_RemoveLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.RemoveLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_RemoveLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_Int32_" data-uid="Cosmos.Kernel.System.Storage.Ebr.RemoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.Int32)">
+  RemoveLogical(IBlockDevice, ulong, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Remove the <code class="paramref">logicalIndex</code>-th logical partition from
+the chain (0-based, in chain order).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool RemoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_ResizeLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.ResizeLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_ResizeLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_Int32_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.ResizeLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.Int32,System.UInt64)">
+  ResizeLogical(IBlockDevice, ulong, int, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rewrite the SectorCount of the <code class="paramref">logicalIndex</code>-th logical partition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ResizeLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex, ulong newSectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>newSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

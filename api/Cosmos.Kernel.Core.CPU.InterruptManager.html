@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class InterruptManager | Cosmos Gen 3 ">
       
-      <meta name="description" content="Interrupt manager - provides interrupt registration and dispatch for all architectures. Lives in Core because the vector table and dispatch logic are hardware-neutral; arch-specific drivers implement  in Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.">
+      <meta name="description" content="Architecture-neutral interrupt registration and routing. Owns the dense 256-entry handler table and the dynamic-vector allocator used by MSI programmers. The actual dispatch path (ack/EOI/LPI/fatal-fault handling) is delegated to the platform  implementation in Cosmos.Kernel.Core.X64 / Cosmos.Kernel.Core.ARM64.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,10 +97,11 @@ Class InterruptManager
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Interrupt manager - provides interrupt registration and dispatch for all architectures.
-Lives in Core because the vector table and dispatch logic are hardware-neutral;
-arch-specific drivers implement <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a> in
-Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
+  <div class="markdown summary"><p>Architecture-neutral interrupt registration and routing. Owns the dense
+256-entry handler table and the dynamic-vector allocator used by MSI
+programmers. The actual dispatch path (ack/EOI/LPI/fatal-fault handling)
+is delegated to the platform <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a>
+implementation in Cosmos.Kernel.Core.X64 / Cosmos.Kernel.Core.ARM64.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -192,6 +193,46 @@ Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_AllocateVector_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.AllocateVector*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_AllocateVector_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.AllocateVector(Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate)">
+  AllocateVector(IrqDelegate)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Allocates an unused interrupt vector in [0x40..0xEE], registers
+<code class="paramref">handler</code> for it, and returns the vector. Used by
+MSI / MSI-X programmers that need a fresh vector unique to their
+device. Throws if the dynamic range is exhausted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte AllocateVector(InterruptManager.IrqDelegate handler)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">IrqDelegate</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_CPU_InterruptManager_Dispatch_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Dispatch*"></a>
 
   <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_Dispatch_Cosmos_Kernel_Core_CPU_IRQContext__" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.Dispatch(Cosmos.Kernel.Core.CPU.IRQContext@)">
@@ -199,7 +240,8 @@ Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called by native bridge from ASM stubs to invoke the proper handler.</p>
+  <div class="markdown level1 summary"><p>Called by native bridge from the arch ASM stubs. Delegates to the
+platform controller; all arch-specific behaviour lives there.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -212,6 +254,44 @@ Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
     <dt><code>ctx</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.IRQContext.html">IRQContext</a></dt>
     <dd><p>Context structure.</p>
 </dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CPU_InterruptManager_FreeVector_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.FreeVector*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CPU_InterruptManager_FreeVector_System_Byte_" data-uid="Cosmos.Kernel.Core.CPU.InterruptManager.FreeVector(System.Byte)">
+  FreeVector(byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Releases a vector previously returned by <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html#Cosmos_Kernel_Core_CPU_InterruptManager_AllocateVector_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_">AllocateVector(IrqDelegate)</a>:
+clears its handler so the slot can be handed out again (the
+allocator's wrap pass picks freed slots back up). Without this, every
+consumer teardown would permanently leak one of the 175 dynamic slots
+and leave a stale delegate rooted — and invokable — in the table.
+Vectors outside the dynamic range — including the platform-claimed
+LAPIC timer and spurious vectors above it — are ignored.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void FreeVector(byte vector)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>vector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
   </dl>
 
 

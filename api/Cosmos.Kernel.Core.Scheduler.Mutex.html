@@ -300,7 +300,9 @@ Class Mutex
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Acquires the mutex. Blocks if already held by another thread.</p>
+  <div class="markdown level1 summary"><p>Acquires the mutex. Blocks if already held by another thread.
+Without a scheduler thread context there is a single execution
+context and nothing to contend with, so the call is a no-op.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 

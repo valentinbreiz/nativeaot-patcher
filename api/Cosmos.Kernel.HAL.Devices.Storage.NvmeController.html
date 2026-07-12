@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class NvmeController | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class NvmeController | Cosmos Gen 3 ">
+      
+      <meta name="description" content="One initialized NVMe controller. Owns its admin and a single IO queue pair, and the namespaces it discovered. The admin queue is polled (it only runs once at init); the I/O queue is interrupt-driven via MSI-X so callers of  /  can yield instead of burning a CPU on a spinloop, and up to -1 commands can be in flight concurrently because every slot owns its own 4 KiB DMA bounce buffer. If MSI-X is unavailable (e.g. ARM64 today, or a pathological PCI device with no MSI-X capability) the controller falls back to polled completion, but in that mode commands are serialized through an internal mutex. Limitations: One IO submission and one IO completion queue (qid=1), depth 8. At most depth-1 commands are in flight (NVMe queue-full rule: a depth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable from an empty queue).Single-PRP transfers — every command moves at most one 4 KiB page through the slot&#39;s bounce buffer, so PRP2 is always 0. Namespaces whose LBA format exceeds one page (or carries metadata) are skipped at discovery.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController" class="text-break">
+Class NvmeController  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.html">Storage</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>One initialized NVMe controller. Owns its admin and a single IO
+queue pair, and the namespaces it discovered. The admin queue is
+polled (it only runs once at init); the I/O queue is interrupt-driven
+via MSI-X so callers of <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html#Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Read_System_UInt32_System_UInt64_System_Span_System_Byte__System_UInt16_">Read(uint, ulong, Span&lt;byte&gt;, ushort)</a> / <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html#Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Write_System_UInt32_System_UInt64_System_ReadOnlySpan_System_Byte__System_UInt16_">Write(uint, ulong, ReadOnlySpan&lt;byte&gt;, ushort)</a> can
+yield instead of burning a CPU on a spinloop, and up to
+<span class="xref">Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IoQueueDepth</span>-1 commands can be in flight concurrently
+because every slot owns its own 4 KiB DMA bounce buffer.</p>
+<p>If MSI-X is unavailable (e.g. ARM64 today, or a pathological
+PCI device with no MSI-X capability) the controller falls back to
+polled completion, but in that mode commands are serialized through
+an internal mutex.</p>
+<p>Limitations:</p>
+<ul><li>One IO submission and one IO completion queue (qid=1), depth 8.
+At most depth-1 commands are in flight (NVMe queue-full rule: a
+depth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable
+from an empty queue).</li><li>Single-PRP transfers — every command moves at most one 4 KiB
+page through the slot's bounce buffer, so PRP2 is always 0. Namespaces
+whose LBA format exceeds one page (or carries metadata) are skipped at
+discovery.</li></ul>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class NvmeController</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">NvmeController</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController__ctor_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController__ctor_Cosmos_Kernel_HAL_Pci_PciDevice_System_Int32_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.#ctor(Cosmos.Kernel.HAL.Pci.PciDevice,System.Int32)">
+  NvmeController(PciDevice, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NvmeController(PciDevice pci, int index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>pci</code> <a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Index_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Index*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Index" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Index">
+  Index
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Zero-based index of this controller in PCI discovery order. Used to
+build unique namespace device names (&quot;nvme0n1&quot; style).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Index { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_IsMsiXEnabled_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IsMsiXEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_IsMsiXEnabled" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IsMsiXEnabled">
+  IsMsiXEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True once I/O completions are delivered via MSI-X; false when the
+controller fell back to polled I/O (no MSI-X capability, or no platform
+MSI routing backend — e.g. an ARM64 GIC with no ITS). Lets a test assert
+which interrupt path a given QEMU profile actually exercised rather than
+just that I/O works.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsMsiXEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Namespaces_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Namespaces*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Namespaces" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Namespaces">
+  Namespaces
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;NvmeNamespace&gt; Namespaces { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace.html">NvmeNamespace</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Flush_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Flush*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Flush_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Flush(System.UInt32)">
+  Flush(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Flush volatile write cache for namespace <code class="paramref">nsid</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Flush(uint nsid)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>nsid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Initialize_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Initialize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Initialize" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Initialize">
+  Initialize()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Bring the controller up: reset, set up admin queues, identify
+controller and namespaces, create one IO queue pair, register
+each namespace as a BlockDevice.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Initialize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Read_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Read*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Read_System_UInt32_System_UInt64_System_Span_System_Byte__System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Read(System.UInt32,System.UInt64,System.Span{System.Byte},System.UInt16)">
+  Read(uint, ulong, Span&lt;byte&gt;, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read <code class="paramref">dst</code>.Length bytes (must equal block size *
+(numLogicalBlocksMinusOne+1)) starting at LBA <code class="paramref">lba</code>
+from namespace <code class="paramref">nsid</code>. Thread-safe — multiple
+callers run on independent slots up to <span class="xref">Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IoQueueDepth</span>-1.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Read(uint nsid, ulong lba, Span&lt;byte&gt; dst, ushort numLogicalBlocksMinusOne)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>nsid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>lba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>dst</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>numLogicalBlocksMinusOne</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Write_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Write*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Storage_NvmeController_Write_System_UInt32_System_UInt64_System_ReadOnlySpan_System_Byte__System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Write(System.UInt32,System.UInt64,System.ReadOnlySpan{System.Byte},System.UInt16)">
+  Write(uint, ulong, ReadOnlySpan&lt;byte&gt;, ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write <code class="paramref">src</code> to namespace <code class="paramref">nsid</code>
+starting at LBA <code class="paramref">lba</code>. Thread-safe.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Write(uint nsid, ulong lba, ReadOnlySpan&lt;byte&gt; src, ushort numLogicalBlocksMinusOne)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>nsid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>lba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>src</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>numLogicalBlocksMinusOne</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

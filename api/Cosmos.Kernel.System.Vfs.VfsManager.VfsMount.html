@@ -152,8 +152,8 @@ Class VfsManager.VfsMount
 
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_System_String_System_String_Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor(System.String,System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)">
-  VfsMount(string, string, IVfsFilesystemType, IVfsSuperblock)
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_System_String_System_String_System_String_Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor(System.String,System.String,System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)">
+  VfsMount(string, string, string, IVfsFilesystemType, IVfsSuperblock)
   
   </h3>
 
@@ -161,12 +161,14 @@ Class VfsManager.VfsMount
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public VfsMount(string name, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)</code></pre>
+    <pre><code class="lang-csharp hljs">public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
     <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
@@ -260,11 +262,44 @@ Class VfsManager.VfsMount
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Registered driver name (e.g. &quot;fat&quot;).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public string Name { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Source_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Source" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source">
+  Source
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Driver-specific backing-store identifier passed to <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__">TryMount(string, ReadOnlySpan&lt;char&gt;, MountFlags, string, out VfsMount?)</a> — for the FAT driver, this is the global partition index in <code>StorageManager.Partitions</code> as a decimal string.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string Source { get; }</code></pre>
   </div>
 
 

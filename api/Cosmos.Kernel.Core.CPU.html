@@ -102,10 +102,32 @@ Native imports live in Bridge/Import/CpuNative.cs.</p>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a></dt>
-      <dd><p>Interrupt manager - provides interrupt registration and dispatch for all architectures.
-Lives in Core because the vector table and dispatch logic are hardware-neutral;
-arch-specific drivers implement <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a> in
-Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>
+      <dd><p>Architecture-neutral interrupt registration and routing. Owns the dense
+256-entry handler table and the dynamic-vector allocator used by MSI
+programmers. The actual dispatch path (ack/EOI/LPI/fatal-fault handling)
+is delegated to the platform <a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a>
+implementation in Cosmos.Kernel.Core.X64 / Cosmos.Kernel.Core.ARM64.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.MsiRouting.html">MsiRouting</a></dt>
+      <dd><p>Architecture-neutral PCI MSI / MSI-X binding. Both x64 (LAPIC Fixed-mode
+messages) and ARM64 (GICv3 ITS GITS_TRANSLATER writes) ultimately program
+the same shape into a device's MSI-X table — a 64-bit address plus a
+32-bit data dword — but the routing model differs:</p>
+<ul><li>x64: data = IDT vector chosen by the kernel; address encodes the
+destination LAPIC ID. No per-device prep.</li><li>ARM64 ITS: data = EventID (per-device index); address = the
+shared <code>GITS_TRANSLATER</code> doorbell. The ITS must be told the
+(DeviceID, EventID) → LPI mapping out of band before the device fires.
+</li></ul>
+<p>This file abstracts both behind <a class="xref" href="Cosmos.Kernel.Core.CPU.IMsiBinder.html">IMsiBinder</a>: each platform
+initializer registers a binder, then HAL-level PCI MSI-X code calls
+<a class="xref" href="Cosmos.Kernel.Core.CPU.MsiRouting.html#Cosmos_Kernel_Core_CPU_MsiRouting_PrepareDevice_System_UInt32_System_UInt32_System_UInt32_System_Int32_">PrepareDevice(uint, uint, uint, int)</a> once per device and <a class="xref" href="Cosmos.Kernel.Core.CPU.MsiRouting.html#Cosmos_Kernel_Core_CPU_MsiRouting_BindEntry_System_Object_System_Int32_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_System_UInt32_System_UInt64__System_UInt32__">BindEntry(object?, int, IrqDelegate, uint, out ulong, out uint)</a>
+per MSI-X table entry. The binder owns vector / LPI allocation and any
+device-specific bookkeeping (ITT allocation, MAPD, MAPTI on ARM64).</p>
+<p>PCI device identity is passed in raw (bus, slot, function) form to keep
+this file free of <code>HAL/Pci</code> dependencies — Core can't reference
+HAL upstream.</p>
 </dd>
     </dl>
     <h3 id="structs">
@@ -134,8 +156,16 @@ Interfaces
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.IInterruptController.html">IInterruptController</a></dt>
-      <dd><p>Interface for platform-specific interrupt controller.
-Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>
+      <dd><p>Platform-specific interrupt controller. Implementations live in
+Cosmos.Kernel.Core.X64 (APIC/IDT) and Cosmos.Kernel.Core.ARM64
+(GIC/Exception Vectors). Each owns the arch-specific dispatch path:
+EOI timing, ack semantics, fatal-fault handling, and any extra
+handler tables (e.g. GICv3 LPIs) all live in the implementation.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.CPU.IMsiBinder.html">IMsiBinder</a></dt>
+      <dd><p>Platform-specific MSI binding backend. Implemented once per arch.</p>
 </dd>
     </dl>
     <h3 id="delegates">

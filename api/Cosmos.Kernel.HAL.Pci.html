@@ -106,6 +106,15 @@ Classes
       <dd></dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiX.html">MsiX</a></dt>
+      <dd><p>Programs the MSI-X capability of a PCI device (cap ID 0x11).
+Architecture-neutral: the message address/data are produced by the
+platform-registered <a class="xref" href="Cosmos.Kernel.Core.CPU.MsiRouting.html">MsiRouting</a> backend, so the same
+table programming works whether interrupts ultimately land on an x64
+LAPIC or an ARM64 GICv3 ITS.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciBaseAddressBar.html">PciBaseAddressBar</a></dt>
       <dd></dd>
     </dl>
@@ -128,6 +137,17 @@ Classes
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciManager.html">PciManager</a></dt>
       <dd></dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiXContext.html">MsiXContext</a></dt>
+      <dd><p>Handle returned by <a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiX.html#Cosmos_Kernel_HAL_Pci_MsiX_Enable_Cosmos_Kernel_HAL_Pci_PciDevice_">Enable(PciDevice)</a> identifying the mapped
+MSI-X table for a device. Carries the platform-binder's per-device
+state (e.g. ARM64 ITS DeviceID + ITT pointer) so subsequent
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiX.html#Cosmos_Kernel_HAL_Pci_MsiX_SetEntry_Cosmos_Kernel_HAL_Pci_MsiXContext_System_Int32_Cosmos_Kernel_Core_CPU_InterruptManager_IrqDelegate_System_UInt32_">SetEntry(MsiXContext, int, IrqDelegate, uint)</a> calls can route through the same context.</p>
+</dd>
     </dl>
 
 

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class FatFormatOptions | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class FatFormatOptions | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Parameters for FatFilesystemType.TryFormat(System.ReadOnlySpan&amp;lt;char&amp;gt;, IVfsFormatOptions?). All 0 / null fields mean &amp;quot;let the formatter pick a sensible default for the requested  and the device size.&amp;quot;">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions" class="text-break">
+Class FatFormatOptions  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.html">Filesystems</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.html">Fat</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Parameters for FatFilesystemType.TryFormat(System.ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?).
+All <code>0</code> / null fields mean &quot;let the formatter pick a sensible default
+for the requested <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a> and the device size.&quot;</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class FatFormatOptions : IVfsFormatOptions</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">FatFormatOptions</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_FatSectorCount_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.FatSectorCount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_FatSectorCount" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.FatSectorCount">
+  FatSectorCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>FAT sector count. <code>0</code> = compute from cluster count. On
+FAT12/16 the BPB stores this in a 16-bit field, so values above
+65535 are rejected by the formatter for those types.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint FatSectorCount { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_NumberOfFats_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.NumberOfFats*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_NumberOfFats" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.NumberOfFats">
+  NumberOfFats
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Number of FAT copies. <code>0</code> = 2 mirrored copies (fatgen103 §3.1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte NumberOfFats { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_ReservedSectorCount_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.ReservedSectorCount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_ReservedSectorCount" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.ReservedSectorCount">
+  ReservedSectorCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reserved sector count. <code>0</code> = 1 for FAT12/16, 32 for FAT32.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort ReservedSectorCount { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_RootCluster_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.RootCluster*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_RootCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.RootCluster">
+  RootCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Root cluster (FAT32 only). <code>0</code> = 2.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint RootCluster { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_RootEntryCount_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.RootEntryCount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_RootEntryCount" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.RootEntryCount">
+  RootEntryCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Root entry count (FAT12/16 only). <code>0</code> = 512.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort RootEntryCount { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_SectorsPerCluster_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.SectorsPerCluster*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_SectorsPerCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.SectorsPerCluster">
+  SectorsPerCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sectors per cluster. <code>0</code> = auto-pick a power of two.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte SectorsPerCluster { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_Type_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.Type*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_Type" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.Type">
+  Type
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>FAT family to format. <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html#Cosmos_Kernel_System_Filesystems_Fat_FatType_Unknown">Unknown</a> picks
+the smallest type that fits the device's cluster count.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public FatType Type { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_VolumeLabel_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.VolumeLabel*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_VolumeLabel" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.VolumeLabel">
+  VolumeLabel
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>11-byte volume label, padded with spaces. Empty = &quot;NO NAME    &quot;.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string? VolumeLabel { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_VolumeSerial_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.VolumeSerial*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatFormatOptions_VolumeSerial" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.VolumeSerial">
+  VolumeSerial
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>32-bit volume serial number. <code>0</code> = leave a deterministic default.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint VolumeSerial { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

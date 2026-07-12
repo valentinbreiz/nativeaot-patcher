@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Struct SpinLock | Cosmos Gen 3 ">
       
-      <meta name="description" content="Simple spinlock for SMP synchronization.">
+      <meta name="description" content="Simple spinlock for SMP synchronization. The plain  /  pair is only safe for locks that are never taken from interrupt context. If an ISR can acquire the same lock as mainline code (e.g. a wait/signal pair where the ISR signals), use : a single CPU holding the plain lock when the ISR fires will spin forever waiting for itself.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -98,6 +98,12 @@ Struct SpinLock
   </div>
 
   <div class="markdown summary"><p>Simple spinlock for SMP synchronization.</p>
+<p>The plain <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire">Acquire()</a> / <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Release">Release()</a> pair is
+only safe for locks that are never taken from interrupt context. If an
+ISR can acquire the same lock as mainline code (e.g. a wait/signal
+pair where the ISR signals), use <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>: a single
+CPU holding the plain lock when the ISR fires will spin forever waiting
+for itself.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -193,6 +199,43 @@ Struct SpinLock
   </div>
 
 
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe_" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.AcquireIrqSafe*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe" data-uid="Cosmos.Kernel.Core.Scheduler.SpinLock.AcquireIrqSafe">
+  AcquireIrqSafe()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disable interrupts and acquire the lock as a single scope. Dispose
+releases the lock then restores the prior interrupt state. Use
+whenever the same lock can be taken from both mainline and ISR
+context — without IRQ-safe acquisition, a single CPU holding the
+lock when its ISR fires will deadlock against itself.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[UnscopedRef]
+public IrqLockScope AcquireIrqSafe()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IrqLockScope.html">IrqLockScope</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

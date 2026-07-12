@@ -382,6 +382,110 @@ Class X64PlatformInitializer
 
 
 
+  <a id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_DelayMicroseconds_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.DelayMicroseconds*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_DelayMicroseconds_System_UInt32_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.DelayMicroseconds(System.UInt32)">
+  DelayMicroseconds(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Busy-waits for at least <code class="paramref">microseconds</code> µs without
+depending on interrupts or the scheduler — usable from phase-3
+device init. x64 paces on legacy port-0x80 reads (~1 µs each);
+ARM64 polls the generic timer (CNTVCT/CNTFRQ).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DelayMicroseconds(uint microseconds)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>microseconds</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_DmaBarrier_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.DmaBarrier*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_DmaBarrier" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.DmaBarrier">
+  DmaBarrier()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Full data-synchronization barrier ordering prior normal-memory
+accesses against subsequent device MMIO accesses. DMA drivers call
+this between filling a descriptor/queue entry in RAM and ringing
+the device doorbell (and after observing a device-written flag
+before consuming the data it guards). ARM64 issues <code>dsb sy</code>;
+x64's total store order already provides this, so it's a no-op.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DmaBarrier()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_EnsureMmioMapped_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.EnsureMmioMapped*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_EnsureMmioMapped_System_UInt64_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.EnsureMmioMapped(System.UInt64)">
+  EnsureMmioMapped(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Maps a physical MMIO region so the HHDM-virtual alias is accessible
+with Device-memory attributes. Called by HAL device drivers (AHCI,
+NVMe, etc.) before touching their BARs. ARM64 installs a Device
+mapping in TTBR1 via <code>DeviceMapper.EnsureMapped</code>; x64's existing
+page tables already cover MMIO so it's a no-op.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void EnsureMmioMapped(ulong physBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>physBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Physical base address of the MMIO region.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_GetCpuCount_" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetCpuCount*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_X64_X64PlatformInitializer_GetCpuCount" data-uid="Cosmos.Kernel.HAL.X64.X64PlatformInitializer.GetCpuCount">

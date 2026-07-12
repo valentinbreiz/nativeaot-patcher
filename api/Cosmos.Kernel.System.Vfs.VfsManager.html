@@ -149,6 +149,42 @@ Class VfsManager
 
 
 
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_Mounts_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.Mounts*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_Mounts" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.Mounts">
+  Mounts
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>All currently active mounts in registration order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IReadOnlyList&lt;VfsManager.VfsMount&gt; Mounts { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html">VfsManager</a>.<a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html">VfsMount</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 
@@ -181,6 +217,89 @@ Class VfsManager
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd><p><code>true</code> when registration succeeds; <code>false</code> if name is invalid, driver is null, or already registered.</p>
 </dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryDestroy_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryDestroy*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryDestroy_System_String_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryDestroy(System.String,System.ReadOnlySpan{System.Char})">
+  TryDestroy(string, ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Wipe the filesystem signature on the backing store for a registered
+driver so it no longer mounts.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryDestroy(string name, ReadOnlySpan&lt;char&gt; source)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryFormat_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryFormat*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryFormat_System_String_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsFormatOptions_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryFormat(System.String,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions)">
+  TryFormat(string, ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Format the backing store for a registered driver. The driver decides
+what <code class="paramref">source</code> means (partition index, injected device,
+etc.) and casts <code class="paramref">options</code> to its own option type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryFormat(string name, ReadOnlySpan&lt;char&gt; source, IVfsFormatOptions? options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>options</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
   </dl>
 
 
@@ -342,6 +461,45 @@ Class VfsManager
     <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
     <dt><code>file</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html">IVfsFileHandle</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryUnmount_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryUnmount_System_String_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount(System.String)">
+  TryUnmount(string)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Unmount the filesystem at <code class="paramref">mountPoint</code>: drops the
+superblock (which flushes per the driver's Drop semantics) and
+removes the mount from the table.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryUnmount(string mountPoint)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
   </dl>
 

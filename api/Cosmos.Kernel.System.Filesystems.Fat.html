@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.System.Filesystems.Fat | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.System.Filesystems.Fat | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Filesystems.Fat">
+
+  <h1 id="Cosmos_Kernel_System_Filesystems_Fat" data-uid="Cosmos.Kernel.System.Filesystems.Fat" class="text-break">Namespace Cosmos.Kernel.System.Filesystems.Fat</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a></dt>
+      <dd><p>Parsed BIOS Parameter Block plus derived geometry for a FAT volume.
+All <code>*Lba</code> fields are absolute on the underlying
+<a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a> the BPB was read from.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html">FatDirEntry</a></dt>
+      <dd><p>Parsed FAT directory entry. <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html#Cosmos_Kernel_System_Filesystems_Fat_FatDirEntry_ByteOffset">ByteOffset</a> is the byte position of the 8.3 record within the buffer that produced it; LFN entries that contributed to <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html#Cosmos_Kernel_System_Filesystems_Fat_FatDirEntry_Name">Name</a> precede it.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.html">FatDirectory</a></dt>
+      <dd><p>Parser and encoder for FAT directory clusters. Operates over raw byte
+spans; no I/O is performed here.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.html">FatFilesystemType</a></dt>
+      <dd><p>FAT12 / FAT16 / FAT32 driver entry point. Pluggable into the VFS via
+<code>VfsManager.RegisterFilesystem</code>. Source strings:</p>
+<ul><li>Empty: use the injected device passed to the constructor (test seam).</li><li><code>"&lt;index&gt;"</code>: partition index in <a class="xref" href="Cosmos.Kernel.System.Storage.StorageManager.html#Cosmos_Kernel_System_Storage_StorageManager_Partitions">Partitions</a>.</li></ul>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.html">FatFormatOptions</a></dt>
+      <dd><p>Parameters for FatFilesystemType.TryFormat(System.ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?).
+All <code>0</code> / null fields mean &quot;let the formatter pick a sensible default
+for the requested <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a> and the device size.&quot;</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatTable.html">FatTable</a></dt>
+      <dd><p>FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry
+reads and writes go through the underlying <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a>
+using <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a> geometry. Cluster numbers coming from
+on-disk metadata are untrusted: accessors treat anything outside the
+volume's data clusters as end-of-chain and never let it drive I/O.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatAttr.html">FatAttr</a></dt>
+      <dd><p>FAT directory-entry attribute bits (FAT spec).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a></dt>
+      <dd><p>FAT family identifier; selected from cluster count per the FAT32 spec.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

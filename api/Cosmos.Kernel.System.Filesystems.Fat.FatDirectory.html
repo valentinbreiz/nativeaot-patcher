@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class FatDirectory | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class FatDirectory | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Parser and encoder for FAT directory clusters. Operates over raw byte spans; no I/O is performed here.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory" class="text-break">
+Class FatDirectory  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.html">Filesystems</a>.<a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.html">Fat</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Parser and encoder for FAT directory clusters. Operates over raw byte
+spans; no I/O is performed here.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class FatDirectory</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">FatDirectory</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_AttributesOffset" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.AttributesOffset">
+  AttributesOffset
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte offset of the attribute byte within an 8.3 entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int AttributesOffset = 11</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ClusterHighShift" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ClusterHighShift">
+  ClusterHighShift
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shift placing DIR_FstClusHI in the upper 16 bits of the 32-bit cluster number (FAT32).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int ClusterHighShift = 16</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ClusterWordBytes" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ClusterWordBytes">
+  ClusterWordBytes
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte width of each 16-bit half of the first-cluster field (DIR_FstClusLO / DIR_FstClusHI, fatgen103 §6).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int ClusterWordBytes = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ClusterWordMask" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ClusterWordMask">
+  ClusterWordMask
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mask isolating one 16-bit half of a first-cluster number.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint ClusterWordMask = 65535</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_DeletedMarker" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.DeletedMarker">
+  DeletedMarker
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>First byte value marking a deleted entry.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte DeletedMarker = 229</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_DirectorySizeOnDisk" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.DirectorySizeOnDisk">
+  DirectorySizeOnDisk
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>DIR_FileSize recorded for directory entries — fatgen103 §6 mandates 0 for directories.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint DirectorySizeOnDisk = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_EmptyFirstCluster" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.EmptyFirstCluster">
+  EmptyFirstCluster
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>First-cluster value recorded for an entry that owns no data clusters (fatgen103 §6: DIR_FstClusLO/HI hold 0); also the FAT12/16 fixed root, whose storage lies outside the data area.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint EmptyFirstCluster = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_EndOfDirectoryMarker" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.EndOfDirectoryMarker">
+  EndOfDirectoryMarker
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>First byte value terminating the directory (no entries follow).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const byte EndOfDirectoryMarker = 0</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_EntrySize" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.EntrySize">
+  EntrySize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Size in bytes of one 8.3 directory entry (fatgen103 §6).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int EntrySize = 32</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FirstClusterHighOffset" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FirstClusterHighOffset">
+  FirstClusterHighOffset
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte offset of the high 16 bits of the first cluster (FAT32; reserved on FAT12/16).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int FirstClusterHighOffset = 20</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FirstClusterLowOffset" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FirstClusterLowOffset">
+  FirstClusterLowOffset
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte offset of the low 16 bits of the first cluster.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int FirstClusterLowOffset = 26</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_MaxLfnNameLength" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.MaxLfnNameLength">
+  MaxLfnNameLength
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Longest name the LFN format allows.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int MaxLfnNameLength = 255</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_SizeFieldBytes" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.SizeFieldBytes">
+  SizeFieldBytes
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte width of the 32-bit DIR_FileSize field (fatgen103 §6).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int SizeFieldBytes = 4</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_SizeOffset" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.SizeOffset">
+  SizeOffset
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Byte offset of the 32-bit file size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int SizeOffset = 28</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_BuildShortName_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.BuildShortName*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_BuildShortName_System_String_System_Span_System_Char__System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.BuildShortName(System.String,System.Span{System.Char},System.ReadOnlySpan{System.Byte})">
+  BuildShortName(string, Span&lt;char&gt;, ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Build the 8.3 name for <code class="paramref">longName</code>. When the name
+does not fit 8.3 as-is, a numeric tail (~1, ~2, ...) is chosen so
+the result collides with no live short name in
+<code class="paramref">directoryData</code> — duplicate short names are
+invalid on FAT, and short-name lookups would resolve to the wrong
+file.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void BuildShortName(string longName, Span&lt;char&gt; dest11, ReadOnlySpan&lt;byte&gt; directoryData)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>longName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>dest11</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>directoryData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ComputeShortChecksum_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ComputeShortChecksum*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ComputeShortChecksum_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ComputeShortChecksum(System.ReadOnlySpan{System.Byte})">
+  ComputeShortChecksum(ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checksum over the raw 11 on-disk name bytes (fatgen103 algorithm).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte ComputeShortChecksum(ReadOnlySpan&lt;byte&gt; raw11)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>raw11</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ComputeShortChecksum_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ComputeShortChecksum*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_ComputeShortChecksum_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ComputeShortChecksum(System.ReadOnlySpan{System.Char})">
+  ComputeShortChecksum(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static byte ComputeShortChecksum(ReadOnlySpan&lt;char&gt; shortName11)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>shortName11</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FindFreeRun_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FindFreeRun*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FindFreeRun_System_ReadOnlySpan_System_Byte__System_Int32_System_Boolean__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FindFreeRun(System.ReadOnlySpan{System.Byte},System.Int32,System.Boolean@)">
+  FindFreeRun(ReadOnlySpan&lt;byte&gt;, int, out bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Locate the first free entry slot (deleted or unused) where
+<code class="paramref">entriesNeeded</code> consecutive 32-byte slots fit.
+Per spec the 0x00 terminator frees its own slot and everything
+after it, so scanning stops there and the remaining buffer counts
+as one free region — stale bytes past the terminator must never
+reset the run (or be treated as occupied). When the returned run
+overlaps the terminator, <code class="paramref">consumedTerminator</code> is
+true and the caller must re-terminate after the new entries.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int FindFreeRun(ReadOnlySpan&lt;byte&gt; buffer, int entriesNeeded, out bool consumedTerminator)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>entriesNeeded</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>consumedTerminator</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FitsInShortName_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FitsInShortName*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_FitsInShortName_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.FitsInShortName(System.ReadOnlySpan{System.Char})">
+  FitsInShortName(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool FitsInShortName(ReadOnlySpan&lt;char&gt; name)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_LfnEntryCountFor_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.LfnEntryCountFor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_LfnEntryCountFor_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.LfnEntryCountFor(System.ReadOnlySpan{System.Char})">
+  LfnEntryCountFor(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static int LfnEntryCountFor(ReadOnlySpan&lt;char&gt; name)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_MarkDeleted_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.MarkDeleted*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_MarkDeleted_System_Span_System_Byte__System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.MarkDeleted(System.Span{System.Byte},System.Int32,System.Int32)">
+  MarkDeleted(Span&lt;byte&gt;, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void MarkDeleted(Span&lt;byte&gt; dest, int offset, int entryCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>entryCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_NameEqualsIgnoreCase_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.NameEqualsIgnoreCase*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_NameEqualsIgnoreCase_System_String_System_String_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.NameEqualsIgnoreCase(System.String,System.String)">
+  NameEqualsIgnoreCase(string, string)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Case-insensitive ASCII comparison used for FAT name matching —
+the single comparer shared by the superblock and inode layers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool NameEqualsIgnoreCase(string a, string b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>b</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_Parse_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.Parse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_Parse_System_ReadOnlySpan_System_Byte__System_Boolean_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.Parse(System.ReadOnlySpan{System.Byte},System.Boolean)">
+  Parse(ReadOnlySpan&lt;byte&gt;, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Parse the raw directory data. <code class="paramref">fat32</code> selects
+whether the FstClusHI word participates in <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html#Cosmos_Kernel_System_Filesystems_Fat_FatDirEntry_FirstCluster">FirstCluster</a> —
+on FAT12/16 that field is reserved (OS/2/NT stored the EA handle
+there) and must be ignored.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static List&lt;FatDirEntry&gt; Parse(ReadOnlySpan&lt;byte&gt; buffer, bool fat32)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>fat32</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html">FatDirEntry</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_WriteLfnEntries_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.WriteLfnEntries*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_WriteLfnEntries_System_Span_System_Byte__System_Int32_System_ReadOnlySpan_System_Char__System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.WriteLfnEntries(System.Span{System.Byte},System.Int32,System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})">
+  WriteLfnEntries(Span&lt;byte&gt;, int, ReadOnlySpan&lt;char&gt;, ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteLfnEntries(Span&lt;byte&gt; dest, int offset, ReadOnlySpan&lt;char&gt; longName, ReadOnlySpan&lt;char&gt; shortName11)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>longName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>shortName11</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_WriteShortEntry_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.WriteShortEntry*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Filesystems_Fat_FatDirectory_WriteShortEntry_System_Span_System_Byte__System_Int32_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Filesystems_Fat_FatAttr_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.WriteShortEntry(System.Span{System.Byte},System.Int32,System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Filesystems.Fat.FatAttr,System.UInt32,System.UInt32)">
+  WriteShortEntry(Span&lt;byte&gt;, int, ReadOnlySpan&lt;char&gt;, FatAttr, uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Write an 8.3 entry to <code class="paramref">dest</code> at <code class="paramref">offset</code>; <code class="paramref">dest</code> must be writable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteShortEntry(Span&lt;byte&gt; dest, int offset, ReadOnlySpan&lt;char&gt; shortName11, FatAttr attributes, uint firstCluster, uint size)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>shortName11</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>attributes</code> <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatAttr.html">FatAttr</a></dt>
+    <dd></dd>
+    <dt><code>firstCluster</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>size</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

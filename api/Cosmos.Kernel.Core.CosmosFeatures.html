@@ -155,6 +155,41 @@ and are used by ILC for trimming.</p>
 </h2>
 
 
+  <a id="Cosmos_Kernel_Core_CosmosFeatures_FatEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.FatEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_FatEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.FatEnabled">
+  FatEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Controls FAT filesystem driver registration. Requires Storage; the
+MSBuild cascade in Sdk.targets disables this when Storage is off.
+Set via CosmosEnableFat property in csproj.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Filesystems.Fat.Enabled&quot;)]
+public static bool FatEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_CosmosFeatures_GraphicsEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled*"></a>
 
   <h3 id="Cosmos_Kernel_Core_CosmosFeatures_GraphicsEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled">
@@ -375,6 +410,41 @@ Set via CosmosEnableScheduler property in csproj.</p>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.Core.Scheduler.Enabled&quot;)]
 public static bool SchedulerEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_CosmosFeatures_StorageEnabled_" data-uid="Cosmos.Kernel.Core.CosmosFeatures.StorageEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_CosmosFeatures_StorageEnabled" data-uid="Cosmos.Kernel.Core.CosmosFeatures.StorageEnabled">
+  StorageEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Controls block storage support initialization (AHCI/SATA, etc.).
+Requires PCI and Interrupts; the MSBuild cascade in Sdk.targets disables this when either is off.
+Set via CosmosEnableStorage property in csproj.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[FeatureSwitchDefinition(&quot;Cosmos.Kernel.System.Storage.Enabled&quot;)]
+public static bool StorageEnabled { get; }</code></pre>
   </div>
 
 

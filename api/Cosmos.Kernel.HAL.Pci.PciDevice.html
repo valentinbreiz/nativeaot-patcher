@@ -242,6 +242,192 @@ Class PciDevice
 
 
 
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarIoSpaceMask" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarIoSpaceMask">
+  BarIoSpaceMask
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>BAR bit 0 — set when the BAR maps I/O space instead of memory space.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint BarIoSpaceMask = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarMemoryAddressMask" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarMemoryAddressMask">
+  BarMemoryAddressMask
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mask selecting the address bits of a memory BAR (low 4 bits are flags).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint BarMemoryAddressMask = 4294967280</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarType64Bit" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarType64Bit">
+  BarType64Bit
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Memory BAR type value indicating a 64-bit BAR.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint BarType64Bit = 2</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarTypeMask" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarTypeMask">
+  BarTypeMask
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mask for the memory BAR type field after shifting.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const uint BarTypeMask = 3</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarTypeShift" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarTypeShift">
+  BarTypeShift
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shift down to the memory BAR type field (bits 2:1).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int BarTypeShift = 1</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BarUpperHalfShift" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BarUpperHalfShift">
+  BarUpperHalfShift
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Shift placing the upper BAR half into bits 63:32 of the combined address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const int BarUpperHalfShift = 32</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_BaseAddressBar" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.BaseAddressBar">
   BaseAddressBar
   
@@ -350,66 +536,6 @@ Class PciDevice
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_ConfigAddressPort" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.ConfigAddressPort">
-  ConfigAddressPort
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const ushort ConfigAddressPort = 3320</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_ConfigDataPort" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.ConfigDataPort">
-  ConfigDataPort
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const ushort ConfigDataPort = 3324</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 
@@ -962,6 +1088,92 @@ Class PciDevice
 </dd>
   </dl>
 
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Pci_PciDevice_FindCapability_" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.FindCapability*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_FindCapability_System_Byte_" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.FindCapability(System.Byte)">
+  FindCapability(byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Walks the PCI capabilities linked list and returns the config-space
+offset of the first capability whose ID matches <code class="paramref">capId</code>,
+or 0 if not found. The list is gated on Status[4] (Capabilities List)
+and the capability pointer at config offset 0x34 (only valid for
+Type-0 / Normal headers).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte FindCapability(byte capId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>capId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Pci_PciDevice_GetBar64Address_" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.GetBar64Address*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Pci_PciDevice_GetBar64Address_System_Int32_" data-uid="Cosmos.Kernel.HAL.Pci.PciDevice.GetBar64Address(System.Int32)">
+  GetBar64Address(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the full physical base address of memory BAR
+<code class="paramref">barIndex</code>. For 64-bit BARs this combines the
+lower BAR with the immediately-following upper BAR; for 32-bit
+BARs it returns just the lower 32 bits. I/O BARs, out-of-range
+indices, and a 64-bit claim with no following BAR return 0.
+Both halves are read live from config space — the ctor-cached
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html#Cosmos_Kernel_HAL_Pci_PciDevice_BaseAddressBar">BaseAddressBar</a> copy is an enumeration-time snapshot,
+and splicing it with a live upper half would combine two different
+addresses once a BAR is reprogrammed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong GetBar64Address(int barIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>barIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

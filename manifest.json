@@ -400,7 +400,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Bridge.AcpiMcfgNative",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.yml\" sourcestartlinenumber=\"1\">Architecture-neutral ACPI MCFG import (PCI ECAM discovery).\nMADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs;\nGIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/AcpiGicNative.cs.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.AcpiMcfgNative.yml\" sourcestartlinenumber=\"1\">Architecture-neutral ACPI MCFG import (PCI ECAM discovery).\nMADT lives in Cosmos.Kernel.Core.X64/Bridge/Import/AcpiMadtNative.cs;\nGIC info lives in Cosmos.Kernel.Core.ARM64/Bridge/Import/Gic/AcpiGicNative.cs.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -610,7 +610,21 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.CPU.IInterruptController",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.IInterruptController.yml\" sourcestartlinenumber=\"1\">Interface for platform-specific interrupt controller.\nImplemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.IInterruptController.yml\" sourcestartlinenumber=\"1\">Platform-specific interrupt controller. Implementations live in\nCosmos.Kernel.Core.X64 (APIC/IDT) and Cosmos.Kernel.Core.ARM64\n(GIC/Exception Vectors). Each owns the arch-specific dispatch path:\nEOI timing, ack semantics, fatal-fault handling, and any extra\nhandler tables (e.g. GICv3 LPIs) all live in the implementation.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.IMsiBinder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.IMsiBinder.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.IMsiBinder",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.IMsiBinder.yml\" sourcestartlinenumber=\"1\">Platform-specific MSI binding backend. Implemented once per arch.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -680,7 +694,21 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.CPU.InterruptManager",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InterruptManager.yml\" sourcestartlinenumber=\"1\">Interrupt manager - provides interrupt registration and dispatch for all architectures.\nLives in Core because the vector table and dispatch logic are hardware-neutral;\narch-specific drivers implement <xref href=\"Cosmos.Kernel.Core.CPU.IInterruptController\" data-throw-if-not-resolved=\"false\"></xref> in\nCosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.InterruptManager.yml\" sourcestartlinenumber=\"1\">Architecture-neutral interrupt registration and routing. Owns the dense\n256-entry handler table and the dynamic-vector allocator used by MSI\nprogrammers. The actual dispatch path (ack/EOI/LPI/fatal-fault handling)\nis delegated to the platform <xref href=\"Cosmos.Kernel.Core.CPU.IInterruptController\" data-throw-if-not-resolved=\"false\"></xref>\nimplementation in Cosmos.Kernel.Core.X64 / Cosmos.Kernel.Core.ARM64.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.CPU.MsiRouting.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.CPU.MsiRouting.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.CPU.MsiRouting",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.MsiRouting.yml\" sourcestartlinenumber=\"1\">Architecture-neutral PCI MSI / MSI-X binding. Both x64 (LAPIC Fixed-mode\nmessages) and ARM64 (GICv3 ITS GITS_TRANSLATER writes) ultimately program\nthe same shape into a device's MSI-X table — a 64-bit address plus a\n32-bit data dword — but the routing model differs:</p>\n<ul><li>x64: data = IDT vector chosen by the kernel; address encodes the\ndestination LAPIC ID. No per-device prep.</li><li>ARM64 ITS: data = EventID (per-device index); address = the\nshared <code>GITS_TRANSLATER</code> doorbell. The ITS must be told the\n(DeviceID, EventID) → LPI mapping out of band before the device fires.\n</li></ul>\n<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.MsiRouting.yml\" sourcestartlinenumber=\"12\">This file abstracts both behind <xref href=\"Cosmos.Kernel.Core.CPU.IMsiBinder\" data-throw-if-not-resolved=\"false\"></xref>: each platform\ninitializer registers a binder, then HAL-level PCI MSI-X code calls\n<xref href=\"Cosmos.Kernel.Core.CPU.MsiRouting.PrepareDevice(System.UInt32%2cSystem.UInt32%2cSystem.UInt32%2cSystem.Int32)\" data-throw-if-not-resolved=\"false\"></xref> once per device and <xref href=\"Cosmos.Kernel.Core.CPU.MsiRouting.BindEntry(System.Object%2cSystem.Int32%2cCosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate%2cSystem.UInt32%2cSystem.UInt64%40%2cSystem.UInt32%40)\" data-throw-if-not-resolved=\"false\"></xref>\nper MSI-X table entry. The binder owns vector / LPI allocation and any\ndevice-specific bookkeeping (ITT allocation, MAPD, MAPTI on ARM64).</p>\n<p sourcefile=\"api/Cosmos.Kernel.Core.CPU.MsiRouting.yml\" sourcestartlinenumber=\"18\">PCI device identity is passed in raw (bus, slot, function) form to keep\nthis file free of <code>HAL/Pci</code> dependencies — Core can't reference\nHAL upstream.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1748,6 +1776,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.InterruptEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.InterruptEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.InterruptEvent",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.InterruptEvent.yml\" sourcestartlinenumber=\"1\">One-shot binary completion event with auto-reset semantics, designed\nto be signaled from an ISR and waited on from a normal thread.</p>\n<p><xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Wait\" data-throw-if-not-resolved=\"false\"></xref> blocks the caller via <xref href=\"Cosmos.Kernel.Core.Scheduler.SchedulerManager.BlockThread(System.UInt32%2cCosmos.Kernel.Core.Scheduler.Thread)\" data-throw-if-not-resolved=\"false\"></xref>\nuntil <xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Signal\" data-throw-if-not-resolved=\"false\"></xref> is called. <xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Signal\" data-throw-if-not-resolved=\"false\"></xref> only walks\ninternal state with the spinlock held and calls\n<xref href=\"Cosmos.Kernel.Core.Scheduler.SchedulerManager.ReadyThread(System.UInt32%2cCosmos.Kernel.Core.Scheduler.Thread)\" data-throw-if-not-resolved=\"false\"></xref> — no allocation, no\ninterface dispatch — so it is safe from interrupt context.</p>\n<p>Modeled after <xref href=\"Cosmos.Kernel.Core.Scheduler.Mutex\" data-throw-if-not-resolved=\"false\"></xref> but reduced to the surface\ndrivers actually need (a producer ISR and a consumer thread). Multiple\nconsumers can wait; <xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Signal\" data-throw-if-not-resolved=\"false\"></xref> wakes one. Signals are\ncounted, not latched as a single bit: two <xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Signal\" data-throw-if-not-resolved=\"false\"></xref>s with\ntwo parked waiters wake both, and signals arriving while no consumer\nwaits are consumed one per subsequent <xref href=\"Cosmos.Kernel.Core.Scheduler.InterruptEvent.Wait\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.IrqLockScope.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.IrqLockScope.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.IrqLockScope",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.IrqLockScope.yml\" sourcestartlinenumber=\"1\">RAII scope returned by <xref href=\"Cosmos.Kernel.Core.Scheduler.SpinLock.AcquireIrqSafe\" data-throw-if-not-resolved=\"false\"></xref>. Disables\ninterrupts and acquires the lock on creation; on dispose, releases the\nlock then restores the prior interrupt state. Dispose order matters:\nthe lock must be released before interrupts are re-enabled so an ISR\nfiring immediately after restore never sees the lock held.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.Monitor.yml",
       "output": {
         ".html": {
@@ -1828,7 +1884,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Scheduler.SpinLock",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.SpinLock.yml\" sourcestartlinenumber=\"1\">Simple spinlock for SMP synchronization.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.SpinLock.yml\" sourcestartlinenumber=\"1\">Simple spinlock for SMP synchronization.</p>\n<p>The plain <xref href=\"Cosmos.Kernel.Core.Scheduler.SpinLock.Acquire\" data-throw-if-not-resolved=\"false\"></xref> / <xref href=\"Cosmos.Kernel.Core.Scheduler.SpinLock.Release\" data-throw-if-not-resolved=\"false\"></xref> pair is\nonly safe for locks that are never taken from interrupt context. If an\nISR can acquire the same lock as mainline code (e.g. a wait/signal\npair where the ISR signals), use <xref href=\"Cosmos.Kernel.Core.Scheduler.SpinLock.AcquireIrqSafe\" data-throw-if-not-resolved=\"false\"></xref>: a single\nCPU holding the plain lock when the ISR fires will spin forever waiting\nfor itself.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -2574,6 +2630,426 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Ahci.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Ahci.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.Ahci",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.Ahci.yml\" sourcestartlinenumber=\"1\">AHCI driver entry point. Scans PCI for every\n<xref href=\"Cosmos.Kernel.HAL.Pci.Enums.ClassId.MassStorageController\" data-throw-if-not-resolved=\"false\"></xref> /\n<xref href=\"Cosmos.Kernel.HAL.Pci.Enums.SubclassId.SataController\" data-throw-if-not-resolved=\"false\"></xref> device and brings each one up\nindependently — a machine with two SATA HBAs gets two\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.AhciController\" data-throw-if-not-resolved=\"false\"></xref> instances and all of their attached SATA\ndrives show up in <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Ahci.Ports\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AhciController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AhciController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.AhciController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.AhciController.yml\" sourcestartlinenumber=\"1\">One initialized AHCI HBA. Each controller owns its ABAR (HHDM-mapped),\ncapability snapshot, port list, and a per-controller command region\nallocated from <xref href=\"Cosmos.Kernel.Core.Memory.PageAllocator\" data-throw-if-not-resolved=\"false\"></xref> — kernel-virtual for memset,\nphysical (via <xref href=\"Cosmos.Kernel.Core.Memory.PageAllocator.VirtualToPhysical(System.UInt64)\" data-throw-if-not-resolved=\"false\"></xref>) for the\nHBA's CLB / FB / CTBA registers. The driver scans PCI for every\nmatching SATA/AHCI controller and instantiates one\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.AhciController\" data-throw-if-not-resolved=\"false\"></xref> per match, so a system with two HBAs gets\ntwo instances and all of their ports show up in <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Ahci.Ports\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AhciSignature.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AhciSignature.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.AhciSignature",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.AhciSignature.yml\" sourcestartlinenumber=\"1\">AHCI drive signature to identify what drive is plugged to Port.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.AtaCommands",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.AtaCommands.yml\" sourcestartlinenumber=\"1\">ATA Commands.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AtaDeviceStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.AtaDeviceStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.AtaDeviceStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.AtaDeviceStatus.yml\" sourcestartlinenumber=\"1\">ATA Device Status bits.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.BlockDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all block storage devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.CommandAndStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.CommandAndStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.CommandAndStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.CommandAndStatus.yml\" sourcestartlinenumber=\"1\">Command and Status register bits.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.CurrentInterfaceSpeedStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.CurrentInterfaceSpeedStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.CurrentInterfaceSpeedStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.CurrentInterfaceSpeedStatus.yml\" sourcestartlinenumber=\"1\">SATA Status: Current Interface Speed.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.DeviceDetectionStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.DeviceDetectionStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.DeviceDetectionStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.DeviceDetectionStatus.yml\" sourcestartlinenumber=\"1\">SATA Status: Device Detection Status.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.FisRegisterH2D.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.FisRegisterH2D.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.FisRegisterH2D",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.FisRegisterH2D.yml\" sourcestartlinenumber=\"1\">FIS Register Host to Device.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.FisType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.FisType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.FisType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.FisType.yml\" sourcestartlinenumber=\"1\">FIS (Frame Information Structure) type enumeration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.GenericRegisters.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.GenericRegisters.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.GenericRegisters",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.GenericRegisters.yml\" sourcestartlinenumber=\"1\">AHCI Generic Host Control Registers.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader.yml\" sourcestartlinenumber=\"1\">HBA Command Header structure.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.yml\" sourcestartlinenumber=\"1\">HBA Command Table. <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.HbaCommandTable.CFIS\" data-throw-if-not-resolved=\"false\"></xref> is the kernel-virtual base; the\nHBA itself addresses this table via the physical CTBA written into the\nowning <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.HbaCommandHeader\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaPrdtEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.HbaPrdtEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.HbaPrdtEntry",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.HbaPrdtEntry.yml\" sourcestartlinenumber=\"1\">HBA PRDT Entry.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.InterfacePowerManagementStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.InterfacePowerManagementStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.InterfacePowerManagementStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.InterfacePowerManagementStatus.yml\" sourcestartlinenumber=\"1\">SATA Status: Interface Power Management Status.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.InterruptStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.InterruptStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.InterruptStatus",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.InterruptStatus.yml\" sourcestartlinenumber=\"1\">Interrupt Status bits.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Nvme.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Nvme.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.Nvme",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.Nvme.yml\" sourcestartlinenumber=\"1\">NVMe driver entry point. Scans PCI for every\n<xref href=\"Cosmos.Kernel.HAL.Pci.Enums.ClassId.MassStorageController\" data-throw-if-not-resolved=\"false\"></xref> /\n<xref href=\"Cosmos.Kernel.HAL.Pci.Enums.SubclassId.NvmController\" data-throw-if-not-resolved=\"false\"></xref> device and brings each one up\nindependently — a machine with two M.2 SSDs gets two\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.NvmeController\" data-throw-if-not-resolved=\"false\"></xref> instances and all their namespaces show up\nin <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Nvme.Namespaces\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeAdminOp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeAdminOp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeAdminOp",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeAdminOp.yml\" sourcestartlinenumber=\"1\">NVMe admin opcodes (NVM Express 1.4 §5.x).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCns.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCns.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeCns",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCns.yml\" sourcestartlinenumber=\"1\">Identify CNS values (NVM Express 1.4 §5.15).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeController.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeController",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeController.yml\" sourcestartlinenumber=\"1\">One initialized NVMe controller. Owns its admin and a single IO\nqueue pair, and the namespaces it discovered. The admin queue is\npolled (it only runs once at init); the I/O queue is interrupt-driven\nvia MSI-X so callers of <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Read(System.UInt32%2cSystem.UInt64%2cSystem.Span%7bSystem.Byte%7d%2cSystem.UInt16)\" data-throw-if-not-resolved=\"false\"></xref> / <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.NvmeController.Write(System.UInt32%2cSystem.UInt64%2cSystem.ReadOnlySpan%7bSystem.Byte%7d%2cSystem.UInt16)\" data-throw-if-not-resolved=\"false\"></xref> can\nyield instead of burning a CPU on a spinloop, and up to\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.NvmeController.IoQueueDepth\" data-throw-if-not-resolved=\"false\"></xref>-1 commands can be in flight concurrently\nbecause every slot owns its own 4 KiB DMA bounce buffer.</p>\n<p>If MSI-X is unavailable (e.g. ARM64 today, or a pathological\nPCI device with no MSI-X capability) the controller falls back to\npolled completion, but in that mode commands are serialized through\nan internal mutex.</p>\n<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeController.yml\" sourcestartlinenumber=\"14\">Limitations:</p>\n<ul><li>One IO submission and one IO completion queue (qid=1), depth 8.\nAt most depth-1 commands are in flight (NVMe queue-full rule: a\ndepth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable\nfrom an empty queue).</li><li>Single-PRP transfers — every command moves at most one 4 KiB\npage through the slot's bounce buffer, so PRP2 is always 0. Namespaces\nwhose LBA format exceeds one page (or carries metadata) are skipped at\ndiscovery.</li></ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCqe.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCqe.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeCqe",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeCqe.yml\" sourcestartlinenumber=\"1\">NVMe Completion Queue Entry (16 bytes). Reads only — the controller\nwrites these.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeIoOp.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeIoOp.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeIoOp",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeIoOp.yml\" sourcestartlinenumber=\"1\">NVMe NVM-command-set IO opcodes (NVM Express 1.4 §6.x).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeNamespace.yml\" sourcestartlinenumber=\"1\">One NVMe namespace exposed as an <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice\" data-throw-if-not-resolved=\"false\"></xref>.\nReads and writes are issued one LBA at a time through the parent\ncontroller's per-slot bounce buffers — multiple namespaces (or\nconcurrent callers on the same namespace) execute in parallel up to\nthe controller's I/O queue depth minus one (the NVMe queue-full rule).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters.yml\" sourcestartlinenumber=\"1\">NVMe controller register block accessor. Wraps the BAR0 virtual base\n(BAR0 phys + HHDM offset) and exposes the spec registers via\n<xref href=\"Cosmos.Kernel.Core.Native.MMIO\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeRegisters.yml\" sourcestartlinenumber=\"5\">Layout follows NVM Express 1.4 §3.1.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeSqe.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.NvmeSqe.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.NvmeSqe",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.NvmeSqe.yml\" sourcestartlinenumber=\"1\">NVMe Submission Queue Entry (64 bytes). Backed by raw memory; the\nhelpers fill the spec-defined CDWs without using managed structs (so\nthe layout stays exactly as the controller expects regardless of\nruntime padding).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.PortRegisters",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.PortRegisters.yml\" sourcestartlinenumber=\"1\">AHCI Port Registers. Carries a back-reference to the\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.AhciController\" data-throw-if-not-resolved=\"false\"></xref> that owns the port so per-port code (SATA\ncommand issue, port reset) can reach controller state without going\nthrough globals.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.PortType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.PortType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.PortType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.PortType.yml\" sourcestartlinenumber=\"1\">Port type enumeration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Sata.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.Sata.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage.Sata",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Storage.Sata.yml\" sourcestartlinenumber=\"1\">SATA drive port driver. The bounce buffer is a single page allocated\nfrom <xref href=\"Cosmos.Kernel.Core.Memory.PageAllocator\" data-throw-if-not-resolved=\"false\"></xref>; the HBA DMAs to its physical address\nwhile <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Sata.ReadDataBlock16(System.UInt16%5b%5d)\" data-throw-if-not-resolved=\"false\"></xref> / <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Sata.WriteDataBlock8(System.ReadOnlySpan%7bSystem.Byte%7d)\" data-throw-if-not-resolved=\"false\"></xref>\ntouch the kernel-virtual address.</p>\n<p>Error contract: command issue throws on failure (no free slot,\ndevice timeout, task-file error), so <xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Sata.ReadBlock(System.UInt64%2cSystem.UInt64%2cSystem.Span%7bSystem.Byte%7d)\" data-throw-if-not-resolved=\"false\"></xref> /\n<xref href=\"Cosmos.Kernel.HAL.Devices.Storage.Sata.WriteBlock(System.UInt64%2cSystem.UInt64%2cSystem.ReadOnlySpan%7bSystem.Byte%7d)\" data-throw-if-not-resolved=\"false\"></xref> never silently hand back stale bounce-buffer\ncontents. All I/O on a port is serialized by an internal lock — the\nport owns a single bounce buffer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Storage.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Storage",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.yml",
       "output": {
         ".html": {
@@ -2613,6 +3089,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.yml\" sourcestartlinenumber=\"1\">Interface for block storage devices (SATA, NVMe, virtio-blk, etc.).\nBlock-level read/write only — partitioning and filesystems sit above this.</p>\n<p>Error contract: <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.ReadBlock(System.UInt64%2cSystem.UInt64%2cSystem.Span%7bSystem.Byte%7d)\" data-throw-if-not-resolved=\"false\"></xref>, <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.WriteBlock(System.UInt64%2cSystem.UInt64%2cSystem.ReadOnlySpan%7bSystem.Byte%7d)\" data-throw-if-not-resolved=\"false\"></xref>\nand <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Flush\" data-throw-if-not-resolved=\"false\"></xref> throw on failure (device error, timeout,\nout-of-range request). A return without an exception means the\noperation completed on the device.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -2938,6 +3428,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.MsiX.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.MsiX.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.MsiX",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Pci.MsiX.yml\" sourcestartlinenumber=\"1\">Programs the MSI-X capability of a PCI device (cap ID 0x11).\nArchitecture-neutral: the message address/data are produced by the\nplatform-registered <xref href=\"Cosmos.Kernel.Core.CPU.MsiRouting\" data-throw-if-not-resolved=\"false\"></xref> backend, so the same\ntable programming works whether interrupts ultimately land on an x64\nLAPIC or an ARM64 GICv3 ITS.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.MsiXContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Pci.MsiXContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Pci.MsiXContext",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Pci.MsiXContext.yml\" sourcestartlinenumber=\"1\">Handle returned by <xref href=\"Cosmos.Kernel.HAL.Pci.MsiX.Enable(Cosmos.Kernel.HAL.Pci.PciDevice)\" data-throw-if-not-resolved=\"false\"></xref> identifying the mapped\nMSI-X table for a device. Carries the platform-binder's per-device\nstate (e.g. ARM64 ITS DeviceID + ITT pointer) so subsequent\n<xref href=\"Cosmos.Kernel.HAL.Pci.MsiX.SetEntry(Cosmos.Kernel.HAL.Pci.MsiXContext%2cSystem.Int32%2cCosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate%2cSystem.UInt32)\" data-throw-if-not-resolved=\"false\"></xref> calls can route through the same context.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Pci.PciBaseAddressBar.yml",
       "output": {
         ".html": {
@@ -3103,6 +3621,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.yml\" sourcestartlinenumber=\"1\">Registered filesystem driver entry point.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.yml\" sourcestartlinenumber=\"1\">Marker for filesystem-specific format parameters. Each driver casts to\nits own concrete type (e.g. <code>FatFormatOptions</code>); a null value means\n&quot;use driver defaults.&quot;</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -3522,6 +4054,132 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Conversion",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatAttr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatAttr.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatAttr",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatAttr.yml\" sourcestartlinenumber=\"1\">FAT directory-entry attribute bits (FAT spec).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatBootSector",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.yml\" sourcestartlinenumber=\"1\">Parsed BIOS Parameter Block plus derived geometry for a FAT volume.\nAll <code>*Lba</code> fields are absolute on the underlying\n<xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice\" data-throw-if-not-resolved=\"false\"></xref> the BPB was read from.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.yml\" sourcestartlinenumber=\"1\">Parsed FAT directory entry. <xref href=\"Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.ByteOffset\" data-throw-if-not-resolved=\"false\"></xref> is the byte position of the 8.3 record within the buffer that produced it; LFN entries that contributed to <xref href=\"Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.Name\" data-throw-if-not-resolved=\"false\"></xref> precede it.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatDirectory",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.yml\" sourcestartlinenumber=\"1\">Parser and encoder for FAT directory clusters. Operates over raw byte\nspans; no I/O is performed here.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.yml\" sourcestartlinenumber=\"1\">FAT12 / FAT16 / FAT32 driver entry point. Pluggable into the VFS via\n<code>VfsManager.RegisterFilesystem</code>. Source strings:</p>\n<ul><li>Empty: use the injected device passed to the constructor (test seam).</li><li><code>\"&lt;index&gt;\"</code>: partition index in <xref href=\"Cosmos.Kernel.System.Storage.StorageManager.Partitions\" data-throw-if-not-resolved=\"false\"></xref>.</li></ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.yml\" sourcestartlinenumber=\"1\">Parameters for FatFilesystemType.TryFormat(System.ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?).\nAll <code>0</code> / null fields mean &quot;let the formatter pick a sensible default\nfor the requested <xref href=\"Cosmos.Kernel.System.Filesystems.Fat.FatType\" data-throw-if-not-resolved=\"false\"></xref> and the device size.&quot;</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatTable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatTable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatTable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatTable.yml\" sourcestartlinenumber=\"1\">FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry\nreads and writes go through the underlying <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice\" data-throw-if-not-resolved=\"false\"></xref>\nusing <xref href=\"Cosmos.Kernel.System.Filesystems.Fat.FatBootSector\" data-throw-if-not-resolved=\"false\"></xref> geometry. Cluster numbers coming from\non-disk metadata are untrusted: accessors treat anything outside the\nvolume's data clusters as end-of-chain and never let it drive I/O.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.FatType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat.FatType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Filesystems.Fat.FatType.yml\" sourcestartlinenumber=\"1\">FAT family identifier; selected from cluster count per the FAT32 spec.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Filesystems.Fat.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Filesystems.Fat",
       "Summary": null
     },
     {
@@ -4545,6 +5203,146 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Power",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Power.yml\" sourcestartlinenumber=\"1\">User-facing power-management API. Routes through the platform HAL.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Ebr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Ebr.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Ebr",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Ebr.yml\" sourcestartlinenumber=\"1\">EBR (Extended Boot Record) chain parser and editor. An extended partition\ncontains a singly-linked list of EBR sectors; each EBR holds one logical\npartition entry plus an optional pointer to the next EBR. Convention used:</p>\n<ul><li>Logical-entry start LBA is relative to the EBR sector that holds it.</li><li>Next-EBR pointer is relative to the extended partition's start LBA (the standard convention).</li><li>The first EBR always sits at the extended partition's start LBA.</li><li>Each subsequent EBR is placed immediately after the prior logical's data.</li></ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Gpt.PartitionEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Gpt.PartitionEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Gpt.PartitionEntry",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Gpt.PartitionEntry.yml\" sourcestartlinenumber=\"1\">Single parsed partition. Sector positions are absolute on the host disk.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Gpt.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Gpt.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Gpt",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Gpt.yml\" sourcestartlinenumber=\"1\">GPT (GUID Partition Table) parser / writer. Reads / writes the primary\nheader at LBA 1 plus the partition entry array starting at LBA 2.\n512-byte sectors assumed (matches every block device this kernel\ncurrently exposes).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Mbr.PartitionEntry",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.yml\" sourcestartlinenumber=\"1\">Single MBR partition entry. Sector positions are absolute on the host disk.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Mbr.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Mbr.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Mbr",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Mbr.yml\" sourcestartlinenumber=\"1\">MBR (Master Boot Record) partition table parser / writer. Operates on\nany <xref href=\"Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice\" data-throw-if-not-resolved=\"false\"></xref> with 512-byte sectors.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.Partition.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.Partition.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.Partition",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.Partition.yml\" sourcestartlinenumber=\"1\">Block-device view of a single partition on a host disk. Read/Write are\ntranslated to the host LBA space by adding <xref href=\"Cosmos.Kernel.System.Storage.Partition.StartSector\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.yml\" sourcestartlinenumber=\"1\">Identifies a partition by its absolute LBA range on the host disk.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.PartitionManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.PartitionManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.PartitionManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.PartitionManager.yml\" sourcestartlinenumber=\"1\">High-level partition lifecycle (create / delete / resize / move) on top\nof <xref href=\"Cosmos.Kernel.System.Storage.Mbr\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Cosmos.Kernel.System.Storage.Gpt\" data-throw-if-not-resolved=\"false\"></xref>. Auto-detects the table type\nper call. <xref href=\"Cosmos.Kernel.System.Storage.PartitionManager.MoveWithData(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice%2cCosmos.Kernel.System.Storage.PartitionManager.PartitionLocation%2cSystem.UInt64)\" data-throw-if-not-resolved=\"false\"></xref> physically copies sectors before\nrewriting the table; the other operations are pure table edits.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.StorageManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.StorageManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage.StorageManager",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Storage.StorageManager.yml\" sourcestartlinenumber=\"1\">Manages block storage devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Storage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Storage.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Storage",
+      "Summary": null
     },
     {
       "type": "ManagedReference",
