@@ -20,6 +20,8 @@
   href: garbage-collector-gcinfo.md
 - name: Scheduler
   href: scheduler.md
+- name: File System
+  href: filesystem.md
 - name: Cosmos.Build.Asm
   href: build/asm-build.md
 - name: Cosmos.Build.CC
