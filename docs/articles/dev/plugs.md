@@ -4,7 +4,7 @@ A **plug** is a mechanism that replaces existing methods, variables, or types wi
 
 ### `[Plug]`
 
-Marks a class as the replacement for a target type. The attribute accepts the fully qualified name of the type to replace and optional flags to skip missing targets or substitute base implementations. See the definition in [PlugAttribute.cs](../../src/Cosmos.Build.API/Attributes/PlugAttribute.cs) for details.
+Marks a class as the replacement for a target type. The attribute accepts the fully qualified name of the type to replace and optional flags to skip missing targets or substitute base implementations. See the definition in [PlugAttribute.cs](../../../src/Cosmos.Build.API/Attributes/PlugAttribute.cs) for details.
 
 **Use when:** creating a plug class that substitutes an existing type.
 
@@ -12,7 +12,7 @@ Marks a class as the replacement for a target type. The attribute accepts the fu
 
 ### `[PlugMember]`
 
-Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in [PlugMemberAttribute.cs](../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs).
+Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in [PlugMemberAttribute.cs](../../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs).
 
 **Use when:** you need fine‑grained control over which members of the target type are replaced.
 
@@ -28,7 +28,7 @@ Adds new private members to the target type so that plugs can use them. The attr
 
 ### `[FieldAccess]`
 
-Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see `ReplaceFieldAccess` in [PlugPatcher.cs](../../src/Cosmos.Patcher/PlugPatcher.cs)).
+Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see `ReplaceFieldAccess` in [PlugPatcher.cs](../../../src/Cosmos.Patcher/PlugPatcher.cs)).
 
 **Use when:** accessing or modifying an object field inside a plugged method.
 

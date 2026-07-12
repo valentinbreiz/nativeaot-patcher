@@ -8,8 +8,10 @@ namespace Cosmos.Kernel.System.Vfs;
 
 /// <summary>
 /// Central entry point for registering filesystem drivers and resolving VFS paths.
+/// Path-level operations (current directory, create/unlink/rename/remove,
+/// virtual root) live in the <c>VfsManager.Paths.cs</c> partial.
 /// </summary>
-public static class VfsManager
+public static partial class VfsManager
 {
     private sealed class VfsOpenFile : IVfsOpenFile
     {
@@ -235,7 +237,13 @@ public static class VfsManager
         }
 
         IVfsOpenFile openFile = new VfsOpenFile(leafName, inode, fileOperations);
-        file = new VfsFileHandle(leafName, inode, openFile);
+        VfsFileHandle handle = new VfsFileHandle(leafName, inode, openFile)
+        {
+            OpenedPath = path,
+            Tracked = true,
+        };
+        RegisterOpenFile(handle);
+        file = handle;
         return true;
     }
 
@@ -344,6 +352,26 @@ public static class VfsManager
         return true;
     }
 
+    /// <summary>
+    /// True when <paramref name="mountPoint"/> (normalized: leading /, no
+    /// trailing /) covers <paramref name="path"/> on a path-segment boundary
+    /// — "/mnt" covers "/mnt" and "/mnt/x" but not "/mntx".
+    /// </summary>
+    public static bool MountCovers(string mountPoint, string path)
+    {
+        if (mountPoint == "/")
+        {
+            return true;
+        }
+
+        if (!path.StartsWith(mountPoint, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return path.Length == mountPoint.Length || path[mountPoint.Length] == '/';
+    }
+
     private static VfsMount? FindMount(string path)
     {
         VfsMount? bestMatch = null;
@@ -351,7 +379,7 @@ public static class VfsManager
         for (int i = 0; i < s_mounts.Count; i++)
         {
             VfsMount candidate = s_mounts[i];
-            if (!path.StartsWith(candidate.MountPoint, StringComparison.Ordinal))
+            if (!MountCovers(candidate.MountPoint, path))
             {
                 continue;
             }

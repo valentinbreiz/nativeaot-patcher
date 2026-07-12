@@ -6,14 +6,14 @@ All GC code lives in the `GarbageCollector` partial class split across eight fil
 
 | File | Responsibility |
 |------|----------------|
-| [`GarbageCollector.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) | Core types, constants, fields, public API (Initialize, Collect, GetStats), AllocObject |
-| [`GarbageCollector.Alloc.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) | Private allocation (segments, bump alloc, free lists) |
-| [`GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | Mark phase (root scanning, reference enumeration, mark stack) |
-| [`GarbageCollector.PreciseStack.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | Precise GCInfo-driven stack scan of the GC-triggering thread (incl. exception-funclet frames) |
-| [`GarbageCollector.Sweep.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) | Sweep phase (segment sweep, heap sweepers, helpers) |
-| [`GarbageCollector.GCHandler.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) | GC handle table (Weak, Normal, Pinned handles) |
-| [`GarbageCollector.Frozen.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) | Frozen segment registration (pre-initialized read-only data) |
-| [`GarbageCollector.PinnedHeap.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) | Pinned object allocation and sweeping |
+| [`GarbageCollector.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) | Core types, constants, fields, public API (Initialize, Collect, GetStats), AllocObject |
+| [`GarbageCollector.Alloc.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) | Private allocation (segments, bump alloc, free lists) |
+| [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | Mark phase (root scanning, reference enumeration, mark stack) |
+| [`GarbageCollector.PreciseStack.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | Precise GCInfo-driven stack scan of the GC-triggering thread (incl. exception-funclet frames) |
+| [`GarbageCollector.Sweep.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) | Sweep phase (segment sweep, heap sweepers, helpers) |
+| [`GarbageCollector.GCHandler.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) | GC handle table (Weak, Normal, Pinned handles) |
+| [`GarbageCollector.Frozen.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) | Frozen segment registration (pre-initialized read-only data) |
+| [`GarbageCollector.PinnedHeap.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) | Pinned object allocation and sweeping |
 
 ---
 
@@ -32,7 +32,7 @@ Because `MethodTable` pointers always reside in kernel code sections, the GC use
 
 ### Object struct
 
-Every managed object on the GC heap starts with a [`GCObject`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) header:
+Every managed object on the GC heap starts with a [`GCObject`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) header:
 
 ```
               ┌──────────────────────────────────┐
@@ -216,7 +216,7 @@ The garbage collector also sweeps objects allocated on the general-purpose heaps
 
 #### GC Allocation
 
-The .NET runtime calls exported functions (defined in [`Memory.cs`](../../src/Cosmos.Kernel.Core/Runtime/Memory.cs)) which all funnel into `GarbageCollector.AllocObject(size, flags)`:
+The .NET runtime calls exported functions (defined in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs)) which all funnel into `GarbageCollector.AllocObject(size, flags)`:
 
 | Runtime function | Purpose |
 |-----------------|---------|
@@ -232,7 +232,7 @@ The .NET runtime calls exported functions (defined in [`Memory.cs`](../../src/Co
 
 #### Handles
 
-The .NET runtime accesses GC handles through exported functions in [`Memory.cs`](../../src/Cosmos.Kernel.Core/Runtime/Memory.cs):
+The .NET runtime accesses GC handles through exported functions in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs):
 
 | Runtime function | Maps to |
 |-----------------|---------|
@@ -428,13 +428,13 @@ The same reordering runs independently on the pinned segment chain.
 
 | File | Path |
 |------|------|
-| GC core | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) |
-| Allocation | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) |
-| Mark phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
-| Sweep phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) |
-| GC handles | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) |
-| Frozen segments | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) |
-| Pinned heap | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) |
-| Object header | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) |
-| Runtime exports | [`src/Cosmos.Kernel.Core/Runtime/Memory.cs`](../../src/Cosmos.Kernel.Core/Runtime/Memory.cs) |
-| Page allocator | [`src/Cosmos.Kernel.Core/Memory/PageAllocator.cs`](../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs) |
+| GC core | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) |
+| Allocation | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) |
+| Mark phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
+| Sweep phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) |
+| GC handles | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) |
+| Frozen segments | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) |
+| Pinned heap | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) |
+| Object header | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) |
+| Runtime exports | [`src/Cosmos.Kernel.Core/Runtime/Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs) |
+| Page allocator | [`src/Cosmos.Kernel.Core/Memory/PageAllocator.cs`](../../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs) |

@@ -394,29 +394,29 @@ A separate runtime flag `SchedulerManager.Enabled` is set after `Initialize`, `S
 
 | File | Path |
 |------|------|
-| Scheduler interface | [`src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs`](../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs) |
-| Scheduler manager | [`src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs) |
-| Extensible base | [`src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs) |
-| Thread TCB | [`src/Cosmos.Kernel.Core/Scheduler/Thread.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs) |
-| Thread state | [`src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs) |
-| Per-CPU state | [`src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs`](../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs) |
-| Thread context (x64) | [`src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) |
-| Thread context (ARM64) | [`src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs) |
-| Voluntary switch | [`src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs) |
-| SpinLock | [`src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs`](../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs) |
-| Mutex | [`src/Cosmos.Kernel.Core/Scheduler/Mutex.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs) |
-| Condition variable | [`src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs) |
-| Monitor | [`src/Cosmos.Kernel.Core/Scheduler/Monitor.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs) |
-| Stride scheduler | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs) |
-| Stride thread data | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs) |
-| Stride CPU data | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs`](../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs) |
-| Native imports | [`src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) |
-| Entry trampoline | [`src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs) |
-| Runtime exports | [`src/Cosmos.Kernel.Core/Runtime/Thread.cs`](../../src/Cosmos.Kernel.Core/Runtime/Thread.cs) |
-| Managed Thread plug | [`src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs`](../../src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs) |
-| x64 IRQ + switch asm | [`src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s`](../../src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s) |
-| ARM64 switch asm | [`src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s`](../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s) |
-| GC mark integration | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
+| Scheduler interface | [`src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs) |
+| Scheduler manager | [`src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs) |
+| Extensible base | [`src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs) |
+| Thread TCB | [`src/Cosmos.Kernel.Core/Scheduler/Thread.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs) |
+| Thread state | [`src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs) |
+| Per-CPU state | [`src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs) |
+| Thread context (x64) | [`src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) |
+| Thread context (ARM64) | [`src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs) |
+| Voluntary switch | [`src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs) |
+| SpinLock | [`src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs) |
+| Mutex | [`src/Cosmos.Kernel.Core/Scheduler/Mutex.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs) |
+| Condition variable | [`src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs) |
+| Monitor | [`src/Cosmos.Kernel.Core/Scheduler/Monitor.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs) |
+| Stride scheduler | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs) |
+| Stride thread data | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs) |
+| Stride CPU data | [`src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs) |
+| Native imports | [`src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) |
+| Entry trampoline | [`src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs) |
+| Runtime exports | [`src/Cosmos.Kernel.Core/Runtime/Thread.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Thread.cs) |
+| Managed Thread plug | [`src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs`](../../../src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs) |
+| x64 IRQ + switch asm | [`src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s`](../../../src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s) |
+| ARM64 switch asm | [`src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s`](../../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s) |
+| GC mark integration | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
 
 ---
 

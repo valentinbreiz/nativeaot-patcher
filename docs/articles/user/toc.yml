@@ -1,0 +1,6 @@
+- name: Installation Guide
+  href: install.md
+- name: File System
+  href: filesystem.md
+- name: Debugging with VSCode and QEMU
+  href: debugging.md

@@ -9,26 +9,31 @@ namespace Cosmos.Kernel.Plugs.System.Runtime;
 [Plug(typeof(NativeMemory))]
 public static unsafe partial class NativeMemoryPlug
 {
+    [PlugMember]
     public static void* AlignedAlloc(nuint byteCount, nuint alignment)
     {
         return Alloc(byteCount);
     }
 
+    [PlugMember]
     public static void AlignedFree(void* ptr)
     {
         MemoryOp.Free(ptr);
     }
 
+    [PlugMember]
     public static void* AlignedRealloc(void* ptr, nuint byteCount, nuint alignment)
     {
         return Realloc(ptr, byteCount);
     }
 
+    [PlugMember]
     public static void* Alloc(nuint byteCount)
     {
         return MemoryOp.Alloc((uint)byteCount);
     }
 
+    [PlugMember]
     public static void* AllocZeroed(nuint elementCount, nuint elementSize)
     {
         void* result;
@@ -52,11 +57,13 @@ public static unsafe partial class NativeMemoryPlug
         return result;
     }
 
+    [PlugMember]
     public static void Free(void* ptr)
     {
         MemoryOp.Free(ptr);
     }
 
+    [PlugMember]
     public static void* Realloc(void* ptr, nuint byteCount)
     {
         void* result = Heap.Realloc((byte*)ptr, (uint)byteCount);

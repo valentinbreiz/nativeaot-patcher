@@ -23,7 +23,7 @@ During the mark phase the GC has to discover every object still reachable from a
 local variables, spilled registers, method arguments. It does **not** know which stack words are
 object references and which are integers, so it treats *every* pointer-sized word as a candidate:
 `ScanStackRoots` → `ScanThreadStack` → `ScanMemoryRange` → `TryMarkRoot` in
-[`GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs).
+[`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs).
 `TryMarkRoot` keeps a candidate only if it lands inside the GC heap (`IsInGCHeap`) and the
 `MethodTable*` it would point at lives in the kernel's higher half — but those are plausibility
 filters, not proof.
@@ -58,7 +58,7 @@ the GC's scan range happens to cover it. That layout shifts whenever codegen shi
 
 The concrete instance ([issue #346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346)):
 commit `6c497186` added one field — `private ulong _savedFlags;` — to the
-[`InterruptScope`](../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) `ref struct`. `InterruptScope`
+[`InterruptScope`](../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) `ref struct`. `InterruptScope`
 is a `ref struct`, so it always lives on the stack, and `DisableInterruptsScope()` plus the
 constructor are `AggressiveInlining`'d, so the struct's fields become locals in the caller's frame —
 and `using (InternalCpu.DisableInterruptsScope())` wraps GC, heap and scheduler hot paths (`GC.Collect`,
@@ -97,7 +97,7 @@ A tempting half-measure is to keep the conservative scan but only read live fram
 walking the RBP / X29 frame-pointer chain. That is **not safe here**: ILC compiles many functions
 without a frame pointer (`-fomit-frame-pointer`-style codegen), so the frame chain silently *skips*
 those frames. The kernel's own exception unwinder documents this — see the comment in
-[`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) (around the x64
+[`ExceptionHandling.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) (around the x64
 `REGDISPLAY` construction): *"CFI says RBP is 'SameValue' because function may use
 -fomit-frame-pointer …"*. For exception dispatch a skipped frame is tolerable (worst case: a missed
 catch handler). For the GC a skipped frame means **missed roots**, which collects a live object →
@@ -123,11 +123,11 @@ words look like pointers, the GC asks the compiler.
 ILC writes, per method, a record into the `.dotnet_eh_table` section, laid out
 `[LSDA header][GCInfo blob][EH clauses]`. The linker keeps that section and its bounds — see
 `*(.dotnet_eh_table)` and `__dotnet_eh_table_start` / `__dotnet_eh_table_end` in
-[`linker.x64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.x64.ld) and
-[`linker.arm64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld). The DWARF `.eh_frame`
+[`linker.x64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.x64.ld) and
+[`linker.arm64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld). The DWARF `.eh_frame`
 FDE for a method carries a pointer to that record's LSDA header — and the GC's per-frame walk already
 extracts it (`TryGetMethodLSDA` in
-[`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs)). So an
+[`ExceptionHandling.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs)). So an
 instruction pointer is only an LSDA-header walk away from the GCInfo blob — **no build-pipeline, no
 post-link tool, no patcher change is needed**.
 
@@ -226,7 +226,7 @@ already has, built for exception handling ([issue #227](https://github.com/valen
 the `REGDISPLAY` struct (laid out to match NativeAOT's), `TryGetMethodLSDA`, the DWARF `.eh_frame`
 FDE/CIE parsing, and `UnwindOneFrameWithCFI` (executes DWARF call-frame instructions to reconstruct
 the caller's register state) — all in
-[`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs). The GC scanner
+[`ExceptionHandling.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs). The GC scanner
 drives the same per-frame loop the exception dispatcher does.
 
 ```mermaid
@@ -278,8 +278,8 @@ GC-triggering thread, then funclet frames), and the conservative scan now covers
 the precise scan does not yet handle — those preempted in the scheduler, until return-address
 hijacking lands. The threads the GC iterates and their saved register state come from the scheduler's
 thread registry — see [Scheduler](scheduler.md), `SchedulerManager`, and
-[`ThreadContext.X64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) /
-[`ThreadContext.ARM64.cs`](../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs).
+[`ThreadContext.X64.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs) /
+[`ThreadContext.ARM64.cs`](../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs).
 
 ---
 
@@ -291,14 +291,14 @@ work — GCInfo is already emitted into `.dotnet_eh_table` and reachable via the
 
 | Piece | Where | Notes |
 |-------|-------|-------|
-| CFI unwinder, `REGDISPLAY`, `UnwindOneFrameWithCFI` | [`ExceptionHandling.cs`](../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) | the per-frame walk machinery, built for [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227); its `.eh_frame` / LSDA parsing was factored out to `MethodGcInfoLookup` |
-| `.eh_frame` / LSDA / GCInfo lookup | [`MethodGcInfoLookup.cs`](../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs), [`EhFrameNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs) | the kernel's single `.eh_frame` walker — IP → FDE/CIE/LSDA → GCInfo blob (incl. funclet → main redirect) |
-| GCInfo v4 decoder | [`GcInfoDecoder.cs`](../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs) (+ `GcInfoBitStreamReader`, `GcSlotTable`, `GcInfoTypes`) | header, slot table, `EnumerateLiveSlots` — port of `gcinfodecoder.cpp` |
-| Precise per-frame walk | [`GarbageCollector.PreciseStack.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | the walk loop; `ScanStackRoots` in `GarbageCollector.Mark.cs` dispatches to it for the GC-triggering thread |
-| `_native_capture_regdisplay` asm stub | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s`, [`ContextSwitchNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) | seeds the initial `REGDISPLAY` for the GC-triggering thread |
-| `.dotnet_eh_table` kept, with `__dotnet_eh_table_start/end` | [`linker.x64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | GCInfo is reachable at runtime via the FDE LSDA |
-| IRQ save/restore natives | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s`, [`CpuNative.cs`](../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs) | used by [`InterruptScope`](../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) (the re-added `_savedFlags` / save-restore-IRQ form) |
-| Mark phase (conservative scan, for parked threads) | [`GarbageCollector.Mark.cs`](../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | `ScanThreadStack` / `ScanMemoryRange` / `TryMarkRoot` — what the precise scan replaces, frame by frame |
+| CFI unwinder, `REGDISPLAY`, `UnwindOneFrameWithCFI` | [`ExceptionHandling.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling.cs) | the per-frame walk machinery, built for [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227); its `.eh_frame` / LSDA parsing was factored out to `MethodGcInfoLookup` |
+| `.eh_frame` / LSDA / GCInfo lookup | [`MethodGcInfoLookup.cs`](../../../src/Cosmos.Kernel.Core/Runtime/GcInfo/MethodGcInfoLookup.cs), [`EhFrameNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/EhFrameNative.cs) | the kernel's single `.eh_frame` walker — IP → FDE/CIE/LSDA → GCInfo blob (incl. funclet → main redirect) |
+| GCInfo v4 decoder | [`GcInfoDecoder.cs`](../../../src/Cosmos.Kernel.Core/Runtime/GcInfo/GcInfoDecoder.cs) (+ `GcInfoBitStreamReader`, `GcSlotTable`, `GcInfoTypes`) | header, slot table, `EnumerateLiveSlots` — port of `gcinfodecoder.cpp` |
+| Precise per-frame walk | [`GarbageCollector.PreciseStack.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | the walk loop; `ScanStackRoots` in `GarbageCollector.Mark.cs` dispatches to it for the GC-triggering thread |
+| `_native_capture_regdisplay` asm stub | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/ContextCapture.s`, [`ContextSwitchNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) | seeds the initial `REGDISPLAY` for the GC-triggering thread |
+| `.dotnet_eh_table` kept, with `__dotnet_eh_table_start/end` | [`linker.x64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | GCInfo is reachable at runtime via the FDE LSDA |
+| IRQ save/restore natives | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s`, [`CpuNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs) | used by [`InterruptScope`](../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) (the re-added `_savedFlags` / save-restore-IRQ form) |
+| Mark phase (conservative scan, for parked threads) | [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | `ScanThreadStack` / `ScanMemoryRange` / `TryMarkRoot` — what the precise scan replaces, frame by frame |
 | Tests | `tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector` | `GC_GcInfoDecoder`, `GC_PreciseStackScan`, `GC_FuncletNoFalseRoot`, `GC_FuncletNoCrashOnAllocInCatch`, `GC_StackScanPaddingStress` |
 | Hijack stub | `Cosmos.Kernel.Native.X64/.../Hijack.s` (+ ARM64 sibling) | **not yet written** — phase 4 |
 

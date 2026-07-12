@@ -61,4 +61,4 @@ Notes:
 
 ## Related components
 
-- [`Cosmos.Build.Asm`](../../../src/Cosmos.Build.Asm)
+- [`Cosmos.Build.Asm`](../../../../src/Cosmos.Build.Asm)
