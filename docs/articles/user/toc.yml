@@ -4,5 +4,7 @@
   href: filesystem.md
 - name: Network
   href: network.md
+- name: Graphics
+  href: graphics.md
 - name: Debugging with VSCode and QEMU
   href: debugging.md
