@@ -13,7 +13,8 @@ Local changes:
 - CosmosPNG's Gen2 enum workarounds are reverted to upstream semantics
   (they mis-mapped PNG color types 3, 4 and 6); IHDR fields are validated
   against the PNG specification in `PngOpener.ReadImageHeader`.
-- All types are `internal`; the public API is the
-  `Cosmos.Kernel.System.Graphics.Png` image class one directory up.
+- All types are `internal`; the public API is the `Png` image class
+  (namespace `Cosmos.Kernel.System.Graphics`) defined in
+  `src/Cosmos.Kernel.System/Graphics/Images/Png.cs`, one directory up.
 
 See `docs/credits.md` for the full third-party list.
