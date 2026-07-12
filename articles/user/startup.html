@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Kernel Startup | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Kernel Startup | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/startup.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="kernel-startup">Kernel Startup</h1>
+
+<p>In this article, we will discuss what happens between power-on and the first call to your kernel's <code>Run()</code> method: the boot chain, the initialization phases, and the <code>BeforeRun</code>/<code>Run</code>/<code>AfterRun</code> lifecycle your kernel is built on.</p>
+<p>The main differences if you come from Gen2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gen2</th>
+<th>Gen3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compiler</td>
+<td>IL2CPU</td>
+<td>.NET NativeAOT (ILC) + the Cosmos IL patcher</td>
+</tr>
+<tr>
+<td>Firmware</td>
+<td>BIOS</td>
+<td>UEFI, on x64 and ARM64</td>
+</tr>
+<tr>
+<td>Bootloader</td>
+<td>Limine</td>
+<td>Limine</td>
+</tr>
+<tr>
+<td>Entry plumbing</td>
+<td>IL2CPU emits the call to <code>Kernel.Start()</code></td>
+<td>A source generator emits <code>CosmosEntryPoint.Main()</code></td>
+</tr>
+<tr>
+<td>Lifecycle</td>
+<td><code>BeforeRun</code> / <code>Run</code> / <code>AfterRun</code></td>
+<td><code>BeforeRun</code> / <code>Run</code> / <code>AfterRun</code> — unchanged</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-boot-chain">The boot chain</h2>
+<pre><code>UEFI firmware
+    │
+Limine            loads kernel.elf, maps it in the higher half, sets up the framebuffer
+    │
+kmain()           native C bootstrap (Cosmos.Kernel/Bootstrap/kmain.c)
+    ├─ Phase 1    CPU: enable SIMD, initialize the serial port
+    ├─ Phase 2    Platform: RSDP + HHDM from Limine, early ACPI parse (MADT, MCFG)
+    ├─ Phase 3    Managed runtime: heap, GC, type system, library initializers
+    └─ Phase 4    User kernel: Main(argc, argv) → Kernel.Start()
+</code></pre>
+<p>The <a href="https://limine-bootloader.org/">Limine</a> bootloader loads the kernel ELF produced by the build pipeline, and jumps to <code>kmain()</code> — a small C bootstrap compiled into every kernel. From there:</p>
+<ul>
+<li><strong>Phase 1 — CPU.</strong> SIMD is enabled first (NativeAOT-generated code uses XMM registers from the very first instruction) and the serial port is initialized, so everything after this line is logged. On ARM64 the alignment check is disabled here too.</li>
+<li><strong>Phase 2 — Platform.</strong> The bootstrap asks Limine for the ACPI RSDP and the higher-half direct-map offset, then does an early ACPI parse: the MADT (where the interrupt controllers and CPUs are) and the MCFG (where PCIe configuration space lives).</li>
+<li><strong>Phase 3 — Managed runtime.</strong> The NativeAOT startup path runs. This is where the C# world comes alive, one package at a time (see the next section).</li>
+<li><strong>Phase 4 — User kernel.</strong> The bootstrap builds <code>argv</code> from the kernel command line and calls the managed <code>Main</code>, which ends up in your kernel's <code>Start()</code>.</li>
+</ul>
+<h2 id="phase-3-how-the-managed-kernel-comes-up">Phase 3: how the managed kernel comes up</h2>
+<p>Each Cosmos package contributes a <em>library initializer</em> that the runtime executes before any of your code, in dependency order:</p>
+<ol>
+<li><strong>Cosmos.Kernel.Core</strong> — carves the heap out of the Limine memory map, initializes the garbage collector, then registers the type system (statics, static constructors, module initializers).</li>
+<li><strong>Cosmos.Kernel.HAL</strong> — platform HAL, the interrupt controller, PCI enumeration over ECAM, platform hardware (APIC/GIC, device drivers such as the NIC), and the AHCI/NVMe storage controllers.</li>
+<li><strong>Cosmos.Kernel.System</strong> — the service managers: <code>TimerManager</code>, <code>KeyboardManager</code>, <code>MouseManager</code>, <code>NetworkManager</code>, <code>StorageManager</code>.</li>
+<li><strong>Cosmos.Kernel</strong> — CPU exception handlers and the scheduler (one idle thread per CPU, preemption on a 10 ms quantum).</li>
+</ol>
+<p>Every step in 2–4 is gated by a feature switch (<code>CosmosEnableInterrupts</code>, <code>CosmosEnablePCI</code>, <code>CosmosEnableTimer</code>, <code>CosmosEnableKeyboard</code>, <code>CosmosEnableMouse</code>, <code>CosmosEnableNetwork</code>, <code>CosmosEnableStorage</code>, <code>CosmosEnableGraphics</code>, <code>CosmosEnableScheduler</code> — all <code>true</code> by default). Set one to <code>false</code> in your <code>.csproj</code> and the corresponding subsystem is skipped here and compiled out of the kernel.</p>
+<h2 id="the-generated-entry-point">The generated entry point</h2>
+<p>You never write a <code>Main</code> for a Cosmos kernel. The SDK ships a source generator that emits it from the <code>CosmosKernelClass</code> project property:</p>
+<pre><code class="lang-csharp">// Auto-generated: CosmosEntryPoint.g.cs
+public static class CosmosEntryPoint
+{
+    public static void Main()
+    {
+        Cosmos.Kernel.System.Global.RegisterKernel(new MyOS.Kernel());
+        Cosmos.Kernel.System.Global.StartKernel();
+    }
+}
+</code></pre>
+<p><code>CosmosKernelClass</code> defaults to <code>&lt;RootNamespace&gt;.Kernel</code>, so a class named <code>Kernel</code> in your project's root namespace is picked up automatically. To use a different type, set it explicitly:</p>
+<pre><code class="lang-xml">&lt;PropertyGroup&gt;
+  &lt;CosmosKernelClass&gt;MyOS.Boot.MyKernel&lt;/CosmosKernelClass&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p><code>Global.StartKernel()</code> then calls <code>Start()</code> on the registered instance.</p>
+<h2 id="syskernelstart">Sys.Kernel.Start()</h2>
+<p><code>Cosmos.Kernel.System.Kernel</code> is the abstract base class of every user kernel. Its <code>Start()</code> drives the whole lifecycle:</p>
+<ol>
+<li>Calls <code>OnBoot()</code>, whose default implementation runs <code>Global.Init()</code> — this initializes the graphical <code>KernelConsole</code>, which is what makes <code>Console.WriteLine</code> work.</li>
+<li>Enables hardware interrupts (everything before this point ran with interrupts off).</li>
+<li>Turns off the early-boot text renderer — up to here, the boot log you see on screen is the serial log mirrored by a minimal framebuffer writer; from now on the screen belongs to <code>Console</code> and the <a href="graphics.html">Canvas</a>.</li>
+<li>Calls <code>BeforeRun()</code> once.</li>
+<li>Calls <code>Run()</code> in a loop until <code>Stop()</code> is called.</li>
+<li>Calls <code>AfterRun()</code> once.</li>
+<li>Halts the CPU. There is no operating system to return to — a kernel never exits.</li>
+</ol>
+<h2 id="a-minimal-kernel">A minimal kernel</h2>
+<pre><code class="lang-csharp">using System;
+using Sys = Cosmos.Kernel.System;
+
+namespace MyOS;
+
+public class Kernel : Sys.Kernel
+{
+    protected override void BeforeRun()
+    {
+        Console.WriteLine(&quot;Cosmos booted successfully!&quot;);
+    }
+
+    protected override void Run()
+    {
+        Console.Write(&quot;Input: &quot;);
+        string? input = Console.ReadLine();
+        Console.Write(&quot;Text typed: &quot;);
+        Console.WriteLine(input);
+    }
+}
+</code></pre>
+<ul>
+<li><code>BeforeRun()</code> — one-time setup: mount a <a href="filesystem.html">filesystem</a>, configure the <a href="network.html">network</a>, draw a splash screen.</li>
+<li><code>Run()</code> — your main loop body. It is called again as soon as it returns, so it does not need to loop itself; keep it re-entrant.</li>
+<li><code>Stop()</code> — call it from anywhere to exit the loop after the current <code>Run()</code> completes.</li>
+<li><code>AfterRun()</code> — optional cleanup once the loop has ended.</li>
+</ul>
+<p>An uncaught exception inside <code>Run()</code> propagates out of the loop, so wrap the body in <code>try</code>/<code>catch</code> if a command failing should not take the kernel down.</p>
+<h2 id="customizing-startup">Customizing startup</h2>
+<p><code>OnBoot()</code> runs <em>before</em> interrupts are enabled and before the console exists — the right place for early hardware setup:</p>
+<pre><code class="lang-csharp">protected override void OnBoot()
+{
+    base.OnBoot();   // keep Global.Init() → KernelConsole; drop this line to boot headless
+
+    // your early initialization here
+}
+</code></pre>
+<p>For total control you can override <code>Start()</code> itself and take over the lifecycle — the default implementation in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Kernel.cs"><code>Cosmos.Kernel.System/Kernel.cs</code></a> is small and a good starting point to copy from.</p>
+<h2 id="the-kernel-command-line">The kernel command line</h2>
+<p>Limine passes a command line to the kernel — the <code>cmdline:</code> entry of the <code>Bootloader/limine.conf</code> file in your kernel project. It comes out the standard way:</p>
+<pre><code class="lang-csharp">foreach (string arg in Environment.GetCommandLineArgs())
+{
+    Console.WriteLine(arg);
+}
+</code></pre>
+<h2 id="watching-a-boot">Watching a boot</h2>
+<p>Every phase above logs to the serial port (COM1), which <code>make run</code> and <code>cosmos run</code> connect to your terminal — the first thing to read when a kernel does not come up:</p>
+<pre><code>========================================
+  CosmosOS v3.0.62 (gen3)
+  Architecture: x86-64
+========================================
+[KMAIN] Phase 1: CPU initialization
+[KMAIN] Phase 2: Platform initialization
+[KMAIN]   - RSDP found at: 0xFFFF8000000F52D0
+[KMAIN]   - Initializing ACPI...
+[KMAIN] Phase 3: Managed kernel initialization
+[KERNEL]   - Initializing heap...
+[KERNEL]   - Initializing garbage collector...
+[KERNEL]   - Initializing HAL...
+[KERNEL]   - Initializing interrupts...
+[KERNEL]   - Initializing PCI...
+[KERNEL]   - Initializing AHCI...
+[KERNEL]   - Initializing scheduler...
+[KMAIN] Phase 4: User kernel
+[Global] Registering kernel
+[Kernel] Calling OnBoot()...
+[Kernel] Enabling interrupts...
+[Kernel] Calling BeforeRun()...
+[Kernel] Entering main loop...
+[Kernel] Calling Run()...
+</code></pre>
+<p>For interactive debugging on top of the serial log, see <a href="debugging.html">Debugging with VSCode and QEMU</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/startup.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
