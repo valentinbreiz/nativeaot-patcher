@@ -29,6 +29,7 @@ These are the `using`s the snippets below rely on:
 
 ```csharp
 using System.Drawing;
+using System.IO;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 ```
@@ -99,27 +100,42 @@ Colors are plain `System.Drawing.Color` values, so the full named palette (`Colo
 
 ## Drawing text
 
-Text rendering uses PSF (PC Screen Font) bitmap fonts. A default 16x32 font is built in:
+Text rendering uses PSF (PC Screen Font) bitmap fonts — the format the Linux console uses, in both its **PSF1** and **PSF2** versions. A 16x32 [Spleen](https://github.com/fcambus/spleen) font is built in as `PCScreenFont.DefaultFont`, and `PCScreenFont.LoadFont(byte[])` loads any other PSF font at runtime.
+
+There are plenty of ready-made PSF fonts to download:
+
+- [The Zap Group's console fonts](https://www.zap.org.au/projects/console-fonts-zap/) — classic 8x16 PSF1 fonts (`zap-light16.psf`, `zap-vga16.psf`).
+- [Terminus](https://terminus-font.sourceforge.net/) — PSF2 in many sizes; most Linux distributions already ship it under `/usr/share/consolefonts/` as `.psf.gz` files (decompress with `gunzip` first, the kernel reads plain `.psf`).
+- [Spleen](https://github.com/fcambus/spleen) — PSF2 releases from 5x8 up to 32x64.
+
+A font is just a file, so the easiest way to ship one is on the FAT disk from the [File System](filesystem.md) article. Here `zap16.psf` is Zap Light (PSF1) and `term24.psf` is Terminus 12x24 (PSF2), copied onto the disk under FAT-friendly names:
 
 ```csharp
 Canvas canvas = Canvas.GetFullScreen();
 
 canvas.Clear(Color.MidnightBlue);
 
+/* The built-in 16x32 font */
 Font font = PCScreenFont.DefaultFont;
-
 canvas.DrawString("Hello Cosmos World!", font, Color.White, 100, 100);
-canvas.DrawString("The default font is " + font.Width + "x" + font.Height + " pixels.",
-    font, Color.GreenYellow, 100, 130);
-canvas.DrawChar('@', font, Color.Gold, 100, 160);
+canvas.DrawString("Spleen " + font.Width + "x" + font.Height + " (built in)",
+    font, Color.GreenYellow, 100, 140);
+
+/* Load a PSF1 font from the mounted disk... */
+Font zap = PCScreenFont.LoadFont(File.ReadAllBytes("/mnt/zap16.psf"));
+canvas.DrawString("Zap Light " + zap.Width + "x" + zap.Height + " (PSF1)",
+    zap, Color.Gold, 100, 200);
+
+/* ...and a PSF2 font */
+Font terminus = PCScreenFont.LoadFont(File.ReadAllBytes("/mnt/term24.psf"));
+canvas.DrawString("Terminus " + terminus.Width + "x" + terminus.Height + " (PSF2)",
+    terminus, Color.DeepSkyBlue, 100, 240);
 
 canvas.Display();
 ```
 
-<!-- screenshot: the strings above rendered with the default PSF font -->
+<!-- screenshot: three strings rendered with the built-in Spleen 16x32, Zap Light 8x16 (PSF1) and Terminus 12x24 (PSF2) -->
 ![Drawing text](images/graphics-text.png)
-
-You can also ship your own `.psf` font and load it with `PCScreenFont.LoadFont(byte[])`.
 
 ## Drawing images
 
