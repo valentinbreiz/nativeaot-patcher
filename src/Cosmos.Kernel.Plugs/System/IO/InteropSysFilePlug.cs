@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.Plugs.System.IO;
 
 /// <summary>
 /// Plugs the file-I/O surface of CoreLib's <c>Interop.Sys</c> onto the Cosmos
-/// VFS (via <see cref="VfsInterop"/>), so the BCL's own System.IO code —
+/// VFS (via <see cref="FileDescriptorTable"/>), so the BCL's own System.IO code —
 /// File, Directory, FileStream, FileSystemInfo, directory enumeration — runs
 /// unmodified on top of <c>VfsManager</c>.
 /// </summary>
@@ -44,7 +44,7 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static SafeFileHandle Open(string filename, PalSys.OpenFlags flags, int mode)
     {
-        PalError error = VfsInterop.Open(filename, flags, mode, out int fd);
+        PalError error = FileDescriptorTable.Open(filename, flags, mode, out int fd);
         if (error != PalError.SUCCESS)
         {
             Marshal.SetLastPInvokeError((int)error);
@@ -57,7 +57,7 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int Close(IntPtr fd)
     {
-        PalError error = VfsInterop.Close((int)fd);
+        PalError error = FileDescriptorTable.Close((int)fd);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
@@ -66,14 +66,14 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int Read(SafeHandle fd, byte* buffer, int count)
     {
-        PalError error = VfsInterop.Read(DescriptorOf(fd), buffer, count, out int bytesRead);
+        PalError error = FileDescriptorTable.Read(DescriptorOf(fd), buffer, count, out int bytesRead);
         return error == PalError.SUCCESS ? bytesRead : Fail(error);
     }
 
     [PlugMember]
     public static int Write(SafeHandle fd, byte* buffer, int bufferSize)
     {
-        PalError error = VfsInterop.Write(DescriptorOf(fd), buffer, bufferSize, out int bytesWritten);
+        PalError error = FileDescriptorTable.Write(DescriptorOf(fd), buffer, bufferSize, out int bytesWritten);
         return error == PalError.SUCCESS ? bytesWritten : Fail(error);
     }
 
@@ -84,32 +84,32 @@ internal static unsafe class InteropSysFilePlug
         if (descriptor == 1 || descriptor == 2)
         {
             // stdout/stderr writes (Debug output) go to the serial console.
-            VfsInterop.WriteConsole(buffer, bufferSize);
+            FileDescriptorTable.WriteConsole(buffer, bufferSize);
             return bufferSize;
         }
 
-        PalError error = VfsInterop.Write(descriptor, buffer, bufferSize, out int bytesWritten);
+        PalError error = FileDescriptorTable.Write(descriptor, buffer, bufferSize, out int bytesWritten);
         return error == PalError.SUCCESS ? bytesWritten : Fail(error);
     }
 
     [PlugMember]
     public static int PRead(SafeHandle fd, byte* buffer, int bufferSize, long fileOffset)
     {
-        PalError error = VfsInterop.PRead(DescriptorOf(fd), buffer, bufferSize, fileOffset, out int bytesRead);
+        PalError error = FileDescriptorTable.PRead(DescriptorOf(fd), buffer, bufferSize, fileOffset, out int bytesRead);
         return error == PalError.SUCCESS ? bytesRead : Fail(error);
     }
 
     [PlugMember]
     public static int PWrite(SafeHandle fd, byte* buffer, int bufferSize, long fileOffset)
     {
-        PalError error = VfsInterop.PWrite(DescriptorOf(fd), buffer, bufferSize, fileOffset, out int bytesWritten);
+        PalError error = FileDescriptorTable.PWrite(DescriptorOf(fd), buffer, bufferSize, fileOffset, out int bytesWritten);
         return error == PalError.SUCCESS ? bytesWritten : Fail(error);
     }
 
     [PlugMember]
     public static long LSeek(SafeFileHandle fd, long offset, PalSys.SeekWhence whence)
     {
-        PalError error = VfsInterop.Seek(DescriptorOf(fd), offset, (int)whence, out long newPosition);
+        PalError error = FileDescriptorTable.Seek(DescriptorOf(fd), offset, (int)whence, out long newPosition);
         return error == PalError.SUCCESS ? newPosition : Fail(error);
     }
 
@@ -118,35 +118,35 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int FStat(SafeHandle fd, out PalSys.FileStatus output)
     {
-        PalError error = VfsInterop.StatDescriptor(DescriptorOf(fd), out output);
+        PalError error = FileDescriptorTable.StatDescriptor(DescriptorOf(fd), out output);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int FSync(SafeFileHandle fd)
     {
-        PalError error = VfsInterop.Fsync(DescriptorOf(fd));
+        PalError error = FileDescriptorTable.Fsync(DescriptorOf(fd));
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int FTruncate(SafeFileHandle fd, long length)
     {
-        PalError error = VfsInterop.Truncate(DescriptorOf(fd), length);
+        PalError error = FileDescriptorTable.Truncate(DescriptorOf(fd), length);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int FChMod(SafeFileHandle fd, int mode)
     {
-        PalError error = VfsInterop.SetDescriptorMode(DescriptorOf(fd), mode);
+        PalError error = FileDescriptorTable.SetDescriptorMode(DescriptorOf(fd), mode);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int CopyFile(SafeFileHandle source, SafeFileHandle destination, long sourceLength)
     {
-        PalError error = VfsInterop.CopyDescriptor(DescriptorOf(source), DescriptorOf(destination));
+        PalError error = FileDescriptorTable.CopyDescriptor(DescriptorOf(source), DescriptorOf(destination));
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
@@ -176,14 +176,14 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int Stat(string path, out PalSys.FileStatus output)
     {
-        PalError error = VfsInterop.StatPath(path, out output);
+        PalError error = FileDescriptorTable.StatPath(path, out output);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int Stat(ReadOnlySpan<char> path, out PalSys.FileStatus output)
     {
-        PalError error = VfsInterop.StatPath(path.ToString(), out output);
+        PalError error = FileDescriptorTable.StatPath(path.ToString(), out output);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
@@ -192,21 +192,21 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int LStat(string path, out PalSys.FileStatus output)
     {
-        PalError error = VfsInterop.StatPath(path, out output);
+        PalError error = FileDescriptorTable.StatPath(path, out output);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int LStat(ReadOnlySpan<char> path, out PalSys.FileStatus output)
     {
-        PalError error = VfsInterop.StatPath(path.ToString(), out output);
+        PalError error = FileDescriptorTable.StatPath(path.ToString(), out output);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int ChMod(string path, int mode)
     {
-        PalError error = VfsInterop.SetPathMode(path, mode);
+        PalError error = FileDescriptorTable.SetPathMode(path, mode);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
@@ -221,35 +221,35 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static int MkDir(ReadOnlySpan<char> path, int mode)
     {
-        PalError error = VfsInterop.CreateDirectory(path.ToString(), mode);
+        PalError error = FileDescriptorTable.CreateDirectory(path.ToString(), mode);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int RmDir(string path)
     {
-        PalError error = VfsInterop.RemoveDirectory(path);
+        PalError error = FileDescriptorTable.RemoveDirectory(path);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int Unlink(string pathname)
     {
-        PalError error = VfsInterop.UnlinkFile(pathname);
+        PalError error = FileDescriptorTable.UnlinkFile(pathname);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int Rename(string oldPath, string newPath)
     {
-        PalError error = VfsInterop.Rename(oldPath, newPath);
+        PalError error = FileDescriptorTable.Rename(oldPath, newPath);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     [PlugMember]
     public static int Rename(ReadOnlySpan<char> oldPath, ReadOnlySpan<char> newPath)
     {
-        PalError error = VfsInterop.Rename(oldPath.ToString(), newPath.ToString());
+        PalError error = FileDescriptorTable.Rename(oldPath.ToString(), newPath.ToString());
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
@@ -274,7 +274,7 @@ internal static unsafe class InteropSysFilePlug
     [PlugMember]
     public static IntPtr OpenDir(string path)
     {
-        PalError error = VfsInterop.OpenDirectoryStream(path, out IntPtr handle);
+        PalError error = FileDescriptorTable.OpenDirectoryStream(path, out IntPtr handle);
         if (error != PalError.SUCCESS)
         {
             Marshal.SetLastPInvokeError((int)error);
@@ -286,24 +286,24 @@ internal static unsafe class InteropSysFilePlug
 
     [PlugMember]
     public static int ReadDir(IntPtr dir, PalSys.DirectoryEntry* outputEntry)
-        => VfsInterop.ReadDirectoryStream(dir, outputEntry);
+        => FileDescriptorTable.ReadDirectoryStream(dir, outputEntry);
 
     [PlugMember]
     public static int CloseDir(IntPtr dir)
     {
-        PalError error = VfsInterop.CloseDirectoryStream(dir);
+        PalError error = FileDescriptorTable.CloseDirectoryStream(dir);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 
     // ---------------- current directory ----------------
 
     [PlugMember]
-    public static string GetCwd() => VfsInterop.CurrentDirectory;
+    public static string GetCwd() => FileDescriptorTable.CurrentDirectory;
 
     [PlugMember]
     public static int ChDir(string path)
     {
-        PalError error = VfsInterop.SetCurrentDirectory(path);
+        PalError error = FileDescriptorTable.SetCurrentDirectory(path);
         return error == PalError.SUCCESS ? 0 : Fail(error);
     }
 

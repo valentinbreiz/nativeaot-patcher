@@ -11,9 +11,11 @@ using PalSys = global::Interop.Sys;
 namespace Cosmos.Kernel.Plugs.System.IO;
 
 /// <summary>
-/// Backing engine for the <c>Interop.Sys</c> file-I/O plugs: maps the BCL's
-/// PAL contract (integer descriptors, <c>DirectoryEntry</c> streams, a process
-/// current directory, PAL error codes) directly onto <see cref="VfsManager"/>.
+/// Backing tables for the <c>Interop.Sys</c> file-I/O plugs: adapts the BCL's
+/// PAL contract (integer descriptors, <c>DirectoryEntry</c> streams, PAL error
+/// codes) onto <see cref="VfsManager"/>. Only PAL-shaped adaptation lives
+/// here — filesystem semantics (delete-pending unlink, replacing rename, the
+/// current directory, the virtual root) are <see cref="VfsManager"/>'s.
 /// </summary>
 /// <remarks>
 /// Descriptors are small non-negative integers because
@@ -24,7 +26,7 @@ namespace Cosmos.Kernel.Plugs.System.IO;
 /// takes no locks. Paths are the VFS's own unix-style absolute paths; the BCL
 /// pre-collapses <c>.</c>/<c>..</c> segments before calling down.
 /// </remarks>
-internal static unsafe class VfsInterop
+internal static unsafe class FileDescriptorTable
 {
     private const int MaxOpenFiles = 64;
     private const int FirstFileDescriptor = 3;
@@ -34,10 +36,6 @@ internal static unsafe class VfsInterop
     private const int DirectoryNameBufferBytes = (3 * 255) + 1;
 
     private const int CopyChunkBytes = 32 * 1024;
-
-    /// <summary>Leaf suffix used to move a rename destination aside until the real
-    /// rename has succeeded (POSIX rename must not lose the destination on failure).</summary>
-    private const string ReplaceBackupSuffix = ".~replace";
 
     /// <summary>Access-mode bits inside <see cref="PalSys.OpenFlags"/> (O_RDONLY/O_WRONLY/O_RDWR).</summary>
     private const PalSys.OpenFlags AccessModeMask = (PalSys.OpenFlags)0xF;
@@ -56,12 +54,6 @@ internal static unsafe class VfsInterop
         public string Path { get; }
         public bool Readable { get; }
         public bool Writable { get; }
-
-        /// <summary>Full path of a directory entry to remove once the last descriptor
-        /// on this node closes — Windows-style delete-pending, because the FAT
-        /// driver frees clusters immediately on unlink while open handles
-        /// still reference them.</summary>
-        public string? PendingUnlinkPath { get; set; }
     }
 
     private sealed class DirectoryStreamState
@@ -82,9 +74,8 @@ internal static unsafe class VfsInterop
 
     private static readonly OpenFileState?[] s_openFiles = new OpenFileState?[MaxOpenFiles];
     private static readonly DirectoryStreamState?[] s_directoryStreams = new DirectoryStreamState?[MaxDirectoryStreams];
-    private static string s_currentDirectory = "/";
 
-    internal static string CurrentDirectory => s_currentDirectory;
+    internal static string CurrentDirectory => VfsManager.CurrentDirectory;
 
     // ---------------- descriptor operations ----------------
 
@@ -92,7 +83,7 @@ internal static unsafe class VfsInterop
     {
         fd = -1;
 
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
@@ -103,7 +94,7 @@ internal static unsafe class VfsInterop
         bool readable = access == PalSys.OpenFlags.O_RDONLY || access == PalSys.OpenFlags.O_RDWR;
 
         IVfsFileHandle? handle;
-        if (TryStatNode(fullPath, out VfsStat stat))
+        if (VfsManager.TryStat(fullPath, out VfsStat stat))
         {
             // POSIX order: O_CREAT|O_EXCL reports EEXIST for ANY existing
             // name, directories included — File.Copy relies on EEXIST (not
@@ -177,14 +168,10 @@ internal static unsafe class VfsInterop
             return PalError.EBADF;
         }
 
+        // A pending unlink on the node executes inside Dispose once this was
+        // the last open handle — VfsManager tracks its own handles.
         file.Handle.Dispose();
         s_openFiles[fd - FirstFileDescriptor] = null;
-
-        if (file.PendingUnlinkPath != null && !AnyDescriptorPendingOn(file.PendingUnlinkPath))
-        {
-            RemoveEntryDirect(file.PendingUnlinkPath);
-        }
-
         return PalError.SUCCESS;
     }
 
@@ -430,13 +417,13 @@ internal static unsafe class VfsInterop
     {
         status = default;
 
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
         }
 
-        if (!TryStatNode(fullPath, out VfsStat stat))
+        if (!VfsManager.TryStat(fullPath, out VfsStat stat))
         {
             return PalError.ENOENT;
         }
@@ -447,18 +434,18 @@ internal static unsafe class VfsInterop
 
     internal static PalError UnlinkFile(string path)
     {
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
         }
 
-        if (IsRootOrMountPoint(fullPath))
+        if (VfsManager.IsMountPoint(fullPath))
         {
             return PalError.EISDIR;
         }
 
-        if (!TryStatNode(fullPath, out VfsStat stat))
+        if (!VfsManager.TryStat(fullPath, out VfsStat stat))
         {
             return PalError.ENOENT;
         }
@@ -468,78 +455,53 @@ internal static unsafe class VfsInterop
             return PalError.EISDIR;
         }
 
-        // The FAT driver frees the cluster chain immediately, out from under
-        // any live descriptor. Defer the removal to the last Close instead
-        // (Windows-style delete-pending); this also keeps DeleteOnClose
-        // working, since SafeFileHandle unlinks before it closes.
-        if (MarkPendingIfOpen(fullPath))
-        {
-            return PalError.SUCCESS;
-        }
-
-        SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (!VfsManager.TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
-        {
-            return PalError.ENOENT;
-        }
-
-        return parent.TryUnlink(leaf) ? PalError.SUCCESS : PalError.EIO;
+        return VfsManager.TryUnlink(fullPath) ? PalError.SUCCESS : PalError.EIO;
     }
 
     internal static PalError CreateDirectory(string path, int mode)
     {
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.EINVAL;
         }
 
-        if (TryStatNode(fullPath, out _))
+        if (VfsManager.TryStat(fullPath, out _))
         {
             return PalError.EEXIST;
         }
 
-        SplitParentLeaf(fullPath, out string parentPath, out string leaf);
+        VfsManager.SplitParentLeaf(fullPath, out _, out string leaf);
         if (leaf.Length == 0)
         {
             return PalError.EINVAL;
         }
 
-        if (!TryStatNode(parentPath, out VfsStat parentStat))
+        PalError parentError = RequireMountedParent(fullPath);
+        if (parentError != PalError.SUCCESS)
         {
-            return PalError.ENOENT;
+            return parentError;
         }
 
-        if ((parentStat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
-        {
-            return PalError.ENOTDIR;
-        }
-
-        if (!VfsManager.TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
-        {
-            // The parent stat came from the virtual root: nothing is mounted
-            // there, so there is nowhere to create the entry.
-            return PalError.EROFS;
-        }
-
-        ModeEnum createMode = PermissionBits(mode) | ModeEnum.Directory;
-        return parent.TryCreateDirectory(leaf, createMode, out _) ? PalError.SUCCESS : PalError.EIO;
+        return VfsManager.TryCreateDirectory(fullPath, PermissionBits(mode))
+            ? PalError.SUCCESS
+            : PalError.EIO;
     }
 
     internal static PalError RemoveDirectory(string path)
     {
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
         }
 
-        if (IsRootOrMountPoint(fullPath))
+        if (VfsManager.IsMountPoint(fullPath))
         {
             return PalError.EBUSY;
         }
 
-        if (!TryStatNode(fullPath, out VfsStat stat))
+        if (!VfsManager.TryStat(fullPath, out VfsStat stat))
         {
             return PalError.ENOENT;
         }
@@ -555,19 +517,13 @@ internal static unsafe class VfsInterop
             return PalError.ENOTEMPTY;
         }
 
-        SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (!VfsManager.TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
-        {
-            return PalError.ENOENT;
-        }
-
-        return parent.TryRemoveDirectory(leaf) ? PalError.SUCCESS : PalError.EIO;
+        return VfsManager.TryRemoveDirectory(fullPath) ? PalError.SUCCESS : PalError.EIO;
     }
 
     internal static PalError Rename(string oldPath, string newPath)
     {
-        string? oldFull = MakeAbsolute(oldPath);
-        string? newFull = MakeAbsolute(newPath);
+        string? oldFull = VfsManager.MakeAbsolute(oldPath);
+        string? newFull = VfsManager.MakeAbsolute(newPath);
         if (oldFull == null || newFull == null)
         {
             return PalError.ENOENT;
@@ -578,12 +534,12 @@ internal static unsafe class VfsInterop
             return PalError.SUCCESS;
         }
 
-        if (IsRootOrMountPoint(oldFull) || IsRootOrMountPoint(newFull))
+        if (VfsManager.IsMountPoint(oldFull) || VfsManager.IsMountPoint(newFull))
         {
             return PalError.EBUSY;
         }
 
-        if (!TryStatNode(oldFull, out VfsStat oldStat))
+        if (!VfsManager.TryStat(oldFull, out VfsStat oldStat))
         {
             return PalError.ENOENT;
         }
@@ -606,73 +562,42 @@ internal static unsafe class VfsInterop
             return PalError.EXDEV;
         }
 
-        SplitParentLeaf(oldFull, out string oldParentPath, out string oldLeaf);
-        SplitParentLeaf(newFull, out string newParentPath, out string newLeaf);
-
-        if (!VfsManager.TryOpenDirectory(oldParentPath, out IVfsDirectoryHandle? oldParent) || oldParent == null
-            || !VfsManager.TryOpenDirectory(newParentPath, out IVfsDirectoryHandle? newParent) || newParent == null)
+        // Errno discrimination for an existing destination; VfsManager.TryRename
+        // re-verifies the same conditions before mutating (and owns the
+        // same-entry guard for FAT's case-insensitive lookups).
+        if (VfsManager.TryStat(newFull, out VfsStat newStat))
         {
-            return PalError.ENOENT;
+            bool sameEntry = (oldStat.Ino != 0 && newStat.Ino == oldStat.Ino)
+                || string.Equals(oldFull, newFull, StringComparison.OrdinalIgnoreCase);
+
+            if (!sameEntry)
+            {
+                bool newIsDirectory = (newStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+                if (oldIsDirectory && !newIsDirectory)
+                {
+                    return PalError.ENOTDIR;
+                }
+
+                if (!oldIsDirectory && newIsDirectory)
+                {
+                    return PalError.EISDIR;
+                }
+
+                if (newIsDirectory
+                    && VfsManager.TryOpenDirectory(newFull, out IVfsDirectoryHandle? target) && target != null
+                    && target.TryReadDir(out IReadOnlyList<IVfsInode> entries) && entries.Count > 0)
+                {
+                    return PalError.ENOTEMPTY;
+                }
+            }
         }
 
-        bool destinationExists = TryStatNode(newFull, out VfsStat newStat);
-
-        // FAT lookups are case-insensitive, so the destination stat can
-        // resolve to the SOURCE entry itself (case-only rename). Dropping it
-        // would destroy the file — detect the case and hand the pair
-        // straight to the driver. Raw driver Ino (first cluster) identifies
-        // every non-empty node; the path comparison covers empty files.
-        bool sameEntry = destinationExists
-            && ((oldStat.Ino != 0 && newStat.Ino == oldStat.Ino)
-                || string.Equals(oldFull, newFull, StringComparison.OrdinalIgnoreCase));
-
-        if (destinationExists && !sameEntry)
-        {
-            // POSIX rename replaces the destination, and must leave it
-            // intact when the rename fails; the FAT driver refuses existing
-            // destinations, so move it aside first and only discard it once
-            // the real rename has succeeded.
-            bool newIsDirectory = (newStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
-            if (oldIsDirectory && !newIsDirectory)
-            {
-                return PalError.ENOTDIR;
-            }
-
-            if (!oldIsDirectory && newIsDirectory)
-            {
-                return PalError.EISDIR;
-            }
-
-            if (newIsDirectory
-                && VfsManager.TryOpenDirectory(newFull, out IVfsDirectoryHandle? target) && target != null
-                && target.TryReadDir(out IReadOnlyList<IVfsInode> entries) && entries.Count > 0)
-            {
-                return PalError.ENOTEMPTY;
-            }
-
-            string backupLeaf = newLeaf + ReplaceBackupSuffix;
-            if (!newParent.TryRename(newLeaf, newParent, backupLeaf))
-            {
-                return PalError.EIO;
-            }
-
-            if (!oldParent.TryRename(oldLeaf, newParent, newLeaf))
-            {
-                // Best-effort restore; the destination survives the failure.
-                newParent.TryRename(backupLeaf, newParent, newLeaf);
-                return PalError.EIO;
-            }
-
-            DropDisplacedEntry(newParent, newParentPath, backupLeaf, newIsDirectory, newFull);
-            return PalError.SUCCESS;
-        }
-
-        return oldParent.TryRename(oldLeaf, newParent, newLeaf) ? PalError.SUCCESS : PalError.EIO;
+        return VfsManager.TryRename(oldFull, newFull) ? PalError.SUCCESS : PalError.EIO;
     }
 
     internal static PalError SetPathMode(string path, int mode)
     {
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
@@ -693,13 +618,13 @@ internal static unsafe class VfsInterop
 
     internal static PalError SetCurrentDirectory(string path)
     {
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
         }
 
-        if (!TryStatNode(fullPath, out VfsStat stat))
+        if (!VfsManager.TryStat(fullPath, out VfsStat stat))
         {
             return PalError.ENOENT;
         }
@@ -709,8 +634,7 @@ internal static unsafe class VfsInterop
             return PalError.ENOTDIR;
         }
 
-        s_currentDirectory = fullPath;
-        return PalError.SUCCESS;
+        return VfsManager.TrySetCurrentDirectory(fullPath) ? PalError.SUCCESS : PalError.EIO;
     }
 
     // ---------------- directory streams ----------------
@@ -719,7 +643,7 @@ internal static unsafe class VfsInterop
     {
         handle = IntPtr.Zero;
 
-        string? fullPath = MakeAbsolute(path);
+        string? fullPath = VfsManager.MakeAbsolute(path);
         if (fullPath == null)
         {
             return PalError.ENOENT;
@@ -727,13 +651,20 @@ internal static unsafe class VfsInterop
 
         string[] names;
         bool[] isDirectory;
-        if (fullPath == "/")
+        if (fullPath == "/" && !VfsManager.TryOpenDirectory("/", out _))
         {
-            CollectRootEntries(out names, out isDirectory);
+            // Nothing is mounted at "/": list the virtual root (the first
+            // segments of the mount points; empty with no mounts at all).
+            names = VfsManager.GetVirtualRootEntries();
+            isDirectory = new bool[names.Length];
+            for (int i = 0; i < isDirectory.Length; i++)
+            {
+                isDirectory[i] = true;
+            }
         }
         else
         {
-            if (!TryStatNode(fullPath, out VfsStat stat))
+            if (!VfsManager.TryStat(fullPath, out VfsStat stat))
             {
                 return PalError.ENOENT;
             }
@@ -855,118 +786,33 @@ internal static unsafe class VfsInterop
         return -1;
     }
 
-    /// <summary>When any live descriptor references the node at <paramref name="fullPath"/>,
-    /// marks those descriptors delete-pending and returns true (the caller
-    /// reports success without touching the filesystem yet).</summary>
-    private static bool MarkPendingIfOpen(string fullPath)
-    {
-        IVfsInode? inode = null;
-        if (VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? node) && node != null)
-        {
-            inode = node.Inode;
-        }
-
-        bool any = false;
-        for (int i = 0; i < s_openFiles.Length; i++)
-        {
-            OpenFileState? state = s_openFiles[i];
-            if (state == null)
-            {
-                continue;
-            }
-
-            // Empty FAT files are not in the driver's inode cache, so the
-            // resolved inode can be a fresh object — the path comparison is
-            // the reliable fallback there.
-            if (string.Equals(state.Path, fullPath, StringComparison.OrdinalIgnoreCase)
-                || (inode != null && ReferenceEquals(state.Handle.Inode, inode)))
-            {
-                state.PendingUnlinkPath = fullPath;
-                any = true;
-            }
-        }
-
-        return any;
-    }
-
-    private static bool AnyDescriptorPendingOn(string fullPath)
-    {
-        for (int i = 0; i < s_openFiles.Length; i++)
-        {
-            OpenFileState? state = s_openFiles[i];
-            if (state != null && string.Equals(state.PendingUnlinkPath, fullPath, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>Removes a directory entry without the public-path guards; used for
-    /// deferred (delete-pending) removals where all checks already ran.</summary>
-    private static void RemoveEntryDirect(string fullPath)
-    {
-        SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (VfsManager.TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) && parent != null)
-        {
-            parent.TryUnlink(leaf);
-        }
-    }
-
-    /// <summary>Discards the destination entry a successful replacing rename moved
-    /// aside; descriptors still open on it go delete-pending instead.</summary>
-    private static void DropDisplacedEntry(
-        IVfsDirectoryHandle parent, string parentPath, string backupLeaf, bool isDirectory, string originalFullPath)
-    {
-        if (isDirectory)
-        {
-            // Verified empty before the rename; a failure here only leaks a
-            // stray entry, the rename itself already succeeded.
-            parent.TryRemoveDirectory(backupLeaf);
-            return;
-        }
-
-        string backupPath = parentPath == "/" ? "/" + backupLeaf : parentPath + "/" + backupLeaf;
-
-        IVfsInode? backupInode = null;
-        if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode) && backupNode != null)
-        {
-            backupInode = backupNode.Inode;
-        }
-
-        bool pending = false;
-        for (int i = 0; i < s_openFiles.Length; i++)
-        {
-            OpenFileState? state = s_openFiles[i];
-            if (state == null)
-            {
-                continue;
-            }
-
-            if (string.Equals(state.Path, originalFullPath, StringComparison.OrdinalIgnoreCase)
-                || (backupInode != null && ReferenceEquals(state.Handle.Inode, backupInode)))
-            {
-                state.PendingUnlinkPath = backupPath;
-                pending = true;
-            }
-        }
-
-        if (!pending)
-        {
-            parent.TryUnlink(backupLeaf);
-        }
-    }
-
     private static PalError CreateRegularFile(string fullPath, int mode)
     {
-        SplitParentLeaf(fullPath, out string parentPath, out string leaf);
+        VfsManager.SplitParentLeaf(fullPath, out _, out string leaf);
         if (leaf.Length == 0)
         {
             return PalError.EINVAL;
         }
 
-        if (!TryStatNode(parentPath, out VfsStat parentStat))
+        PalError parentError = RequireMountedParent(fullPath);
+        if (parentError != PalError.SUCCESS)
+        {
+            return parentError;
+        }
+
+        return VfsManager.TryCreateFile(fullPath, PermissionBits(mode))
+            ? PalError.SUCCESS
+            : PalError.EIO;
+    }
+
+    /// <summary>Errno discrimination for creating an entry at <paramref name="fullPath"/>:
+    /// missing parent → ENOENT, parent is a file → ENOTDIR, parent stats as a
+    /// directory but is not backed by a mount (the virtual root) → EROFS.</summary>
+    private static PalError RequireMountedParent(string fullPath)
+    {
+        VfsManager.SplitParentLeaf(fullPath, out string parentPath, out _);
+
+        if (!VfsManager.TryStat(parentPath, out VfsStat parentStat))
         {
             return PalError.ENOENT;
         }
@@ -981,36 +827,7 @@ internal static unsafe class VfsInterop
             return PalError.EROFS;
         }
 
-        ModeEnum createMode = PermissionBits(mode) | ModeEnum.RegularFile;
-        return parent.TryCreateFile(leaf, createMode, out _) ? PalError.SUCCESS : PalError.EIO;
-    }
-
-    private static bool TryStatNode(string fullPath, out VfsStat stat)
-    {
-        if (fullPath == "/")
-        {
-            stat = VirtualRootStat();
-            return true;
-        }
-
-        stat = default;
-        if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? node) || node == null)
-        {
-            return false;
-        }
-
-        return node.TryStat(out stat);
-    }
-
-    private static VfsStat VirtualRootStat()
-    {
-        VfsStat stat = default;
-        stat.Mode = ModeEnum.Directory
-            | ModeEnum.OwnerRead | ModeEnum.OwnerWrite | ModeEnum.OwnerExecute
-            | ModeEnum.GroupRead | ModeEnum.GroupExecute
-            | ModeEnum.OtherRead | ModeEnum.OtherExecute;
-        stat.NLink = 1;
-        return stat;
+        return PalError.SUCCESS;
     }
 
     private static bool SetSize(IVfsInode inode, ulong size)
@@ -1076,59 +893,8 @@ internal static unsafe class VfsInterop
         return (long)((hash & 0x3FFFFFFFFFFFFFFFUL) | 0x4000000000000000UL);
     }
 
-    private static string? MakeAbsolute(string? path)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            return null;
-        }
-
-        string result = path[0] == '/'
-            ? path
-            : (s_currentDirectory == "/" ? "/" + path : s_currentDirectory + "/" + path);
-
-        int end = result.Length;
-        while (end > 1 && result[end - 1] == '/')
-        {
-            end--;
-        }
-
-        return end == result.Length ? result : result.Substring(0, end);
-    }
-
-    private static void SplitParentLeaf(string fullPath, out string parentPath, out string leaf)
-    {
-        int lastSeparator = fullPath.LastIndexOf('/');
-        if (lastSeparator <= 0)
-        {
-            parentPath = "/";
-            leaf = fullPath.Length > 1 ? fullPath.Substring(1) : string.Empty;
-            return;
-        }
-
-        parentPath = fullPath.Substring(0, lastSeparator);
-        leaf = fullPath.Substring(lastSeparator + 1);
-    }
-
-    private static bool IsRootOrMountPoint(string fullPath)
-    {
-        if (fullPath == "/")
-        {
-            return true;
-        }
-
-        IReadOnlyList<VfsManager.VfsMount> mounts = VfsManager.Mounts;
-        for (int i = 0; i < mounts.Count; i++)
-        {
-            if (string.Equals(mounts[i].MountPoint, fullPath, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    /// <summary>Longest-prefix mount lookup that also reports the mount's 1-based
+    /// ordinal — the stable device number <c>FileStatus.Dev</c> carries.</summary>
     private static VfsManager.VfsMount? FindMount(string fullPath, out int ordinal)
     {
         VfsManager.VfsMount? best = null;
@@ -1147,37 +913,6 @@ internal static unsafe class VfsInterop
         }
 
         return best;
-    }
-
-    private static void CollectRootEntries(out string[] names, out bool[] isDirectory)
-    {
-        IReadOnlyList<VfsManager.VfsMount> mounts = VfsManager.Mounts;
-        List<string> collected = new List<string>(mounts.Count);
-        for (int i = 0; i < mounts.Count; i++)
-        {
-            string mountPoint = mounts[i].MountPoint;
-            if (mountPoint == "/")
-            {
-                continue;
-            }
-
-            int nextSeparator = mountPoint.IndexOf('/', 1);
-            string firstSegment = nextSeparator < 0
-                ? mountPoint.Substring(1)
-                : mountPoint.Substring(1, nextSeparator - 1);
-
-            if (!collected.Contains(firstSegment))
-            {
-                collected.Add(firstSegment);
-            }
-        }
-
-        names = collected.ToArray();
-        isDirectory = new bool[names.Length];
-        for (int i = 0; i < isDirectory.Length; i++)
-        {
-            isDirectory[i] = true;
-        }
     }
 
     private static int EncodeUtf8(string value, byte* destination, int capacity)

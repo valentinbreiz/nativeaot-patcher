@@ -8,8 +8,10 @@ namespace Cosmos.Kernel.System.Vfs;
 
 /// <summary>
 /// Central entry point for registering filesystem drivers and resolving VFS paths.
+/// Path-level operations (current directory, create/unlink/rename/remove,
+/// virtual root) live in the <c>VfsManager.Paths.cs</c> partial.
 /// </summary>
-public static class VfsManager
+public static partial class VfsManager
 {
     private sealed class VfsOpenFile : IVfsOpenFile
     {
@@ -235,7 +237,13 @@ public static class VfsManager
         }
 
         IVfsOpenFile openFile = new VfsOpenFile(leafName, inode, fileOperations);
-        file = new VfsFileHandle(leafName, inode, openFile);
+        VfsFileHandle handle = new VfsFileHandle(leafName, inode, openFile)
+        {
+            OpenedPath = path,
+            Tracked = true,
+        };
+        RegisterOpenFile(handle);
+        file = handle;
         return true;
     }
 
