@@ -332,9 +332,13 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        // Allocate mark stack
-        s_markStackCapacity = 4096;
-        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+        // Allocate mark stack. Capacity MUST match the backing allocation:
+        // one 4K page holds 512 nint entries, and PushMarkStack bounds-checks
+        // against s_markStackCapacity before growing — a larger capacity here
+        // means the mark phase writes past the page and corrupts adjacent
+        // allocations as soon as more than 512 objects are pending.
+        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, s_markStackPageCount, true);
+        s_markStackCapacity = (int)(s_markStackPageCount * PageAllocator.PageSize / (ulong)sizeof(nint));
         if (s_markStack == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
