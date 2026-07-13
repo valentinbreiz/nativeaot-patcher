@@ -977,6 +977,8 @@ public unsafe class Canvas
     /// <param name="y">The origin Y coordinate.</param>
     public virtual void DrawString(string str, Font font, Color color, int x, int y)
     {
+        ArgumentNullException.ThrowIfNull(font);
+
         if (font is TrueTypeFont trueType)
         {
             DrawString(str, trueType, trueType.SizePx, color, x, y);
@@ -1079,6 +1081,8 @@ public unsafe class Canvas
     /// <inheritdoc cref="DrawString(string, Font, Color, int, int)"/>
     public virtual void DrawChar(char c, Font font, Color color, int x, int y)
     {
+        ArgumentNullException.ThrowIfNull(font);
+
         if (font is TrueTypeFont trueType)
         {
             DrawString(c.ToString(), trueType, trueType.SizePx, color, x, y);

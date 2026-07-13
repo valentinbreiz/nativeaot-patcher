@@ -105,10 +105,22 @@ public class X64InterruptController : IInterruptController
         }
     }
 
+    /// <summary>CPU exceptions that push an error code (SDM 3A §6.15); the asm stub stashes it for <see cref="Bridge.IdtNative.GetLastErrorCode"/>.</summary>
+    private static bool HasErrorCode(ulong interrupt) =>
+        interrupt is 8 or (>= 10 and <= 14) or 17 or 21 or 29 or 30;
+
     private static void HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
         Serial.Write("[INT] FATAL: Exception ", interrupt, "\n");
-        Serial.Write("[INT] Error code: 0x");
+
+        if (HasErrorCode(interrupt))
+        {
+            Serial.Write("[INT] Error code: 0x");
+            Serial.WriteHex(Cosmos.Kernel.Core.X64.Bridge.IdtNative.GetLastErrorCode());
+            Serial.Write("\n");
+        }
+
+        Serial.Write("[INT] RFLAGS: 0x");
         Serial.WriteHex(cpuFlags);
         Serial.Write("\n");
 

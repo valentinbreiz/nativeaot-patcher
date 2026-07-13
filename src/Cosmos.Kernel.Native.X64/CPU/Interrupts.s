@@ -309,6 +309,15 @@ _native_get_sp:
     mov rax, rsp
     ret
 
+// uint64_t _native_x64_get_last_error_code()
+// Returns the error code stashed by the most recent error-code exception
+// stub (vectors 8, 10-14, 17, 21, 29, 30). Only meaningful while handling
+// that exception; a nested error-code exception overwrites it.
+.global _native_x64_get_last_error_code
+_native_x64_get_last_error_code:
+    mov rax, [rip + _irq_last_error_code]
+    ret
+
 // void _native_set_context_switch_new_thread(int isNew)
 // Sets whether the target thread is NEW (1) or RESUMED (0)
 // rdi = isNew flag
@@ -331,6 +340,10 @@ _context_switch_is_new_thread: .zero 8
 // Temporary storage for is_new_thread flag during restore
 // Used to avoid destroying RAX when checking if this is a new thread
 _temp_is_new_thread: .zero 8
+
+// Error code stashed by the error-code exception stubs before they unify
+// the stack frame with the no-error-code vectors
+_irq_last_error_code: .zero 8
 
 .data
 _native_x64_irq_table:
@@ -606,8 +619,17 @@ _native_x64_get_irq_stub:
     mov rax, [rax + rdi * 8]  // Load stub address for vector index
     ret
 
-.macro IRQ_STUB n
+.macro IRQ_STUB n, has_err=0
 irq\n\()_stub:
+    .if \has_err
+    // The CPU pushed an error code for this vector (8, 10-14, 17, 21, 29, 30).
+    // Stash it and remove it from the stack so the frame below is identical
+    // to the no-error-code vectors — both the ThreadContext layout offsets
+    // and the 16-byte alignment of the __managed__irq call depend on a
+    // uniform frame. (Leaving the extra qword put RSP 8 bytes off; the first
+    // movaps in managed code then raised #GP, recursing to a triple fault.)
+    pop qword ptr [rip + _irq_last_error_code]
+    .endif
     // === SAVE CONTEXT ===
     // CPU pushes: RIP, CS, RFLAGS (and RSP, SS if privilege change)
     // Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
@@ -826,20 +848,20 @@ IRQ_STUB 4
 IRQ_STUB 5
 IRQ_STUB 6
 IRQ_STUB 7
-IRQ_STUB 8
+IRQ_STUB 8, 1
 IRQ_STUB 9
-IRQ_STUB 10
-IRQ_STUB 11
-IRQ_STUB 12
-IRQ_STUB 13
-IRQ_STUB 14
+IRQ_STUB 10, 1
+IRQ_STUB 11, 1
+IRQ_STUB 12, 1
+IRQ_STUB 13, 1
+IRQ_STUB 14, 1
 IRQ_STUB 15
 IRQ_STUB 16
-IRQ_STUB 17
+IRQ_STUB 17, 1
 IRQ_STUB 18
 IRQ_STUB 19
 IRQ_STUB 20
-IRQ_STUB 21
+IRQ_STUB 21, 1
 IRQ_STUB 22
 IRQ_STUB 23
 IRQ_STUB 24
@@ -847,8 +869,8 @@ IRQ_STUB 25
 IRQ_STUB 26
 IRQ_STUB 27
 IRQ_STUB 28
-IRQ_STUB 29
-IRQ_STUB 30
+IRQ_STUB 29, 1
+IRQ_STUB 30, 1
 IRQ_STUB 31
 IRQ_STUB 32
 IRQ_STUB 33
