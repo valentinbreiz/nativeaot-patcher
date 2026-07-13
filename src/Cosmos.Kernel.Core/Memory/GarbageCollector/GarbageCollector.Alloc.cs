@@ -326,6 +326,58 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
+    /// Removes and returns the largest free-list block of at least
+    /// <paramref name="minSize"/> bytes, taken whole (no split) and zeroed.
+    /// TLAB-refill fallback: lets refills reuse the sub-TlabSize blocks that
+    /// sweep leaves in partially live segments instead of growing the heap
+    /// with a new segment. The unused tail is stamped back to the free list
+    /// by the next <see cref="StampUnusedTlab"/> like any other TLAB gap.
+    /// </summary>
+    private static void* AllocLargestFromFreeListRaw(uint minSize, out uint blockSize)
+    {
+        blockSize = 0;
+        if (!s_freeListsInitialized)
+        {
+            return null;
+        }
+
+        for (int i = NumSizeClasses - 1; i >= 0; i--)
+        {
+            FreeBlock* prev = null;
+            FreeBlock* best = null;
+            FreeBlock* bestPrev = null;
+            for (FreeBlock* block = s_freeLists[i]; block != null; block = block->Next)
+            {
+                if ((uint)block->Size >= minSize && (best == null || block->Size > best->Size))
+                {
+                    best = block;
+                    bestPrev = prev;
+                }
+
+                prev = block;
+            }
+
+            if (best != null)
+            {
+                if (bestPrev != null)
+                {
+                    bestPrev->Next = best->Next;
+                }
+                else
+                {
+                    s_freeLists[i] = best->Next;
+                }
+
+                blockSize = (uint)best->Size;
+                MemoryOp.MemSet((byte*)best, 0, (int)blockSize);
+                return best;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Bump allocation in a segment without incrementing <see cref="s_totalAllocatedBytes"/>.
     /// Used by TLAB refill.
     /// </summary>

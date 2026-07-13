@@ -72,6 +72,19 @@ public static unsafe partial class GarbageCollector
                 return SetupTlab(ref ac, buffer, requestSize);
             }
 
+            // Fall back to the largest free-list block before growing the heap.
+            // Post-sweep blocks are always smaller than TlabSize (gap stamps and
+            // surviving objects cap them below 8192), so requiring a full-size
+            // TLAB would leave every partially live segment's free space
+            // unusable and burn a fresh segment per refill: one long-lived
+            // 26-byte string then pins 3 pages forever.
+            uint minSize = size > MinBlockSize ? size : MinBlockSize;
+            buffer = AllocLargestFromFreeListRaw(minSize, out uint blockSize);
+            if (buffer != null)
+            {
+                return SetupTlab(ref ac, buffer, blockSize);
+            }
+
             // Try slow path: walk segments, allocate new segment if needed
             buffer = AllocateObjectSlowRaw(requestSize);
             if (buffer != null)
