@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using Cosmos.TestingFramework.Capabilities;
 using Cosmos.TestingFramework.Engine;
@@ -76,6 +77,12 @@ namespace Cosmos.TestingFramework
             if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.KernelArchitectureOption, out string[]? kernelArch))
             {
                 _testingConfiguration.Architecture = kernelArch[0];
+            }
+
+            if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.KernelTimeoutOption, out string[]? kernelTimeout)
+                && int.TryParse(kernelTimeout[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int kernelTimeoutSeconds))
+            {
+                _testingConfiguration.TimeoutSeconds = kernelTimeoutSeconds;
             }
 
             if (_commandLineOptions.IsOptionSet(TestingFrameworkCommandLineOptions.KeepOutputOption))

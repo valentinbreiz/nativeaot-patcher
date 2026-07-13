@@ -12,6 +12,7 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
     public const string UartLogOption = "uartlog";
     public const string UartLogFilenameOption = "uartlog-filename";
     public const string KernelArchitectureOption = "kernel-arch";
+    public const string KernelTimeoutOption = "kernel-timeout";
     public const string KeepOutputOption = "keep-output";
 
     public string Uid => nameof(TestingFrameworkCommandLineOptions);
@@ -30,6 +31,7 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
         new CommandLineOption(UartLogOption, "Enable UART log", ArgumentArity.Zero, false),
         new CommandLineOption(UartLogFilenameOption, "The name of the uart log file", ArgumentArity.ExactlyOne, false),
         new CommandLineOption(KernelArchitectureOption, "The architecture to build the test kernel for (x64 or arm64)", ArgumentArity.ExactlyOne, false),
+        new CommandLineOption(KernelTimeoutOption, "Timeout in seconds for each QEMU boot of the test kernel (not the whole session; use --timeout for that)", ArgumentArity.ExactlyOne, false),
         new CommandLineOption(KeepOutputOption, "Keep build artifacts after test execution", ArgumentArity.Zero, false)
     ];
 
@@ -68,6 +70,14 @@ internal sealed class TestingFrameworkCommandLineOptions : ICommandLineOptionsPr
             if (arch is not "x64" and not "arm64")
             {
                 return ValidationResult.InvalidTask("Invalid architecture specified. Supported values are 'x64' and 'arm64'.");
+            }
+        }
+
+        if (commandLineOptions.TryGetOptionArgumentList(KernelTimeoutOption, out string[]? kernelTimeout))
+        {
+            if (!int.TryParse(kernelTimeout[0], out int timeoutSeconds) || timeoutSeconds <= 0)
+            {
+                return ValidationResult.InvalidTask("--kernel-timeout must be a positive number of seconds (e.g. 180).");
             }
         }
 

@@ -97,7 +97,7 @@ debug-dev: build disks
 test:
 	dotnet test --project tests/Kernels/Cosmos.Kernel.Tests.$(KERNEL) \
 		--report-xml --report-xml-filename test-results-$(KERNEL)-$(ARCH).xml \
-		--timeout $(TIMEOUT)s --kernel-arch $(ARCH) \
+		--kernel-timeout $(TIMEOUT) --kernel-arch $(ARCH) \
 		--results-directory "./tests/Kernels/TestResults"
 
 test-cache:
