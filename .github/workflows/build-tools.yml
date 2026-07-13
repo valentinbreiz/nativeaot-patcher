@@ -510,7 +510,7 @@ jobs:
       #   --disable-source-highlight drops libsource-highlight runtime dep
       #   --disable-tui              skips ncurses TUI (we drive gdb via cppdbg/MI, not interactive)
       #   --disable-nls              no translations
-      #   --with-python=yes           don't embed CPython (huge runtime + libpython dep)
+      #   --with-python=no           don't embed CPython (huge runtime + libpython dep)
       #   --without-guile            no Guile scripting
       # libxml2 is left enabled — QEMU's gdbstub sends XML target descriptions.
       - name: Build GDB (Linux/macOS)
@@ -552,7 +552,7 @@ jobs:
             --disable-gprofng \
             --disable-sim \
             --disable-gdbserver \
-            --with-python=yes \
+            --with-python=no \
             --without-guile
           make -j$NPROC
           strip gdb/gdb gdb/gdb-unsigned 2>/dev/null || true
@@ -580,7 +580,7 @@ jobs:
             --disable-gprofng \
             --disable-sim \
             --disable-gdbserver \
-            --with-python=yes \
+            --with-python=no \
             --without-guile
           make -j$(nproc)
           strip gdb/gdb.exe
