@@ -37,10 +37,11 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 5);
+        TR.Start("Graphic Tests", expectedTests: 7);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
+        TR.Run("Png_Decode", TestPngDecode); TR.Run("Ttf_Render", TestTtfRender);
         TR.Run("ColorClass_Basic", TestColorClass);
         TR.Run("Canvas_Basic", TestCanvasDrawing);
         TR.Run("VirtualCanvas_Basic", TestVirtualCanvas);
@@ -80,6 +81,88 @@ public class Kernel : Sys.Kernel
         Assert.Equal(bitmapData, letterData, "Saving a bitmap creates the same data as used to create it");
         Bitmap letter2 = new Bitmap(bitmapData);
         Assert.Equal(letter2.RawData, letter.RawData, "Creating a new bitmap from saved bitmap creates same bitmap");
+    }
+
+
+    private static void TestTtfRender()
+    {
+        // DejaVu Sans subset ("ABCabc VoT" + legacy kern table) produced with
+        // pyftsubset; see src/Cosmos.Kernel.System/Graphics/Fonts/TrueType/LunarFonts/README.md.
+        byte[] fontData = Convert.FromBase64String("AAEAAAAQAQAABAAAR0RFRgARAAsAAAfQAAAAFkdQT1MgfCj3AAAH6AAAAQJHU1VCJ6Q/wwAACOwAAACWTUFUSAk/M4QAAAmEAAAA9k9TLzJp+W96AAAEpAAAAFZjbWFwAWEBPAAABPwAAABcZ2FzcAAHAAcAAAfEAAAADGdseWZw9kHMAAABDAAAAtZoZWFkJ1lMTwAABBwAAAA2aGhlYQ2fB3gAAASAAAAAJGhtdHg1hwPTAAAEVAAAACxrZXJu++z89QAABVgAAAB4bG9jYQMLA8gAAAQEAAAAGG1heHAASwPBAAAD5AAAACBuYW1lJ+09vgAABdAAAAHUcG9zdP/bAFoAAAekAAAAIAACABAAAAVoBdUAAgAKAAAJASEBMwEjAyEDIwK8/u4CJf575QI50oj9X4jVBQ79GQOu+isBf/6BAAMAyQAABOwF1QAIABEAIAAAAREhMjY1NCYjAREhMjY1NCYjJSEyFhUUBgceARUUBCMhAZMBRKOdnaP+vAErlJGRlP4LAgTn+oB8laX+8Pv96ALJ/d2Hi4yFAmb+Pm9ycXCmwLGJohQgy5jI2gAAAQBz/+MFJwXwABkAAAEVLgEjIAAREAAhMjY3FQ4BIyAAERAAITIWBSdm54L/AP7wARABAILnZmrthP6t/noBhgFThu0FYtVfXv7H/tj+2f7HXl/TSEgBnwFnAWgBn0cAAf/6AAAE6QXVAAcAAAMhFSERIxEhBgTv/e7L/e4F1ar61QUrAAABABAAAAVoBdUABgAAIQEzCQEzAQJK/cbTAdkB2tL9xwXV+xcE6forAAACAHv/4wQtBHsACgAlAAABIgYVFBYzMjY9ATcRIzUOASMiJjU0NjMhNTQmIyIGBzU+ATMyFgK+36yBb5m5uLg/vIisy/37AQKnl2C2VGW+WvPwAjNme2Jz2bQpTP2BqmZhwaK9wBJ/iy4uqicn/AAAAgC6/+MEpAYUAAsAHAAAATQmIyIGFRQWMzI2AT4BMzIAERACIyImJxUjETMD5aeSkqenkpKn/Y46sXvMAP//zHuxOrm5Ai/L5+fLy+fnAlJkYf68/vj++P68YWSoBhQAAQBx/+MD5wR7ABkAAAEVLgEjIgYVFBYzMjY3FQ4BIyIAERAAITIWA+dOnVCzxsazUJ1OTaVd/f7WAS0BBlWiBDWsKyvjzc3jKyuqJCQBPgEOARIBOiMAAAIAcf/jBHUEewALABcAAAEiBhUUFjMyNjU0JicyABEQACMiABEQAAJzlKyrlZOsrJPwARL+7vDx/u8BEQPf58nJ5+jIx+mc/sj+7P7t/scBOQETARQBOAAAAAEAAAALA1QAKwBoAAwAAQAAAAAAAAAAAAAAAAAIAAQAAAAAAAAAHABTAIMAlgCrAOMBEwE/AWsAAQAAAAJeuDD7UShfDzz1AB8IAAAAAADg+tE5AAAAAOD60Tn31vxMDlkJ3AAAAAgAAgAAAAAAAATNAGYCiwAABXkAEAV9AMkFlgBzBOP/+gV5ABAE5wB7BRQAugRmAHEE5QBxAAEAAAdt/h0AAA7+99b6UQ5ZAAEAAAAAAAAAAAAAAAAAAAALAAEEDgGQAAUAAAUzBZkAAAEeBTMFmQAAA9cAZgISAAACCwYDAwgEAgIEAAAAAQAAAAAAAAAAAAAAAFBmRWQAQAAgAG8GFP4UAZoHbQHjAAAAAQAAAAAAAAAAAAIAAAADAAAAFAADAAEAAAAUAAQASAAAAA4ACAACAAYAIABDAFQAVgBjAG///wAAACAAQQBUAFYAYQBv////4f/B/7H/sP+m/5sAAQAAAAAAAAAAAAAAAAAAAAAAAQAAAHQAAQARAGAABAAGAAIAAgA5AAIABP/cAAIABf9hAAIABv99AAIACf/cAAIACv/cAAMABP/cAAMABv/BAAUAAv9hAAUABP+IAAUABf/cAAUAB/6tAAUACf6kAAUACv6kAAYAAv99AAYAB/9hAAYACv9hAAAABwBaAAMAAQQJAAABMAAAAAMAAQQJAAEAFgEwAAMAAQQJAAIACAFGAAMAAQQJAAMAFgEwAAMAAQQJAAQAFgEwAAMAAQQJAAUAGAFOAAMAAQQJAAYAFAFmAEMAbwBwAHkAcgBpAGcAaAB0ACAAKABjACkAIAAyADAAMAAzACAAYgB5ACAAQgBpAHQAcwB0AHIAZQBhAG0ALAAgAEkAbgBjAC4AIABBAGwAbAAgAFIAaQBnAGgAdABzACAAUgBlAHMAZQByAHYAZQBkAC4ACgBDAG8AcAB5AHIAaQBnAGgAdAAgACgAYwApACAAMgAwADAANgAgAGIAeQAgAFQAYQB2AG0AagBvAG4AZwAgAEIAYQBoAC4AIABBAGwAbAAgAFIAaQBnAGgAdABzACAAUgBlAHMAZQByAHYAZQBkAC4ACgBEAGUAagBhAFYAdQAgAGMAaABhAG4AZwBlAHMAIABhAHIAZQAgAGkAbgAgAHAAdQBiAGwAaQBjACAAZABvAG0AYQBpAG4ACgBEAGUAagBhAFYAdQAgAFMAYQBuAHMAQgBvAG8AawBWAGUAcgBzAGkAbwBuACAAMgAuADMANwBEAGUAagBhAFYAdQBTAGEAbgBzAAMAAAAAAAD/2ABaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAgAAv//AAMAAQAAAAwAAAAAAAAAAgABAAEACgABAAAAAQAAAAoALgA8AAJERkxUAA5sYXRuABgABAAAAAD//wAAAAQAAAAA//8AAQAAAAFrZXJuAAgAAAABAAAAAQAEAAIAAAABAAgAAgB8AAQAAACMAKIABgAJAAAAOQAA/9z/Yf99AAD/3P/cAAAAAAAA/9wAAP/BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/YQAA/4j/3AAA/q3+pP6kAAD/fQAAAAAAAAAA/2EAAP9hAAAAAAAAAAAAAAAAAAAAAAAAAAEABgACAAMABAAFAAYACgABAAMACAABAAIAAwAEAAAAAAAAAAUAAQACAAkAAQACAAMABAAFAAYAAAAHAAgAAAABAAAACgCSAJQAFERGTFQAemFyYWIAhGFybW4AhGJyYWkAhGNhbnMAhGNoZXIAhGN5cmwAhGdlb3IAhGdyZWsAhGhhbmkAhGhlYnIAhGthbmEAhGxhbyAAhGxhdG4AhG1hdGgAhG5rbyAAhG9nYW0AhHJ1bnIAhHRmbmcAhHRoYWkAhAAEAAAAAP//AAAAAAAAAAAAAAAAAAEAAAAKAOAA6ABQADwMAAfdAAAAAAKCAAAEYAAABdUAAAAAAAAEYAAAAAAAAAAAAAAAAAAABGAAAAAAAAABaAAABGAAAABVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEOAAACdgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAQ4AAABaAAAAWgAAAQ4AAAAAAAAAAAAAAQ4AAABaAAAAWgAAAQ4AAABaAAAAWgAAAFoAAAFyAAAAWgAAAFoAAAI4AAD7jwAAADwAAAAAAAAAAAAoAAoACgAAAAAAAQAAAAA=");
+        TrueTypeFont font = new TrueTypeFont(fontData, 24);
+
+        Assert.True(font.HasGlyph('A'), "TTF subset contains 'A'");
+        Assert.Equal(false, font.HasGlyph('H'), "TTF subset does not contain 'H'");
+
+        font.GetLineMetrics(32, out int ascent, out int descent, out int lineGap);
+        Assert.Equal(26, ascent, "TTF ascent at 32px");
+        Assert.Equal(-6, descent, "TTF descent at 32px");
+        Assert.Equal(32, font.GetLineHeight(32), "TTF line height at 32px");
+
+        Assert.Equal(-2, font.GetKerning('A', 'V', 32), "TTF kerning of the A/V pair at 32px");
+        Assert.Equal(18, font.MeasureString("A", 32), "TTF advance of 'A' at 32px");
+        Assert.Equal(34, font.MeasureString("AV", 32), "TTF kerned width of \"AV\" at 32px");
+
+        Canvas canvas = new Canvas(64, 48);
+        canvas.Clear(Color.Black);
+        canvas.DrawString("A", font, 32, Color.White, 4, 4);
+
+        int black = Color.Black.ToArgb();
+        int lit = 0;
+        for (int y = 0; y < 48; y++)
+        {
+            for (int x = 0; x < 64; x++)
+            {
+                if (canvas.GetPointColor(x, y).ToArgb() != black)
+                {
+                    lit++;
+                }
+            }
+        }
+
+        Assert.True(lit > 120 && lit < 400, "TTF glyph 'A' blended a plausible number of pixels");
+        Assert.Equal(black, canvas.GetPointColor(60, 44).ToArgb(), "TTF glyph stays inside its box");
+
+        // Drawing through the base Font overload dispatches to the TrueType
+        // path using the font's default size.
+        Font baseFont = font;
+        canvas.DrawString("o", baseFont, Color.White, 40, 8);
+        int litRight = 0;
+        for (int y = 0; y < 48; y++)
+        {
+            for (int x = 40; x < 64; x++)
+            {
+                if (canvas.GetPointColor(x, y).ToArgb() != black)
+                {
+                    litRight++;
+                }
+            }
+        }
+
+        Assert.True(litRight > 20, "TTF draw through the base Font overload");
+    }
+
+    private static void TestPngDecode()
+    {
+        /* 4x4 RGBA PNG: blue background, distinct corner pixels, one semi-transparent */
+        Png rgba = new Png(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJklEQVR4nF3JMQ4AIBDDMPd+zsvLAAPCW5SURoFG6K1jfOb9lbUBeK8JgkrGyJkAAAAASUVORK5CYII="));
+
+        Assert.True(rgba.Width == 4 && rgba.Height == 4, "PNG width and height decoded correctly");
+        Assert.Equal(rgba.RawData[0], unchecked((int)0xFFFF0000), "PNG top-left pixel is red");
+        Assert.Equal(rgba.RawData[3], unchecked((int)0xFF00FF00), "PNG top-right pixel is green");
+        Assert.Equal(rgba.RawData[1], unchecked((int)0xFF0000FF), "PNG background pixel is blue");
+        Assert.Equal(rgba.RawData[12], unchecked((int)0xFFFFFFFF), "PNG bottom-left pixel is white");
+        Assert.Equal(rgba.RawData[15], unchecked((int)0x80FF0000), "PNG alpha channel is preserved");
+
+        /* 4x4 paletted PNG (PLTE chunk): color index cycles red, green, blue */
+        Png paletted = new Png(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAMAAACeL25MAAADAFBMVEX/AAAA/wAAAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUz4tDAAAAE0lEQVR4nGNgYGRiAGFGBiYYEwAApwAQmSkL9AAAAABJRU5ErkJggg=="));
+
+        Assert.True(paletted.Width == 4 && paletted.Height == 4, "Paletted PNG width and height decoded correctly");
+        Assert.Equal(paletted.RawData[0], unchecked((int)0xFFFF0000), "Paletted PNG index 0 maps to red");
+        Assert.Equal(paletted.RawData[1], unchecked((int)0xFF00FF00), "Paletted PNG index 1 maps to green");
+        Assert.Equal(paletted.RawData[2], unchecked((int)0xFF0000FF), "Paletted PNG index 2 maps to blue");
     }
 
     private static void TestColorClass()

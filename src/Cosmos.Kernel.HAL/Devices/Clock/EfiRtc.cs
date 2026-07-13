@@ -13,11 +13,6 @@ namespace Cosmos.Kernel.HAL.Devices.Clock;
 /// </summary>
 public static class EfiRtc
 {
-    private const long TicksPerSecond = 10_000_000L;
-    private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour = TicksPerMinute * 60;
-    private const long TicksPerDay = TicksPerHour * 24;
-
     /// <summary>
     /// Attempts to read the current wall-clock time via EFI Runtime Services.
     /// Returns true and sets <paramref name="ticks"/> to DateTime ticks (UTC) on success.
@@ -98,15 +93,15 @@ public static class EfiRtc
         }
 
         long dateTicks = DateToTicks(time.Year, time.Month, time.Day);
-        long timeTicks = time.Hour * TicksPerHour
-                       + time.Minute * TicksPerMinute
-                       + time.Second * TicksPerSecond
+        long timeTicks = time.Hour * TimeSpan.TicksPerHour
+                       + time.Minute * TimeSpan.TicksPerMinute
+                       + time.Second * TimeSpan.TicksPerSecond
                        + time.Nanosecond / 100;
 
         long tzOffset = 0;
         if (time.TimeZone != unchecked((short)0x07FF))
         {
-            tzOffset = -(long)time.TimeZone * TicksPerMinute;
+            tzOffset = -(long)time.TimeZone * TimeSpan.TicksPerMinute;
         }
 
         ticks = dateTicks + timeTicks + tzOffset;
@@ -129,7 +124,7 @@ public static class EfiRtc
         }
 
         days += day - 1;
-        return days * TicksPerDay;
+        return days * TimeSpan.TicksPerDay;
     }
 
     private static bool IsLeapYear(int year)

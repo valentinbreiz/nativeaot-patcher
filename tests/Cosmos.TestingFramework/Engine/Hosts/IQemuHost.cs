@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cosmos.TestingFramework.Engine.Hosts;
+using Cosmos.Tools.Launcher;
 
 namespace Cosmos.TestingFramework.Engine;
 
@@ -21,8 +24,10 @@ public interface IQemuHost
     /// <param name="timeoutSeconds">Maximum time to run (default 30s)</param>
     /// <param name="showDisplay">Show QEMU display window (default false = headless)</param>
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
+    /// <param name="disks">Per-profile disk attachments. AHCI entries share one <c>ich9-ahci</c> controller; NVMe entries each get their own <c>nvme</c> controller. Per-disk extra device options (e.g. <c>msix=off</c>) flow through.</param>
+    /// <param name="machineOptions">Extra <c>-M</c> properties (e.g. <c>{"gic-version", "2"}</c> on ARM64). Caller is responsible for passing arch-appropriate keys.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = 30, bool showDisplay = false, bool enableNetworkTesting = false);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null);
 }
 
 /// <summary>

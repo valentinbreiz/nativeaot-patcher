@@ -38,11 +38,15 @@ extern void* cosmos_acpi_get_rsdp(void);
 typedef struct {
     uint8_t  found;
     uint8_t  version;       // GIC version: 2 or 3
-    uint8_t  _pad[6];
+    uint8_t  its_found;     // 1 if at least one GIC ITS subtable seen
+    uint8_t  _pad[5];
     uint64_t dist_base;     // GICD physical base
     uint64_t redist_base;   // GICR physical base (GICv3)
     uint64_t redist_length; // GICR region length
     uint64_t cpu_if_base;   // GICC physical base (GICv2)
+    uint64_t its_base;      // GIC ITS physical base (GICv3 + ITS only); 0 if absent
+    uint32_t its_id;        // ITS Translation ID (referenced by IORT)
+    uint32_t _pad2;
 } acpi_gic_info_t;
 
 static acpi_gic_info_t g_gic_info;
@@ -309,6 +313,24 @@ static void parse_madt(acpi_header_t* madt_header) {
                 }
                 break;
             }
+            case MADT_TYPE_ITS: {
+                // GIC ITS subtable (ACPI 6.5 §5.2.12.18):
+                // type(1) length(1) reserved(2) translation_id(4)
+                // physical_base(8) reserved(4)
+                if (entry_len >= 20 && !g_gic_info.its_found) {
+                    uint32_t id = *(uint32_t*)(madt + offset + 4);
+                    uint64_t base = *(uint64_t*)(madt + offset + 8);
+                    g_gic_info.its_base = base;
+                    g_gic_info.its_id = id;
+                    g_gic_info.its_found = 1;
+                    __cosmos_serial_write("[ACPI-GIC] ITS: id=");
+                    __cosmos_serial_write_dec_u32(id);
+                    __cosmos_serial_write(" base=0x");
+                    __cosmos_serial_write_hex_u64(base);
+                    __cosmos_serial_write("\n");
+                }
+                break;
+            }
         }
 #endif // __aarch64__
 
@@ -372,6 +394,183 @@ static void parse_mcfg(acpi_header_t* mcfg_header) {
 }
 
 // ============================================================================
+// IORT parsing (ARM64 only) — translates PCI requester IDs to ITS DeviceIDs
+// per ARM DEN 0049 "IO Remapping Table" specification.
+// ============================================================================
+
+#ifdef __aarch64__
+
+#define IORT_NODE_ITS_GROUP    0x00
+#define IORT_NODE_ROOT_COMPLEX 0x02
+#define IORT_NODE_SMMU_V1V2    0x03
+#define IORT_NODE_SMMU_V3      0x04
+
+// Cached pointer to the IORT, virtual address. NULL if no IORT was found.
+static uint8_t* g_iort_base = NULL_PTR;
+static uint32_t g_iort_length = 0;
+
+// Read 32-bit little-endian field at unaligned offset.
+static inline uint32_t iort_rd32(const uint8_t* p, uint32_t off) {
+    return (uint32_t)p[off] | ((uint32_t)p[off+1] << 8)
+         | ((uint32_t)p[off+2] << 16) | ((uint32_t)p[off+3] << 24);
+}
+static inline uint16_t iort_rd16(const uint8_t* p, uint32_t off) {
+    return (uint16_t)p[off] | ((uint16_t)p[off+1] << 8);
+}
+
+// Find the node at file-relative byte offset `node_off`. Returns NULL if it
+// would extend beyond the table.
+static const uint8_t* iort_node_at(uint32_t node_off) {
+    if (g_iort_base == NULL_PTR) return NULL_PTR;
+    if (node_off + 16 > g_iort_length) return NULL_PTR;
+    uint16_t len = iort_rd16(g_iort_base, node_off + 1);
+    if (len < 16 || node_off + len > g_iort_length) return NULL_PTR;
+    return g_iort_base + node_off;
+}
+
+static void parse_iort(acpi_header_t* iort_header) {
+    g_iort_base = (uint8_t*)iort_header;
+    g_iort_length = iort_header->length;
+
+    uint32_t node_count = iort_rd32(g_iort_base, sizeof(acpi_header_t));
+    uint32_t node_array_off = iort_rd32(g_iort_base, sizeof(acpi_header_t) + 4);
+
+    __cosmos_serial_write("[ACPI-IORT] nodes=");
+    __cosmos_serial_write_dec_u32(node_count);
+    __cosmos_serial_write(" base=0x");
+    __cosmos_serial_write_hex_u64((uint64_t)(uintptr_t)g_iort_base);
+    __cosmos_serial_write("\n");
+
+    // Sanity: walk once for diagnostics.
+    uint32_t off = node_array_off;
+    for (uint32_t i = 0; i < node_count && off + 16 <= g_iort_length; i++) {
+        uint8_t  type = g_iort_base[off];
+        uint16_t len  = iort_rd16(g_iort_base, off + 1);
+        if (len < 16) break;
+        if (type == IORT_NODE_ROOT_COMPLEX && len >= 32) {
+            uint32_t segment = iort_rd32(g_iort_base, off + 28);
+            uint32_t mappings = iort_rd32(g_iort_base, off + 8);
+            __cosmos_serial_write("[ACPI-IORT] Root Complex seg=");
+            __cosmos_serial_write_dec_u32(segment);
+            __cosmos_serial_write(" mappings=");
+            __cosmos_serial_write_dec_u32(mappings);
+            __cosmos_serial_write("\n");
+        } else if (type == IORT_NODE_ITS_GROUP) {
+            uint32_t its_count = (len >= 20) ? iort_rd32(g_iort_base, off + 16) : 0;
+            __cosmos_serial_write("[ACPI-IORT] ITS Group count=");
+            __cosmos_serial_write_dec_u32(its_count);
+            __cosmos_serial_write("\n");
+        }
+        off += len;
+    }
+}
+
+// Resolve a (segment, bdf) requester ID to an ITS DeviceID by walking IORT
+// Root Complex → ID mappings → ITS Group. Returns 0 on success, nonzero
+// otherwise. SMMU pass-through nodes are followed once (their input is the
+// requester ID, output continues to ITS).
+int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_device_id) {
+    if (out_device_id == NULL_PTR) return 1;
+    *out_device_id = bdf;  // identity fallback even on early return
+
+    if (g_iort_base == NULL_PTR) return 1;
+
+    uint32_t node_count = iort_rd32(g_iort_base, sizeof(acpi_header_t));
+    uint32_t node_array_off = iort_rd32(g_iort_base, sizeof(acpi_header_t) + 4);
+
+    // Find Root Complex matching segment.
+    uint32_t off = node_array_off;
+    const uint8_t* rc = NULL_PTR;
+    for (uint32_t i = 0; i < node_count; i++) {
+        const uint8_t* n = iort_node_at(off);
+        if (n == NULL_PTR) return 1;
+        uint16_t len = iort_rd16(n, 1);
+        if (n[0] == IORT_NODE_ROOT_COMPLEX && len >= 32) {
+            uint32_t seg = iort_rd32(n, 28);
+            if (seg == segment) { rc = n; break; }
+        }
+        off += len;
+    }
+    if (rc == NULL_PTR) return 1;
+
+    uint32_t cur_id = bdf;
+    const uint8_t* node = rc;
+
+    // Walk up to two hops: RC → (optional) SMMU → ITS.
+    for (int hop = 0; hop < 3; hop++) {
+        uint8_t  ntype = node[0];
+        if (ntype == IORT_NODE_ITS_GROUP) {
+            *out_device_id = cur_id;
+            return 0;
+        }
+
+        uint32_t num_map = iort_rd32(node, 8);
+        uint32_t map_off = iort_rd32(node, 12);
+        if (num_map == 0) return 1;
+
+        uint32_t node_off_in_table = (uint32_t)(node - g_iort_base);
+        const uint8_t* map = node + map_off;
+        // ID mapping: input_base(4) id_count(4) output_base(4) output_ref(4) flags(4) — 20 bytes
+        const uint8_t* hit = NULL_PTR;
+        for (uint32_t i = 0; i < num_map; i++) {
+            const uint8_t* m = map + i * 20;
+            // Bound check: map entry must fit within the IORT.
+            uint32_t m_off = node_off_in_table + map_off + i * 20;
+            if (m_off + 20 > g_iort_length) return 1;
+            uint32_t in_base = iort_rd32(m, 0);
+            uint32_t id_cnt  = iort_rd32(m, 4);
+            uint32_t flags   = iort_rd32(m, 16);
+            // Single-mapping entries (flags bit 0) are only architecturally
+            // valid on Named Component / PMCG nodes (ARM DEN 0049), neither
+            // of which appears on this RC → SMMU → ITS walk. On an RC hop a
+            // single-mapping entry would collapse EVERY RID into one
+            // DeviceID (two devices sharing a DeviceID: the second MAPD
+            // re-issues a fresh ITT and destroys the first device's event
+            // mappings); on SMMU nodes it describes the SMMU's own MSI
+            // DeviceID. Linux's iort_id_map rejects the flag on both as a
+            // firmware bug — skip such entries entirely, and never
+            // range-match them (id_count is 0, so the inclusive check
+            // below could fire on in_base).
+            if (flags & 1u) {
+                continue;
+            }
+            // "Number of IDs" holds the range size MINUS ONE (ARM DEN 0049),
+            // so the match is inclusive. An exclusive `< in_base + id_cnt`
+            // check drops the last ID of every range and never matches
+            // single-ID ranges (id_count == 0) — firmware with a
+            // non-identity mapping would then silently fall back to
+            // DeviceID = BDF and the ITS would discard every MSI.
+            if (cur_id >= in_base && cur_id - in_base <= id_cnt) {
+                hit = m;
+                break;
+            }
+        }
+        if (hit == NULL_PTR) return 1;
+
+        uint32_t in_base    = iort_rd32(hit, 0);
+        uint32_t out_base   = iort_rd32(hit, 8);
+        uint32_t out_ref    = iort_rd32(hit, 12);
+        // hit is always a range mapping (single-mapping entries are
+        // skipped above), so the output ID is base plus offset.
+        cur_id = out_base + (cur_id - in_base);
+
+        const uint8_t* next = iort_node_at(out_ref);
+        if (next == NULL_PTR) return 1;
+        node = next;
+    }
+    return 1;
+}
+
+#else // !__aarch64__
+
+int acpi_iort_resolve_device_id(uint32_t segment, uint32_t bdf, uint32_t* out_device_id) {
+    if (out_device_id != NULL_PTR) *out_device_id = bdf;
+    return 1;
+}
+
+#endif // __aarch64__
+
+// ============================================================================
 // XSDT/RSDT table walking (shared)
 // ============================================================================
 
@@ -432,6 +631,16 @@ void acpi_early_init(void* rsdp_address, uint64_t hhdm_offset) {
         __cosmos_serial_write("[ACPI] Parsing MCFG...\n");
         parse_mcfg(mcfg);
     }
+
+#ifdef __aarch64__
+    acpi_header_t* iort = (acpi_header_t*)cosmos_acpi_scan_table("IORT", 0);
+    if (iort) {
+        __cosmos_serial_write("[ACPI] IORT found, parsing...\n");
+        parse_iort(iort);
+    } else {
+        __cosmos_serial_write("[ACPI] IORT not present (DeviceID = BDF)\n");
+    }
+#endif
 
     g_initialized = 1;
     __cosmos_serial_write("[ACPI] Init complete\n");

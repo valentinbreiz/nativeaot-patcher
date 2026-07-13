@@ -14,6 +14,64 @@ namespace Cosmos.Kernel.Tests.Threading;
 
 public class Kernel : Sys.Kernel
 {
+    /// <summary>Total number of tests announced to the test runner for this suite.</summary>
+    private const int ExpectedTestCount = 53;
+
+    /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
+    private const int LockIterationsPerThread = 100;
+    /// <summary>Expected final counter value after two workers each complete LockIterationsPerThread increments.</summary>
+    private const int ExpectedTotalIncrements = 200;
+    /// <summary>Increment iterations each worker performs in the multiple-threads test.</summary>
+    private const int WorkerIterationCount = 5;
+    /// <summary>Number of contender threads racing for the mutex in the three-contenders test.</summary>
+    private const int ContenderCount = 3;
+
+    /// <summary>Initial wait (ms) for a freshly started thread to be scheduled and run.</summary>
+    private const int ThreadStartupWaitMs = 1000;
+    /// <summary>Initial wait (ms) for both worker threads of the multiple-threads test to complete.</summary>
+    private const int ThreadsCompletionWaitMs = 3000;
+    /// <summary>Initial wait (ms) for the lock/spinlock contention workers to finish their iterations.</summary>
+    private const int LockTestInitialWaitMs = 5000;
+    /// <summary>Extra per-retry wait (ms) when a test result is not yet visible after the initial wait.</summary>
+    private const int RetryWaitMs = 500;
+    /// <summary>Maximum number of extra RetryWaitMs waits before giving up on a counter reaching its target.</summary>
+    private const int MaxExtraWaitRetries = 10;
+    /// <summary>Per-check delay (ms) while polling for the thread-execution flag.</summary>
+    private const int ThreadPollWaitMs = 200;
+    /// <summary>Maximum number of ThreadPollWaitMs checks for the thread-execution flag.</summary>
+    private const int ThreadExecPollRetries = 5;
+
+    /// <summary>Polling interval (ms) while waiting on scheduler-test flags (worker holding, parked, woke, ...).</summary>
+    private const int FlagPollIntervalMs = 50;
+    /// <summary>Maximum number of FlagPollIntervalMs polls while waiting on a scheduler-test flag.</summary>
+    private const int FlagPollRetries = 100;
+    /// <summary>Maximum number of FlagPollIntervalMs polls while waiting for all mutex contenders to acquire.</summary>
+    private const int ContenderPollRetries = 200;
+    /// <summary>Grace wait (ms) letting worker-thread exit paths finish inside the current test cell.</summary>
+    private const int ExitGraceWaitMs = 200;
+    /// <summary>Hold time (ms) the idle-contention worker keeps the mutex, spanning several scheduler ticks.</summary>
+    private const int IdleMutexHoldMs = 300;
+    /// <summary>Hold time (ms) each contender keeps the mutex so the others pile up in _waitingThreads.</summary>
+    private const int MutexContenderHoldMs = 100;
+    /// <summary>Wait (ms) giving the hand-off contender a few quanta to park in _waitingThreads.</summary>
+    private const int ContenderParkWaitMs = 150;
+
+    /// <summary>Polling interval (ms) while waiting for a ThreadPool/Task/async result to complete.</summary>
+    private const int TaskPollIntervalMs = 100;
+    /// <summary>Maximum number of TaskPollIntervalMs polls for a ThreadPool/Task/async result.</summary>
+    private const int TaskPollRetries = 30;
+    /// <summary>Wait (ms) for the second thread of the thread-statics test to finish.</summary>
+    private const int ThreadStaticsWaitMs = 100;
+    /// <summary>Delay (ms) between increments in each multiple-threads worker iteration.</summary>
+    private const int WorkerStepDelayMs = 50;
+
+    /// <summary>Barge-probe result: the releaser's TryAcquire outcome has not been recorded yet.</summary>
+    private const int BargeResultPending = -1;
+    /// <summary>Barge-probe result: the releaser's immediate TryAcquire failed (ownership was handed off).</summary>
+    private const int BargeResultNoBarge = 0;
+    /// <summary>Barge-probe result: the releaser's immediate TryAcquire re-took the mutex (barged in).</summary>
+    private const int BargeResultBarged = 1;
+
     // Shared state for thread tests
     private static volatile bool _threadExecuted;
     private static volatile int _sharedCounter;
@@ -34,7 +92,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        TR.Start("Threading Tests", expectedTests: 49);
+        TR.Start("Threading Tests", expectedTests: ExpectedTestCount);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -58,6 +116,10 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
+        TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
+        TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
+        TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
+        TR.Run("Mutex_ReleaseHandsOffToParkedWaiter", TestMutexReleaseHandsOff);
 
         // ThreadPool / Task / async-await tests (validate fix for #245, #246)
         TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
@@ -176,7 +238,7 @@ public class Kernel : Sys.Kernel
 
         SysThread thread1 = new SysThread(() =>
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < LockIterationsPerThread; i++)
             {
                 lock (_lockObj)
                 {
@@ -187,7 +249,7 @@ public class Kernel : Sys.Kernel
 
         SysThread thread2 = new SysThread(() =>
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < LockIterationsPerThread; i++)
             {
                 lock (_lockObj)
                 {
@@ -199,18 +261,18 @@ public class Kernel : Sys.Kernel
         thread1.Start();
         thread2.Start();
 
-        TimerManager.Wait(5000);
+        TimerManager.Wait(LockTestInitialWaitMs);
 
-        for (int i = 0; i < 10 && _lockCounter < 200; i++)
+        for (int i = 0; i < MaxExtraWaitRetries && _lockCounter < ExpectedTotalIncrements; i++)
         {
-            TimerManager.Wait(500);
+            TimerManager.Wait(RetryWaitMs);
         }
 
         Serial.WriteString("[Test] Lock counter: ");
         Serial.WriteNumber((uint)_lockCounter);
         Serial.WriteString("\n");
 
-        Assert.Equal(200, _lockCounter);
+        Assert.Equal(ExpectedTotalIncrements, _lockCounter);
     }
 
     private static void TestLockReentrant()
@@ -297,12 +359,12 @@ public class Kernel : Sys.Kernel
 
         // Wait longer for thread to execute (give scheduler more time)
         Serial.WriteString("[Test] Waiting for thread execution...\n");
-        TimerManager.Wait(1000);
+        TimerManager.Wait(ThreadStartupWaitMs);
 
         // Check multiple times with delays
-        for (int i = 0; i < 5 && !_threadExecuted; i++)
+        for (int i = 0; i < ThreadExecPollRetries && !_threadExecuted; i++)
         {
-            TimerManager.Wait(200);
+            TimerManager.Wait(ThreadPollWaitMs);
         }
 
         Assert.True(_threadExecuted, "Thread delegate should have executed");
@@ -314,6 +376,252 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Thread] Delegate executing!\n");
         _threadExecuted = true;
         Serial.WriteString("[Thread] Delegate completed!\n");
+    }
+
+    // ===== Mutex idle-thread contention (scheduler Mutex, not System.Threading) =====
+    // The main kernel thread is the scheduler's idle thread. Blocking it
+    // (BlockThread) only gets it resurrected by the PickNext ?? IdleThread
+    // fallback on the next tick, which re-runs Mutex.Acquire's retry loop:
+    // every pass calls OnThreadBlocked again and subtracts tickets that
+    // OnThreadReady never added, so TotalTickets drifts (and underflows).
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _idleMutex;
+    private static volatile bool _mutexWorkerHolding;
+    private static volatile bool _mutexMainContending;
+    private static volatile bool _mutexTestDone;
+    private static volatile bool _mutexWorkerExited;
+
+    private static void TestMutexIdleThreadContention()
+    {
+        uint cpuId = SchedulerManager.GetCurrentCpuId();
+        Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData? cpuData =
+            SchedulerManager.GetCpuState(cpuId)
+                .GetSchedulerData<Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData>();
+        Assert.True(cpuData != null, "stride per-CPU data should exist");
+
+        _idleMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _mutexWorkerHolding = false;
+        _mutexMainContending = false;
+        _mutexTestDone = false;
+        _mutexWorkerExited = false;
+
+        var worker = new global::System.Threading.Thread(MutexIdleWorker);
+        worker.Start();
+
+        for (int i = 0; i < FlagPollRetries && !_mutexWorkerHolding; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_mutexWorkerHolding, "worker should hold the mutex");
+
+        // Both reads happen with the worker runnable (it spins on the flags,
+        // never blocking), so any delta comes from the idle thread's own
+        // block/ready churn inside Acquire.
+        ulong before = cpuData!.TotalTickets;
+
+        _mutexMainContending = true;
+        _idleMutex.Acquire();
+        _idleMutex.Release();
+
+        ulong after = cpuData.TotalTickets;
+        _mutexTestDone = true;
+
+        // Keep the cell hermetic: wait for the worker to leave its spin and
+        // give its exit path time to finish inside THIS cell, so the
+        // scheduler bookkeeping of the exit can't interleave with the next
+        // cell's thread creation.
+        for (int i = 0; i < FlagPollRetries && !_mutexWorkerExited; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.True(before == after, "idle-thread contention must not drift TotalTickets");
+    }
+
+    private static void MutexIdleWorker()
+    {
+        _idleMutex!.Acquire();
+        _mutexWorkerHolding = true;
+        while (!_mutexMainContending)
+        {
+            // spin until the main (idle) thread is about to contend
+        }
+        // Hold across several scheduler ticks so the contending idle thread
+        // goes through its block/resurrect cycle more than once.
+        TimerManager.Wait(IdleMutexHoldMs);
+        _idleMutex.Release();
+        while (!_mutexTestDone)
+        {
+            // stay runnable until the main thread has sampled TotalTickets
+        }
+        _mutexWorkerExited = true;
+    }
+
+    // ===== Multi-waiter paths (List<Thread> scans on non-empty lists) =====
+    // The single-waiter driver flow keeps _waiters/_waitingThreads empty at
+    // the Contains call, so the list-scan path (EqualityComparer<Thread>)
+    // is otherwise never exercised: the second parked waiter/contender here
+    // is what actually walks a non-empty list.
+    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _twoWaiterEvent;
+    private static volatile bool _waiterAParked, _waiterBParked;
+    private static volatile bool _waiterAWoke, _waiterBWoke;
+
+    private static void TestInterruptEventTwoWaiters()
+    {
+        _twoWaiterEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
+        _waiterAParked = _waiterBParked = false;
+        _waiterAWoke = _waiterBWoke = false;
+
+        var w1 = new global::System.Threading.Thread(TwoWaiterWorkerA);
+        var w2 = new global::System.Threading.Thread(TwoWaiterWorkerB);
+        w1.Start();
+        w2.Start();
+
+        // Let both workers reach Wait() and park; the second one walks the
+        // one-element waiter list on its way in.
+        for (int i = 0; i < FlagPollRetries && !(_waiterAParked && _waiterBParked); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(FlagPollIntervalMs);
+
+        _twoWaiterEvent.Signal();
+        _twoWaiterEvent.Signal();
+
+        for (int i = 0; i < FlagPollRetries && !(_waiterAWoke && _waiterBWoke); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+        Assert.True(_waiterAWoke && _waiterBWoke, "both parked waiters must be woken by two signals");
+    }
+
+    private static void TwoWaiterWorkerA()
+    {
+        _waiterAParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterAWoke = true;
+    }
+
+    private static void TwoWaiterWorkerB()
+    {
+        _waiterBParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterBWoke = true;
+    }
+
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _contendedMutex;
+    private static volatile int _contenderAcquisitions;
+
+    private static void TestMutexThreeContenders()
+    {
+        _contendedMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _contenderAcquisitions = 0;
+
+        var c1 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c2 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c3 = new global::System.Threading.Thread(MutexContenderWorker);
+        c1.Start();
+        c2.Start();
+        c3.Start();
+
+        // The holder keeps the mutex across several ticks, so the two other
+        // contenders both queue up — the last one scans a non-empty
+        // _waitingThreads list.
+        for (int i = 0; i < ContenderPollRetries && _contenderAcquisitions < ContenderCount; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+        Assert.Equal(ContenderCount, _contenderAcquisitions, "all three contenders must acquire the mutex in turn");
+    }
+
+    private static void MutexContenderWorker()
+    {
+        _contendedMutex!.Acquire();
+        // Hold across a few ticks so the other contenders pile up in
+        // _waitingThreads; the increment is protected by the mutex itself.
+        TimerManager.Wait(MutexContenderHoldMs);
+        _contenderAcquisitions++;
+        _contendedMutex.Release();
+    }
+
+    // ===== Release hand-off (anti-barging) =====
+    // Release used to clear ownership and merely ready the parked waiter;
+    // until that waiter's retry ran, ANY thread could re-take the mutex and
+    // send the waiter to the back of the queue again — repeatable, so a
+    // waiter on a contended mutex could starve. The releaser's immediate
+    // TryAcquire is the deterministic probe: with ownership handed off in
+    // Release it must fail.
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _handoffMutex;
+    private static volatile bool _handoffWorkerHolding;
+    private static volatile bool _handoffReleaseRequested;
+    private static volatile bool _handoffContenderAcquired;
+    private static volatile int _handoffBargeResult; // -1 pending, 0 no barge, 1 barged
+
+    private static void TestMutexReleaseHandsOff()
+    {
+        _handoffMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _handoffWorkerHolding = false;
+        _handoffReleaseRequested = false;
+        _handoffContenderAcquired = false;
+        _handoffBargeResult = BargeResultPending;
+
+        var holder = new global::System.Threading.Thread(HandoffHolderWorker);
+        holder.Start();
+        for (int i = 0; i < FlagPollRetries && !_handoffWorkerHolding; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_handoffWorkerHolding, "holder should own the mutex");
+
+        var contender = new global::System.Threading.Thread(HandoffContenderWorker);
+        contender.Start();
+        // Give the contender a few quanta to park in _waitingThreads.
+        TimerManager.Wait(ContenderParkWaitMs);
+
+        _handoffReleaseRequested = true;
+        for (int i = 0; i < FlagPollRetries && _handoffBargeResult == BargeResultPending; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        for (int i = 0; i < FlagPollRetries && !_handoffContenderAcquired; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+
+        // Exit grace: both worker threads finished their work above; give
+        // their exit paths time to complete inside this cell (see the
+        // idle-contention cell for the rationale).
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.Equal(BargeResultNoBarge, _handoffBargeResult,
+            "Release must hand the mutex to the parked waiter; the releaser's immediate TryAcquire barged in");
+        Assert.True(_handoffContenderAcquired, "the parked waiter must end up owning the mutex");
+    }
+
+    private static void HandoffHolderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffWorkerHolding = true;
+        while (!_handoffReleaseRequested)
+        {
+            // spin: stay runnable so the contender has to park behind us
+        }
+        _handoffMutex.Release();
+        bool barged = _handoffMutex.TryAcquire();
+        _handoffBargeResult = barged ? BargeResultBarged : BargeResultNoBarge;
+        if (barged)
+        {
+            _handoffMutex.Release();
+        }
+    }
+
+    private static void HandoffContenderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffContenderAcquired = true;
+        _handoffMutex.Release();
     }
 
     private static void TestMultipleThreads()
@@ -330,12 +638,12 @@ public class Kernel : Sys.Kernel
 
         // Wait much longer for both threads to complete (they each do 5 iterations with 50ms waits = 250ms minimum)
         // But scheduler overhead means we need more time
-        TimerManager.Wait(3000);
+        TimerManager.Wait(ThreadsCompletionWaitMs);
 
         // Additional waiting if not complete
-        for (int i = 0; i < 10 && (_thread1Counter < 5 || _thread2Counter < 5); i++)
+        for (int i = 0; i < MaxExtraWaitRetries && (_thread1Counter < WorkerIterationCount || _thread2Counter < WorkerIterationCount); i++)
         {
-            TimerManager.Wait(500);
+            TimerManager.Wait(RetryWaitMs);
         }
 
         Serial.WriteString("[Test] Thread1 counter: ");
@@ -344,17 +652,17 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((uint)_thread2Counter);
         Serial.WriteString("\n");
 
-        Assert.Equal(5, _thread1Counter);
-        Assert.Equal(5, _thread2Counter);
+        Assert.Equal(WorkerIterationCount, _thread1Counter);
+        Assert.Equal(WorkerIterationCount, _thread2Counter);
     }
 
     private static void Thread1Worker()
     {
         Serial.WriteString("[Thread1] Started\n");
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < WorkerIterationCount; i++)
         {
             _thread1Counter++;
-            TimerManager.Wait(50);
+            TimerManager.Wait(WorkerStepDelayMs);
         }
         Serial.WriteString("[Thread1] Completed\n");
     }
@@ -362,10 +670,10 @@ public class Kernel : Sys.Kernel
     private static void Thread2Worker()
     {
         Serial.WriteString("[Thread2] Started\n");
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < WorkerIterationCount; i++)
         {
             _thread2Counter++;
-            TimerManager.Wait(50);
+            TimerManager.Wait(WorkerStepDelayMs);
         }
         Serial.WriteString("[Thread2] Completed\n");
     }
@@ -383,12 +691,12 @@ public class Kernel : Sys.Kernel
         thread2.Start();
 
         // Wait much longer for threads to complete (100 lock/unlock iterations each)
-        TimerManager.Wait(5000);
+        TimerManager.Wait(LockTestInitialWaitMs);
 
         // Additional waiting if not complete
-        for (int i = 0; i < 10 && _sharedCounter < 200; i++)
+        for (int i = 0; i < MaxExtraWaitRetries && _sharedCounter < ExpectedTotalIncrements; i++)
         {
-            TimerManager.Wait(500);
+            TimerManager.Wait(RetryWaitMs);
         }
 
         Serial.WriteString("[Test] Final counter: ");
@@ -396,13 +704,13 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("\n");
 
         // With proper locking, counter should be exactly 200
-        Assert.Equal(200, _sharedCounter);
+        Assert.Equal(ExpectedTotalIncrements, _sharedCounter);
     }
 
     private static void SpinLockThread1Worker()
     {
         Serial.WriteString("[Thread1] Starting increments\n");
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < LockIterationsPerThread; i++)
         {
             _testLock.Acquire();
             _sharedCounter++;
@@ -414,7 +722,7 @@ public class Kernel : Sys.Kernel
     private static void SpinLockThread2Worker()
     {
         Serial.WriteString("[Thread2] Starting increments\n");
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < LockIterationsPerThread; i++)
         {
             _testLock.Acquire();
             _sharedCounter++;
@@ -438,7 +746,7 @@ public class Kernel : Sys.Kernel
 
         thread.Start();
 
-        TimerManager.Wait(100); // Wait 10ms for the thread to finish.
+        TimerManager.Wait(ThreadStaticsWaitMs); // Wait 10ms for the thread to finish.
 
         Assert.Equal(18, StaticValue);
         Assert.Equal(42, secondThreadValue);
@@ -455,9 +763,9 @@ public class Kernel : Sys.Kernel
 
         ThreadPool.QueueUserWorkItem(_ => { _threadPoolExecuted = true; });
 
-        for (int i = 0; i < 30 && !_threadPoolExecuted; i++)
+        for (int i = 0; i < TaskPollRetries && !_threadPoolExecuted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(_threadPoolExecuted, "ThreadPool work item should execute");
@@ -477,9 +785,9 @@ public class Kernel : Sys.Kernel
 
         Task t = Task.Run(() => { ran = true; });
 
-        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(t.IsCompleted, "Task.Run task should reach completion");
@@ -491,9 +799,9 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Testing Task.Run<int>...\n");
         Task<int> t = Task.Run(() => 7 * 6);
 
-        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(t.IsCompleted, "Task<int>.Run task should reach completion");
@@ -511,9 +819,9 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Testing async method with awaited completed task...\n");
         Task<int> t = AsyncReturnsValue();
 
-        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(t.IsCompleted, "Async method should complete");
@@ -530,9 +838,9 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Testing async method awaiting Task.Run...\n");
         Task<int> t = AsyncAwaitsTaskRun();
 
-        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(t.IsCompleted, "Async method awaiting Task.Run should complete");
@@ -557,9 +865,9 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Testing async chain composition...\n");
         Task<int> t = OuterAsync();
 
-        for (int i = 0; i < 30 && !t.IsCompleted; i++)
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
         {
-            TimerManager.Wait(100);
+            TimerManager.Wait(TaskPollIntervalMs);
         }
 
         Assert.True(t.IsCompleted, "Chained async method should complete");

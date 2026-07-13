@@ -33,6 +33,34 @@ public interface IPlatformInitializer
     void PreparePciMapping(ulong ecamBase);
 
     /// <summary>
+    /// Maps a physical MMIO region so the HHDM-virtual alias is accessible
+    /// with Device-memory attributes. Called by HAL device drivers (AHCI,
+    /// NVMe, etc.) before touching their BARs. ARM64 installs a Device
+    /// mapping in TTBR1 via <c>DeviceMapper.EnsureMapped</c>; x64's existing
+    /// page tables already cover MMIO so it's a no-op.
+    /// </summary>
+    /// <param name="physBase">Physical base address of the MMIO region.</param>
+    void EnsureMmioMapped(ulong physBase);
+
+    /// <summary>
+    /// Full data-synchronization barrier ordering prior normal-memory
+    /// accesses against subsequent device MMIO accesses. DMA drivers call
+    /// this between filling a descriptor/queue entry in RAM and ringing
+    /// the device doorbell (and after observing a device-written flag
+    /// before consuming the data it guards). ARM64 issues <c>dsb sy</c>;
+    /// x64's total store order already provides this, so it's a no-op.
+    /// </summary>
+    void DmaBarrier();
+
+    /// <summary>
+    /// Busy-waits for at least <paramref name="microseconds"/> µs without
+    /// depending on interrupts or the scheduler — usable from phase-3
+    /// device init. x64 paces on legacy port-0x80 reads (~1 µs each);
+    /// ARM64 polls the generic timer (CNTVCT/CNTFRQ).
+    /// </summary>
+    void DelayMicroseconds(uint microseconds);
+
+    /// <summary>
     /// Initializes platform-specific hardware (PCI, ACPI, APIC, GIC, etc.).
     /// Called after HAL and interrupt manager are initialized.
     /// </summary>

@@ -23,6 +23,12 @@ namespace Cosmos.Kernel.HAL.ARM64;
 /// </summary>
 public class ARM64PlatformInitializer : IPlatformInitializer
 {
+    /// <summary>Number of microseconds in one second, used to convert the generic-timer frequency (Hz) into ticks per microsecond.</summary>
+    private const ulong MicrosecondsPerSecond = 1_000_000UL;
+
+    /// <summary>Crude spin iterations (dsb sy + isb barriers) per microsecond used when firmware left CNTFRQ unprogrammed.</summary>
+    private const uint FallbackSpinLoopsPerMicrosecond = 100;
+
     private GenericTimer? _timer;
 
     public string PlatformName => "ARM64";
@@ -38,6 +44,51 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         if (ecamBase != 0)
         {
             DeviceMapper.EnsureMapped(ecamBase);
+        }
+    }
+
+    public void EnsureMmioMapped(ulong physBase)
+    {
+        // Limine's HHDM on aarch64 only covers RAM with Normal-cacheable
+        // attributes; device MMIO has to be mapped explicitly as Device
+        // memory so register reads/writes aren't reordered or cached.
+        // Safe to call repeatedly — DeviceMapper.EnsureMapped no-ops if the
+        // mapping already exists.
+        if (physBase != 0)
+        {
+            DeviceMapper.EnsureMapped(physBase);
+        }
+    }
+
+    public void DmaBarrier()
+    {
+        // dsb sy + isb: orders Normal-memory descriptor/queue writes against
+        // the Device-memory doorbell store that follows (and device-written
+        // flags against the payload reads that follow them). ARM64 does not
+        // order Normal vs Device accesses on its own.
+        Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+    }
+
+    /// <inheritdoc />
+    public void DelayMicroseconds(uint microseconds)
+    {
+        // Generic-timer busy wait: CNTVCT/CNTFRQ are readable from EL1
+        // without any driver init, so this works during phase-3 device
+        // bring-up. Falls back to a crude spin if firmware left CNTFRQ
+        // unprogrammed (should not happen on QEMU virt or real EL2 boots).
+        ulong freq = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetFrequency();
+        if (freq == 0)
+        {
+            for (uint i = 0; i < microseconds * FallbackSpinLoopsPerMicrosecond; i++)
+            {
+                Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+            }
+            return;
+        }
+
+        ulong target = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() + (freq * microseconds + (MicrosecondsPerSecond - 1UL)) / MicrosecondsPerSecond;
+        while (Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() < target)
+        {
         }
     }
 
@@ -63,6 +114,7 @@ public class ARM64PlatformInitializer : IPlatformInitializer
             Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
             VirtioDevice.InitializeDevices();
         }
+
     }
 
     public ITimerDevice CreateTimer()

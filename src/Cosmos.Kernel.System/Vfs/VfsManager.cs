@@ -8,8 +8,10 @@ namespace Cosmos.Kernel.System.Vfs;
 
 /// <summary>
 /// Central entry point for registering filesystem drivers and resolving VFS paths.
+/// Path-level operations (current directory, create/unlink/rename/remove,
+/// virtual root) live in the <c>VfsManager.Paths.cs</c> partial.
 /// </summary>
-public static class VfsManager
+public static partial class VfsManager
 {
     private sealed class VfsOpenFile : IVfsOpenFile
     {
@@ -35,15 +37,20 @@ public static class VfsManager
     /// </summary>
     public sealed class VfsMount
     {
-        public VfsMount(string name, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
+        public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
         {
             Name = name;
+            Source = source;
             MountPoint = mountPoint;
             FilesystemType = filesystemType;
             Superblock = superblock;
         }
 
+        /// <summary>Registered driver name (e.g. "fat").</summary>
         public string Name { get; }
+
+        /// <summary>Driver-specific backing-store identifier passed to <see cref="TryMount"/> — for the FAT driver, this is the global partition index in <c>StorageManager.Partitions</c> as a decimal string.</summary>
+        public string Source { get; }
 
         public string MountPoint { get; }
 
@@ -54,6 +61,11 @@ public static class VfsManager
 
     private static readonly Dictionary<string, IVfsFilesystemType> s_registeredTypes = new(StringComparer.Ordinal);
     private static readonly List<VfsMount> s_mounts = new();
+
+    /// <summary>
+    /// All currently active mounts in registration order.
+    /// </summary>
+    public static IReadOnlyList<VfsMount> Mounts => s_mounts;
 
     /// <summary>
     /// Register a filesystem driver by name.
@@ -104,10 +116,85 @@ public static class VfsManager
         }
 
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
-        mount = new VfsMount(name, normalizedMountPoint, filesystemType, superblock);
+        mount = new VfsMount(name, source.ToString(), normalizedMountPoint, filesystemType, superblock);
         s_mounts.Add(mount);
 
         return true;
+    }
+
+    /// <summary>
+    /// Format the backing store for a registered driver. The driver decides
+    /// what <paramref name="source"/> means (partition index, injected device,
+    /// etc.) and casts <paramref name="options"/> to its own option type.
+    /// </summary>
+    public static bool TryFormat(string name, ReadOnlySpan<char> source, IVfsFormatOptions? options)
+    {
+        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        {
+            return false;
+        }
+        if (IsSourceMounted(name, source))
+        {
+            return false;
+        }
+        return filesystemType.TryFormat(source, options);
+    }
+
+    /// <summary>
+    /// Wipe the filesystem signature on the backing store for a registered
+    /// driver so it no longer mounts.
+    /// </summary>
+    public static bool TryDestroy(string name, ReadOnlySpan<char> source)
+    {
+        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        {
+            return false;
+        }
+        if (IsSourceMounted(name, source))
+        {
+            return false;
+        }
+        return filesystemType.TryDestroy(source);
+    }
+
+    /// <summary>
+    /// Unmount the filesystem at <paramref name="mountPoint"/>: drops the
+    /// superblock (which flushes per the driver's Drop semantics) and
+    /// removes the mount from the table.
+    /// </summary>
+    public static bool TryUnmount(string mountPoint)
+    {
+        string normalizedMountPoint = NormalizeMountPoint(mountPoint);
+        for (int i = 0; i < s_mounts.Count; i++)
+        {
+            VfsMount current = s_mounts[i];
+            if (string.Equals(current.MountPoint, normalizedMountPoint, StringComparison.Ordinal))
+            {
+                current.Superblock.SuperOperations.Drop(current.Superblock);
+                s_mounts.RemoveAt(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// True when a live mount matches the driver name and source —
+    /// formatting or destroying it would rewrite the volume underneath a
+    /// superblock that still holds the old geometry and caches.
+    /// </summary>
+    private static bool IsSourceMounted(string name, ReadOnlySpan<char> source)
+    {
+        for (int i = 0; i < s_mounts.Count; i++)
+        {
+            VfsMount current = s_mounts[i];
+            if (string.Equals(current.Name, name, StringComparison.Ordinal)
+                && source.SequenceEqual(current.Source))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>
@@ -150,7 +237,13 @@ public static class VfsManager
         }
 
         IVfsOpenFile openFile = new VfsOpenFile(leafName, inode, fileOperations);
-        file = new VfsFileHandle(leafName, inode, openFile);
+        VfsFileHandle handle = new VfsFileHandle(leafName, inode, openFile)
+        {
+            OpenedPath = path,
+            Tracked = true,
+        };
+        RegisterOpenFile(handle);
+        file = handle;
         return true;
     }
 
@@ -259,6 +352,26 @@ public static class VfsManager
         return true;
     }
 
+    /// <summary>
+    /// True when <paramref name="mountPoint"/> (normalized: leading /, no
+    /// trailing /) covers <paramref name="path"/> on a path-segment boundary
+    /// — "/mnt" covers "/mnt" and "/mnt/x" but not "/mntx".
+    /// </summary>
+    public static bool MountCovers(string mountPoint, string path)
+    {
+        if (mountPoint == "/")
+        {
+            return true;
+        }
+
+        if (!path.StartsWith(mountPoint, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return path.Length == mountPoint.Length || path[mountPoint.Length] == '/';
+    }
+
     private static VfsMount? FindMount(string path)
     {
         VfsMount? bestMatch = null;
@@ -266,7 +379,7 @@ public static class VfsManager
         for (int i = 0; i < s_mounts.Count; i++)
         {
             VfsMount candidate = s_mounts[i];
-            if (!path.StartsWith(candidate.MountPoint, StringComparison.Ordinal))
+            if (!MountCovers(candidate.MountPoint, path))
             {
                 continue;
             }

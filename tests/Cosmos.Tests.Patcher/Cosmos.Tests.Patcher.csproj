@@ -8,11 +8,17 @@
     <PackageReference Include="coverlet.collector"/>
     <PackageReference Include="xunit.v3.mtp-v2"/>
     <PackageReference Include="xunit.runner.visualstudio"/>
+    <PackageReference Include="Spectre.Console.Cli"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" />
     <ProjectReference Include="..\Cosmos.TestingFramework\Cosmos.TestingFramework.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Patcher\Cosmos.Patcher.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- RunCommandTests exercises RunCommand.ParseDisks; the launcher/platform types
+         it depends on come from Cosmos.TestingFramework, which compiles them in. -->
+    <Compile Include="..\..\src\Cosmos.Tools\Commands\RunCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit"/>

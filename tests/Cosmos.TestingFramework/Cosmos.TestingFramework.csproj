@@ -35,4 +35,9 @@
     <Compile Include="../../src/Cosmos.Tools/Launcher/*.cs" />
     <Compile Include="../../src/Cosmos.Tools/Platform/*.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Cosmos.Tests.Patcher exercises internal QemuLauncher argument builders -->
+    <InternalsVisibleTo Include="Cosmos.Tests.Patcher" />
+  </ItemGroup>
 </Project>

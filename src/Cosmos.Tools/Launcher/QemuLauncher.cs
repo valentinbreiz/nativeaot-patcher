@@ -6,15 +6,64 @@ namespace Cosmos.Tools.Launcher;
 
 public sealed class QemuLaunchOptions
 {
+    /// <summary>Default guest RAM size passed to QEMU's <c>-m</c> flag, in megabytes.</summary>
+    private const int DefaultMemoryMb = 512;
+
     public required string Architecture { get; init; }
     public required string IsoPath { get; init; }
-    public int MemoryMb { get; init; } = 512;
+    public int MemoryMb { get; init; } = DefaultMemoryMb;
     public bool Headless { get; init; }
     public bool Debug { get; init; }
     /// <summary>If null, serial goes to stdio (interactive CLI). Otherwise, to this file path (test runner).</summary>
     public string? SerialOutputFile { get; init; }
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
+
+    /// <summary>
+    /// NIC model exposed to the guest. <c>null</c> leaves QEMU's default NIC in
+    /// place (the historical behaviour); <c>"none"</c> emits <c>-nic none</c> so
+    /// the guest gets no card at all; any other value emits a user-mode
+    /// <c>-netdev</c> + <c>-device &lt;model&gt;</c> pair (e.g. <c>e1000e</c>,
+    /// <c>virtio-net-device</c>). Ignored when <see cref="EnableNetworkTesting"/>
+    /// is set, which owns the NIC in that path.
+    /// </summary>
+    public string? NetworkCard { get; init; }
+
+    /// <summary>
+    /// Keyboard device attached to the guest, or <c>null</c> to add none.
+    /// <c>"ps2"</c>/<c>"none"</c> add nothing (x64's PS/2 keyboard is built into
+    /// the q35 chipset); any other value (e.g. <c>virtio-keyboard-device</c>,
+    /// required on the ARM64 <c>virt</c> machine which has no PS/2 controller) is
+    /// emitted as a <c>-device</c> line.
+    /// </summary>
+    public string? KeyboardDevice { get; init; }
+
+    /// <summary>
+    /// Mouse device attached to the guest, or <c>null</c> to add none. Same
+    /// <c>"ps2"</c>/<c>"none"</c> handling as <see cref="KeyboardDevice"/>;
+    /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
+    /// </summary>
+    public string? MouseDevice { get; init; }
+    /// <summary>
+    /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
+    /// path, the controller type (ahci or nvme), and an optional comma-prefixed
+    /// suffix appended to the QEMU <c>-device</c> line — used by test profiles
+    /// to toggle things like <c>msix=off</c> or <c>msix_qsize=1</c>. AHCI disks
+    /// share one <c>ich9-ahci</c> controller across successive ports; NVMe
+    /// disks each get a dedicated <c>nvme</c> controller. Honoured on x64 (q35)
+    /// and ARM64 (virt).
+    /// </summary>
+    public IReadOnlyList<DiskAttachment> Disks { get; init; } = Array.Empty<DiskAttachment>();
+
+    /// <summary>
+    /// Extra <c>-M</c> machine properties spliced after the architecture
+    /// defaults (e.g. <c>{"gic-version", "2"}</c> on ARM64 to force GICv2).
+    /// Empty by default. Caller is responsible for passing properties that
+    /// match the active architecture; nothing here filters on that.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> MachineOptions { get; init; }
+        = new Dictionary<string, string>();
+
     /// <summary>
     /// When false (default, dev path), x64 launches with <c>-no-shutdown</c> so a guest-initiated
     /// ACPI _S5 / panic just pauses the VM and the user can inspect it. When true (test path),
@@ -23,6 +72,26 @@ public sealed class QemuLaunchOptions
     /// </summary>
     public bool AllowGuestShutdown { get; init; }
     public IReadOnlyList<string> ExtraArgs { get; init; } = Array.Empty<string>();
+}
+
+public enum DiskKind
+{
+    Ahci,
+    Nvme
+}
+
+/// <summary>
+/// One disk image to expose to the guest. <see cref="ExtraDeviceOptions"/> is
+/// appended verbatim to the QEMU <c>-device</c> line (without the leading
+/// comma — the launcher inserts that), so a profile can pass things like
+/// <c>"msix=off"</c> or <c>"msix_qsize=1"</c> to exercise the kernel's
+/// interrupt-fallback paths.
+/// </summary>
+public sealed record DiskAttachment
+{
+    public required string Path { get; init; }
+    public required DiskKind Kind { get; init; }
+    public string ExtraDeviceOptions { get; init; } = string.Empty;
 }
 
 public sealed record QemuLaunchPlan(string BinaryPath, string Arguments, ToolSource Source);
@@ -34,6 +103,12 @@ public sealed record QemuLaunchPlan(string BinaryPath, string Arguments, ToolSou
 /// </summary>
 public static class QemuLauncher
 {
+    /// <summary>UDP port forwarded host-to-guest for the network test runner's datagram traffic.</summary>
+    private const int NetworkTestUdpPort = 5556;
+
+    /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
+    private const int NetworkTestTcpPort = 5558;
+
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
         CommandToolDefinition tool = options.Architecture switch
@@ -66,6 +141,12 @@ public static class QemuLauncher
             args.Append($"-L \"{shareQemu}\" ");
         }
 
+        RejectQuotes(options.IsoPath, "ISO path");
+        if (options.SerialOutputFile is not null)
+        {
+            RejectQuotes(options.SerialOutputFile, "serial output path");
+        }
+
         if (options.Architecture == "x64")
         {
             AppendX64Args(args, options);
@@ -96,8 +177,15 @@ public static class QemuLauncher
         if (options.EnableNetworkTesting)
         {
             string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
-            args.Append($" -netdev user,id=net0,hostfwd=udp::5556-:5556,hostfwd=tcp::5558-:5558 -device {nic},netdev=net0");
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
         }
+        else if (options.NetworkCard is not null)
+        {
+            AppendNetworkCardArgs(args, options.NetworkCard);
+        }
+
+        AppendInputDevice(args, options.KeyboardDevice);
+        AppendInputDevice(args, options.MouseDevice);
 
         if (options.Debug)
         {
@@ -115,8 +203,15 @@ public static class QemuLauncher
 
     private static void AppendX64Args(StringBuilder args, QemuLaunchOptions options)
     {
-        args.Append($"-M q35 -cpu max -m {options.MemoryMb}M");
-        args.Append($" -cdrom \"{options.IsoPath}\"");
+        args.Append("-M q35");
+        AppendMachineOptions(args, options.MachineOptions);
+        args.Append($" -cpu max -m {options.MemoryMb}M");
+        // Explicit CD drive with bootindex=0 so SeaBIOS picks the ISO over
+        // any attached HDDs whose 0xAA55 MBR signature would otherwise
+        // satisfy the BIOS and hang when their boot code is empty (the case
+        // for our Mbr.Create / Gpt protective-MBR writes).
+        args.Append($" -drive file=\"{EscapeDriveFileValue(options.IsoPath)}\",if=none,id=cosmoscd,format=raw,readonly=on");
+        args.Append(" -device ide-cd,drive=cosmoscd,bootindex=0");
         args.Append(" -boot d -no-reboot");
         if (!options.AllowGuestShutdown)
         {
@@ -126,6 +221,7 @@ public static class QemuLauncher
         {
             args.Append(" -vga std");
         }
+        AppendStorageArgs(args, options);
     }
 
     private static void AppendArm64Args(StringBuilder args, QemuLaunchOptions options)
@@ -134,12 +230,165 @@ public static class QemuLauncher
         // through its data dir search, which our `-L "<exe>/../share/qemu"`
         // (added above when Source==Bundle) points at the bundle's
         // edk2-aarch64-code.fd. No separate firmware-lookup logic needed.
-        args.Append($"-M virt,highmem=off -cpu cortex-a72 -m {options.MemoryMb}M");
+        args.Append("-M virt,highmem=off");
+        AppendMachineOptions(args, options.MachineOptions);
+        args.Append($" -cpu cortex-a72 -m {options.MemoryMb}M");
         args.Append(" -bios edk2-aarch64-code.fd");
+        // -cdrom takes its filename verbatim (no option parsing), so commas
+        // must NOT be doubled here — only the quote rejection in BuildAsync
+        // applies.
         args.Append($" -cdrom \"{options.IsoPath}\"");
         args.Append(" -boot d -no-reboot");
         // ramfb is required for Limine framebuffer support even when headless.
         args.Append(" -device ramfb");
+        AppendStorageArgs(args, options);
+    }
+
+    private static void AppendMachineOptions(StringBuilder args, IReadOnlyDictionary<string, string> opts)
+    {
+        foreach (KeyValuePair<string, string> kv in opts)
+        {
+            ValidateOptionToken(kv.Key, "machine option key");
+            ValidateOptionToken(kv.Value, "machine option value");
+            args.Append(',');
+            args.Append(kv.Key);
+            args.Append('=');
+            args.Append(kv.Value);
+        }
+    }
+
+    /// <summary>
+    /// Attach AHCI/SATA + NVMe disks. AHCI disks share one <c>ich9-ahci</c>
+    /// controller and consume successive ports; NVMe disks each get a
+    /// dedicated <c>nvme</c> controller so the guest exercises multi-controller
+    /// binding. Per-disk <see cref="DiskAttachment.ExtraDeviceOptions"/> is
+    /// appended after the standard device properties so profiles can flip
+    /// things like <c>msix=off</c>.
+    /// </summary>
+    internal static void AppendStorageArgs(StringBuilder args, QemuLaunchOptions options)
+    {
+        int ahciIndex = 0;
+        int nvmeIndex = 0;
+        bool ahciControllerEmitted = false;
+
+        foreach (DiskAttachment disk in options.Disks)
+        {
+            switch (disk.Kind)
+            {
+                case DiskKind.Ahci:
+                    if (!ahciControllerEmitted)
+                    {
+                        args.Append(" -device ich9-ahci,id=ahci0");
+                        ahciControllerEmitted = true;
+                    }
+                    args.Append($" -drive file=\"{EscapeDriveFileValue(disk.Path)}\",if=none,id=ahcidisk{ahciIndex},format=raw");
+                    args.Append($" -device ide-hd,drive=ahcidisk{ahciIndex},bus=ahci0.{ahciIndex}");
+                    AppendDeviceOptions(args, disk.ExtraDeviceOptions);
+                    ahciIndex++;
+                    break;
+
+                case DiskKind.Nvme:
+                    args.Append($" -drive file=\"{EscapeDriveFileValue(disk.Path)}\",if=none,id=nvmedisk{nvmeIndex},format=raw");
+                    args.Append($" -device nvme,id=nvme{nvmeIndex},drive=nvmedisk{nvmeIndex},serial=cosmos-nvme-{nvmeIndex}");
+                    AppendDeviceOptions(args, disk.ExtraDeviceOptions);
+                    nvmeIndex++;
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Emits the NIC selection: <c>"none"</c> disables QEMU's default card with
+    /// <c>-nic none</c>; any other value attaches a user-mode NIC of that model.
+    /// The model is validated as an option token so it can't splice extra
+    /// arguments into the command line.
+    /// </summary>
+    internal static void AppendNetworkCardArgs(StringBuilder args, string card)
+    {
+        if (card.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Append(" -nic none");
+            return;
+        }
+
+        ValidateOptionToken(card, "network card model");
+        args.Append($" -netdev user,id=net0 -device {card},netdev=net0");
+    }
+
+    /// <summary>
+    /// Attaches an input device (keyboard/mouse) as a <c>-device</c> line.
+    /// <c>null</c>/empty and the sentinels <c>"none"</c>/<c>"ps2"</c> add
+    /// nothing — PS/2 is part of the x64 chipset, not a device you attach — so
+    /// only real QEMU models (e.g. <c>virtio-keyboard-device</c>) are emitted.
+    /// </summary>
+    internal static void AppendInputDevice(StringBuilder args, string? model)
+    {
+        if (string.IsNullOrWhiteSpace(model)
+            || model.Equals("none", StringComparison.OrdinalIgnoreCase)
+            || model.Equals("ps2", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        ValidateOptionToken(model, "input device model");
+        args.Append($" -device {model}");
+    }
+
+    internal static void AppendDeviceOptions(StringBuilder args, string extra)
+    {
+        if (string.IsNullOrWhiteSpace(extra))
+        {
+            return;
+        }
+        // Allow callers to pass "msix=off" or ",msix=off" — normalize to a
+        // single leading comma so it splices cleanly onto the -device line.
+        string trimmed = extra.Trim();
+        ValidateOptionToken(trimmed, "ExtraDeviceOptions");
+        if (!trimmed.StartsWith(','))
+        {
+            args.Append(',');
+        }
+        args.Append(trimmed);
+    }
+
+    /// <summary>
+    /// Validates and escapes a path spliced into a QEMU <c>-drive file=</c>
+    /// value: commas are doubled (QEMU's option-parser escape — an unescaped
+    /// comma truncates the filename and turns the remainder into bogus drive
+    /// options), and quotes are rejected because the surrounding
+    /// <c>file="…"</c> token has no way to carry one through the argument
+    /// string. Do not use for <c>-cdrom</c>, whose filename QEMU takes
+    /// verbatim.
+    /// </summary>
+    internal static string EscapeDriveFileValue(string path)
+    {
+        RejectQuotes(path, "drive path");
+        return path.Replace(",", ",,");
+    }
+
+    private static void RejectQuotes(string value, string what)
+    {
+        if (value.Contains('"'))
+        {
+            throw new ArgumentException($"QEMU {what} cannot contain a double quote: {value}");
+        }
+    }
+
+    // QEMU option splices (-M properties, -device properties) only ever need
+    // [A-Za-z0-9_.,=-]. Anything else — whitespace above all — would leave
+    // the current token and splice new arguments into the command line, so
+    // reject it instead of passing it through.
+    private static void ValidateOptionToken(string value, string what)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (!char.IsAsciiLetterOrDigit(c) && c is not ('_' or '.' or ',' or '=' or '-'))
+            {
+                throw new ArgumentException(
+                    $"{what} may only contain [A-Za-z0-9_.,=-], found '{c}' in: {value}");
+            }
+        }
     }
 
     public static ProcessStartInfo ToProcessStartInfo(QemuLaunchPlan plan)

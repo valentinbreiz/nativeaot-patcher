@@ -42,6 +42,36 @@ public class X64PlatformInitializer : IPlatformInitializer
         // which bypasses the MMU — no memory mapping needed.
     }
 
+    public void EnsureMmioMapped(ulong physBase)
+    {
+        // Limine's blanket map (base revision 0) only covers the low 4 GiB
+        // plus memory-map regions; a 64-bit BAR relocated above 4 GiB is in
+        // neither, and touching its HHDM alias would page-fault. Install an
+        // on-demand UC mapping for it (no-op for already-mapped regions,
+        // i.e. everything below 4 GiB).
+        DeviceMapper.EnsureMapped(physBase);
+    }
+
+    public void DmaBarrier()
+    {
+        // x86-64's total store order already makes normal-memory stores
+        // visible before a subsequent MMIO (UC) store, and keeps loads in
+        // program order — no fence instruction is required here.
+    }
+
+    /// <inheritdoc />
+    public void DelayMicroseconds(uint microseconds)
+    {
+        // Legacy POST-port read: ~1 µs per access on PC chipsets, no
+        // interrupts or calibration needed, safe from phase-3 init.
+        for (uint i = 0; i < microseconds; i++)
+        {
+            s_delayPort.ReadByte(PlatformHAL.LegacyPostPort);
+        }
+    }
+
+    private static readonly X64PortIO s_delayPort = new();
+
     public void InitializeHardware()
     {
         // Display ACPI MADT information

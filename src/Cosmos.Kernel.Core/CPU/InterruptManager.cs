@@ -5,10 +5,11 @@ using Cosmos.Kernel.Core.IO;
 namespace Cosmos.Kernel.Core.CPU;
 
 /// <summary>
-/// Interrupt manager - provides interrupt registration and dispatch for all architectures.
-/// Lives in Core because the vector table and dispatch logic are hardware-neutral;
-/// arch-specific drivers implement <see cref="IInterruptController"/> in
-/// Cosmos.Kernel.HAL.X64 / Cosmos.Kernel.HAL.ARM64.
+/// Architecture-neutral interrupt registration and routing. Owns the dense
+/// 256-entry handler table and the dynamic-vector allocator used by MSI
+/// programmers. The actual dispatch path (ack/EOI/LPI/fatal-fault handling)
+/// is delegated to the platform <see cref="IInterruptController"/>
+/// implementation in Cosmos.Kernel.Core.X64 / Cosmos.Kernel.Core.ARM64.
 /// </summary>
 public static class InterruptManager
 {
@@ -19,9 +20,16 @@ public static class InterruptManager
     public delegate void IrqDelegate(ref IRQContext context);
 
     internal static IrqDelegate[]? s_irqHandlers;
+
     private static IInterruptController? s_controller;
 
     private const string NewLine = "\n";
+
+    /// <summary>Number of entries in the interrupt handler table (one per CPU interrupt vector, 0x00-0xFF).</summary>
+    private const int HandlerTableSize = 256;
+
+    /// <summary>Base CPU vector for ISA hardware IRQs: IRQ n is dispatched on vector 0x20 + n (legacy PIC remap window).</summary>
+    private const int IsaIrqVectorBase = 0x20;
 
     /// <summary>
     /// Whether interrupt support is enabled. Uses centralized feature flag.
@@ -35,7 +43,7 @@ public static class InterruptManager
     public static void Initialize(IInterruptController controller)
     {
         Serial.Write("[InterruptManager.Initialize] Allocating handlers array...\n");
-        s_irqHandlers = new IrqDelegate[256];
+        s_irqHandlers = new IrqDelegate[HandlerTableSize];
         s_controller = controller;
 
         Serial.Write("[InterruptManager.Initialize] Initializing platform interrupt controller...\n");
@@ -55,7 +63,103 @@ public static class InterruptManager
             Serial.Write("[InterruptManager] ERROR: s_irqHandlers is null! Initialize() must be called first.\n");
             return;
         }
-        s_irqHandlers[vector] = handler;
+
+        // Same lock as AllocateVector/FreeVector: an unlocked write here
+        // could land mid-scan and stomp a slot the allocator just claimed,
+        // silently dropping one of the two handlers.
+        s_allocLock.Acquire();
+        try
+        {
+            s_irqHandlers[vector] = handler;
+        }
+        finally
+        {
+            s_allocLock.Release();
+        }
+    }
+
+    // Dynamic vector allocations (MSI / MSI-X) start above the legacy
+    // ISA-IRQ window (0x20–0x2F) and any future arch-reserved range
+    // (0x30–0x3F), and stop below the platform-claimed high vectors: the
+    // x64 LAPIC timer (0xEF) and APIC spurious (0xFF) are registered via
+    // SetHandler and must never be handed out — or freed — as dynamic
+    // slots.
+    private const byte DynamicVectorMin = 0x40;
+    private const byte DynamicVectorMax = 0xEE;
+    private static int s_nextDynamicVector = DynamicVectorMin;
+
+    // Guards s_irqHandlers RMW in AllocateVector so concurrent device probes
+    // can't both grab the same slot and silently drop one handler.
+    private static Scheduler.SpinLock s_allocLock;
+
+    /// <summary>
+    /// Allocates an unused interrupt vector in [0x40..0xEE], registers
+    /// <paramref name="handler"/> for it, and returns the vector. Used by
+    /// MSI / MSI-X programmers that need a fresh vector unique to their
+    /// device. Throws if the dynamic range is exhausted.
+    /// </summary>
+    public static byte AllocateVector(IrqDelegate handler)
+    {
+        if (s_irqHandlers == null)
+        {
+            throw new System.InvalidOperationException("InterruptManager.Initialize must be called before AllocateVector");
+        }
+
+        s_allocLock.Acquire();
+        try
+        {
+            for (int v = s_nextDynamicVector; v <= DynamicVectorMax; v++)
+            {
+                if (s_irqHandlers[v] == null)
+                {
+                    s_irqHandlers[v] = handler;
+                    s_nextDynamicVector = v + 1;
+                    return (byte)v;
+                }
+            }
+            // Wrap once in case earlier vectors were freed.
+            for (int v = DynamicVectorMin; v < s_nextDynamicVector; v++)
+            {
+                if (s_irqHandlers[v] == null)
+                {
+                    s_irqHandlers[v] = handler;
+                    s_nextDynamicVector = v + 1;
+                    return (byte)v;
+                }
+            }
+        }
+        finally
+        {
+            s_allocLock.Release();
+        }
+        throw new System.InvalidOperationException("InterruptManager: dynamic vector range exhausted");
+    }
+
+    /// <summary>
+    /// Releases a vector previously returned by <see cref="AllocateVector"/>:
+    /// clears its handler so the slot can be handed out again (the
+    /// allocator's wrap pass picks freed slots back up). Without this, every
+    /// consumer teardown would permanently leak one of the 175 dynamic slots
+    /// and leave a stale delegate rooted — and invokable — in the table.
+    /// Vectors outside the dynamic range — including the platform-claimed
+    /// LAPIC timer and spurious vectors above it — are ignored.
+    /// </summary>
+    public static void FreeVector(byte vector)
+    {
+        if (s_irqHandlers == null || vector < DynamicVectorMin || vector > DynamicVectorMax)
+        {
+            return;
+        }
+
+        s_allocLock.Acquire();
+        try
+        {
+            s_irqHandlers[vector] = null;
+        }
+        finally
+        {
+            s_allocLock.Release();
+        }
     }
 
     /// <summary>
@@ -66,7 +170,7 @@ public static class InterruptManager
     /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
     public static void SetIrqHandler(byte irqNo, IrqDelegate handler, bool startMasked = false)
     {
-        byte vector = (byte)(0x20 + irqNo);
+        byte vector = (byte)(IsaIrqVectorBase + irqNo);
         SetHandler(vector, handler);
 
         // Route the IRQ through the platform-specific controller
@@ -78,111 +182,12 @@ public static class InterruptManager
     }
 
     /// <summary>
-    /// Called by native bridge from ASM stubs to invoke the proper handler.
+    /// Called by native bridge from the arch ASM stubs. Delegates to the
+    /// platform controller; all arch-specific behaviour lives there.
     /// </summary>
     /// <param name="ctx">Context structure.</param>
     public static void Dispatch(ref IRQContext ctx)
     {
-#if ARCH_ARM64
-        // ARM64: Handle different exception types
-        // interrupt 0 = Synchronous exception (faults, SVC, etc.)
-        // interrupt 1 = IRQ (hardware interrupts via GIC)
-        // interrupt 2 = FIQ (fast interrupts, not used)
-        // interrupt 3 = SError (system error)
-
-        if (ctx.interrupt == 1)  // IRQ from GIC
-        {
-            // Acknowledge the interrupt from GIC to get the actual interrupt ID
-            if (s_controller != null)
-            {
-                uint intId = s_controller.AcknowledgeInterrupt();
-
-                // Check for spurious interrupt
-                if (intId >= 1020)
-                {
-                    // Spurious interrupt - no EOI needed
-                    return;
-                }
-
-                // Dispatch to handler based on GIC interrupt ID
-                if (s_irqHandlers != null && intId < (uint)s_irqHandlers.Length)
-                {
-                    IrqDelegate handler = s_irqHandlers[(int)intId];
-                    if (handler != null)
-                    {
-                        ctx.interrupt = intId;  // Update context with actual interrupt ID
-                        handler(ref ctx);
-                    }
-                }
-
-                // Send EOI
-                s_controller.SendEOI();
-            }
-            return;
-        }
-        else if (ctx.interrupt == 0)  // Synchronous exception
-        {
-            // Check for managed handler (for SVC, etc.)
-            if (s_irqHandlers != null)
-            {
-                IrqDelegate handler = s_irqHandlers[0];
-                if (handler != null)
-                {
-                    handler(ref ctx);
-                    return;
-                }
-            }
-
-            // No handler - use fatal exception handler
-            if (s_controller != null)
-            {
-                s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
-            }
-            return;
-        }
-        else
-        {
-            // FIQ or SError - log and halt
-            Serial.Write("[INT] Unexpected exception type: ", ctx.interrupt, NewLine);
-            if (s_controller != null)
-            {
-                s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, ctx.far);
-            }
-            return;
-        }
-#else
-        // x64: Original behavior
-        // First check if there's a registered managed handler
-        if (s_irqHandlers != null && ctx.interrupt < (ulong)s_irqHandlers.Length)
-        {
-            IrqDelegate handler = s_irqHandlers[(int)ctx.interrupt];
-            if (handler != null)
-            {
-                handler(ref ctx);
-
-                // Send EOI for hardware IRQs (vector >= 32)
-                if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
-                {
-                    s_controller.SendEOI();
-                }
-                return;
-            }
-        }
-
-        // No managed handler - for CPU exceptions (0-31), use fallback fatal handler
-        if (s_controller != null && ctx.interrupt <= 31)
-        {
-            ulong faultAddress = ctx.cr2;
-            s_controller.HandleFatalException(ctx.interrupt, ctx.cpu_flags, faultAddress);
-            // HandleFatalException halts, so we won't reach here
-            return;
-        }
-
-        // Send EOI even for unhandled hardware interrupts to prevent lockup
-        if (ctx.interrupt >= 32 && s_controller != null && s_controller.IsInitialized)
-        {
-            s_controller.SendEOI();
-        }
-#endif
+        s_controller?.Dispatch(ref ctx);
     }
 }

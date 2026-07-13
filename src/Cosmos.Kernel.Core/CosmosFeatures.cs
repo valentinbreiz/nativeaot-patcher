@@ -81,4 +81,22 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.System.Input.Mouse.Enabled")]
     public static bool MouseEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.System.Input.Mouse.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls block storage support initialization (AHCI/SATA, etc.).
+    /// Requires PCI and Interrupts; the MSBuild cascade in Sdk.targets disables this when either is off.
+    /// Set via CosmosEnableStorage property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Storage.Enabled")]
+    public static bool StorageEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Storage.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls FAT filesystem driver registration. Requires Storage; the
+    /// MSBuild cascade in Sdk.targets disables this when Storage is off.
+    /// Set via CosmosEnableFat property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.System.Filesystems.Fat.Enabled")]
+    public static bool FatEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.System.Filesystems.Fat.Enabled", out bool enabled) ? enabled : true;
 }

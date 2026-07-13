@@ -12,6 +12,9 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// </remarks>
 public class Mutex : IDisposable
 {
+    /// <summary>Initial capacity of the wait queue, pre-sized so the first Add in Acquire allocates nothing under the IRQ-off state lock (mirrors InterruptEvent._waiters).</summary>
+    private const int InitialWaitQueueCapacity = 4;
+
     /// <summary>
     /// Protects access to the mutex internal state.
     /// </summary>
@@ -39,68 +42,147 @@ public class Mutex : IDisposable
     {
         _ownerThread = null;
         _recursionDepth = 0;
-        _waitingThreads = [];
+        // Pre-sized for the same reason as InterruptEvent._waiters: the
+        // first Add in Acquire happens under the IRQ-off state lock.
+        _waitingThreads = new List<SchedThread>(InitialWaitQueueCapacity);
     }
 
     /// <summary>
     /// Acquires the mutex. Blocks if already held by another thread.
+    /// Without a scheduler thread context there is a single execution
+    /// context and nothing to contend with, so the call is a no-op.
     /// </summary>
     public void Acquire()
     {
-        SchedThread? currentThread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        SchedThread? currentThread = SchedulerManager.IsReady
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            : null;
 
         if (currentThread == null)
         {
             return;
         }
 
-        int spinAttempts = 0;
-        while (true)
+        // The idle thread is the scheduler's fallback (PickNext ?? IdleThread):
+        // blocking it only gets it resurrected on the next tick, which re-runs
+        // this loop — every pass calls OnThreadBlocked again and drifts
+        // TotalTickets (and Release's ReadyThread would insert the idle
+        // thread into the run queue it is supposed to back-stop). Unlike
+        // InterruptEvent the context can't be nulled — Release checks
+        // ownership — so an idle-thread caller spin-acquires instead:
+        // ownership stays real, it just never parks in _waitingThreads.
+        // Interrupts stay enabled between attempts, so the timer keeps
+        // preempting to the (runnable) holder until it releases.
+        if ((currentThread.Flags & ThreadFlags.IdleThread) != 0)
         {
-            // Acquire spinlock to protect mutex state
-            while (!_lockGuard.TryAcquire())
+            while (true)
             {
-                spinAttempts++;
-                if (spinAttempts > 10000)
+                using (_lockGuard.AcquireIrqSafe())
                 {
-                    InternalCpu.Halt();
-                    spinAttempts = 0;
+                    if (_ownerThread == null)
+                    {
+                        _ownerThread = currentThread;
+                        _recursionDepth = 1;
+                        return;
+                    }
+
+                    if (_ownerThread == currentThread)
+                    {
+                        _recursionDepth++;
+                        return;
+                    }
                 }
             }
+        }
 
-            // Check if mutex is free
-            if (_ownerThread == null)
+        bool queued = false;
+        while (true)
+        {
+            // IRQ-safe for two reasons: a holder preempted mid-section
+            // would deadlock any other thread spinning on the state lock
+            // with interrupts masked, and blocking must be atomic with
+            // the wait-queue insertion — a Release() racing between the
+            // insertion and BlockThread would ready a still-Running
+            // thread whose subsequent BlockThread buries the wakeup
+            // forever (lost-wakeup race, same shape as InterruptEvent).
+            using (_lockGuard.AcquireIrqSafe())
             {
-                _ownerThread = currentThread;
-                _recursionDepth = 1;
-                _lockGuard.Release();
-                return;
-            }
+                if (_ownerThread == currentThread)
+                {
+                    if (queued)
+                    {
+                        // Release handed the mutex directly to this thread
+                        // while it was parked (depth already set to 1): this
+                        // re-entry is the wake-up, not a recursive acquire.
+                        return;
+                    }
 
-            // Check if same thread (recursive lock)
-            if (_ownerThread == currentThread)
-            {
-                _recursionDepth++;
-                _lockGuard.Release();
-                return;
-            }
+                    _recursionDepth++;
+                    return;
+                }
 
-            // Mutex held by another thread - add to wait queue and block
-            if (!_waitingThreads.Contains(currentThread!))
-            {
-                _waitingThreads.Add(currentThread!);
-            }
+                if (_ownerThread == null)
+                {
+                    if (queued)
+                    {
+                        // Spurious wake while still queued: claim the free
+                        // mutex, but leave the queue clean so a later
+                        // Release can't hand ownership to us a second time.
+                        RemoveWaiterLocked(currentThread);
+                    }
 
-            _lockGuard.Release();
+                    _ownerThread = currentThread;
+                    _recursionDepth = 1;
+                    return;
+                }
 
-            // Set thread state to blocked
-            if (currentThread != null)
-            {
+                // ReferenceEquals scan (not List.Contains) to match the
+                // scheduler's convention of avoiding EqualityComparer<T>
+                // .Default in kernel paths (see InterruptEvent).
+                if (!ContainsWaiterLocked(currentThread))
+                {
+                    _waitingThreads.Add(currentThread);
+                }
+
+                queued = true;
                 SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
+            }
+
+            // Only park the CPU while still Blocked (same rationale as
+            // InterruptEvent.WaitCore): if the hand-off already readied us
+            // between scope-dispose and this point, halting would sleep past
+            // the wake-up until an unrelated interrupt.
+            if (currentThread.State == ThreadState.Blocked)
+            {
                 InternalCpu.Halt();
             }
+        }
+    }
 
-            spinAttempts = 0;
+    private bool ContainsWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
+        {
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ReferenceEquals scan for the same reason as ContainsWaiterLocked.
+    // Caller holds the lock.
+    private void RemoveWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
+        {
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                _waitingThreads.RemoveAt(i);
+                return;
+            }
         }
     }
 
@@ -110,27 +192,32 @@ public class Mutex : IDisposable
     /// <returns>true if acquired, false if held by another thread.</returns>
     public bool TryAcquire()
     {
-        SchedThread? currentThread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        SchedThread? currentThread = SchedulerManager.IsReady
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            : null;
 
-        _lockGuard.Acquire();
-
-        bool acquired = false;
-
-        if (_ownerThread == null)
+        if (currentThread == null)
         {
-            _ownerThread = currentThread;
-            _recursionDepth = 1;
-            acquired = true;
-        }
-        else if (_ownerThread == currentThread)
-        {
-            _recursionDepth++;
-            acquired = true;
+            return true;
         }
 
-        _lockGuard.Release();
+        using (_lockGuard.AcquireIrqSafe())
+        {
+            if (_ownerThread == null)
+            {
+                _ownerThread = currentThread;
+                _recursionDepth = 1;
+                return true;
+            }
 
-        return acquired;
+            if (_ownerThread == currentThread)
+            {
+                _recursionDepth++;
+                return true;
+            }
+
+            return false;
+        }
     }
 
     /// <summary>
@@ -141,32 +228,50 @@ public class Mutex : IDisposable
     /// </remarks>
     public void Release()
     {
-        SchedThread? currentThread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+        SchedThread? currentThread = SchedulerManager.IsReady
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            : null;
 
-        _lockGuard.Acquire();
-
-        if (_ownerThread != currentThread)
+        if (currentThread == null)
         {
-            _lockGuard.Release();
-            return; // Error: not the owner
+            return;
         }
 
-        _recursionDepth--;
-
-        if (_recursionDepth == 0)
+        SchedThread? toReady = null;
+        using (_lockGuard.AcquireIrqSafe())
         {
-            _ownerThread = null;
-
-            // Wake up one waiting thread if any
-            if (_waitingThreads.Count > 0)
+            if (_ownerThread != currentThread)
             {
-                SchedThread waitingThread = _waitingThreads[0];
-                _waitingThreads.RemoveAt(0);
-                SchedulerManager.ReadyThread(waitingThread.CpuId, waitingThread);
+                return; // Error: not the owner
+            }
+
+            _recursionDepth--;
+
+            if (_recursionDepth == 0)
+            {
+                if (_waitingThreads.Count > 0)
+                {
+                    // Direct hand-off: the dequeued waiter owns the mutex
+                    // from this instant, so a running thread can't barge in
+                    // during the wake-up latency and send the waiter to the
+                    // back of the queue again (repeatable starvation).
+                    // Acquire detects the hand-off via its `queued` flag.
+                    toReady = _waitingThreads[0];
+                    _waitingThreads.RemoveAt(0);
+                    _ownerThread = toReady;
+                    _recursionDepth = 1;
+                }
+                else
+                {
+                    _ownerThread = null;
+                }
             }
         }
 
-        _lockGuard.Release();
+        if (toReady != null)
+        {
+            SchedulerManager.ReadyThread(toReady.CpuId, toReady);
+        }
     }
 
     /// <summary>
@@ -176,10 +281,10 @@ public class Mutex : IDisposable
     {
         get
         {
-            _lockGuard.Acquire();
-            bool locked = _ownerThread != null;
-            _lockGuard.Release();
-            return locked;
+            using (_lockGuard.AcquireIrqSafe())
+            {
+                return _ownerThread != null;
+            }
         }
     }
 
@@ -190,10 +295,10 @@ public class Mutex : IDisposable
     {
         get
         {
-            _lockGuard.Acquire();
-            SchedThread? owner = _ownerThread;
-            _lockGuard.Release();
-            return owner;
+            using (_lockGuard.AcquireIrqSafe())
+            {
+                return _ownerThread;
+            }
         }
     }
 
@@ -204,23 +309,32 @@ public class Mutex : IDisposable
     {
         get
         {
-            _lockGuard.Acquire();
-            int count = _waitingThreads.Count;
-            _lockGuard.Release();
-            return count;
+            using (_lockGuard.AcquireIrqSafe())
+            {
+                return _waitingThreads.Count;
+            }
         }
     }
 
     public void Dispose()
     {
-        while (_waitingThreads.Count > 0)
+        while (true)
         {
-            _lockGuard.Acquire();
-            SchedThread waitingThread = _waitingThreads[0];
-            _waitingThreads.RemoveAt(0);
-            _lockGuard.Release();
+            SchedThread waitingThread;
+            using (_lockGuard.AcquireIrqSafe())
+            {
+                if (_waitingThreads.Count == 0)
+                {
+                    break;
+                }
+
+                waitingThread = _waitingThreads[0];
+                _waitingThreads.RemoveAt(0);
+            }
+
             SchedulerManager.ReadyThread(waitingThread.CpuId, waitingThread);
         }
+
         _ownerThread = null;
         _recursionDepth = 0;
         GC.SuppressFinalize(this);

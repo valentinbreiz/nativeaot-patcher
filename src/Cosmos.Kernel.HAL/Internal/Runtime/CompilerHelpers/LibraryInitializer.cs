@@ -8,6 +8,7 @@ using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Pci;
 
 namespace Internal.Runtime.CompilerHelpers
@@ -59,6 +60,17 @@ namespace Internal.Runtime.CompilerHelpers
                 // Initialize platform-specific hardware (ACPI, APIC, GIC, timers, etc.)
                 Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
                 initializer.InitializeHardware();
+
+                // Initialize storage controllers (AHCI for SATA, NVMe for PCIe).
+                // Both drivers are architecture-independent and live in HAL.
+                if (CosmosFeatures.StorageEnabled)
+                {
+                    Serial.WriteString("[KERNEL]   - Initializing AHCI...\n");
+                    Ahci.Initialize();
+
+                    Serial.WriteString("[KERNEL]   - Initializing NVMe...\n");
+                    Nvme.Initialize();
+                }
             }
         }
     }

@@ -3,8 +3,11 @@
 namespace Cosmos.Kernel.Core.CPU;
 
 /// <summary>
-/// Interface for platform-specific interrupt controller.
-/// Implemented by HAL.X64 (APIC/IDT) and HAL.ARM64 (GIC/Exception Vectors).
+/// Platform-specific interrupt controller. Implementations live in
+/// Cosmos.Kernel.Core.X64 (APIC/IDT) and Cosmos.Kernel.Core.ARM64
+/// (GIC/Exception Vectors). Each owns the arch-specific dispatch path:
+/// EOI timing, ack semantics, fatal-fault handling, and any extra
+/// handler tables (e.g. GICv3 LPIs) all live in the implementation.
 /// </summary>
 public interface IInterruptController
 {
@@ -12,11 +15,6 @@ public interface IInterruptController
     /// Initialize the interrupt system (IDT for x64, exception vectors for ARM64).
     /// </summary>
     void Initialize();
-
-    /// <summary>
-    /// Send End-Of-Interrupt signal to the controller.
-    /// </summary>
-    void SendEOI();
 
     /// <summary>
     /// Route a hardware IRQ to a specific vector.
@@ -29,19 +27,10 @@ public interface IInterruptController
     bool IsInitialized { get; }
 
     /// <summary>
-    /// Handle fatal exception (arch-specific behavior).
-    /// Returns true if handled (halts), false to continue.
+    /// Dispatch an interrupt delivered by the arch's assembly stub. The
+    /// implementation is responsible for acknowledging (where applicable),
+    /// looking up and invoking the registered handler, signalling EOI, and
+    /// handling fatal CPU exceptions.
     /// </summary>
-    /// <param name="interrupt">Interrupt/exception number</param>
-    /// <param name="cpuFlags">Error code (x64) or ESR (ARM64)</param>
-    /// <param name="faultAddress">CR2 (x64) or FAR (ARM64) - page fault address</param>
-    bool HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress);
-
-    /// <summary>
-    /// Acknowledges the current interrupt and returns its ID.
-    /// On ARM64 (GIC), this reads the interrupt acknowledge register and returns the actual interrupt ID.
-    /// On x64, this returns uint.MaxValue (not used - x64 uses vector from IDT directly).
-    /// </summary>
-    /// <returns>Interrupt ID (0-1019 on ARM64 GIC), or uint.MaxValue if not applicable.</returns>
-    uint AcknowledgeInterrupt();
+    void Dispatch(ref IRQContext ctx);
 }

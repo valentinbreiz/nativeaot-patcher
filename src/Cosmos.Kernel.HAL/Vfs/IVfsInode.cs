@@ -11,4 +11,7 @@ public interface IVfsInode
 
     /// <summary>Non-null for regular files and other seekable/readable nodes; null for pure directory entries if the driver splits roles.</summary>
     IFileOperations? FileOperations { get; }
+
+    /// <summary>Leaf name within the parent directory. Empty for the filesystem root.</summary>
+    string Name { get; }
 }
