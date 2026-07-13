@@ -44,7 +44,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - ACPI (via [LAI](https://github.com/managarm/lai))
 - PCI and MMIO drivers
 - UART serial
-- UEFI GOP framebuffer graphics
+- [Cosmos Graphics Subsystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
 - Keyboard and Mouse input
 - Network stack (no HTTPS *yet*)
 - Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
