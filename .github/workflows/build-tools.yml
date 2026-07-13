@@ -122,16 +122,20 @@ jobs:
       - name: Download xorriso source (Unix)
         if: runner.os != 'Windows'
         run: |
-          curl -L -o xorriso.tar.gz \
-            "https://www.gnu.org/software/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz"
+          curl -fL -o xorriso.tar.gz \
+            "https://ftp.gnu.org/gnu/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz" \
+          || curl -fL -o xorriso.tar.gz \
+            "https://mirrors.kernel.org/gnu/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz"
           tar xzf xorriso.tar.gz
 
       - name: Download xorriso source (Windows)
         if: runner.os == 'Windows'
         shell: msys2 {0}
         run: |
-          curl -L -o xorriso.tar.gz \
-            "https://www.gnu.org/software/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz"
+          curl -fL -o xorriso.tar.gz \
+            "https://ftp.gnu.org/gnu/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz" \
+          || curl -fL -o xorriso.tar.gz \
+            "https://mirrors.kernel.org/gnu/xorriso/xorriso-${{ env.XORRISO_VERSION }}.tar.gz"
           tar xzf xorriso.tar.gz
 
       - name: Build xorriso (Unix)
