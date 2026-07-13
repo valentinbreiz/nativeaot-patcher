@@ -210,7 +210,21 @@ public static unsafe partial class GarbageCollector
 
             // Validate MethodTable
             MethodTable* mt = obj->GetMethodTable();
-            if (mt == null || IsInGCHeap((nint)mt))
+            if (mt == null)
+            {
+                // Zeroed gap — dead space. Fold it into the free run so the
+                // run stays contiguous and the trailing reset can reach Bump.
+                if (freeRunStart == null)
+                {
+                    freeRunStart = ptr;
+                }
+
+                freeRunSize += (uint)sizeof(nint);
+                ptr += sizeof(nint);
+                continue;
+            }
+
+            if (IsInGCHeap((nint)mt))
             {
                 // Skip invalid objects
                 ptr += sizeof(nint);
