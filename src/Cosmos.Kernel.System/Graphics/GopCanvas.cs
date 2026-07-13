@@ -35,8 +35,10 @@ internal class GopCanvas : Canvas
     /// <param name="mode">The display mode to use.</param>
     internal unsafe GopCanvas(Mode mode) : base(mode)
     {
-        ThrowIfModeIsNotValid(mode);
-
+        // The requested mode is only validated when there is no Limine framebuffer
+        // to adopt (see Mode setter): with a live framebuffer the request is
+        // ignored anyway, and the AvailableModes list must not reject callers who
+        // pass the framebuffer's true resolution (which may not be listed).
         if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
@@ -114,8 +116,23 @@ internal class GopCanvas : Canvas
         get => mode;
         set
         {
-            mode = value;
-            SetMode(mode);
+            // GOP/Limine cannot change the framebuffer mode after boot (SetMode is
+            // a no-op), so a requested mode must not shadow the real framebuffer
+            // resolution: callers read Mode back to learn the actual screen size,
+            // and adopting the request would make every consumer lay out its UI
+            // for a resolution the hardware never switched to. The real
+            // framebuffer size is also deliberately NOT checked against
+            // AvailableModes — that legacy VBE list doesn't contain every mode
+            // firmware can hand us (e.g. 1280x800).
+            if (driver != null)
+            {
+                mode = new Mode(driver.Width, driver.Height, value.ColorDepth);
+            }
+            else
+            {
+                SetMode(value);
+                mode = value;
+            }
         }
     }
 
