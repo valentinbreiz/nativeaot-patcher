@@ -56,7 +56,7 @@ public class KernelConsole
         0xFF008000, // DarkGreen
         0xFF008080, // DarkCyan
         0xFF800000, // DarkRed
-        0xFF808000, // DarkMagenta
+        0xFF800080, // DarkMagenta
         0xFF808000, // DarkYellow
         0xFFC0C0C0, // Gray
         0xFF808080, // DarkGray
