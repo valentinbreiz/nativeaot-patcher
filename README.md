@@ -44,11 +44,11 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - ACPI (via [LAI](https://github.com/managarm/lai))
 - PCI and MMIO drivers
 - UART serial
-- UEFI GOP framebuffer graphics
+- [Cosmos Graphics Subsystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
 - Keyboard and Mouse input
-- Network stack (no HTTPS *yet*)
+- [Network stack](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
 - Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
-- FAT12/16/32 filesystem on a Unix-style VFS (mount, superblocks, inodes)
+- [FAT12/16/32 filesystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
 - Timer / Clock
 
 ## Documentation
