@@ -8,6 +8,7 @@
 .global _simd_copy_64
 .global _simd_copy_128
 .global _simd_copy_128_blocks
+.global _simd_copy_nt_128_blocks
 .global _simd_fill_16_blocks
 
 .text
@@ -106,6 +107,51 @@ _simd_copy_128_blocks:
     jnz     .Lcopy_loop
 
 .Lcopy_done:
+    ret
+
+// void _simd_copy_nt_128_blocks(void* dest, void* src, int blockCount)
+// Copies multiple 128-byte blocks using non-temporal stores: the destination
+// bypasses the cache, so a large write-only target (framebuffer blit) does not
+// evict the working set. dest MUST be 16-byte aligned (movntdq requirement).
+// System V x64: rdi = dest, rsi = src, rdx = blockCount
+_simd_copy_nt_128_blocks:
+    // Check if blockCount is 0
+    test    rdx, rdx
+    jz      .Lcopy_nt_done
+
+.Lcopy_nt_loop:
+    // Load 128 bytes into XMM0-XMM7 (src may be unaligned)
+    movdqu  xmm0, [rsi]
+    movdqu  xmm1, [rsi + 16]
+    movdqu  xmm2, [rsi + 32]
+    movdqu  xmm3, [rsi + 48]
+    movdqu  xmm4, [rsi + 64]
+    movdqu  xmm5, [rsi + 80]
+    movdqu  xmm6, [rsi + 96]
+    movdqu  xmm7, [rsi + 112]
+
+    // Non-temporal stores of 128 bytes from XMM0-XMM7
+    movntdq [rdi], xmm0
+    movntdq [rdi + 16], xmm1
+    movntdq [rdi + 32], xmm2
+    movntdq [rdi + 48], xmm3
+    movntdq [rdi + 64], xmm4
+    movntdq [rdi + 80], xmm5
+    movntdq [rdi + 96], xmm6
+    movntdq [rdi + 112], xmm7
+
+    // Advance pointers by 128 bytes
+    add     rsi, 128
+    add     rdi, 128
+
+    // Decrement block counter and loop if not zero
+    dec     rdx
+    jnz     .Lcopy_nt_loop
+
+    // Make the weakly-ordered NT stores visible before returning
+    sfence
+
+.Lcopy_nt_done:
     ret
 
 // void _simd_fill_16_blocks(void* dest, int value, int blockCount)

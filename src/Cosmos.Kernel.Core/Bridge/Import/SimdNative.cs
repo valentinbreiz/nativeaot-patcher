@@ -24,6 +24,10 @@ public static unsafe partial class SimdNative
     [SuppressGCTransition]
     public static partial void Copy128Blocks(byte* dest, byte* src, int blockCount);
 
+    [LibraryImport("*", EntryPoint = "_simd_copy_nt_128_blocks")]
+    [SuppressGCTransition]
+    public static partial void CopyNT128Blocks(byte* dest, byte* src, int blockCount);
+
     [LibraryImport("*", EntryPoint = "_simd_fill_16_blocks")]
     [SuppressGCTransition]
     public static partial void Fill16Blocks(byte* dest, int value, int blockCount);

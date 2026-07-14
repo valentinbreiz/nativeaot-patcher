@@ -136,11 +136,13 @@ public static unsafe class MemoryOp
     {
         int offset = 0;
 
-        // Copy 128-byte blocks
-        while (count - offset >= 128)
+        // Copy 128-byte blocks in a single native call: the stub loops internally,
+        // one P/Invoke per block would dominate large copies (e.g. framebuffer swaps).
+        int blockCount = count / 128;
+        if (blockCount > 0)
         {
-            SimdNative.Copy128(dest + offset, src + offset);
-            offset += 128;
+            SimdNative.Copy128Blocks(dest, src, blockCount);
+            offset = blockCount * 128;
         }
 
         // Copy 64-byte chunk
@@ -175,6 +177,30 @@ public static unsafe class MemoryOp
     public static void MemCopy(uint* dest, uint* src, int count)
     {
         MemCopy((byte*)dest, (byte*)src, count * sizeof(uint));
+    }
+
+    /// <summary>
+    /// Memory copy using non-temporal stores: the destination bypasses the cache.
+    /// Use for large write-only targets that are never read back (framebuffer blits) —
+    /// regular stores would evict a full frame's worth of cache every copy.
+    /// Requires a 16-byte aligned destination; falls back to MemCopy otherwise.
+    /// </summary>
+    public static void MemCopyNonTemporal(byte* dest, byte* src, int count)
+    {
+        if (count < 128 || ((ulong)dest & 15) != 0)
+        {
+            MemCopy(dest, src, count);
+            return;
+        }
+
+        int blockCount = count / 128;
+        SimdNative.CopyNT128Blocks(dest, src, blockCount);
+
+        int offset = blockCount * 128;
+        if (count > offset)
+        {
+            MemCopy(dest + offset, src + offset, count - offset);
+        }
     }
 
     #endregion
