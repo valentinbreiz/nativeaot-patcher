@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Cosmos.Tools.Platform;
 
@@ -71,6 +72,16 @@ public sealed class QemuLaunchOptions
     /// runner can observe a clean process exit.
     /// </summary>
     public bool AllowGuestShutdown { get; init; }
+
+    /// <summary>
+    /// QEMU CPU model (<c>-cpu</c>), e.g. <c>host</c>, <c>max</c>, <c>qemu64</c>,
+    /// <c>cortex-a72</c>. Null/empty = auto: on x64 that is <c>host</c> when KVM
+    /// is available and <c>max</c> under TCG; on ARM64 it is <c>cortex-a72</c>.
+    /// <c>host</c> is KVM-only, so it degrades to <c>max</c> when KVM is absent
+    /// rather than aborting QEMU at startup.
+    /// </summary>
+    public string? CpuModel { get; init; }
+
     public IReadOnlyList<string> ExtraArgs { get; init; } = Array.Empty<string>();
 }
 
@@ -205,7 +216,24 @@ public static class QemuLauncher
     {
         args.Append("-M q35");
         AppendMachineOptions(args, options.MachineOptions);
-        args.Append($" -cpu max -m {options.MemoryMb}M");
+        // KVM when the host offers it: TCG software emulation is roughly an
+        // order of magnitude slower and tanks guest-side rendering (every
+        // pixel blend and framebuffer memmove is binary-translated).
+        bool kvm = KvmAvailable();
+        string cpu = string.IsNullOrWhiteSpace(options.CpuModel)
+            ? (kvm ? "host" : "max")
+            : options.CpuModel.Trim();
+        if (!kvm && cpu.Equals("host", StringComparison.OrdinalIgnoreCase))
+        {
+            // -cpu host is KVM-only; QEMU aborts at startup under TCG.
+            cpu = "max";
+        }
+        ValidateOptionToken(cpu, "cpu model");
+        if (kvm)
+        {
+            args.Append(" -enable-kvm");
+        }
+        args.Append($" -cpu {cpu} -m {options.MemoryMb}M");
         // Explicit CD drive with bootindex=0 so SeaBIOS picks the ISO over
         // any attached HDDs whose 0xAA55 MBR signature would otherwise
         // satisfy the BIOS and hang when their boot code is empty (the case
@@ -232,7 +260,11 @@ public static class QemuLauncher
         // edk2-aarch64-code.fd. No separate firmware-lookup logic needed.
         args.Append("-M virt,highmem=off");
         AppendMachineOptions(args, options.MachineOptions);
-        args.Append($" -cpu cortex-a72 -m {options.MemoryMb}M");
+        string cpu = string.IsNullOrWhiteSpace(options.CpuModel)
+            ? "cortex-a72"
+            : options.CpuModel.Trim();
+        ValidateOptionToken(cpu, "cpu model");
+        args.Append($" -cpu {cpu} -m {options.MemoryMb}M");
         args.Append(" -bios edk2-aarch64-code.fd");
         // -cdrom takes its filename verbatim (no option parsing), so commas
         // must NOT be doubled here — only the quote rejection in BuildAsync
@@ -242,6 +274,33 @@ public static class QemuLauncher
         // ramfb is required for Limine framebuffer support even when headless.
         args.Append(" -device ramfb");
         AppendStorageArgs(args, options);
+    }
+
+    /// <summary>
+    /// True when the x64 guest can run under KVM: Linux x64 host with an
+    /// openable /dev/kvm (the open is the canonical access check — it also
+    /// catches "exists but not in the kvm group"). Set COSMOS_NO_KVM=1 to
+    /// force TCG, e.g. to reproduce a TCG-only bug.
+    /// </summary>
+    private static bool KvmAvailable()
+    {
+        if (Environment.GetEnvironmentVariable("COSMOS_NO_KVM") == "1")
+        {
+            return false;
+        }
+        if (!OperatingSystem.IsLinux() || RuntimeInformation.OSArchitecture != Architecture.X64)
+        {
+            return false;
+        }
+        try
+        {
+            using FileStream fs = File.Open("/dev/kvm", FileMode.Open, FileAccess.ReadWrite);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void AppendMachineOptions(StringBuilder args, IReadOnlyDictionary<string, string> opts)

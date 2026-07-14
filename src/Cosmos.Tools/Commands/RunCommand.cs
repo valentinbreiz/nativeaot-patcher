@@ -27,6 +27,10 @@ public class RunSettings : CommandSettings
     [DefaultValue(512)]
     public int MemoryMb { get; set; } = 512;
 
+    [CommandOption("--cpu <MODEL>")]
+    [Description("QEMU CPU model, e.g. host, max, qemu64, cortex-a72. Omit for auto: on x64, 'host' when KVM is available, else 'max'. 'host' needs KVM and falls back to 'max' without it.")]
+    public string? Cpu { get; set; }
+
     [CommandOption("--headless")]
     [Description("Run without a display window (serial-only).")]
     public bool Headless { get; set; }
@@ -88,6 +92,7 @@ public class RunCommand : AsyncCommand<RunSettings>
                 Architecture = settings.Arch,
                 IsoPath = isoPath,
                 MemoryMb = settings.MemoryMb,
+                CpuModel = settings.Cpu,
                 Headless = settings.Headless,
                 Debug = settings.Debug,
                 SerialOutputFile = null, // CLI: serial → stdio
