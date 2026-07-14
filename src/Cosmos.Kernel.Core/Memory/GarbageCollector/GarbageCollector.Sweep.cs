@@ -168,7 +168,7 @@ public static unsafe partial class GarbageCollector
         freeBlock->MethodTable = s_freeMethodTable;
         freeBlock->Size = (int)size;
         freeBlock->Next = null;
-        AddToFreeList(freeBlock);
+        AddToFreeList(freeBlock, 's');
     }
 
     /// <summary>

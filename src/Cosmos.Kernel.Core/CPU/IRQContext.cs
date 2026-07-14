@@ -74,6 +74,16 @@ public struct IRQContext
     public ulong interrupt;
     public ulong cpu_flags;
     public ulong fault_address;  // CR2: page-fault linear address (valid for #PF, int 14)
+
+    // The interrupt stub's frame continues past the info block (see ThreadContext.X64 /
+    // Interrupts.s): the TempRcx scratch slot followed by the hardware interrupt frame.
+    // Exposing them here lets exception handlers report the faulting RIP.
+    public ulong temp_rcx;       // context-switch scratch slot (zero otherwise)
+    public ulong rip;            // faulting/interrupted instruction pointer
+    public ulong cs;             // code segment selector
+    public ulong rflags;         // saved RFLAGS
+    public ulong rsp;            // interrupted stack pointer (always pushed in 64-bit mode)
+    public ulong ss;             // stack segment selector
 }
 
 #endif

@@ -120,7 +120,7 @@ public static unsafe partial class GarbageCollector
                         split->MethodTable = s_freeMethodTable;
                         split->Size = (int)remainder;
                         split->Next = null;
-                        AddToFreeList(split);
+                        AddToFreeList(split, 'a');
                     }
 
                     // Clear and return
@@ -310,7 +310,7 @@ public static unsafe partial class GarbageCollector
                         split->MethodTable = s_freeMethodTable;
                         split->Size = (int)remainder;
                         split->Next = null;
-                        AddToFreeList(split);
+                        AddToFreeList(split, 'r');
                     }
 
                     MemoryOp.MemSet((byte*)block, 0, (int)size);
@@ -455,7 +455,9 @@ public static unsafe partial class GarbageCollector
     /// Inserts a free block into the appropriate size-class free list.
     /// </summary>
     /// <param name="block">The free block to add.</param>
-    private static void AddToFreeList(FreeBlock* block)
+    /// <param name="source">Call-site tag for diagnostics: 'a'=AllocFromFreeList split,
+    /// 'r'=AllocFromFreeListRaw split, 't'=TLAB gap stamp, 's'=sweep, 'p'=pinned heap.</param>
+    private static void AddToFreeList(FreeBlock* block, char source)
     {
         if (!s_freeListsInitialized || block == null || block->Size < MinBlockSize)
         {
@@ -479,6 +481,22 @@ public static unsafe partial class GarbageCollector
         if (sizeClass < 0)
         {
             sizeClass = NumSizeClasses - 1;
+        }
+
+        // Cheap last-line guard against re-inserting the current head: a second
+        // head-insert of the same block would set block->Next = block, and the
+        // next free-list walk would spin forever inside DisableInterrupts (this
+        // is how the double TLAB-stamp bug hung Collect(); see StampUnusedTlab).
+        // Deeper duplicates/overlaps need the O(list) debug tripwire this check
+        // replaced — reintroduce it locally when hunting free-list corruption.
+        if (s_freeLists[sizeClass] == block)
+        {
+            Serial.WriteString("[GC] BUG: duplicate free-list head insert src=");
+            Serial.WriteString(source == 'a' ? "a" : source == 'r' ? "r" : source == 't' ? "t" : source == 's' ? "s" : "p");
+            Serial.WriteString(" blk=0x");
+            Serial.WriteHex((ulong)block);
+            Serial.WriteString("\n");
+            return;
         }
 
         block->Next = s_freeLists[sizeClass];

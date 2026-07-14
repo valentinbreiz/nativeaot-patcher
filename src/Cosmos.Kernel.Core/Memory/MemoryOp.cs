@@ -74,11 +74,14 @@ public static unsafe class MemoryOp
             offset = blockCount * 16;
         }
 
-        // Fill remaining bytes using scalar (with the byte value extracted)
-        byte byteValue = (byte)(value & 0xFF);
+        // Fill remaining bytes using scalar, preserving the 32-bit pattern phase:
+        // dest[0] carries byte 0 of the pattern and SIMD blocks are 16 bytes (a whole
+        // number of patterns), so byte offset & 3 selects the right pattern byte.
+        // Using only the low byte here corrupted non-uniform fills (e.g. ARGB pixels)
+        // whenever the byte count was not a multiple of 16.
         while (offset < count)
         {
-            dest[offset] = byteValue;
+            dest[offset] = (byte)(value >> ((offset & 3) * 8));
             offset++;
         }
     }
