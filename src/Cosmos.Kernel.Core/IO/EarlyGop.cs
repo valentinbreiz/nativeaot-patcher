@@ -314,8 +314,8 @@ public static unsafe class EarlyGop
                 _row++;
                 if (_row >= _usableRows)
                 {
-                    Scroll(fb);
-                    _row = _usableRows - 1;
+                    ClearUsableRegion(fb);
+                    _row = 0;
                 }
                 break;
             case '\r':
@@ -335,8 +335,8 @@ public static unsafe class EarlyGop
                     _row++;
                     if (_row >= _usableRows)
                     {
-                        Scroll(fb);
-                        _row = _usableRows - 1;
+                        ClearUsableRegion(fb);
+                        _row = 0;
                     }
                 }
                 break;
@@ -362,30 +362,25 @@ public static unsafe class EarlyGop
         }
     }
 
-    private static void Scroll(LimineFramebuffer* fb)
+    /// <summary>
+    /// Wipe the usable text region and restart at the top row. This replaces
+    /// scrolling on purpose: scrolling has to read the framebuffer back, and
+    /// the Limine framebuffer is mapped write-combining, where reads are
+    /// uncached (~100ms per full-frame read under KVM or on real hardware —
+    /// that made every boot-log line cost ~100ms once the screen filled).
+    /// Clearing is write-only, and WC writes stream fast.
+    /// </summary>
+    private static void ClearUsableRegion(LimineFramebuffer* fb)
     {
         ulong pitch = fb->Pitch;
         byte* addr = (byte*)fb->Address;
 
-        // Compute pixel boundaries of the usable text region
         ulong topPx = (ulong)(_marginY * CharH);
-        ulong botPx = (ulong)((_marginY + _usableRows) * CharH);
-        ulong usableHeightPx = botPx - topPx;
+        ulong usableHeightPx = (ulong)(_usableRows * CharH);
 
-        // Shift usable rows up by CharH pixel rows using 8-byte copies
-        ulong copySize = pitch * (usableHeightPx - (ulong)CharH);
-        ulong* dst = (ulong*)(addr + pitch * topPx);
-        ulong* src = (ulong*)(addr + pitch * (topPx + (ulong)CharH));
-        ulong count = copySize / 8;
+        ulong* clear = (ulong*)(addr + pitch * topPx);
+        ulong count = pitch * usableHeightPx / 8;
         for (ulong i = 0; i < count; i++)
-        {
-            dst[i] = src[i];
-        }
-
-        // Clear the newly exposed bottom CharH rows of the usable region
-        ulong* clear = (ulong*)(addr + pitch * (botPx - (ulong)CharH));
-        ulong clearCount = pitch * (ulong)CharH / 8;
-        for (ulong i = 0; i < clearCount; i++)
         {
             clear[i] = 0;
         }
