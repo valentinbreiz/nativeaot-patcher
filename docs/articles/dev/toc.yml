@@ -6,6 +6,8 @@
   href: coding-guidelines.md
 - name: Plugs
   href: plugs.md
+- name: Device Driver Model
+  href: driver-model.md
 - name: Testing
   href: testing.md
 - name: Garbage Collector
