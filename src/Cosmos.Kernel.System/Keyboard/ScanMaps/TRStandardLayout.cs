@@ -94,7 +94,7 @@ public class TRStandardLayout : ScanMapBase
         Keys.Add(new KeyMapping(0x33, 'ö', 'Ö', 'ö', 'Ö', 'ö', 'Ö', ConsoleKeyEx.NoName));
         Keys.Add(new KeyMapping(0x34, 'ç', 'Ç', 'ç', 'ç', 'Ç', 'ç', ConsoleKeyEx.NoName));
         Keys.Add(new KeyMapping(0x35, '.', ':', '.', '.', ':', '.', ConsoleKeyEx.NoName)); // also numpad divide
-                                                                                            /* Right Shift */
+        /* Right Shift */
         Keys.Add(new KeyMapping(0x1C, ConsoleKeyEx.Enter));
         Keys.Add(new KeyMapping(0x36, ConsoleKeyEx.RShift));
         Keys.Add(new KeyMapping(0x1D, ConsoleKeyEx.LCtrl));

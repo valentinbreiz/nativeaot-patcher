@@ -91,7 +91,7 @@ public class GBStandardLayout : ScanMapBase
         Keys.Add(new KeyMapping(0x36, ConsoleKeyEx.RShift));
         /* Print Screen */
         Keys.Add(new KeyMapping(0x37, '*', '*', '*', '*', '*', '*', ConsoleKeyEx.NumMultiply));
-            // also numpad multiply
+        // also numpad multiply
         /* Alt  */
         Keys.Add(new KeyMapping(0x38, ConsoleKeyEx.LAlt));
         /* Space */

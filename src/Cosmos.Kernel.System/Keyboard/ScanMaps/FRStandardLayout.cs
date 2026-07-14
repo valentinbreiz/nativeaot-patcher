@@ -75,11 +75,11 @@ public class FRStandardLayout : ScanMapBase
         Keys.Add(new KeyMapping(0x33, ';', '.', ';', '.', ';', '.', ConsoleKeyEx.Semicolon));
         Keys.Add(new KeyMapping(0x34, ':', '/', ':', '/', ':', '/', ConsoleKeyEx.Colon));
         Keys.Add(new KeyMapping(0x35, '!', '§', '!', '§', '!', '§', ConsoleKeyEx.ExclamationPoint)); // also numpad divide
-                                                                                                       /* Right Shift */
+        /* Right Shift */
         Keys.Add(new KeyMapping(0x36, ConsoleKeyEx.RShift));
         /* Print Screen */
         Keys.Add(new KeyMapping(0x37, '*', '*', '*', '*', '*', '*', ConsoleKeyEx.NumMultiply)); // also numpad multiply
-                                                                                                             /* Alt  */
+        /* Alt  */
         Keys.Add(new KeyMapping(0x38, ConsoleKeyEx.LAlt));
         /* Space */
         Keys.Add(new KeyMapping(0x39, ' ', ConsoleKeyEx.Spacebar));
