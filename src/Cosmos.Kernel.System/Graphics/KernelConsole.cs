@@ -80,14 +80,50 @@ public class KernelConsole
     {
         _canvas = canvas;
         _font = font ?? PCScreenFont.DefaultFont;
-        _charWidth = _font.Width;
-        _charHeight = _font.Height;
+        ApplyFontMetrics(_font);
 
         _cols = canvas.Width / _charWidth;
         _rows = canvas.Height / _charHeight;
         _cells = new Cell[_cols * _rows];
 
         ClearCells();
+    }
+
+    /// <summary>
+    /// Derives the character cell size from a font. Bitmap fonts have a fixed
+    /// cell; TrueType fonts report Width/Height as zero, so the cell is taken
+    /// from the line metrics and the widest ASCII glyph at the font's SizePx.
+    /// </summary>
+    /// <param name="font">The font to measure.</param>
+    /// <exception cref="ArgumentException">Thrown when no usable cell size can
+    /// be derived (would otherwise divide by zero when computing the grid).</exception>
+    private void ApplyFontMetrics(Font font)
+    {
+        if (font is TrueTypeFont trueType)
+        {
+            int maxAdvance = 0;
+            for (char c = '!'; c <= '~'; c++)
+            {
+                int advance = trueType.GetAdvance(c, trueType.SizePx);
+                if (advance > maxAdvance)
+                {
+                    maxAdvance = advance;
+                }
+            }
+
+            _charWidth = maxAdvance;
+            _charHeight = trueType.GetLineHeight(trueType.SizePx);
+        }
+        else
+        {
+            _charWidth = font.Width;
+            _charHeight = font.Height;
+        }
+
+        if (_charWidth <= 0 || _charHeight <= 0)
+        {
+            throw new ArgumentException($"Font provides no usable character cell ({_charWidth}x{_charHeight}).", nameof(font));
+        }
     }
 
     /// <summary>
@@ -103,8 +139,7 @@ public class KernelConsole
         get => _font;
         set
         {
-            _charWidth = value.Width;
-            _charHeight = value.Height;
+            ApplyFontMetrics(value);
 
             CursorX = 0;
             CursorY = 0;
