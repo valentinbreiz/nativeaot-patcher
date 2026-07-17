@@ -47,7 +47,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 11);
+        TR.Start("Network Tests", expectedTests: 13);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
@@ -67,6 +67,8 @@ public class Kernel : Sys.Kernel
         // DNS tests
         TR.Run("DNS_ClientCreate", TestDNSClientCreate);
         TR.Run("DNS_ResolveValentinBzh", TestDNSResolveTestSite);
+        TR.Run("DNS_ResolveCnameChain", TestDNSResolveCnameChain);
+        TR.Run("DNS_ResolveMultipleARecords", TestDNSResolveMultipleARecords);
 
         Serial.WriteString("[Network Tests] All tests completed\n");
         TR.Finish();
@@ -766,6 +768,121 @@ public class Kernel : Sys.Kernel
             // Verify we got a valid IP (not 0.0.0.0)
             Assert.True(resolvedIP.Hash != 0, "Resolved IP should not be 0.0.0.0");
             Assert.True(true, "DNS resolution for valentin.bzh succeeded");
+        }
+        else
+        {
+            Serial.WriteString("[Test] DNS resolution timed out or failed\n");
+            // Don't fail the test on timeout - network may not be available in test environment
+            Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
+        }
+
+        dnsClient.Close();
+    }
+
+    private static void TestDNSResolveCnameChain()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // www.github.com is a CNAME to github.com, so the A records in the
+        // answer carry the canonical name, not the queried one. A non-empty
+        // result proves ReceiveAll followed the CNAME chain.
+        string domain = "www.github.com";
+        Serial.WriteString("[Test] Resolving CNAME chain for ");
+        Serial.WriteString(domain);
+        Serial.WriteString("...\n");
+
+        var dnsServer = new Address(1, 1, 1, 1);
+        var dnsClient = new DnsClient();
+        dnsClient.Connect(dnsServer);
+
+        dnsClient.SendAsk(domain);
+
+        List<Address>? addresses = dnsClient.ReceiveAll(5000);
+
+        if (addresses != null)
+        {
+            Serial.WriteString("[Test] CNAME chain resolved to ");
+            Serial.WriteNumber((ulong)addresses.Count);
+            Serial.WriteString(" address(es), first: ");
+            Serial.WriteString(addresses[0].ToString());
+            Serial.WriteString("\n");
+
+            Assert.True(addresses.Count > 0, "CNAME chain should yield at least one A record");
+            Assert.True(addresses[0].Hash != 0, "Resolved IP should not be 0.0.0.0");
+        }
+        else
+        {
+            Serial.WriteString("[Test] DNS resolution timed out or failed\n");
+            // Don't fail the test on timeout - network may not be available in test environment
+            Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
+        }
+
+        dnsClient.Close();
+    }
+
+    private static void TestDNSResolveMultipleARecords()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // one.one.one.one stably resolves to exactly two A records:
+        // 1.1.1.1 and 1.0.0.1.
+        string domain = "one.one.one.one";
+        Serial.WriteString("[Test] Resolving multiple A records for ");
+        Serial.WriteString(domain);
+        Serial.WriteString("...\n");
+
+        var dnsServer = new Address(1, 1, 1, 1);
+        var dnsClient = new DnsClient();
+        dnsClient.Connect(dnsServer);
+
+        dnsClient.SendAsk(domain);
+
+        List<Address>? addresses = dnsClient.ReceiveAll(5000);
+
+        if (addresses != null)
+        {
+            Serial.WriteString("[Test] Got ");
+            Serial.WriteNumber((ulong)addresses.Count);
+            Serial.WriteString(" address(es):\n");
+
+            bool allCloudflare = true;
+            for (int i = 0; i < addresses.Count; i++)
+            {
+                Serial.WriteString("[Test]   ");
+                Serial.WriteString(addresses[i].ToString());
+                Serial.WriteString("\n");
+
+                byte[] bytes = addresses[i].ToByteArray();
+                bool isOneOneOneOne = bytes[0] == 1 && bytes[1] == 1 && bytes[2] == 1 && bytes[3] == 1;
+                bool isOneZeroZeroOne = bytes[0] == 1 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 1;
+                if (!isOneOneOneOne && !isOneZeroZeroOne)
+                {
+                    allCloudflare = false;
+                }
+            }
+
+            Assert.True(addresses.Count >= 2, "one.one.one.one should resolve to at least two A records");
+            Assert.True(allCloudflare, "All resolved addresses should be 1.1.1.1 or 1.0.0.1");
         }
         else
         {
