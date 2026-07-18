@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using SchedulerThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
@@ -158,8 +159,19 @@ public static unsafe partial class GarbageCollector
             for (int i = 0; i < NumSizeClasses; i++)
             {
                 FreeBlock* cur = s_freeLists[i];
+                int guard = 0;
                 while (cur != null)
                 {
+                    // Defensive cycle guard: a corrupted free list must degrade the
+                    // metric, not hang the collection inside DisableInterrupts.
+                    if (++guard > 1_000_000)
+                    {
+                        Serial.WriteString("[GC] BUG: free-list cycle detected walking class ");
+                        Serial.WriteNumber((uint)i);
+                        Serial.WriteString("\n");
+                        break;
+                    }
+
                     fragmented += (uint)cur->Size;
                     cur = cur->Next;
                 }
@@ -465,8 +477,19 @@ public static unsafe partial class GarbageCollector
             for (int i = 0; i < NumSizeClasses; i++)
             {
                 FreeBlock* cur = s_freeLists[i];
+                int guard = 0;
                 while (cur != null)
                 {
+                    // Defensive cycle guard: a corrupted free list must degrade the
+                    // metric, not hang the collection inside DisableInterrupts.
+                    if (++guard > 1_000_000)
+                    {
+                        Serial.WriteString("[GC] BUG: free-list cycle detected walking class ");
+                        Serial.WriteNumber((uint)i);
+                        Serial.WriteString("\n");
+                        break;
+                    }
+
                     fragmented += (uint)cur->Size;
                     cur = cur->Next;
                 }

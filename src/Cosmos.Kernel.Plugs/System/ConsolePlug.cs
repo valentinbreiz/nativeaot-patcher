@@ -22,6 +22,19 @@ public class ConsolePlug
         }
     }
 
+    /// <summary>
+    /// Flushes the console back buffer to the screen. The console only draws
+    /// into the canvas back buffer, so every mutation visible to the user
+    /// (writes, cursor moves) must be followed by a flush.
+    /// </summary>
+    private static void DisplayCanvas()
+    {
+        if (KernelConsole.Default.IsAvailable)
+        {
+            KernelConsole.Default.Canvas.Display();
+        }
+    }
+
     [PlugMember]
     private static TextWriter CreateOutputWriter(Stream outputStream)
     {
@@ -47,10 +60,7 @@ public class ConsolePlug
     public static void Clear()
     {
         KernelConsole.Default.Clear();
-        if (KernelConsole.Default.IsAvailable)
-        {
-            KernelConsole.Default.Canvas.Display();
-        }
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -95,6 +105,7 @@ public class ConsolePlug
     public static void set_CursorLeft(int value)
     {
         KernelConsole.Default.CursorX = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -107,12 +118,14 @@ public class ConsolePlug
     public static void set_CursorTop(int value)
     {
         KernelConsole.Default.CursorY = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static void SetCursorPosition(int left, int top)
     {
         KernelConsole.Default.SetCursorPosition(left, top);
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -125,6 +138,7 @@ public class ConsolePlug
     public static void set_CursorVisible(bool value)
     {
         KernelConsole.Default.CursorVisible = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -171,10 +185,7 @@ public class ConsolePlug
         if (!intercept && keyEvent.KeyChar != '\0')
         {
             KernelConsole.Default.Write(keyEvent.KeyChar);
-            if (KernelConsole.Default.IsAvailable)
-            {
-                KernelConsole.Default.Canvas.Display();
-            }
+            DisplayCanvas();
         }
 
         return ToConsoleKeyInfo(keyEvent);

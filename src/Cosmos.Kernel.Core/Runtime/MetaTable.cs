@@ -43,11 +43,51 @@ public unsafe class MetaTable
     [RuntimeExport("RhGetRuntimeHelperForType")]
     internal static unsafe IntPtr RhGetRuntimeHelperForType(MethodTable* pEEType, RuntimeHelperKind kind)
     {
-        return __RhGetRuntimeHelperForType(null!, (IntPtr)pEEType, kind);
-    }
+        switch (kind)
+        {
+            case RuntimeHelperKind.AllocateObject:
+                if (pEEType->IsFinalizable)
+                {
+                    return (IntPtr)(delegate*<MethodTable*, void*>)&StartupCodeHelpers.RhpNewFinalizable;
+                }
+                else
+                {
+                    return (IntPtr)(delegate*<MethodTable*, void*>)&Memory.RhpNewFast;
+                }
 
-    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "RhGetRuntimeHelperForType")]
-    private static extern IntPtr __RhGetRuntimeHelperForType([UnsafeAccessorType("System.Runtime.RuntimeExports")] object @this
-            , [UnsafeAccessorType("Internal.Runtime.MethodTable*")] object pEEType
-            , [UnsafeAccessorType("Internal.Runtime.RuntimeHelperKind")] object kind);
+            case RuntimeHelperKind.IsInst:
+                if (pEEType->HasGenericVariance || pEEType->IsParameterizedType || pEEType->IsFunctionPointer)
+                {
+                    return (IntPtr)(delegate*<object, MethodTable**, int, object?>)&Casting.RhTypeCast_IsInstanceOfAny;
+                }
+                else if (pEEType->IsInterface)
+                {
+                    return (IntPtr)(delegate*<object, MethodTable*, bool>)&Casting.RhTypeCast_IsInstanceOfInterface;
+                }
+                else
+                {
+                    return (IntPtr)(delegate*<object, MethodTable*, object?>)&Casting.RhTypeCast_IsInstanceOfClass;
+                }
+
+            case RuntimeHelperKind.CastClass:
+                if (pEEType->HasGenericVariance || pEEType->IsParameterizedType || pEEType->IsFunctionPointer)
+                {
+                    return (IntPtr)(delegate*<object, MethodTable*, object>)&Casting.RhTypeCast_CheckCastAny;
+                }
+                else if (pEEType->IsInterface)
+                {
+                    return (IntPtr)(delegate*<object, MethodTable*, object?>)&Casting.RhTypeCast_CheckCastInterface;
+                }
+                else
+                {
+                    return (IntPtr)(delegate*<object, MethodTable*, object>)&Casting.RhTypeCast_CheckCastClass;
+                }
+
+            case RuntimeHelperKind.AllocateArray:
+                return (IntPtr)(delegate*<MethodTable*, int, void*>)&Memory.RhpNewArrayFast;
+
+            default:
+                return IntPtr.Zero;
+        }
+    }
 }

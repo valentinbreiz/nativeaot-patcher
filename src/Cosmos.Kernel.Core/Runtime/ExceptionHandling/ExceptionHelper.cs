@@ -371,6 +371,14 @@ public static unsafe partial class ExceptionHelper
             return false;
         }
 
+        // Each frame's FDE describes only its own saves, so rules replayed for the previous
+        // frame must not leak into this one: a frameless shim (e.g. RhCollect's two-instruction
+        // `push rax; call` body) would inherit its callee's AtCfaOffset rules and "restore"
+        // registers from slots its frame doesn't have — handing the GC's precise stack scan and
+        // the exception dispatcher garbage register values (return addresses, spilled scratch)
+        // as callee-saved state. Reset every rule to SameValue; this FDE re-adds its own saves.
+        DwarfCfiParser.InitRegRulesSameValue(ref state);
+
         // Default CFA + RA rule at function entry. On x64 the RA pseudo-reg lives at CFA-8; on
         // ARM64 LR is a normal reg and SameValue is the seeded default, so the SetRegLocation call
         // is a no-op there, letting the FDE's prologue rules describe where LR was spilled.

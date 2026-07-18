@@ -24,6 +24,15 @@ public enum ReplyCode
 }
 
 /// <summary>
+/// DNS resource record types this stack understands (RFC 1035).
+/// </summary>
+public static class DNSRecordType
+{
+    public const ushort A = 1;
+    public const ushort CNAME = 5;
+}
+
+/// <summary>
 /// Represents a DNS query.
 /// </summary>
 public class DNSQuery
@@ -39,11 +48,13 @@ public class DNSQuery
 public class DNSAnswer
 {
     public ushort Name { get; set; }
+    public string? ResolvedName { get; set; }
     public ushort Type { get; set; }
     public ushort Class { get; set; }
     public int TimeToLive { get; set; }
     public ushort DataLength { get; set; }
     public byte[]? Address { get; set; }
+    public string? CanonicalName { get; set; }
 }
 
 /// <summary>
@@ -118,7 +129,8 @@ public class DNSPacket : UDPPacket
     }
 
     /// <summary>
-    /// Gets the domain name from the given data and offset.
+    /// Gets the domain name at the given offset. Does not follow compression
+    /// pointers - use <see cref="ParseNameAt"/> for those.
     /// </summary>
     public string ParseName(byte[] rawData, ref int index)
     {
@@ -142,6 +154,69 @@ public class DNSPacket : UDPPacket
             return url.ToString().Substring(0, url.Length - 1);
         }
         return url.ToString();
+    }
+
+    /// <summary>
+    /// Decompresses a domain name at <paramref name="startIndex"/> per RFC 1035 pointers.
+    /// </summary>
+    protected static string ParseNameAt(byte[] rawData, int startIndex, int messageBase)
+    {
+        StringBuilder sb = new();
+        int pos = startIndex;
+        int jumps = 0;
+        // Avoid infinite pointer loops.
+        const int maxJumps = 16;
+
+        while (pos >= 0 && pos < rawData.Length)
+        {
+            byte b = rawData[pos];
+
+            if (b == 0x00)
+            {
+                break;
+            }
+
+            if ((b & 0xC0) == 0xC0)
+            {
+                if (pos + 1 >= rawData.Length || jumps++ >= maxJumps)
+                {
+                    break;
+                }
+
+                int pointer = ((b & 0x3F) << 8) | rawData[pos + 1];
+                pos = messageBase + pointer;
+                continue;
+            }
+
+            pos++;
+            for (int j = 0; j < b && pos < rawData.Length; j++, pos++)
+            {
+                sb.Append((char)rawData[pos]);
+            }
+            sb.Append('.');
+        }
+
+        if (sb.Length > 0)
+        {
+            // Trim trailing dot.
+            sb.Length--;
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Resolves an RR's NAME field, assuming it's a compression pointer.
+    /// </summary>
+    protected static string? ResolveRRName(ushort nameField, byte[] rawData, int messageBase)
+    {
+        if ((nameField & 0xC000) != 0xC000)
+        {
+            // Inline (non-compressed) RR names aren't handled.
+            return null;
+        }
+
+        int offset = nameField & 0x3FFF;
+        return ParseNameAt(rawData, messageBase + offset, messageBase);
     }
 
     /// <summary>
@@ -294,15 +369,24 @@ public class DNSPacketAnswer : DNSPacket
             {
                 var answer = new DNSAnswer();
                 answer.Name = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
+                answer.ResolvedName = ResolveRRName(answer.Name, RawData, DataOffset + 8);
                 answer.Type = (ushort)((RawData[index + 2] << 8) | RawData[index + 3]);
                 answer.Class = (ushort)((RawData[index + 4] << 8) | RawData[index + 5]);
                 answer.TimeToLive = (RawData[index + 6] << 24) | (RawData[index + 7] << 16) | (RawData[index + 8] << 8) | RawData[index + 9];
                 answer.DataLength = (ushort)((RawData[index + 10] << 8) | RawData[index + 11]);
                 index += 12;
+
+                int rdataStart = index;
+
                 answer.Address = new byte[answer.DataLength];
                 for (int j = 0; j < answer.DataLength; j++, index++)
                 {
                     answer.Address[j] = RawData[index];
+                }
+
+                if (answer.Type == DNSRecordType.CNAME)
+                {
+                    answer.CanonicalName = ParseNameAt(RawData, rdataStart, DataOffset + 8);
                 }
 
                 Answers.Add(answer);

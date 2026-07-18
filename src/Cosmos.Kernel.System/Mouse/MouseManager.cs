@@ -30,9 +30,16 @@ public static class MouseManager
     public static int Y { get; private set; }
 
     /// <summary>
-    /// Scroll wheel delta.
+    /// Scroll wheel delta. Set on each wheel event and never cleared by the
+    /// driver; pollers consume it with <see cref="ResetScrollDelta"/> (gen2 parity).
     /// </summary>
     public static int ScrollDelta { get; private set; }
+
+    /// <summary>
+    /// Clears <see cref="ScrollDelta"/> after a poller has consumed it, so a
+    /// stale delta is not re-processed every frame until the next wheel event.
+    /// </summary>
+    public static void ResetScrollDelta() => ScrollDelta = 0;
 
     /// <summary>
     /// Left button state.

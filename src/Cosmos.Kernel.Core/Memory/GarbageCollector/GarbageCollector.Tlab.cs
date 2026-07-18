@@ -133,8 +133,6 @@ public static unsafe partial class GarbageCollector
     public static void ReturnAllocContext(ref AllocContext ac)
     {
         StampUnusedTlab(ref ac);
-        ac.AllocPtr = null;
-        ac.AllocLimit = null;
     }
 
     /// <summary>
@@ -182,7 +180,7 @@ public static unsafe partial class GarbageCollector
             freeBlock->MethodTable = s_freeMethodTable;
             freeBlock->Size = (int)gap;
             freeBlock->Next = null;
-            AddToFreeList(freeBlock);
+            AddToFreeList(freeBlock, 't');
         }
         else if (gap > 0)
         {
@@ -190,5 +188,16 @@ public static unsafe partial class GarbageCollector
             // stale MethodTable pointers and break early.
             MemoryOp.MemSet(ac.AllocPtr, 0, (int)gap);
         }
+
+        // The gap now belongs to the free list (or is dead space) — the context
+        // MUST forget it. RefillAllocContext stamps before trying to acquire a
+        // new buffer; if every attempt fails it returns with the context intact,
+        // and the subsequent Collect() → ReturnAllAllocContexts() would stamp
+        // the SAME gap again. That second head-insert makes the free block point
+        // at itself (block->Next = head = block), and the next free-list walk —
+        // GetCurrentFragmentation at the top of Collect() — spins forever with
+        // interrupts disabled: the "hang at [GC] Collection #1" bug.
+        ac.AllocPtr = null;
+        ac.AllocLimit = null;
     }
 }

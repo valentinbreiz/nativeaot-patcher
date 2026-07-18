@@ -21,8 +21,11 @@ else
   RID          := linux-x64
   DEFINE       := ARCH_X64
   COSMOS_ARCH  := x64
-  QEMU         := qemu-system-x86_64 -enable-kvm -machine accel=kvm -cpu host
-  DEV_QEMU     := qemu-system-x86_64 -M q35 -cpu max -m 512M
+  # KVM when the host exposes it (TCG is ~10x slower and tanks guest FPS);
+  # -cpu host needs KVM, so the TCG fallback keeps -cpu max (CI, containers).
+  KVM_FLAGS    := $(shell test -w /dev/kvm && echo "-enable-kvm -cpu host" || echo "-cpu max")
+  QEMU         := qemu-system-x86_64 $(KVM_FLAGS)
+  DEV_QEMU     := qemu-system-x86_64 -M q35 $(KVM_FLAGS) -m 512M
   DEV_ISO_FLAGS := -drive file=$(OUTPUT)/DevKernel.iso,if=none,id=cosmoscd,format=raw,readonly=on \
                    -device ide-cd,drive=cosmoscd,bootindex=0 \
                    -vga std -device i8042 -serial stdio
