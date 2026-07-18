@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 #if ARCH_X64
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;

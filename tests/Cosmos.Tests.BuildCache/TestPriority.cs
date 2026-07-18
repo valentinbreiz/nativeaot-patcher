@@ -1,5 +1,5 @@
-using Xunit.Abstractions;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Cosmos.Tests.BuildCache;
 
@@ -12,32 +12,28 @@ public sealed class TestPriorityAttribute : Attribute
 
 public sealed class PriorityOrderer : ITestCaseOrderer
 {
-    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases)
-        where TTestCase : ITestCase
+
+    public IReadOnlyCollection<TTestCase> OrderTestCases<TTestCase>(IReadOnlyCollection<TTestCase> testCases) where TTestCase : notnull, ITestCase
     {
         SortedDictionary<int, List<TTestCase>> sorted = new();
 
-        foreach (TTestCase testCase in testCases)
+        foreach (IXunitTestCase  testCase in testCases)
         {
             int priority = testCase.TestMethod.Method
-                .GetCustomAttributes(typeof(TestPriorityAttribute).AssemblyQualifiedName)
+                .GetCustomAttributes(typeof(TestPriorityAttribute), false)
+                .Cast<TestPriorityAttribute>()
                 .FirstOrDefault()
-                ?.GetNamedArgument<int>(nameof(TestPriorityAttribute.Priority)) ?? 0;
+                ?.Priority ?? 0;
 
             if (!sorted.TryGetValue(priority, out List<TTestCase>? list))
             {
                 list = new List<TTestCase>();
                 sorted[priority] = list;
             }
-            list.Add(testCase);
+            list.Add((TTestCase)testCase);
         }
 
-        foreach (List<TTestCase> list in sorted.Values)
-        {
-            foreach (TTestCase testCase in list)
-            {
-                yield return testCase;
-            }
-        }
+        
+        return sorted.Values.SelectMany(x => x).ToList();
     }
 }

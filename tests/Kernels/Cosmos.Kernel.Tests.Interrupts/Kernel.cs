@@ -5,9 +5,9 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 using SysThread = System.Threading.Thread;
 #if ARCH_X64
 using Cosmos.Kernel.Core.X64.Cpu;

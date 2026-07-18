@@ -8,9 +8,9 @@ using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
 using Cosmos.Kernel.System.Storage;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Storage;
 

@@ -3,9 +3,9 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Vfs;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Fat;
 

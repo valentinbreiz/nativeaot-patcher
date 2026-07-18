@@ -1,65 +1,39 @@
 using System;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Attributes;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.HelloWorld;
 
-public class Kernel : Sys.Kernel
-{
-    protected override void BeforeRun()
+[TestClass]
+public class Tests
+{    
+    [TestMethod]
+    public static void Test_BasicArithmetic()
     {
-        Serial.WriteString("[HelloWorld] BeforeRun() reached!\n");
-        Serial.WriteString("[HelloWorld] Starting tests...\n");
-
-        // Initialize test suite
-        TR.Start("HelloWorld Basic Tests", expectedTests: 3);
-
-        // Test 1: Basic arithmetic
-        TR.Run("Test_BasicArithmetic", () =>
-        {
-            int result = 2 + 2;
-            Assert.Equal(4, result);
-        });
-
-        // Test 2: Boolean logic
-        TR.Run("Test_BooleanLogic", () =>
-        {
-            bool isTrue = true;
-            Assert.True(isTrue);
-            Assert.False(!isTrue);
-        });
-
-        // Test 3: Integer comparison
-        TR.Run("Test_IntegerComparison", () =>
-        {
-            int a = 10;
-            int b = 10;
-            int c = 20;
-
-            Assert.Equal(a, b);
-            Assert.True(a < c);
-            Assert.False(a > c);
-        });
-
-        // Finish test suite
-        TR.Finish();
-
-        // Output completion message
-        Serial.WriteString("\n[Tests Complete - System Halting]\n");
+        int result = 2 + 2;
+        Assert.Equal(4, result);
     }
 
-    protected override void Run()
+    [TestMethod]
+    public static void Test_BooleanLogic()
     {
-        // All tests ran in BeforeRun; stop the main loop after one iteration
-        Stop();
+        bool isTrue = true;
+        Assert.True(isTrue);
+        Assert.False(!isTrue);
     }
 
-    protected override void AfterRun()
+    [TestMethod]
+    public static void Test_IntegerComparison()
     {
-        // Flush coverage data and signal QEMU to terminate
-        TR.Complete();
-        Cosmos.Kernel.System.Power.Halt();
+        int a = 10;
+        int b = 10;
+        int c = 20;
+
+        Assert.Equal(a, b);
+        Assert.True(a < c);
+        Assert.False(a > c);
     }
 }

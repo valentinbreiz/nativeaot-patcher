@@ -5,9 +5,9 @@
 // -----------------------------------------------------------------------------
 
 using Cosmos.Kernel.Core.IO;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.Framework.TestRunner;
 using SysMath = global::System.Math;
 using SysMathF = global::System.MathF;
 

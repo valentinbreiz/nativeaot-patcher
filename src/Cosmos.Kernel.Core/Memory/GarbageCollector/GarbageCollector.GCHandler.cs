@@ -23,15 +23,16 @@ public static unsafe partial class GarbageCollector
         /// </summary>
         public GCObject* obj;
 
-        /// <summary>
-        /// The type of this handle (Weak, Normal, Pinned, etc.).
-        /// </summary>
-        public GCHandleType type;
 
         /// <summary>
         /// Additional info associated with this handle (e.g., weak track resurrection flag).
         /// </summary>
         public nuint extraInfo;
+
+        /// <summary>
+        /// The type of this handle (Weak, Normal, Pinned, etc.).
+        /// </summary>
+        public GCHandleType type;
     }
 
     // --- Static fields ---

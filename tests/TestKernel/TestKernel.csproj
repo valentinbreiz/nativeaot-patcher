@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Cosmos.TestingFramework/build/Cosmos.TestingFramework.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Persist generated files -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Cosmos.TestingFramework/Cosmos.TestingFramework.csproj" />
+    <ProjectReference Include="../Cosmos.TestingFramework.SourceGenerators/Cosmos.TestingFramework.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Kernel" />
+    <PackageReference Include="Cosmos.Kernel.System" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  </ItemGroup>
+  
+  <Import Project="../Cosmos.TestingFramework/build/Cosmos.TestingFramework.targets" />
+</Project>

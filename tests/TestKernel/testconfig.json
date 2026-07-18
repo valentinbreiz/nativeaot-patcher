@@ -1,0 +1,9 @@
+{
+    "CosmosTestingFramework": {
+        "KeepBuildArtifacts": false,
+        "Mode": "Dev",
+        "CoverageEnabled": false,
+        "UartLog": true,
+        "XmlOutput": true
+    }
+}
