@@ -87,11 +87,11 @@ public unsafe class Virtqueue
 
         // Total size with alignment for used ring (needs page alignment)
         uint totalSize = descTableSize + availRingSize;
-        totalSize = Align(totalSize, 4096);  // Used ring needs page alignment
+        totalSize = Align(totalSize, (uint)PageAllocator.PageSize);  // Used ring needs page alignment
         totalSize += usedRingSize;
 
         // Calculate pages needed (round up)
-        ulong pageCount = (totalSize + 4095) / 4096;
+        ulong pageCount = (totalSize + (uint)PageAllocator.PageSize - 1) / (uint)PageAllocator.PageSize;
 
         // Allocate page-aligned memory for legacy MMIO compatibility
         byte* mem = (byte*)PageAllocator.AllocPages(PageType.HeapLarge, pageCount, true);
@@ -107,7 +107,7 @@ public unsafe class Virtqueue
         // Set up pointers
         _descriptors = (VringDesc*)mem;
         _available = (VringAvail*)(mem + descTableSize);
-        _used = (VringUsed*)(mem + Align(descTableSize + availRingSize, 4096));
+        _used = (VringUsed*)(mem + Align(descTableSize + availRingSize, (uint)PageAllocator.PageSize));
 
         // Initialize free list
         _freeList = (ushort*)MemoryOp.Alloc(queueSize * sizeof(ushort));

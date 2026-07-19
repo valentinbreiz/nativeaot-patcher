@@ -185,7 +185,7 @@ public unsafe class VirtioNet : INetworkDevice
         // For legacy MMIO (version 1), set guest page size
         if (_mmioVersion == 1)
         {
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, 4096);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, (uint)PageAllocator.PageSize);
         }
 
         // Set ACKNOWLEDGE status bit
@@ -342,10 +342,10 @@ public unsafe class VirtioNet : INetworkDevice
         if (_mmioVersion == 1)
         {
             // Legacy: set queue alignment and PFN
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, 4096);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, (uint)PageAllocator.PageSize);
 
             ulong baseAddr = queue.QueueBaseAddr;
-            uint pfn = (uint)(baseAddr / 4096);
+            uint pfn = (uint)(baseAddr / PageAllocator.PageSize);
 
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_PFN, pfn);
         }

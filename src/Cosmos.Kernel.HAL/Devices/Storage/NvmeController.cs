@@ -44,7 +44,6 @@ public unsafe class NvmeController
     private const uint AdminQueueDepth = 8;
     private const uint IoQueueDepth = 8;
     private const uint IoQueueId = 1;
-    private const ulong PageSize = 4096;
 
     /// <summary>Size of one Submission Queue Entry in bytes (NVMe 1.4 §4.2, fixed 64-byte SQE).</summary>
     private const int SqeSizeBytes = 64;
@@ -422,13 +421,13 @@ public unsafe class NvmeController
         {
             IoSlot slot = _ioSlots![slotIndex];
             CopyIn(src, slot.DmaBufferVirt);
-            if ((ulong)src.Length < PageSize)
+            if ((ulong)src.Length < PageAllocator.PageSize)
             {
                 // The controller can't know the namespace block size at this
                 // layer, so a span shorter than the device transfer would
                 // otherwise write the previous command's bounce residue to
                 // disk — zero the tail so short writes are deterministic.
-                MemoryOp.MemSet((byte*)(slot.DmaBufferVirt + (ulong)src.Length), 0, (int)(PageSize - (ulong)src.Length));
+                MemoryOp.MemSet((byte*)(slot.DmaBufferVirt + (ulong)src.Length), 0, (int)(PageAllocator.PageSize - (ulong)src.Length));
             }
             uint sc = SubmitOnSlot(NvmeIoOp.Write, nsid, slotIndex, lba, numLogicalBlocksMinusOne);
 
@@ -476,7 +475,7 @@ public unsafe class NvmeController
                 "The single-PRP data path issues one logical block per command.");
         }
 
-        if (byteLength <= 0 || (ulong)byteLength > PageSize)
+        if (byteLength <= 0 || (ulong)byteLength > PageAllocator.PageSize)
         {
             throw new ArgumentOutOfRangeException(nameof(byteLength),
                 "NVMe transfers are limited to one 4 KiB page (single-PRP data path).");
@@ -843,7 +842,7 @@ public unsafe class NvmeController
         // zeroed LBAF entry would otherwise register a blockSize=1
         // namespace and partition scanning would issue nonsense
         // sub-sector I/O against it.
-        if (lbads < MinSupportedLbads || metadataSize != 0 || blockSize > PageSize)
+        if (lbads < MinSupportedLbads || metadataSize != 0 || blockSize > PageAllocator.PageSize)
         {
             Serial.WriteString("[NVMe] Skipping namespace nsid=");
             Serial.WriteNumber(nsid);
@@ -905,7 +904,7 @@ public unsafe class NvmeController
     private static void ZeroPage(ulong virtAddr)
     {
         ulong* p = (ulong*)virtAddr;
-        for (int i = 0; i < (int)(PageSize / BytesPerUlong); i++)
+        for (int i = 0; i < (int)(PageAllocator.PageSize / BytesPerUlong); i++)
         {
             p[i] = 0;
         }

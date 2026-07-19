@@ -216,7 +216,7 @@ public static unsafe partial class GarbageCollector
             // pointer into the GC heap — is dead filler. Fold it into the free run so
             // the run stays contiguous and the trailing reset can reach Bump.
             MethodTable* mt = obj->GetMethodTable();
-            if (mt == null || (ulong)mt < KernelSpaceStart || IsInGCHeap((nint)mt))
+            if (mt == null || (ulong)mt < AddressSpace.KernelSpaceStart || IsInGCHeap((nint)mt))
             {
                 if (freeRunStart == null)
                 {

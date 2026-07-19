@@ -80,7 +80,7 @@ public static unsafe partial class GarbageCollector
 
             // Anything that is not a plausible MethodTable is dead filler:
             //  - null: zeroed TLAB gap (< MinBlockSize, zeroed by StampUnusedTlab);
-            //  - below KernelSpaceStart: data, most commonly the runtime object header
+            //  - below AddressSpace.KernelSpaceStart: data, most commonly the runtime object header
             //    (identity hash / thin lock) written at objRef-4 of an object that
             //    directly follows a gap — the word then reads as header << 32;
             //  - inside the GC heap: a stale interior pointer.
@@ -88,7 +88,7 @@ public static unsafe partial class GarbageCollector
             // everything up to Bump, so the trailing reset never fires and the segment
             // can never be returned to the page allocator. Dereferencing it (the old
             // behavior for non-null values) faulted on non-canonical addresses (#382 GP).
-            if (mt == null || (ulong)mt < KernelSpaceStart || IsInGCHeap((nint)mt))
+            if (mt == null || (ulong)mt < AddressSpace.KernelSpaceStart || IsInGCHeap((nint)mt))
             {
                 if (freeRunStart == null)
                 {
@@ -180,13 +180,13 @@ public static unsafe partial class GarbageCollector
     /// low 4 bytes are dead. Clears any leftover value that could still read as a kernel
     /// pointer (a stale reference in a dead object's tail) so the sweep walk can never
     /// misparse the slot as an object — real header words always stay below
-    /// <see cref="KernelSpaceStart"/>.
+    /// <see cref="AddressSpace.KernelSpaceStart"/>.
     /// </summary>
     /// <param name="slot">Address of the 8-byte reserved slot.</param>
     private static void SanitizeReservedHeaderSlot(byte* slot)
     {
         *(uint*)slot = 0;
-        if (*(ulong*)slot >= KernelSpaceStart)
+        if (*(ulong*)slot >= AddressSpace.KernelSpaceStart)
         {
             *(ulong*)slot = 0;
         }

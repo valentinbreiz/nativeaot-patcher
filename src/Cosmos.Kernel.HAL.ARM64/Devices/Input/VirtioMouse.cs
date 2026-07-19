@@ -84,7 +84,7 @@ public unsafe class VirtioMouse : MouseDevice
         // For legacy MMIO (version 1), set guest page size
         if (_mmioVersion == 1)
         {
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, 4096);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, (uint)PageAllocator.PageSize);
         }
 
         // Set ACKNOWLEDGE status bit
@@ -183,9 +183,9 @@ public unsafe class VirtioMouse : MouseDevice
 
         if (_mmioVersion == 1)
         {
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, 4096);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, (uint)PageAllocator.PageSize);
             ulong baseAddr = _eventQueue.QueueBaseAddr;
-            uint pfn = (uint)(baseAddr / 4096);
+            uint pfn = (uint)(baseAddr / PageAllocator.PageSize);
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_PFN, pfn);
         }
         else

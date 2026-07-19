@@ -137,15 +137,6 @@ public static unsafe partial class GarbageCollector
     private const uint MinBlockSize = 24;
 
     /// <summary>
-    /// Lowest canonical higher-half kernel address. MethodTable pointers always live above
-    /// this (kernel image / HHDM); any lower value read from a heap word is data, not a type.
-    /// In particular, the runtime's object header — the 4 bytes at objRef-4 written by
-    /// identity-hash and thin-lock operations — reads as <c>header &lt;&lt; 32</c> when a heap
-    /// walk lands on the 8-byte slot preceding an object, and always falls below this bound.
-    /// </summary>
-    private const ulong KernelSpaceStart = 0xFFFF800000000000;
-
-    /// <summary>
     /// Bytes excluded from the tail of every <see cref="FreeBlock"/> so the runtime object
     /// header slot (objRef-4) of whatever object follows the block can never be handed to
     /// another allocation (which would zero or overwrite a stored hash / lock word).

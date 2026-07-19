@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 
@@ -24,9 +25,6 @@ public class X64InterruptController : IInterruptController
 
     /// <summary>Size in bytes of the XMM save area the asm stub pushes below the IRQContext. Internal: shared with the LAPIC timer handler's RSP derivation.</summary>
     internal const int XmmSaveAreaSizeBytes = 256;
-
-    /// <summary>Upper canonical bits of a kernel-space (higher-half) address, used as both mask and expected value. Internal: shared with the LAPIC timer handler's RSP sanity check.</summary>
-    internal const ulong KernelSpaceCanonicalMask = 0xFFFF000000000000;
 
     public bool IsInitialized => ApicManager.IsInitialized;
 
@@ -71,7 +69,7 @@ public class X64InterruptController : IInterruptController
                     // timer handler: the saved context sits 256 bytes (XMM
                     // save area) below the IRQContext.
                     nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - XmmSaveAreaSizeBytes;
-                    if ((currentRsp & KernelSpaceCanonicalMask) == KernelSpaceCanonicalMask)
+                    if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) == AddressSpace.KernelSpaceCanonicalMask)
                     {
                         SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
                     }

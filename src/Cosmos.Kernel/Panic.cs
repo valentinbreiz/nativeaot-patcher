@@ -1,5 +1,6 @@
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using CorePanic = Cosmos.Kernel.Core.Panic;
 
 namespace Cosmos.Kernel;
@@ -173,7 +174,7 @@ public static class Panic
     }
 
     private static bool IsPlausibleStackAddress(ulong address) =>
-        address >= 0xFFFF800000000000UL && (address & 7) == 0;
+        address >= AddressSpace.KernelSpaceStart && (address & 7) == 0;
 
     private static void HaltCpu()
     {
