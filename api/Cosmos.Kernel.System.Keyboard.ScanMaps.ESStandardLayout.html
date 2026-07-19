@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Kernel | Cosmos Gen 3 </title>
+      <title>Class ESStandardLayout | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Kernel | Cosmos Gen 3 ">
+      <meta name="title" content="Class ESStandardLayout | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all Cosmos user kernels. Provides the BeforeRun/Run/AfterRun lifecycle pattern.">
+      <meta name="description" content="Represents the standard Spanish (ES) keyboard layout.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Kernel">
+        <article data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Kernel" data-uid="Cosmos.Kernel.System.Kernel" class="text-break">
-Class Kernel  
+  <h1 id="Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout" data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout" class="text-break">
+Class ESStandardLayout  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Keyboard.html">Keyboard</a>.<a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMaps.html">ScanMaps</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Base class for all Cosmos user kernels.
-Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
+  <div class="markdown summary"><p>Represents the standard Spanish (ES) keyboard layout.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Kernel</code></pre>
+    <pre><code class="lang-csharp hljs">public class ESStandardLayout : ScanMapBase</code></pre>
   </div>
 
 
@@ -113,7 +112,8 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Kernel</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a></div>
+      <div><span class="xref">ESStandardLayout</span></div>
     </dd>
   </dl>
 
@@ -122,6 +122,15 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html#Cosmos_Kernel_System_Keyboard_ScanMapBase_Keys">ScanMapBase.Keys</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html#Cosmos_Kernel_System_Keyboard_ScanMapBase_ConvertScanCode_System_Byte_System_Boolean_System_Boolean_System_Boolean_System_Boolean_System_Boolean_System_Boolean_">ScanMapBase.ConvertScanCode(byte, bool, bool, bool, bool, bool, bool)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html#Cosmos_Kernel_System_Keyboard_ScanMapBase_ScanCodeMatchesKey_System_Byte_Cosmos_Kernel_System_Keyboard_ConsoleKeyEx_">ScanMapBase.ScanCodeMatchesKey(byte, ConsoleKeyEx)</a>
+    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -154,118 +163,24 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Kernel__ctor_" data-uid="Cosmos.Kernel.System.Kernel.#ctor*"></a>
+  <a id="Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout__ctor_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel__ctor" data-uid="Cosmos.Kernel.System.Kernel.#ctor">
-  Kernel()
+  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout__ctor" data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor">
+  ESStandardLayout()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Constructs a new Kernel instance.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html">ESStandardLayout</a> class.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Kernel()</code></pre>
+    <pre><code class="lang-csharp hljs">public ESStandardLayout()</code></pre>
   </div>
 
 
 
 
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Kernel_VersionString" data-uid="Cosmos.Kernel.System.Kernel.VersionString">
-  VersionString
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const string VersionString = &quot;3.0.71&quot;</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Kernel_mStarted" data-uid="Cosmos.Kernel.System.Kernel.mStarted">
-  mStarted
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStarted</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Kernel_mStopped" data-uid="Cosmos.Kernel.System.Kernel.mStopped">
-  mStopped
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStopped</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -279,159 +194,19 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Kernel_AfterRun_" data-uid="Cosmos.Kernel.System.Kernel.AfterRun*"></a>
+  <a id="Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout_InitKeys_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel_AfterRun" data-uid="Cosmos.Kernel.System.Kernel.AfterRun">
-  AfterRun()
+  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout_InitKeys" data-uid="Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys">
+  InitKeys()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called once after the main loop exits.
-Override to perform cleanup.</p>
+  <div class="markdown level1 summary"><p>Initializes the key list.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void AfterRun()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_BeforeRun_" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_BeforeRun" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun">
-  BeforeRun()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called once before the main loop starts.
-Override to perform one-time setup.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void BeforeRun()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_OnBoot_" data-uid="Cosmos.Kernel.System.Kernel.OnBoot*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_OnBoot" data-uid="Cosmos.Kernel.System.Kernel.OnBoot">
-  OnBoot()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called once during boot, before BeforeRun().
-Override to customize system initialization.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void OnBoot()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Run_" data-uid="Cosmos.Kernel.System.Kernel.Run*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Run" data-uid="Cosmos.Kernel.System.Kernel.Run">
-  Run()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called repeatedly in the main loop.
-Override to implement your kernel's main logic.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected abstract void Run()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Start_" data-uid="Cosmos.Kernel.System.Kernel.Start*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Start" data-uid="Cosmos.Kernel.System.Kernel.Start">
-  Start()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Starts the kernel lifecycle.
-Called by the generated entry point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual void Start()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Stop_" data-uid="Cosmos.Kernel.System.Kernel.Stop*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Stop" data-uid="Cosmos.Kernel.System.Kernel.Stop">
-  Stop()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Signals the kernel to stop the main loop.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Stop()</code></pre>
+    <pre><code class="lang-csharp hljs">protected override void InitKeys()</code></pre>
   </div>
 
 

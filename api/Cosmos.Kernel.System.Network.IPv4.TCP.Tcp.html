@@ -230,6 +230,41 @@ Handle received packets according to current TCP connection Status. Also contain
 
 
 
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached">
+  Detached
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the connection has been detached from its owning socket:
+Close() already returned but the peer has not finished the FIN
+handshake yet. A detached state machine keeps processing packets in
+the background and is removed from <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Connections">Connections</a> as soon
+as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html#Cosmos_Kernel_System_Network_IPv4_TCP_Status_CLOSED">CLOSED</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Detached</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
   <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_DynamicPortStart" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.DynamicPortStart">
   DynamicPortStart
   
@@ -870,6 +905,45 @@ Handle received packets according to current TCP connection Status. Also contain
     <dd></dd>
   </dl>
 
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_WaitLeaveStatus_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_WaitLeaveStatus_Cosmos_Kernel_System_Network_IPv4_TCP_Status_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status,System.Int32)">
+  WaitLeaveStatus(Status, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Waits until the connection leaves the given status (with timeout in milliseconds).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool WaitLeaveStatus(Status status, int timeout)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>status</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html">Status</a></dt>
+    <dd></dd>
+    <dt><code>timeout</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

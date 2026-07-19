@@ -408,7 +408,9 @@ Class MemoryBlock
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Copy ManagedMemoryBlock into MemoryBlock</p>
+  <div class="markdown level1 summary"><p>Copy ManagedMemoryBlock into MemoryBlock.
+Non-temporal: a MemoryBlock is MMIO (e.g. the linear framebuffer) that is
+written whole and never read back, so the copy must not go through the cache.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 

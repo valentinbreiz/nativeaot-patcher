@@ -364,6 +364,45 @@ Class MemoryOp
 
 
 
+  <a id="Cosmos_Kernel_Core_Memory_MemoryOp_MemCopyNonTemporal_" data-uid="Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Memory_MemoryOp_MemCopyNonTemporal_System_Byte__System_Byte__System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal(System.Byte*,System.Byte*,System.Int32)">
+  MemCopyNonTemporal(byte*, byte*, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Memory copy using non-temporal stores: the destination bypasses the cache.
+Use for large write-only targets that are never read back (framebuffer blits) —
+regular stores would evict a full frame's worth of cache every copy.
+Requires a 16-byte aligned destination; falls back to MemCopy otherwise.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void MemCopyNonTemporal(byte* dest, byte* src, int count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>dest</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+    <dt><code>src</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>*</dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Memory_MemoryOp_MemMove_" data-uid="Cosmos.Kernel.Core.Memory.MemoryOp.MemMove*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Memory_MemoryOp_MemMove_System_Byte__System_Byte__System_Int32_" data-uid="Cosmos.Kernel.Core.Memory.MemoryOp.MemMove(System.Byte*,System.Byte*,System.Int32)">

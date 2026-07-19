@@ -824,6 +824,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Memory.AddressSpace.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Memory.AddressSpace.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Memory.AddressSpace",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Memory.AddressSpace.yml\" sourcestartlinenumber=\"1\">Virtual address-space layout constants shared across the kernel.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Memory.GarbageCollector.AllocContext.yml",
       "output": {
         ".html": {
@@ -4604,6 +4618,90 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard German (DE) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard Spanish (ES) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard French (FR) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard English, Great Britain (GB) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.yml\" sourcestartlinenumber=\"1\">Represents the standard Turkish (TR) keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.yml\" sourcestartlinenumber=\"1\">Represents the US Dvorak keyboard layout.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.yml",
       "output": {
         ".html": {
@@ -5063,6 +5161,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.yml\" sourcestartlinenumber=\"1\">Represents a DNS query.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.yml\" sourcestartlinenumber=\"1\">DNS resource record types this stack understands (RFC 1035).</p>\n"
     },
     {
       "type": "ManagedReference",

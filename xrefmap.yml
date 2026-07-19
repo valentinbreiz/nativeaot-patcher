@@ -1590,6 +1590,21 @@ references:
   commentId: Overload:Cosmos.Kernel.Core.Bridge.SimdNative.Copy64
   fullName: Cosmos.Kernel.Core.Bridge.SimdNative.Copy64
   nameWithType: SimdNative.Copy64
+- uid: Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks(System.Byte*,System.Byte*,System.Int32)
+  name: CopyNT128Blocks(byte*, byte*, int)
+  href: api/Cosmos.Kernel.Core.Bridge.SimdNative.html#Cosmos_Kernel_Core_Bridge_SimdNative_CopyNT128Blocks_System_Byte__System_Byte__System_Int32_
+  commentId: M:Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks(System.Byte*,System.Byte*,System.Int32)
+  name.vb: CopyNT128Blocks(Byte*, Byte*, Integer)
+  fullName: Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks(byte*, byte*, int)
+  fullName.vb: Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks(Byte*, Byte*, Integer)
+  nameWithType: SimdNative.CopyNT128Blocks(byte*, byte*, int)
+  nameWithType.vb: SimdNative.CopyNT128Blocks(Byte*, Byte*, Integer)
+- uid: Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks*
+  name: CopyNT128Blocks
+  href: api/Cosmos.Kernel.Core.Bridge.SimdNative.html#Cosmos_Kernel_Core_Bridge_SimdNative_CopyNT128Blocks_
+  commentId: Overload:Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks
+  fullName: Cosmos.Kernel.Core.Bridge.SimdNative.CopyNT128Blocks
+  nameWithType: SimdNative.CopyNT128Blocks
 - uid: Cosmos.Kernel.Core.Bridge.SimdNative.Fill16Blocks(System.Byte*,System.Int32,System.Int32)
   name: Fill16Blocks(byte*, int, int)
   href: api/Cosmos.Kernel.Core.Bridge.SimdNative.html#Cosmos_Kernel_Core_Bridge_SimdNative_Fill16Blocks_System_Byte__System_Int32_System_Int32_
@@ -1805,6 +1820,12 @@ references:
   commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.cpu_flags
   fullName: Cosmos.Kernel.Core.CPU.IRQContext.cpu_flags
   nameWithType: IRQContext.cpu_flags
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.cs
+  name: cs
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_cs
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.cs
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.cs
+  nameWithType: IRQContext.cs
 - uid: Cosmos.Kernel.Core.CPU.IRQContext.fault_address
   name: fault_address
   href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_fault_address
@@ -1901,12 +1922,42 @@ references:
   commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.rdx
   fullName: Cosmos.Kernel.Core.CPU.IRQContext.rdx
   nameWithType: IRQContext.rdx
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.rflags
+  name: rflags
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_rflags
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.rflags
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.rflags
+  nameWithType: IRQContext.rflags
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.rip
+  name: rip
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_rip
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.rip
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.rip
+  nameWithType: IRQContext.rip
 - uid: Cosmos.Kernel.Core.CPU.IRQContext.rsi
   name: rsi
   href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_rsi
   commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.rsi
   fullName: Cosmos.Kernel.Core.CPU.IRQContext.rsi
   nameWithType: IRQContext.rsi
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.rsp
+  name: rsp
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_rsp
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.rsp
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.rsp
+  nameWithType: IRQContext.rsp
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.ss
+  name: ss
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_ss
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.ss
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.ss
+  nameWithType: IRQContext.ss
+- uid: Cosmos.Kernel.Core.CPU.IRQContext.temp_rcx
+  name: temp_rcx
+  href: api/Cosmos.Kernel.Core.CPU.IRQContext.html#Cosmos_Kernel_Core_CPU_IRQContext_temp_rcx
+  commentId: F:Cosmos.Kernel.Core.CPU.IRQContext.temp_rcx
+  fullName: Cosmos.Kernel.Core.CPU.IRQContext.temp_rcx
+  nameWithType: IRQContext.temp_rcx
 - uid: Cosmos.Kernel.Core.CPU.InternalCpu
   name: InternalCpu
   href: api/Cosmos.Kernel.Core.CPU.InternalCpu.html
@@ -2807,6 +2858,30 @@ references:
   commentId: N:Cosmos.Kernel.Core.Memory
   fullName: Cosmos.Kernel.Core.Memory
   nameWithType: Cosmos.Kernel.Core.Memory
+- uid: Cosmos.Kernel.Core.Memory.AddressSpace
+  name: AddressSpace
+  href: api/Cosmos.Kernel.Core.Memory.AddressSpace.html
+  commentId: T:Cosmos.Kernel.Core.Memory.AddressSpace
+  fullName: Cosmos.Kernel.Core.Memory.AddressSpace
+  nameWithType: AddressSpace
+- uid: Cosmos.Kernel.Core.Memory.AddressSpace.KernelImageWindow
+  name: KernelImageWindow
+  href: api/Cosmos.Kernel.Core.Memory.AddressSpace.html#Cosmos_Kernel_Core_Memory_AddressSpace_KernelImageWindow
+  commentId: F:Cosmos.Kernel.Core.Memory.AddressSpace.KernelImageWindow
+  fullName: Cosmos.Kernel.Core.Memory.AddressSpace.KernelImageWindow
+  nameWithType: AddressSpace.KernelImageWindow
+- uid: Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceCanonicalMask
+  name: KernelSpaceCanonicalMask
+  href: api/Cosmos.Kernel.Core.Memory.AddressSpace.html#Cosmos_Kernel_Core_Memory_AddressSpace_KernelSpaceCanonicalMask
+  commentId: F:Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceCanonicalMask
+  fullName: Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceCanonicalMask
+  nameWithType: AddressSpace.KernelSpaceCanonicalMask
+- uid: Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceStart
+  name: KernelSpaceStart
+  href: api/Cosmos.Kernel.Core.Memory.AddressSpace.html#Cosmos_Kernel_Core_Memory_AddressSpace_KernelSpaceStart
+  commentId: F:Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceStart
+  fullName: Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceStart
+  nameWithType: AddressSpace.KernelSpaceStart
 - uid: Cosmos.Kernel.Core.Memory.GarbageCollector
   name: Cosmos.Kernel.Core.Memory.GarbageCollector
   href: api/Cosmos.Kernel.Core.Memory.GarbageCollector.html
@@ -5861,6 +5936,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopy
   nameWithType: MemoryOp.MemCopy
+- uid: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal(System.Byte*,System.Byte*,System.Int32)
+  name: MemCopyNonTemporal(byte*, byte*, int)
+  href: api/Cosmos.Kernel.Core.Memory.MemoryOp.html#Cosmos_Kernel_Core_Memory_MemoryOp_MemCopyNonTemporal_System_Byte__System_Byte__System_Int32_
+  commentId: M:Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal(System.Byte*,System.Byte*,System.Int32)
+  name.vb: MemCopyNonTemporal(Byte*, Byte*, Integer)
+  fullName: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal(byte*, byte*, int)
+  fullName.vb: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal(Byte*, Byte*, Integer)
+  nameWithType: MemoryOp.MemCopyNonTemporal(byte*, byte*, int)
+  nameWithType.vb: MemoryOp.MemCopyNonTemporal(Byte*, Byte*, Integer)
+- uid: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal*
+  name: MemCopyNonTemporal
+  href: api/Cosmos.Kernel.Core.Memory.MemoryOp.html#Cosmos_Kernel_Core_Memory_MemoryOp_MemCopyNonTemporal_
+  commentId: Overload:Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Memory.MemoryOp.MemCopyNonTemporal
+  nameWithType: MemoryOp.MemCopyNonTemporal
 - uid: Cosmos.Kernel.Core.Memory.MemoryOp.MemMove(System.Byte*,System.Byte*,System.Int32)
   name: MemMove(byte*, byte*, int)
   href: api/Cosmos.Kernel.Core.Memory.MemoryOp.html#Cosmos_Kernel_Core_Memory_MemoryOp_MemMove_System_Byte__System_Byte__System_Int32_
@@ -8374,6 +8465,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady
   nameWithType: SchedulerManager.IsReady
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)
+  name: MarkSleeping(uint, Thread, uint)
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MarkSleeping_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)
+  name.vb: MarkSleeping(UInteger, Thread, UInteger)
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping(uint, Cosmos.Kernel.Core.Scheduler.Thread, uint)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping(UInteger, Cosmos.Kernel.Core.Scheduler.Thread, UInteger)
+  nameWithType: SchedulerManager.MarkSleeping(uint, Thread, uint)
+  nameWithType.vb: SchedulerManager.MarkSleeping(UInteger, Thread, UInteger)
+- uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping*
+  name: MarkSleeping
+  href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MarkSleeping_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping
+  nameWithType: SchedulerManager.MarkSleeping
 - uid: Cosmos.Kernel.Core.Scheduler.SchedulerManager.NanosecondsPerMillisecond
   name: NanosecondsPerMillisecond
   href: api/Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_NanosecondsPerMillisecond
@@ -23781,6 +23888,22 @@ references:
   fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.New
   nameWithType: TrueTypeFont.TrueTypeFont
   nameWithType.vb: TrueTypeFont.New
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(System.Char,System.Int32)
+  name: GetAdvance(char, int)
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetAdvance_System_Char_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(System.Char,System.Int32)
+  name.vb: GetAdvance(Char, Integer)
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(char, int)
+  fullName.vb: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(Char, Integer)
+  nameWithType: TrueTypeFont.GetAdvance(char, int)
+  nameWithType.vb: TrueTypeFont.GetAdvance(Char, Integer)
+- uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance*
+  name: GetAdvance
+  href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetAdvance_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance
+  nameWithType: TrueTypeFont.GetAdvance
 - uid: Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(System.Int32)
   name: GetAscent(int)
   href: api/Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html#Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_GetAscent_System_Int32_
@@ -26589,6 +26712,215 @@ references:
   commentId: N:Cosmos.Kernel.System.Keyboard.ScanMaps
   fullName: Cosmos.Kernel.System.Keyboard.ScanMaps
   nameWithType: Cosmos.Kernel.System.Keyboard.ScanMaps
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout
+  name: DEStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout
+  nameWithType: DEStandardLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.#ctor
+  name: DEStandardLayout()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_DEStandardLayout__ctor
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.DEStandardLayout()
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.New()
+  nameWithType: DEStandardLayout.DEStandardLayout()
+  nameWithType.vb: DEStandardLayout.New()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.#ctor*
+  name: DEStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_DEStandardLayout__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.DEStandardLayout
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.New
+  nameWithType: DEStandardLayout.DEStandardLayout
+  nameWithType.vb: DEStandardLayout.New
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_DEStandardLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys()
+  nameWithType: DEStandardLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_DEStandardLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys
+  nameWithType: DEStandardLayout.InitKeys
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout
+  name: ESStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout
+  nameWithType: ESStandardLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor
+  name: ESStandardLayout()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout__ctor
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.ESStandardLayout()
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.New()
+  nameWithType: ESStandardLayout.ESStandardLayout()
+  nameWithType.vb: ESStandardLayout.New()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor*
+  name: ESStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.ESStandardLayout
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.New
+  nameWithType: ESStandardLayout.ESStandardLayout
+  nameWithType.vb: ESStandardLayout.New
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys()
+  nameWithType: ESStandardLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_ESStandardLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys
+  nameWithType: ESStandardLayout.InitKeys
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout
+  name: FRStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout
+  nameWithType: FRStandardLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_FRStandardLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys()
+  nameWithType: FRStandardLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_FRStandardLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys
+  nameWithType: FRStandardLayout.InitKeys
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout
+  name: GBStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout
+  nameWithType: GBStandardLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.#ctor
+  name: GBStandardLayout()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_GBStandardLayout__ctor
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.GBStandardLayout()
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.New()
+  nameWithType: GBStandardLayout.GBStandardLayout()
+  nameWithType.vb: GBStandardLayout.New()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.#ctor*
+  name: GBStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_GBStandardLayout__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.GBStandardLayout
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.New
+  nameWithType: GBStandardLayout.GBStandardLayout
+  nameWithType.vb: GBStandardLayout.New
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_GBStandardLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys()
+  nameWithType: GBStandardLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_GBStandardLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys
+  nameWithType: GBStandardLayout.InitKeys
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout
+  name: TRStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout
+  nameWithType: TRStandardLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.#ctor
+  name: TRStandardLayout()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_TRStandardLayout__ctor
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.TRStandardLayout()
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.New()
+  nameWithType: TRStandardLayout.TRStandardLayout()
+  nameWithType.vb: TRStandardLayout.New()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.#ctor*
+  name: TRStandardLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_TRStandardLayout__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.TRStandardLayout
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.New
+  nameWithType: TRStandardLayout.TRStandardLayout
+  nameWithType.vb: TRStandardLayout.New
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_TRStandardLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys()
+  nameWithType: TRStandardLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_TRStandardLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys
+  nameWithType: TRStandardLayout.InitKeys
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout
+  name: USDvorakLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html
+  commentId: T:Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout
+  nameWithType: USDvorakLayout
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.#ctor
+  name: USDvorakLayout()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_USDvorakLayout__ctor
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.#ctor
+  name.vb: New()
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.USDvorakLayout()
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.New()
+  nameWithType: USDvorakLayout.USDvorakLayout()
+  nameWithType.vb: USDvorakLayout.New()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.#ctor*
+  name: USDvorakLayout
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_USDvorakLayout__ctor_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.USDvorakLayout
+  fullName.vb: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.New
+  nameWithType: USDvorakLayout.USDvorakLayout
+  nameWithType.vb: USDvorakLayout.New
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys
+  name: InitKeys()
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_USDvorakLayout_InitKeys
+  commentId: M:Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys()
+  nameWithType: USDvorakLayout.InitKeys()
+- uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys*
+  name: InitKeys
+  href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.html#Cosmos_Kernel_System_Keyboard_ScanMaps_USDvorakLayout_InitKeys_
+  commentId: Overload:Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys
+  nameWithType: USDvorakLayout.InitKeys
 - uid: Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout
   name: USStandardLayout
   href: api/Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.html
@@ -26717,6 +27049,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse
   nameWithType: MouseManager.RegisterMouse
+- uid: Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta
+  name: ResetScrollDelta()
+  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ResetScrollDelta
+  commentId: M:Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta
+  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta()
+  nameWithType: MouseManager.ResetScrollDelta()
+- uid: Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta*
+  name: ResetScrollDelta
+  href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_ResetScrollDelta_
+  commentId: Overload:Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta
+  nameWithType: MouseManager.ResetScrollDelta
 - uid: Cosmos.Kernel.System.Mouse.MouseManager.RightButton
   name: RightButton
   href: api/Cosmos.Kernel.System.Mouse.MouseManager.html#Cosmos_Kernel_System_Mouse_MouseManager_RightButton
@@ -28304,6 +28649,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Data
   nameWithType: Tcp.Data
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  name: Detached
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached
+  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  nameWithType: Tcp.Detached
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.DynamicPortStart
   name: DynamicPortStart
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_DynamicPortStart
@@ -28508,6 +28859,22 @@ references:
   commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.TcpWindowSize
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.TcpWindowSize
   nameWithType: Tcp.TcpWindowSize
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status,System.Int32)
+  name: WaitLeaveStatus(Status, int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_WaitLeaveStatus_Cosmos_Kernel_System_Network_IPv4_TCP_Status_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status,System.Int32)
+  name.vb: WaitLeaveStatus(Status, Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status, int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status, Integer)
+  nameWithType: Tcp.WaitLeaveStatus(Status, int)
+  nameWithType.vb: Tcp.WaitLeaveStatus(Status, Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus*
+  name: WaitLeaveStatus
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_WaitLeaveStatus_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitLeaveStatus
+  nameWithType: Tcp.WaitLeaveStatus
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.WaitStatus(Cosmos.Kernel.System.Network.IPv4.TCP.Status)
   name: WaitStatus(Status)
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_WaitStatus_Cosmos_Kernel_System_Network_IPv4_TCP_Status_
@@ -28879,6 +29246,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.Address
   nameWithType: DNSAnswer.Address
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName
+  name: CanonicalName
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_CanonicalName
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName
+  nameWithType: DNSAnswer.CanonicalName
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName*
+  name: CanonicalName
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_CanonicalName_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.CanonicalName
+  nameWithType: DNSAnswer.CanonicalName
 - uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.Class
   name: Class
   href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_Class
@@ -28918,6 +29298,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.Name
   nameWithType: DNSAnswer.Name
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName
+  name: ResolvedName
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_ResolvedName
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName
+  nameWithType: DNSAnswer.ResolvedName
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName*
+  name: ResolvedName
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_ResolvedName_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.ResolvedName
+  nameWithType: DNSAnswer.ResolvedName
 - uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.TimeToLive
   name: TimeToLive
   href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSAnswer_TimeToLive
@@ -29007,6 +29400,38 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseName
   nameWithType: DNSPacket.ParseName
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt(System.Byte[],System.Int32,System.Int32)
+  name: ParseNameAt(byte[], int, int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ParseNameAt_System_Byte___System_Int32_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt(System.Byte[],System.Int32,System.Int32)
+  name.vb: ParseNameAt(Byte(), Integer, Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt(byte[], int, int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt(Byte(), Integer, Integer)
+  nameWithType: DNSPacket.ParseNameAt(byte[], int, int)
+  nameWithType.vb: DNSPacket.ParseNameAt(Byte(), Integer, Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt*
+  name: ParseNameAt
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ParseNameAt_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt
+  nameWithType: DNSPacket.ParseNameAt
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName(System.UInt16,System.Byte[],System.Int32)
+  name: ResolveRRName(ushort, byte[], int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ResolveRRName_System_UInt16_System_Byte___System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName(System.UInt16,System.Byte[],System.Int32)
+  name.vb: ResolveRRName(UShort, Byte(), Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName(ushort, byte[], int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName(UShort, Byte(), Integer)
+  nameWithType: DNSPacket.ResolveRRName(ushort, byte[], int)
+  nameWithType.vb: DNSPacket.ResolveRRName(UShort, Byte(), Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName*
+  name: ResolveRRName
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ResolveRRName_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName
+  nameWithType: DNSPacket.ResolveRRName
 - uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ToString
   name: ToString()
   href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ToString
@@ -29137,6 +29562,24 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.Type
   nameWithType: DNSQuery.Type
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType
+  name: DNSRecordType
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.html
+  commentId: T:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType
+  nameWithType: DNSRecordType
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.A
+  name: A
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSRecordType_A
+  commentId: F:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.A
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.A
+  nameWithType: DNSRecordType.A
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.CNAME
+  name: CNAME
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSRecordType_CNAME
+  commentId: F:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.CNAME
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.CNAME
+  nameWithType: DNSRecordType.CNAME
 - uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient
   name: DnsClient
   href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html
@@ -29191,6 +29634,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.Receive
   nameWithType: DnsClient.Receive
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll(System.Int32)
+  name: ReceiveAll(int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_ReceiveAll_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll(System.Int32)
+  name.vb: ReceiveAll(Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll(int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll(Integer)
+  nameWithType: DnsClient.ReceiveAll(int)
+  nameWithType.vb: DnsClient.ReceiveAll(Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll*
+  name: ReceiveAll
+  href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_ReceiveAll_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll
+  nameWithType: DnsClient.ReceiveAll
 - uid: Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.SendAsk(System.String)
   name: SendAsk(string)
   href: api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_SendAsk_System_String_

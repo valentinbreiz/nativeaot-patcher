@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Debugging with VSCode and QEMU | Cosmos Gen 3 </title>
+      <title>Debugging with VS Code and QEMU | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Debugging with VSCode and QEMU | Cosmos Gen 3 ">
+      <meta name="title" content="Debugging with VS Code and QEMU | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../../favicon.ico">
@@ -85,17 +85,62 @@
         </div>
 
         <article data-uid="">
-<h1 id="debugging-with-vscode-and-qemu">Debugging with VSCode and QEMU</h1>
+<h1 id="debugging-with-vs-code-and-qemu">Debugging with VS Code and QEMU</h1>
 
-<h2 id="setting-up-debugging">Setting Up Debugging</h2>
-<p>Debugging the kernel with VSCode and QEMU uses remote GDB debugging. Breakpoints can be set directly in the editor as with any standard debugging session.</p>
-<h3 id="how-to-debug">How to Debug</h3>
+<p>Kernel debugging uses remote GDB: QEMU exposes a GDB server on <code>localhost:1234</code>, VS Code connects to it with <code>cppdbg</code>, and breakpoints are set directly in the editor. The <code>cosmos new</code> template ships the required <code>.vscode/launch.json</code> and <code>.vscode/tasks.json</code> preconfigured.</p>
+<hr>
+<h2 id="prerequisites">Prerequisites</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gdb</code></td>
+<td>x64 debugging</td>
+<td>Must be on <code>PATH</code>; the launch config invokes it as <code>gdb</code></td>
+</tr>
+<tr>
+<td><code>gdb-multiarch</code></td>
+<td>ARM64 debugging</td>
+<td>Must be on <code>PATH</code>; required for aarch64 targets</td>
+</tr>
+<tr>
+<td>QEMU</td>
+<td>Runs the kernel</td>
+<td>Installed by <code>cosmos install</code></td>
+</tr>
+<tr>
+<td>VS Code C/C++ extension</td>
+<td><code>cppdbg</code> debug adapter</td>
+<td><code>ms-vscode.cpptools</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>cosmos check</code> verifies the toolchain. On Debian/Ubuntu, <code>apt install gdb gdb-multiarch</code> covers both debuggers.</p>
+<hr>
+<h2 id="debugging-a-kernel-created-with-cosmos-new">Debugging a kernel created with <code>cosmos new</code></h2>
 <ol>
-<li>Open the RUN AND DEBUG view in VSCode</li>
-<li>Set breakpoints anywhere in your kernel source code</li>
-<li>Start your debugging session (F5) — for example, select <strong>Debug x64 DevKernel</strong> from the RUN AND DEBUG dropdown</li>
-<li>Qemu will launchs and the kernel will stop at your breakpoints as expected</li>
+<li>Open the kernel folder in VS Code.</li>
+<li>Set breakpoints in your kernel source.</li>
+<li>Open the <strong>Run and Debug</strong> view and select <strong>Debug x64 Kernel</strong> (or <strong>Debug ARM64 Kernel</strong>).</li>
+<li>Press F5. The pre-launch task builds the kernel, starts QEMU with <code>-s -S</code> (GDB server, frozen at startup), and the debugger attaches. Execution stops at your breakpoints.</li>
 </ol>
+<p>The configuration names above are what the template generates. When working on the framework repository itself, the equivalent configurations are named <strong>Debug x64 DevKernel</strong> / <strong>Debug ARM64 DevKernel</strong>.</p>
+<hr>
+<h2 id="serial-log">Serial log</h2>
+<p>Every kernel boot phase logs to the serial port (COM1); <code>cosmos run</code> and <code>make run</code> connect it to your terminal. When a kernel does not come up, or crashes before the debugger is useful, the serial log is the first thing to read — see <a href="startup.html">Kernel Startup</a> for a phase-by-phase walkthrough and how to symbolicate crash addresses.</p>
+<hr>
+<h2 id="known-limitations">Known limitations</h2>
+<ul>
+<li>Source-link and variable-inspection bugs exist in the VS Code debugging experience (see the <a href="../../roadmap.html">roadmap</a>); stepping and breakpoints work, but inspecting some locals can show wrong or missing values.</li>
+<li>Debugging assumes QEMU. VMware, VirtualBox and Hyper-V are untested targets.</li>
+<li>ARM64 debugging under TCG emulation is slow; expect multi-second pauses on step operations on large kernels.</li>
+</ul>
 
 </article>
 

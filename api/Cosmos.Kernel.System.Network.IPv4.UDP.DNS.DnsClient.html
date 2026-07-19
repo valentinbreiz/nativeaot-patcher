@@ -293,6 +293,45 @@ Class DnsClient
 
 
 
+  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_ReceiveAll_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_ReceiveAll_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.ReceiveAll(System.Int32)">
+  ReceiveAll(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Resolves any CNAME chain and returns every A record for the final name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;Address&gt;? ReceiveAll(int timeout = 5000)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timeout</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The timeout value - by default 5000ms.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a>&gt;</dt>
+    <dd><p>All resolved addresses, in server order, or null on failure/timeout.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_SendAsk_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.SendAsk*"></a>
 
   <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_SendAsk_System_String_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.SendAsk(System.String)">

@@ -325,7 +325,8 @@ Class DNSPacket
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the domain name from the given data and offset.</p>
+  <div class="markdown level1 summary"><p>Gets the domain name at the given offset. Does not follow compression
+pointers - use <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ParseNameAt_System_Byte___System_Int32_System_Int32_">ParseNameAt(byte[], int, int)</a> for those.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -338,6 +339,88 @@ Class DNSPacket
     <dt><code>rawData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
     <dd></dd>
     <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ParseNameAt_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ParseNameAt_System_Byte___System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ParseNameAt(System.Byte[],System.Int32,System.Int32)">
+  ParseNameAt(byte[], int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Decompresses a domain name at <code class="paramref">startIndex</code> per RFC 1035 pointers.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static string ParseNameAt(byte[] rawData, int startIndex, int messageBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rawData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd></dd>
+    <dt><code>startIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>messageBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ResolveRRName_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DNSPacket_ResolveRRName_System_UInt16_System_Byte___System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.ResolveRRName(System.UInt16,System.Byte[],System.Int32)">
+  ResolveRRName(ushort, byte[], int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Resolves an RR's NAME field, assuming it's a compression pointer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected static string? ResolveRRName(ushort nameField, byte[] rawData, int messageBase)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>nameField</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>rawData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd></dd>
+    <dt><code>messageBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 

@@ -337,7 +337,14 @@ Class ConditionVariable
 
 
   <h4 class="section" id="Cosmos_Kernel_Core_Scheduler_ConditionVariable_Wait_Cosmos_Kernel_Core_Scheduler_Mutex__remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><p>This method releases the mutex while the thread is blocked and re-acquires it before returning.</p>
+  <div class="markdown level1 remarks"><p>This method releases the mutex while the thread is blocked and re-acquires it before returning.
+Waiter-list insertion, the mutex release, and the park form one IRQ-off section so a Signal
+can only ever observe a fully parked thread. The mutex must be released before BlockThread
+(a Blocked thread still holding it could never be signaled), but inside the scope: releasing
+with interrupts enabled re-opens the lost-wakeup window (#357) — the release hands the mutex
+to a waiter and requests a reschedule, so the very next IRQ exit can run the new owner, whose
+Signal readies this still-Running thread; the subsequent BlockThread then buries the wakeup
+forever. Same shape as Mutex.Acquire / InterruptEvent.WaitCore (eab7e338).</p>
 </div>
 
 

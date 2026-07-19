@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Kernel | Cosmos Gen 3 </title>
+      <title>Class AddressSpace | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Kernel | Cosmos Gen 3 ">
+      <meta name="title" content="Class AddressSpace | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all Cosmos user kernels. Provides the BeforeRun/Run/AfterRun lifecycle pattern.">
+      <meta name="description" content="Virtual address-space layout constants shared across the kernel.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Kernel">
+        <article data-uid="Cosmos.Kernel.Core.Memory.AddressSpace">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Kernel" data-uid="Cosmos.Kernel.System.Kernel" class="text-break">
-Class Kernel  
+  <h1 id="Cosmos_Kernel_Core_Memory_AddressSpace" data-uid="Cosmos.Kernel.Core.Memory.AddressSpace" class="text-break">
+Class AddressSpace  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Memory.html">Memory</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Base class for all Cosmos user kernels.
-Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
+  <div class="markdown summary"><p>Virtual address-space layout constants shared across the kernel.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Kernel</code></pre>
+    <pre><code class="lang-csharp hljs">public static class AddressSpace</code></pre>
   </div>
 
 
@@ -113,7 +112,7 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Kernel</span></div>
+      <div><span class="xref">AddressSpace</span></div>
     </dd>
   </dl>
 
@@ -150,52 +149,23 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
 
 
-  <h2 class="section" id="constructors">Constructors
-</h2>
-
-
-  <a id="Cosmos_Kernel_System_Kernel__ctor_" data-uid="Cosmos.Kernel.System.Kernel.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel__ctor" data-uid="Cosmos.Kernel.System.Kernel.#ctor">
-  Kernel()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Constructs a new Kernel instance.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Kernel()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
   <h2 class="section" id="fields">Fields
 </h2>
 
 
 
-  <h3 id="Cosmos_Kernel_System_Kernel_VersionString" data-uid="Cosmos.Kernel.System.Kernel.VersionString">
-  VersionString
+  <h3 id="Cosmos_Kernel_Core_Memory_AddressSpace_KernelImageWindow" data-uid="Cosmos.Kernel.Core.Memory.AddressSpace.KernelImageWindow">
+  KernelImageWindow
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Base of the kernel-image window (top 2 GiB of the canonical higher half, matching the
+linker scripts); addresses at or above it are kernel-image mappings, not HHDM aliases.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const string VersionString = &quot;3.0.71&quot;</code></pre>
+    <pre><code class="lang-csharp hljs">public const ulong KernelImageWindow = 18446744071562067968</code></pre>
   </div>
 
 
@@ -203,7 +173,7 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
@@ -216,16 +186,18 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_System_Kernel_mStarted" data-uid="Cosmos.Kernel.System.Kernel.mStarted">
-  mStarted
+  <h3 id="Cosmos_Kernel_Core_Memory_AddressSpace_KernelSpaceCanonicalMask" data-uid="Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceCanonicalMask">
+  KernelSpaceCanonicalMask
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Bits that are sign-extended in a 48-bit canonical virtual address (bits [63:48]).
+A higher-half (kernel) address has all of them set: <code>(addr &amp; mask) == mask</code>.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStarted</code></pre>
+    <pre><code class="lang-csharp hljs">public const ulong KernelSpaceCanonicalMask = 18446462598732840960</code></pre>
   </div>
 
 
@@ -233,7 +205,7 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
@@ -246,16 +218,21 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_System_Kernel_mStopped" data-uid="Cosmos.Kernel.System.Kernel.mStopped">
-  mStopped
+  <h3 id="Cosmos_Kernel_Core_Memory_AddressSpace_KernelSpaceStart" data-uid="Cosmos.Kernel.Core.Memory.AddressSpace.KernelSpaceStart">
+  KernelSpaceStart
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Lowest canonical higher-half address (48-bit virtual addressing) — the start of
+kernel space. Every valid kernel pointer (MethodTable, code, stack, HHDM alias)
+is at or above this bound; any lower value read from a heap word is data, not a
+pointer. Limine also places the Higher Half Direct Map at this offset by default
+(see <a class="xref" href="Cosmos.Kernel.Core.Memory.PageAllocator.html#Cosmos_Kernel_Core_Memory_PageAllocator_DefaultHhdmOffset">DefaultHhdmOffset</a>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStopped</code></pre>
+    <pre><code class="lang-csharp hljs">public const ulong KernelSpaceStart = 18446603336221196288</code></pre>
   </div>
 
 
@@ -263,180 +240,9 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="methods">Methods
-</h2>
-
-
-  <a id="Cosmos_Kernel_System_Kernel_AfterRun_" data-uid="Cosmos.Kernel.System.Kernel.AfterRun*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_AfterRun" data-uid="Cosmos.Kernel.System.Kernel.AfterRun">
-  AfterRun()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called once after the main loop exits.
-Override to perform cleanup.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void AfterRun()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_BeforeRun_" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_BeforeRun" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun">
-  BeforeRun()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called once before the main loop starts.
-Override to perform one-time setup.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void BeforeRun()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_OnBoot_" data-uid="Cosmos.Kernel.System.Kernel.OnBoot*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_OnBoot" data-uid="Cosmos.Kernel.System.Kernel.OnBoot">
-  OnBoot()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called once during boot, before BeforeRun().
-Override to customize system initialization.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void OnBoot()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Run_" data-uid="Cosmos.Kernel.System.Kernel.Run*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Run" data-uid="Cosmos.Kernel.System.Kernel.Run">
-  Run()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Called repeatedly in the main loop.
-Override to implement your kernel's main logic.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected abstract void Run()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Start_" data-uid="Cosmos.Kernel.System.Kernel.Start*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Start" data-uid="Cosmos.Kernel.System.Kernel.Start">
-  Start()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Starts the kernel lifecycle.
-Called by the generated entry point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual void Start()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Stop_" data-uid="Cosmos.Kernel.System.Kernel.Stop*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Stop" data-uid="Cosmos.Kernel.System.Kernel.Stop">
-  Stop()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Signals the kernel to stop the main loop.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Stop()</code></pre>
-  </div>
-
-
-
-
 
 
 

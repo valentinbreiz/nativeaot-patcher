@@ -889,6 +889,47 @@ the exit path ever races with a context switch.</p>
 
 
 
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_MarkSleeping_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_MarkSleeping_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.MarkSleeping(System.UInt32,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32)">
+  MarkSleeping(uint, Thread, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Marks a thread Sleeping with a wake deadline without halting — for callers that must
+make the state change atomic with their own IRQ-off section (ConditionVariable.WaitTimeout)
+and park afterwards under a state guard.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>CPU ID of the thread.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
+    <dd><p>Thread to sleep.</p>
+</dd>
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Timeout in milliseconds. 0 means indefinite sleep (until signaled).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnTick_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnTick*"></a>
 
   <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_OnTick_System_UInt32_System_UInt64_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.OnTick(System.UInt32,System.UInt64)">
