@@ -56,6 +56,12 @@
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>
 
+    <!-- A kernel can never link without the native assembly sources: fail loudly here
+         instead of producing 38 undefined _native_*/Rhp* symbols at link time.
+         An empty list usually means the Cosmos.Kernel.Native.X64/ARM64 package was not
+         restored (e.g. restore ran without the RuntimeIdentifier/CosmosArch the build uses). -->
+    <Error Condition="'@(AsmFiles)' == ''"
+           Text="No assembly source files found. The Cosmos.Kernel.Native.X64/ARM64 package providing them was likely missing at restore time — re-run restore with the same RuntimeIdentifier (-r) and CosmosArch as the build."/>
 
     <!-- Invoke the custom Asm task -->
     <AsmBuildTask
