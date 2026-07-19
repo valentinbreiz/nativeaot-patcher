@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.TestRunner.Framework
@@ -462,24 +463,31 @@ namespace Cosmos.TestRunner.Framework
         /// </summary>
         private static void SendMessage(byte command, byte[] payload)
         {
-            // Send magic signature (0x19740807 little-endian)
-            Serial.ComWrite(SerialSignatureByte0);
-            Serial.ComWrite(SerialSignatureByte1);
-            Serial.ComWrite(SerialSignatureByte2);
-            Serial.ComWrite(SerialSignatureByte3);
-
-            // Send command byte
-            Serial.ComWrite(command);
-
-            // Send length (little-endian ushort)
-            ushort length = (ushort)payload.Length;
-            Serial.ComWrite((byte)(length & ByteMask));
-            Serial.ComWrite((byte)((length >> Byte1Shift) & ByteMask));
-
-            // Send payload
-            foreach (var b in payload)
+            // The protocol shares the UART with diagnostic traces written from IRQ handlers
+            // and other threads ([SCHED]/[CV] wake logs). A frame must go out as one
+            // uninterrupted byte sequence: an IRQ landing mid-frame interleaves its log into
+            // the message and the host-side parser drops or garbles it.
+            using (InternalCpu.DisableInterruptsScope())
             {
-                Serial.ComWrite(b);
+                // Send magic signature (0x19740807 little-endian)
+                Serial.ComWrite(SerialSignatureByte0);
+                Serial.ComWrite(SerialSignatureByte1);
+                Serial.ComWrite(SerialSignatureByte2);
+                Serial.ComWrite(SerialSignatureByte3);
+
+                // Send command byte
+                Serial.ComWrite(command);
+
+                // Send length (little-endian ushort)
+                ushort length = (ushort)payload.Length;
+                Serial.ComWrite((byte)(length & ByteMask));
+                Serial.ComWrite((byte)((length >> Byte1Shift) & ByteMask));
+
+                // Send payload
+                foreach (var b in payload)
+                {
+                    Serial.ComWrite(b);
+                }
             }
         }
 

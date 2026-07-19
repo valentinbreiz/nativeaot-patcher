@@ -203,6 +203,10 @@ jobs:
             ### Quick Start
 
             - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/install.html)
+          # Append the auto-generated changelog (merged PRs / commits since the
+          # previous tag) below the download table — releases had no change
+          # description at all before this.
+          generate_release_notes: true
           draft: false
           prerelease: false
           files: |

@@ -182,8 +182,6 @@ public static unsafe partial class GarbageCollector
 
     /// <summary>
     /// Default segment size. Grows as needed.
-    /// Note: increasing this (e.g. 64KB) requires enabling ScanStaticRoots in MarkPhase
-    /// to prevent GC from collecting objects only reachable through static fields.
     /// </summary>
     private static uint s_maxSegmentSize = (uint)PageAllocator.PageSize;
 
