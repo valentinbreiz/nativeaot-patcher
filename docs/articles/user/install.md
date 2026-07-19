@@ -67,12 +67,4 @@ This works on Windows too — existing installations update in place without re-
 
 ## Quick Start
 
-Once installed, create and build your first kernel:
-
-```bash
-cosmos new MyKernel
-cd MyKernel
-cosmos build
-```
-
-Or open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.
+Once installed, see [Kernel Startup](startup.md) to create your first kernel and learn the boot flow.
