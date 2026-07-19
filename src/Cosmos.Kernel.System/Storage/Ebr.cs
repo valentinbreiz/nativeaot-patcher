@@ -1,0 +1,400 @@
+// This code is licensed under MIT license (see LICENSE for details)
+
+using Cosmos.Kernel.HAL.Interfaces.Devices;
+
+namespace Cosmos.Kernel.System.Storage;
+
+/// <summary>
+/// EBR (Extended Boot Record) chain parser and editor. An extended partition
+/// contains a singly-linked list of EBR sectors; each EBR holds one logical
+/// partition entry plus an optional pointer to the next EBR. Convention used:
+/// <list type="bullet">
+///   <item><description>Logical-entry start LBA is relative to the EBR sector that holds it.</description></item>
+///   <item><description>Next-EBR pointer is relative to the extended partition's start LBA (the standard convention).</description></item>
+///   <item><description>The first EBR always sits at the extended partition's start LBA.</description></item>
+///   <item><description>Each subsequent EBR is placed immediately after the prior logical's data.</description></item>
+/// </list>
+/// </summary>
+public static class Ebr
+{
+    /// <summary>Byte offset of this EBR's logical-partition entry (partition table slot 0).</summary>
+    private const int LogicalEntryOffset = Mbr.PartitionTableOffset;
+
+    /// <summary>Byte offset of the next-EBR link entry (partition table slot 1).</summary>
+    private const int NextEbrEntryOffset = Mbr.PartitionTableOffset + Mbr.PartitionEntrySize;
+
+    /// <summary>Sectors the EBR itself occupies; a logical's data area starts this many sectors after its hosting EBR (classic EBR layout). Internal so <see cref="PartitionManager"/>'s collision checks track the same placement.</summary>
+    internal const uint EbrSectorSpan = 1;
+
+    /// <summary>Defensive cap on chain hops so a cyclic on-disk chain cannot spin the walk forever.</summary>
+    private const int MaxChainLength = 128;
+
+    private struct ChainNode
+    {
+        public ulong EbrLba;
+        public byte LogicalSystemId;
+        public uint LogicalRelativeStart;
+        public uint LogicalSectorCount;
+        public uint NextRelative;
+    }
+
+    /// <summary>
+    /// Walk the EBR chain rooted at <paramref name="extendedStartLba"/> and
+    /// return one entry per logical partition. <c>StartSector</c> values are
+    /// absolute LBAs on <paramref name="device"/>.
+    /// </summary>
+    public static List<Mbr.PartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
+    {
+        List<Mbr.PartitionEntry> logicals = new();
+        if (device == null)
+        {
+            return logicals;
+        }
+
+        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        for (int i = 0; i < chain.Count; i++)
+        {
+            ChainNode node = chain[i];
+            if (node.LogicalSystemId == Mbr.SystemIdEmpty)
+            {
+                continue;
+            }
+            logicals.Add(new Mbr.PartitionEntry(
+                node.LogicalSystemId,
+                node.EbrLba + node.LogicalRelativeStart,
+                node.LogicalSectorCount));
+        }
+        return logicals;
+    }
+
+    /// <summary>
+    /// Append a logical partition to the chain. The new EBR is placed right
+    /// after the prior logical's data, and the new logical's data area
+    /// follows the new EBR (one sector for the EBR, then <paramref name="sectorCount"/> sectors).
+    /// Returns the new logical's absolute start LBA, or 0 on failure.
+    /// </summary>
+    public static ulong AddLogical(
+        IBlockDevice device,
+        ulong extendedStartLba,
+        ulong extendedSectorCount,
+        byte systemId,
+        ulong sectorCount)
+    {
+        // The on-disk field is 32-bit: a larger count would be silently
+        // truncated by the (uint) cast below (2^32 stamps a zero-length
+        // entry), so reject it up front as ResizeLogical does.
+        if (sectorCount == 0 || sectorCount > uint.MaxValue
+            || systemId == Mbr.SystemIdEmpty
+            || systemId == Mbr.SystemIdExtendedChs
+            || systemId == Mbr.SystemIdExtendedLba
+            || systemId == Mbr.SystemIdLinuxExtended)
+        {
+            return 0;
+        }
+
+        // The envelope is caller-supplied on-disk metadata (the MBR's
+        // extended entry): clamp it to the device end so a corrupt count
+        // can never authorize stamping a logical past the disk.
+        if (extendedStartLba >= device.BlockCount)
+        {
+            return 0;
+        }
+        ulong extendedEnd = extendedSectorCount > device.BlockCount - extendedStartLba
+            ? device.BlockCount
+            : extendedStartLba + extendedSectorCount;
+        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+
+        ulong newEbrLba;
+        if (chain.Count == 0)
+        {
+            newEbrLba = extendedStartLba;
+        }
+        else
+        {
+            ChainNode tail = chain[^1];
+            newEbrLba = tail.EbrLba + tail.LogicalRelativeStart + tail.LogicalSectorCount;
+        }
+
+        if (newEbrLba + EbrSectorSpan + sectorCount > extendedEnd)
+        {
+            return 0;
+        }
+
+        WriteEbrSector(device, newEbrLba, systemId, relativeStart: EbrSectorSpan, sectorCount: (uint)sectorCount, nextRelative: 0);
+
+        if (chain.Count > 0)
+        {
+            ChainNode tail = chain[^1];
+            uint newNextRelative = (uint)(newEbrLba - extendedStartLba);
+            WriteEbrSector(
+                device,
+                tail.EbrLba,
+                tail.LogicalSystemId,
+                tail.LogicalRelativeStart,
+                tail.LogicalSectorCount,
+                newNextRelative);
+        }
+
+        return newEbrLba + EbrSectorSpan;
+    }
+
+    /// <summary>
+    /// Remove the <paramref name="logicalIndex"/>-th logical partition from
+    /// the chain (0-based, in chain order).
+    /// </summary>
+    public static bool RemoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex)
+    {
+        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        if (logicalIndex < 0 || logicalIndex >= chain.Count)
+        {
+            return false;
+        }
+
+        if (logicalIndex == 0)
+        {
+            if (chain.Count == 1)
+            {
+                Span<byte> wipe = new byte[device.BlockSize];
+                device.WriteBlock(extendedStartLba, 1, wipe);
+                return true;
+            }
+
+            // Promote node[1] into the fixed first EBR slot at extendedStartLba.
+            // LogicalRelativeStart is relative to the EBR sector holding the
+            // entry, so it must be rebased from successor.EbrLba to the first
+            // EBR; NextRelative is already extended-relative and stays as-is.
+            ChainNode successor = chain[1];
+            uint promotedRelativeStart =
+                (uint)(successor.EbrLba + successor.LogicalRelativeStart - extendedStartLba);
+            WriteEbrSector(
+                device,
+                extendedStartLba,
+                successor.LogicalSystemId,
+                promotedRelativeStart,
+                successor.LogicalSectorCount,
+                successor.NextRelative);
+            return true;
+        }
+
+        // Bypass: predecessor's next pointer skips the deleted node.
+        ChainNode predecessor = chain[logicalIndex - 1];
+        ChainNode target = chain[logicalIndex];
+        WriteEbrSector(
+            device,
+            predecessor.EbrLba,
+            predecessor.LogicalSystemId,
+            predecessor.LogicalRelativeStart,
+            predecessor.LogicalSectorCount,
+            target.NextRelative);
+        return true;
+    }
+
+    /// <summary>Rewrite the SectorCount of the <paramref name="logicalIndex"/>-th logical partition.</summary>
+    public static bool ResizeLogical(
+        IBlockDevice device,
+        ulong extendedStartLba,
+        int logicalIndex,
+        ulong newSectorCount)
+    {
+        if (newSectorCount == 0 || newSectorCount > uint.MaxValue)
+        {
+            return false;
+        }
+
+        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        if (logicalIndex < 0 || logicalIndex >= chain.Count)
+        {
+            return false;
+        }
+
+        ChainNode node = chain[logicalIndex];
+        ulong absoluteEnd = node.EbrLba + node.LogicalRelativeStart + newSectorCount;
+        ulong upperBound = logicalIndex + 1 < chain.Count
+            ? chain[logicalIndex + 1].EbrLba
+            : extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+        if (absoluteEnd > upperBound)
+        {
+            return false;
+        }
+
+        WriteEbrSector(
+            device,
+            node.EbrLba,
+            node.LogicalSystemId,
+            node.LogicalRelativeStart,
+            (uint)newSectorCount,
+            node.NextRelative);
+        return true;
+    }
+
+    /// <summary>
+    /// Rewrite the start LBA of the <paramref name="logicalIndex"/>-th logical
+    /// partition. The hosting EBR sector stays put; only the relative offset
+    /// inside the EBR changes. Caller is responsible for making sure data
+    /// at the new range is what's expected (use
+    /// <see cref="PartitionManager.MoveWithData"/> for a data-copying move).
+    /// </summary>
+    public static bool MoveLogical(
+        IBlockDevice device,
+        ulong extendedStartLba,
+        int logicalIndex,
+        ulong newAbsoluteStart)
+    {
+        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        if (logicalIndex < 0 || logicalIndex >= chain.Count)
+        {
+            return false;
+        }
+
+        ChainNode node = chain[logicalIndex];
+        if (newAbsoluteStart <= node.EbrLba)
+        {
+            return false;
+        }
+
+        ulong newRelative = newAbsoluteStart - node.EbrLba;
+        if (newRelative > uint.MaxValue)
+        {
+            return false;
+        }
+
+        ulong newAbsoluteEnd = newAbsoluteStart + node.LogicalSectorCount;
+        ulong upperBound = logicalIndex + 1 < chain.Count
+            ? chain[logicalIndex + 1].EbrLba
+            : extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+        if (newAbsoluteEnd > upperBound)
+        {
+            return false;
+        }
+
+        WriteEbrSector(
+            device,
+            node.EbrLba,
+            node.LogicalSystemId,
+            (uint)newRelative,
+            node.LogicalSectorCount,
+            node.NextRelative);
+        return true;
+    }
+
+    private static List<ChainNode> WalkChain(IBlockDevice device, ulong extendedStartLba)
+    {
+        List<ChainNode> nodes = new();
+        if (device == null)
+        {
+            return nodes;
+        }
+
+        // On-disk EBR metadata is untrusted, same rule as Mbr.Parse for
+        // primaries: resolve the extended envelope once, drop logical
+        // entries whose range leaves it, and stop the walk before a corrupt
+        // next pointer sends ReadBlock outside it — past the device end
+        // that read throws (AHCI surfaces a fatal command abort), and a
+        // stray 0x55AA sector inside the disk (e.g. a FAT VBR) would parse
+        // as garbage logicals.
+        ulong envelopeEnd = extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+        if (envelopeEnd > device.BlockCount)
+        {
+            envelopeEnd = device.BlockCount;
+        }
+
+        ulong currentEbrLba = extendedStartLba;
+        int hops = 0;
+
+        // ReadBlock fully overwrites the buffer each hop, so one
+        // allocation serves the whole walk.
+        Span<byte> sector = new byte[device.BlockSize];
+
+        while (hops < MaxChainLength && currentEbrLba < envelopeEnd)
+        {
+            device.ReadBlock(currentEbrLba, 1, sector);
+
+            if (BitConverter.ToUInt16(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes)) != Mbr.MbrSignature)
+            {
+                break;
+            }
+
+            byte logicalSystemId = sector[LogicalEntryOffset + Mbr.EntrySystemIdOffset];
+            uint logicalRelativeStart = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes));
+            uint logicalSectorCount = BitConverter.ToUInt32(sector.Slice(LogicalEntryOffset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes));
+
+            byte nextSystemId = sector[NextEbrEntryOffset + Mbr.EntrySystemIdOffset];
+            uint nextRelative = (nextSystemId == Mbr.SystemIdExtendedChs
+                    || nextSystemId == Mbr.SystemIdExtendedLba
+                    || nextSystemId == Mbr.SystemIdLinuxExtended)
+                ? BitConverter.ToUInt32(sector.Slice(NextEbrEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes))
+                : 0u;
+
+            // A relative start of 0 aliases the EBR sector itself; a range
+            // past the envelope authorizes wild host I/O. Skip the entry
+            // but keep walking — later links may still be intact.
+            bool entryValid = logicalSystemId != Mbr.SystemIdEmpty
+                && logicalRelativeStart != 0
+                && logicalSectorCount != 0
+                && currentEbrLba + logicalRelativeStart + logicalSectorCount <= envelopeEnd;
+            if (entryValid)
+            {
+                nodes.Add(new ChainNode
+                {
+                    EbrLba = currentEbrLba,
+                    LogicalSystemId = logicalSystemId,
+                    LogicalRelativeStart = logicalRelativeStart,
+                    LogicalSectorCount = logicalSectorCount,
+                    NextRelative = nextRelative,
+                });
+            }
+
+            if (nextRelative == 0)
+            {
+                break;
+            }
+
+            currentEbrLba = extendedStartLba + nextRelative;
+            hops++;
+        }
+
+        return nodes;
+    }
+
+    private static void WriteEbrSector(
+        IBlockDevice device,
+        ulong ebrLba,
+        byte logicalSystemId,
+        uint relativeStart,
+        uint sectorCount,
+        uint nextRelative)
+    {
+        Span<byte> sector = new byte[device.BlockSize];
+
+        sector[LogicalEntryOffset + Mbr.EntrySystemIdOffset] = logicalSystemId;
+        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), relativeStart);
+        BitConverter.TryWriteBytes(sector.Slice(LogicalEntryOffset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes), sectorCount);
+
+        if (nextRelative != 0)
+        {
+            sector[NextEbrEntryOffset + Mbr.EntrySystemIdOffset] = Mbr.SystemIdExtendedChs;
+            BitConverter.TryWriteBytes(sector.Slice(NextEbrEntryOffset + Mbr.EntryStartLbaOffset, Mbr.LbaFieldSizeBytes), nextRelative);
+        }
+
+        BitConverter.TryWriteBytes(sector.Slice(Mbr.SignatureOffset, Mbr.SignatureSizeBytes), Mbr.MbrSignature);
+
+        device.WriteBlock(ebrLba, 1, sector);
+    }
+
+    private static ulong ResolveExtendedCount(IBlockDevice device, ulong extendedStartLba)
+    {
+        // The MBR extended entry is on-disk metadata: clamp its claimed
+        // count to the device end. When the lookup cannot confirm the
+        // envelope, grant nothing — a whole-disk fallback would let
+        // mutators grow a logical into whatever follows the extended
+        // partition.
+        if (Mbr.TryGetExtendedPartition(device, out ulong start, out ulong count)
+            && start == extendedStartLba
+            && extendedStartLba < device.BlockCount)
+        {
+            ulong maxCount = device.BlockCount - extendedStartLba;
+            return count > maxCount ? maxCount : count;
+        }
+        return 0;
+    }
+}

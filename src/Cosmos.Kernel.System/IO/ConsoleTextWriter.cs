@@ -9,10 +9,10 @@ public sealed class ConsoleTextWriter : TextWriter
     public override Encoding Encoding => Encoding.Default;
     public override void Write(char value)
     {
-        KernelConsole.Write(value);
-        if (KernelConsole.IsAvailable)
+        KernelConsole.Default.Write(value);
+        if (KernelConsole.Default.IsAvailable)
         {
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
         }
     }
     public override void Write(string? value)
@@ -22,19 +22,19 @@ public sealed class ConsoleTextWriter : TextWriter
             return;
         }
 
-        KernelConsole.Write(value);
-        if (KernelConsole.IsAvailable)
+        KernelConsole.Default.Write(value);
+        if (KernelConsole.Default.IsAvailable)
         {
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
         }
     }
 
     public override void Write(ReadOnlySpan<char> buffer)
     {
-        KernelConsole.Write(buffer);
-        if (KernelConsole.IsAvailable)
+        KernelConsole.Default.Write(buffer);
+        if (KernelConsole.Default.IsAvailable)
         {
-            KernelConsole.Canvas.Display();
+            KernelConsole.Default.Canvas.Display();
         }
     }
 }

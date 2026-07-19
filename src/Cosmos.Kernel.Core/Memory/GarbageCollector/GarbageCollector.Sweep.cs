@@ -58,8 +58,19 @@ public static unsafe partial class GarbageCollector
 
             if (mt == null)
             {
-                // End of valid objects
-                break;
+                // Zeroed TLAB gap (< MinBlockSize, zeroed by StampUnusedTlab) —
+                // dead space. Fold it into the free run and keep walking:
+                // breaking here would strand everything up to Bump, so the
+                // trailing reset never fires and the segment can never be
+                // returned to the page allocator.
+                if (freeRunStart == null)
+                {
+                    freeRunStart = ptr;
+                }
+
+                freeRunSize += (uint)sizeof(nint);
+                ptr += sizeof(nint);
+                continue;
             }
 
             // Check if this is a free block from previous GC
@@ -157,7 +168,7 @@ public static unsafe partial class GarbageCollector
         freeBlock->MethodTable = s_freeMethodTable;
         freeBlock->Size = (int)size;
         freeBlock->Next = null;
-        AddToFreeList(freeBlock);
+        AddToFreeList(freeBlock, 's');
     }
 
     /// <summary>

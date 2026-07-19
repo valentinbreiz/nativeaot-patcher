@@ -1,6 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Cosmos.Sdk" Version="3.0.37" />
+<Project Sdk="Cosmos.Sdk">
 
   <PropertyGroup>
     <CosmosKernelClass>DevKernel.Kernel</CosmosKernelClass>
@@ -8,10 +6,11 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-  <!-- Core kernel packages (using project references for development) -->
+  <!-- Core kernel packages (resolved from local-packages NuGet source set up by `make setup`).
+       Versions are managed centrally in Directory.Packages.props. -->
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Cosmos.Kernel\Cosmos.Kernel.csproj" />
-    <ProjectReference Include="..\..\src\Cosmos.Kernel.System\Cosmos.Kernel.System.csproj" />
+    <PackageReference Include="Cosmos.Kernel" />
+    <PackageReference Include="Cosmos.Kernel.System" />
   </ItemGroup>
 
   <!-- DevKernel-specific C files -->

@@ -1,0 +1,241 @@
+name: Post Kernel Test Results
+
+on:
+  workflow_call:
+    inputs:
+      suite_name:
+        description: 'Display name (e.g. HelloWorld)'
+        required: true
+        type: string
+      suite_id:
+        description: 'Slug identifier (e.g. helloworld)'
+        required: true
+        type: string
+      event_name:
+        description: 'Calling workflow event name (github.event_name)'
+        required: true
+        type: string
+      kernel_path:
+        description: 'Path to kernel test project (e.g. tests/Kernels/Cosmos.Kernel.Tests.HelloWorld)'
+        required: true
+        type: string
+      head_ref:
+        description: 'Branch or ref name for source links'
+        required: true
+        type: string
+
+jobs:
+  post-results:
+    name: ${{ inputs.suite_name }} Results
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 📥 Download x64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ inputs.suite_id }}-x64
+          path: results-x64/
+        continue-on-error: true
+
+      - name: 📥 Download arm64 Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-${{ inputs.suite_id }}-arm64
+          path: results-arm64/
+        continue-on-error: true
+
+      - name: 📊 Parse Test Results
+        id: parse
+        run: |
+          # Render a mirrored x64-vs-arm64 view. Testcase names carry a leading
+          # [profile] prefix (the QEMU profile-matrix cell); bucket by it so each
+          # cell becomes one row with x64 and arm64 side by side. Suites with no
+          # profiles collapse to a single _all_ row. Also collect skip reasons
+          # and failures so the comment says what ran, what was skipped and why,
+          # and what failed. NOTE: the output is embedded in a JS template
+          # literal downstream, so it must contain no backticks or ${ sequences.
+          python3 << 'PY' > results-table.md
+          import os, re, xml.etree.ElementTree as ET
+          from collections import Counter
+
+          PROF_RE = re.compile(r'^\[([^\]]+)\]\s+')
+          ARCHES = ('x64', 'arm64')
+
+          def parse(path):
+              if not os.path.exists(path):
+                  return None
+              # A run step killed mid-write (step timeout) leaves truncated
+              # XML; ET.parse raises where the old grep parser shrugged.
+              # Degrade this arch to the "No results" cell instead of
+              # failing the whole step and losing the OTHER arch's results.
+              try:
+                  root = ET.parse(path).getroot()
+              except (ET.ParseError, OSError):
+                  return None
+              cells = {}
+              skips = Counter()
+              fails = []
+              for c in root.findall('.//testcase'):
+                  name = c.get('name', '')
+                  m = PROF_RE.match(name)
+                  cell = m.group(1) if m else '_all_'
+                  bare = name[m.end():] if m else name
+                  b = cells.setdefault(cell, {'tests':0,'passed':0,'failed':0,'skipped':0,'time':0.0})
+                  b['tests'] += 1
+                  fail = c.find('failure')
+                  skip = c.find('skipped')
+                  if fail is not None:
+                      b['failed'] += 1
+                      fails.append((cell, bare, (fail.get('message') or '').strip()))
+                  elif skip is not None:
+                      b['skipped'] += 1
+                      skips[(skip.get('message') or 'no reason given').strip()] += 1
+                  else:
+                      b['passed'] += 1
+                  try:
+                      b['time'] += float(c.get('time') or 0)
+                  except ValueError:
+                      pass
+              # Synthesize an _all_ totals row for profiled suites (their tests
+              # are all prefixed, so no natural _all_ bucket exists).
+              if cells and '_all_' not in cells:
+                  tot = {'tests':0,'passed':0,'failed':0,'skipped':0,'time':0.0}
+                  for b in cells.values():
+                      for k in tot:
+                          tot[k] += b[k]
+                  cells['_all_'] = tot
+              return {'cells': cells, 'skips': skips, 'fails': fails}
+
+          def cell_text(b):
+              if b is None:
+                  return 'n/a'
+              if b['failed'] > 0:
+                  emoji = '❌'
+              elif b['skipped'] > b['passed']:
+                  emoji = '⚠️'
+              else:
+                  emoji = '✅'
+              extra = ''
+              if b['failed']:
+                  extra += f", {b['failed']} fail"
+              if b['skipped']:
+                  extra += f", {b['skipped']} skip"
+              return f"{emoji} {b['passed']}/{b['tests']}{extra}"
+
+          suite_id = "${{ inputs.suite_id }}"
+          data = {arch: parse(f'results-{arch}/test-results-{suite_id}-{arch}.xml') for arch in ARCHES}
+
+          names = set()
+          for d in data.values():
+              if d:
+                  names.update(d['cells'].keys())
+          ordered = (['_all_'] if '_all_' in names else []) + sorted(n for n in names if n != '_all_')
+
+          lines = ['| Cell | x64 | arm64 |', '|---|---|---|']
+          if not ordered:
+              lines.append('| _all_ | ⚠️ No results | ⚠️ No results |')
+          for name in ordered:
+              cols = [cell_text(data[a]['cells'].get(name)) if data[a] else '⚠️ No results' for a in ARCHES]
+              lines.append(f"| {name} | {cols[0]} | {cols[1]} |")
+
+          skip_lines = []
+          for arch in ARCHES:
+              d = data[arch]
+              if d and d['skips']:
+                  parts = ', '.join(f"{reason} ({n})" for reason, n in d['skips'].most_common())
+                  skip_lines.append(f"- **{arch}**: {sum(d['skips'].values())} skipped: {parts}")
+          if skip_lines:
+              lines += ['', '**Skipped**'] + skip_lines
+
+          fail_lines = []
+          for arch in ARCHES:
+              d = data[arch]
+              if d:
+                  for cell, test, msg in d['fails']:
+                      fail_lines.append(f"- **{arch}** {cell} / {test}: {msg}")
+          if fail_lines:
+              lines += ['', '**Failures**'] + fail_lines
+
+          print('\n'.join(lines))
+          PY
+
+          # Stash the rendered table for the comment step. Use a delimiter form
+          # so newlines survive the round-trip through $GITHUB_OUTPUT.
+          {
+            echo 'results_table<<EOF'
+            cat results-table.md
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: 💬 Post PR Comment
+        uses: actions/github-script@v7
+        if: inputs.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          # The table embeds raw kernel failure messages from UART output.
+          # It must reach the script as data (process.env), never spliced
+          # into the JS source: a backtick or ${ in a failure message would
+          # break the comment step exactly on the failing-test path — or
+          # execute as injected JS with the workflow token.
+          RESULTS_TABLE: ${{ steps.parse.outputs.results_table }}
+        with:
+          script: |
+            const suiteName = '${{ inputs.suite_name }}';
+            const suiteId = '${{ inputs.suite_id }}';
+            const kernelSrcUrl = 'https://github.com/${{ github.repository }}/blob/${{ inputs.head_ref }}/${{ inputs.kernel_path }}/Kernel.cs';
+            const resultsTable = process.env.RESULTS_TABLE;
+            const runId = '${{ github.run_id }}';
+            const repo = '${{ github.repository }}';
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            const { data: artifactsData } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner,
+              repo: repoName,
+              run_id: runId,
+            });
+
+            const getArtifactUrl = (name) => {
+              const artifact = artifactsData.artifacts.find(a => a.name === name);
+              if (artifact) {
+                return `https://github.com/${repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+              }
+              return `https://github.com/${repo}/actions/runs/${runId}`;
+            };
+
+            const body = [
+              `## 🧪 ${suiteName} Tests`,
+              '',
+              resultsTable,
+              '',
+              '### 📎 Artifacts',
+              '| Architecture | Test Results | UART Log | Kernel ISO |',
+              '|--------------|--------------|----------|------------|',
+              `| x64 | [XML](${getArtifactUrl('test-results-' + suiteId + '-x64')}) | [Log](${getArtifactUrl('uart-log-' + suiteId + '-x64')}) | [ISO](${getArtifactUrl(suiteName + '-Test-ISO-x64')}) |`,
+              `| arm64 | [XML](${getArtifactUrl('test-results-' + suiteId + '-arm64')}) | [Log](${getArtifactUrl('uart-log-' + suiteId + '-arm64')}) | [ISO](${getArtifactUrl(suiteName + '-Test-ISO-arm64')}) |`,
+              '',
+              `📋 [View full test summary](https://github.com/${repo}/actions/runs/${runId}) | 📄 [Kernel.cs](${kernelSrcUrl})`
+            ].join('\n');
+
+            const marker = `## 🧪 ${suiteName} Tests`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo: repoName,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes(marker));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo: repoName,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo: repoName,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

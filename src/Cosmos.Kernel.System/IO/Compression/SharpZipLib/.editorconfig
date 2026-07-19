@@ -1,0 +1,5 @@
+# Vendored SharpZipLib code is exempt from brace-style enforcement to keep
+# the diff against upstream small; whitespace follows the repository style.
+[*.cs]
+csharp_prefer_braces = true:silent
+dotnet_diagnostic.IDE0011.severity = none

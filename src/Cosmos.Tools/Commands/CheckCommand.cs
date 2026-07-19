@@ -7,10 +7,6 @@ namespace Cosmos.Tools.Commands;
 
 public class CheckSettings : CommandSettings
 {
-    [CommandOption("-a|--arch")]
-    [Description("Target architecture (x64, arm64, or 'all' for both)")]
-    public string? Arch { get; set; }
-
     [CommandOption("--json")]
     [Description("Output results as JSON")]
     public bool Json { get; set; }
@@ -22,10 +18,10 @@ public class CheckCommand : AsyncCommand<CheckSettings>
     {
         if (!settings.Json)
         {
-            PrintHeader();
+            CommandHelper.PrintHeader("Cosmos Tools Check");
         }
 
-        var results = await ToolChecker.CheckAllToolsAsync(settings.Arch);
+        var results = await ToolChecker.CheckAllToolsAsync();
 
         if (settings.Json)
         {
@@ -40,32 +36,34 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         return 0;
     }
 
-    private static void PrintHeader()
-    {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("  [bold]Cosmos Tools Check[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.MarkupLine($"  Platform: [blue]{PlatformInfo.GetDistroName()}[/] ({PlatformInfo.CurrentArch})");
-        AnsiConsole.MarkupLine($"  Package Manager: [blue]{PlatformInfo.GetPackageManager()}[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.WriteLine();
-    }
-
     private static void PrintResults(List<ToolStatus> results)
     {
         int maxNameLen = results.Max(r => r.Tool.DisplayName.Length);
 
         foreach (var result in results)
         {
-            string status = result.Found ? "[green]\u2713[/]" : "[red]\u2717[/]";
+            bool detected = result.Found && result.Version != null;
+            string status = detected ? "[green]\u2713[/]" : "[red]\u2717[/]";
             string required = result.Tool.Required ? "" : " [dim](optional)[/]";
-            string version = result.Version != null ? $" [dim]({result.Version})[/]" : "";
-
             string name = result.Tool.DisplayName.PadRight(maxNameLen);
 
-            if (result.Found)
+            if (detected)
             {
-                AnsiConsole.MarkupLine($"  {status} {name}{version}");
+                string ver = result.Version != null ? $" [dim]({result.Version})[/]" : "";
+                string source = result.Source switch
+                {
+                    ToolSource.Bundle => " [cyan][[bundle]][/]",
+                    ToolSource.System => " [green][[system]][/]",
+                    ToolSource.Override => " [yellow][[override]][/]",
+                    _ => ""
+                };
+                string path = result.Path != null ? $" [dim]{Markup.Escape(result.Path)}[/]" : "";
+                AnsiConsole.MarkupLine($"  {status} {name}{ver}{source}{path}");
+            }
+            else if (result.Found)
+            {
+                string path = result.Path != null ? $" [dim]{Markup.Escape(result.Path)}[/]" : "";
+                AnsiConsole.MarkupLine($"  {status} {name} [yellow]- Not detected{required}[/]{path}");
             }
             else
             {
@@ -79,9 +77,10 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
 
-        var requiredMissing = results.Where(r => r.Tool.Required && !r.Found).ToList();
-        var optionalMissing = results.Where(r => !r.Tool.Required && !r.Found).ToList();
-        bool allFound = results.All(r => r.Found || !r.Tool.Required);
+        bool IsDetected(ToolStatus r) => r.Found && r.Version != null;
+        var requiredMissing = results.Where(r => r.Tool.Required && !IsDetected(r)).ToList();
+        var optionalMissing = results.Where(r => !r.Tool.Required && !IsDetected(r)).ToList();
+        bool allFound = results.All(r => IsDetected(r) || !r.Tool.Required);
 
         if (allFound)
         {
@@ -120,7 +119,8 @@ public class CheckCommand : AsyncCommand<CheckSettings>
             Console.WriteLine($"      \"found\": {r.Found.ToString().ToLower()},");
             Console.WriteLine($"      \"required\": {r.Tool.Required.ToString().ToLower()},");
             Console.WriteLine($"      \"version\": {(r.Version != null ? $"\"{r.Version}\"" : "null")},");
-            Console.WriteLine($"      \"path\": {(r.Path != null ? $"\"{r.Path.Replace("\\", "\\\\")}\"" : "null")}");
+            Console.WriteLine($"      \"path\": {(r.Path != null ? $"\"{r.Path.Replace("\\", "\\\\")}\"" : "null")},");
+            Console.WriteLine($"      \"source\": \"{r.Source.ToString().ToLowerInvariant()}\"");
             Console.WriteLine($"    }}{comma}");
         }
 

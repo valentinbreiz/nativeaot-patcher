@@ -1,12 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.ARM64.Cpu;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
@@ -51,8 +50,6 @@ public unsafe class VirtioNet : INetworkDevice
     private byte** _txBuffers;
 
     // --- Properties ---
-
-    public static VirtioNet? Instance { get; private set; }
     public PacketReceivedHandler? OnPacketReceived { get; set; }
     string INetworkDevice.Name => "VirtioNet";
     public MACAddress MacAddress => _macAddress;
@@ -61,7 +58,7 @@ public unsafe class VirtioNet : INetworkDevice
 
     // --- Constructor ---
 
-    private VirtioNet(ulong baseAddress, uint irq, uint mmioVersion)
+    internal VirtioNet(ulong baseAddress, uint irq, uint mmioVersion)
     {
         _baseAddress = baseAddress;
         _irq = irq;
@@ -70,7 +67,6 @@ public unsafe class VirtioNet : INetworkDevice
         _networkInitialized = false;
         _linkUp = false;
         _enabled = false;
-        Instance = this;
     }
 
     // --- Public methods ---
@@ -103,21 +99,22 @@ public unsafe class VirtioNet : INetworkDevice
         InitializeNetwork();
     }
 
-    public void RegisterIRQHandler()
+    private void RegisterIRQHandler()
     {
         Serial.Write("[VirtioNet] Registering IRQ handler for INTID ");
         Serial.WriteNumber(_irq);
         Serial.Write("\n");
 
-        // Configure interrupt as edge-triggered (VirtIO MMIO uses edge)
-        GIC.ConfigureInterrupt(_irq, true);
+        // Register handler BEFORE enabling the interrupt in the GIC.
+        // With level-triggered interrupts, the GIC fires as soon as the interrupt
+        // is enabled if the line is already asserted. The handler must be in place
+        // first to acknowledge the virtio interrupt and prevent an IRQ storm.
+        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
-        // Set priority and enable
+        // Configure interrupt as level-triggered (VirtIO MMIO uses level-triggered signaling)
+        GIC.ConfigureInterrupt(_irq, false);
         GIC.SetPriority(_irq, 0x80);
         GIC.EnableInterrupt(_irq);
-
-        // Register handler
-        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
         Serial.Write("[VirtioNet] IRQ handler registered\n");
     }
@@ -125,7 +122,9 @@ public unsafe class VirtioNet : INetworkDevice
     public bool Send(byte[] data, int length)
     {
         if (!_networkInitialized || !_enabled || _txQueue == null || _txBuffers == null || data == null)
+        {
             return false;
+        }
 
         ReclaimTx();
 
@@ -137,19 +136,25 @@ public unsafe class VirtioNet : INetworkDevice
         }
 
         if (length > RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE)
+        {
             length = RX_BUFFER_SIZE - VIRTIO_NET_HDR_SIZE;
+        }
 
         byte* buf = _txBuffers[descIdx];
 
         // Clear virtio-net header
         for (int i = 0; i < VIRTIO_NET_HDR_SIZE; i++)
+        {
             buf[i] = 0;
+        }
 
         // Copy packet data
         for (int i = 0; i < length; i++)
+        {
             buf[VIRTIO_NET_HDR_SIZE + i] = data[i];
+        }
 
-        _txQueue.SetupDescriptor(descIdx, (ulong)buf, (uint)(VIRTIO_NET_HDR_SIZE + length), 0, 0);
+        _txQueue.SetupDescriptor(descIdx, VirtioMMIO.VirtToPhys((ulong)buf), (uint)(VIRTIO_NET_HDR_SIZE + length), 0, 0);
         _txQueue.AddAvailable((ushort)descIdx);
 
         // Notify device
@@ -165,7 +170,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeNetwork()
     {
-        if (_networkInitialized) return;
+        if (_networkInitialized)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing (MMIO version ");
         Serial.WriteNumber(_mmioVersion);
@@ -251,9 +259,6 @@ public unsafe class VirtioNet : INetworkDevice
             Serial.Write("\n");
         }
 
-        // Register IRQ handler
-        RegisterIRQHandler();
-
         // Set DRIVER_OK to complete initialization
         status = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_STATUS);
         VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, status | VirtioMMIO.STATUS_DRIVER_OK);
@@ -274,6 +279,13 @@ public unsafe class VirtioNet : INetworkDevice
 
         _networkInitialized = true;
         _enabled = true;
+
+        // Register IRQ handler AFTER device is fully initialized.
+        // With level-triggered interrupts, the GIC fires immediately if the line
+        // is already asserted. The handler must be able to acknowledge the virtio
+        // interrupt (requires _networkInitialized = true) to prevent an IRQ storm.
+        RegisterIRQHandler();
+
         Serial.Write("[VirtioNet] Initialization complete\n");
     }
 
@@ -360,7 +372,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeRxBuffers()
     {
-        if (_rxQueue == null) return;
+        if (_rxQueue == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing RX buffers...\n");
 
@@ -369,9 +384,12 @@ public unsafe class VirtioNet : INetworkDevice
         {
             _rxBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
             int descIdx = _rxQueue.AllocDescriptor();
-            if (descIdx < 0) break;
+            if (descIdx < 0)
+            {
+                break;
+            }
 
-            _rxQueue.SetupDescriptor(descIdx, (ulong)_rxBuffers[i], RX_BUFFER_SIZE,
+            _rxQueue.SetupDescriptor(descIdx, VirtioMMIO.VirtToPhys((ulong)_rxBuffers[i]), RX_BUFFER_SIZE,
                 Virtqueue.VRING_DESC_F_WRITE, 0);
             _rxQueue.AddAvailable((ushort)descIdx);
         }
@@ -384,7 +402,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void InitializeTxBuffers()
     {
-        if (_txQueue == null) return;
+        if (_txQueue == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Initializing TX buffers...\n");
 
@@ -399,28 +420,40 @@ public unsafe class VirtioNet : INetworkDevice
 
     private static void HandleIRQ(ref IRQContext context)
     {
-        if (Instance == null || !Instance._networkInitialized)
+        var netDevice = VirtioDevice.GetDeviceFromIRQ<VirtioNet>(context.interrupt);
+
+        if (netDevice is null)
+        {
             return;
+        }
 
-        // Read and acknowledge interrupt
-        uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
-        VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
+        // Without this, the GIC re-delivers the interrupt immediately causing an IRQ storm.
+        uint intStatus = VirtioMMIO.Read32(netDevice._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
+        if (intStatus != 0)
+        {
+            VirtioMMIO.Write32(netDevice._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        }
 
-        Serial.Write("[VirtioNet] IRQ! status=0x");
-        Serial.WriteHex(intStatus);
-        Serial.Write("\n");
+        if (!netDevice._networkInitialized)
+        {
+            return;
+        }
 
         // Process used buffers
         if ((intStatus & 1) != 0)  // Used buffer notification
         {
-            Instance.ProcessRx();
-            Instance.ReclaimTx();
+            netDevice.ProcessRx();
+            netDevice.ReclaimTx();
         }
     }
 
     private void ProcessRx()
     {
-        if (_rxQueue == null || _rxBuffers == null) return;
+        if (_rxQueue == null || _rxBuffers == null)
+        {
+            return;
+        }
 
         Serial.Write("[VirtioNet] Processing RX...\n");
 
@@ -439,7 +472,9 @@ public unsafe class VirtioNet : INetworkDevice
                 byte[] data = new byte[dataLen];
                 byte* src = _rxBuffers[id] + VIRTIO_NET_HDR_SIZE;
                 for (int i = 0; i < dataLen; i++)
+                {
                     data[i] = src[i];
+                }
 
                 OnPacketReceived?.Invoke(data, (int)dataLen);
                 received = true;
@@ -448,7 +483,7 @@ public unsafe class VirtioNet : INetworkDevice
             // Return buffer to available ring
             if (id < _rxQueue.QueueSize)
             {
-                _rxQueue.SetupDescriptor((int)id, (ulong)_rxBuffers[id], RX_BUFFER_SIZE,
+                _rxQueue.SetupDescriptor((int)id, VirtioMMIO.VirtToPhys((ulong)_rxBuffers[id]), RX_BUFFER_SIZE,
                     Virtqueue.VRING_DESC_F_WRITE, 0);
                 _rxQueue.AddAvailable((ushort)id);
             }
@@ -463,7 +498,10 @@ public unsafe class VirtioNet : INetworkDevice
 
     private void ReclaimTx()
     {
-        if (_txQueue == null) return;
+        if (_txQueue == null)
+        {
+            return;
+        }
 
         while (_txQueue.GetUsedBuffer(out uint id, out uint len))
         {

@@ -1,6 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using Cosmos.Build.API.Enum;
+using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.HAL.Interfaces;
 
 namespace Cosmos.Kernel.HAL;
@@ -10,14 +13,23 @@ namespace Cosmos.Kernel.HAL;
 /// </summary>
 public static class PlatformHAL
 {
+    /// <summary>
+    /// Legacy POST diagnostic I/O port (0x80); a read takes ~1 µs on PC chipsets,
+    /// used for calibration-free delays (shared by the AHCI wait loop and the x64
+    /// platform initializer).
+    /// </summary>
+    public const ushort LegacyPostPort = 0x80;
+
     private static IPortIO? _portIO;
     private static ICpuOps? _cpuOps;
+    private static IPowerOps? _powerOps;
     private static PlatformArchitecture _architecture;
     private static string? _platformName;
     private static IPlatformInitializer? _initializer;
 
     public static IPortIO PortIO => _portIO!;
     public static ICpuOps? CpuOps => _cpuOps;
+    public static IPowerOps? PowerOps => _powerOps;
     public static PlatformArchitecture Architecture => _architecture;
     public static string PlatformName => _platformName ?? "Unknown";
 
@@ -47,5 +59,6 @@ public static class PlatformHAL
         _architecture = initializer.Architecture;
         _portIO = initializer.CreatePortIO();
         _cpuOps = initializer.CreateCpuOps();
+        _powerOps = initializer.CreatePowerOps();
     }
 }

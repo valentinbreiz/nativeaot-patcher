@@ -90,12 +90,20 @@ public unsafe class ManagedMemoryBlock
     {
         get
         {
-            if (offset >= Size) return 0;
+            if (offset >= Size)
+            {
+                return 0;
+            }
+
             return Span[(int)offset];
         }
         set
         {
-            if (offset >= Size) return;
+            if (offset >= Size)
+            {
+                return;
+            }
+
             Span[(int)offset] = value;
         }
     }
@@ -108,11 +116,17 @@ public unsafe class ManagedMemoryBlock
     /// <param name="aData">A data to fill (as uint, fills aCount uint values).</param>
     public void Fill(uint aByteOffset, uint aCount, uint aData)
     {
-        if (aByteOffset >= Size) return;
+        if (aByteOffset >= Size)
+        {
+            return;
+        }
 
         var remaining = Span.Slice((int)aByteOffset);
         var availableUints = remaining.Length / 4;
-        if (availableUints == 0) return;
+        if (availableUints == 0)
+        {
+            return;
+        }
 
         var count = Math.Min((int)aCount, availableUints);
         var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(remaining.Slice(0, count * 4));
@@ -127,11 +141,17 @@ public unsafe class ManagedMemoryBlock
     /// <param name="aData">A data to fill memory block with.</param>
     public void Fill(int aByteOffset, int aCount, int aData)
     {
-        if (aByteOffset < 0 || aByteOffset >= Size) return;
+        if (aByteOffset < 0 || aByteOffset >= Size)
+        {
+            return;
+        }
 
         var remaining = Span.Slice(aByteOffset);
         var availableUints = remaining.Length / 4;
-        if (availableUints == 0) return;
+        if (availableUints == 0)
+        {
+            return;
+        }
 
         var count = Math.Min(aCount, availableUints);
         var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(remaining.Slice(0, count * 4));
@@ -145,7 +165,10 @@ public unsafe class ManagedMemoryBlock
     public void Fill(uint aData)
     {
         var alignedLength = (Span.Length / 4) * 4;
-        if (alignedLength == 0) return;
+        if (alignedLength == 0)
+        {
+            return;
+        }
 
         var span = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(Span.Slice(0, alignedLength));
         span.Fill(aData);
@@ -327,7 +350,9 @@ public unsafe class ManagedMemoryBlock
     public void WriteString(uint aByteOffset, string value)
     {
         if (value.Length + aByteOffset > Size)
+        {
             throw new ArgumentOutOfRangeException(nameof(value));
+        }
 
         var dest = Span.Slice((int)aByteOffset, value.Length);
         for (int i = 0; i < value.Length; i++)

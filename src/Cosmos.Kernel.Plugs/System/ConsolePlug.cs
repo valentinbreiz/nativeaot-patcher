@@ -17,7 +17,22 @@ public class ConsolePlug
     private static void ThrowIfKeyboardDisabled()
     {
         if (!CosmosFeatures.KeyboardEnabled)
+        {
             throw new InvalidOperationException("Console input requires keyboard support. Set CosmosEnableKeyboard=true in your csproj to enable it.");
+        }
+    }
+
+    /// <summary>
+    /// Flushes the console back buffer to the screen. The console only draws
+    /// into the canvas back buffer, so every mutation visible to the user
+    /// (writes, cursor moves) must be followed by a flush.
+    /// </summary>
+    private static void DisplayCanvas()
+    {
+        if (KernelConsole.Default.IsAvailable)
+        {
+            KernelConsole.Default.Canvas.Display();
+        }
     }
 
     [PlugMember]
@@ -44,11 +59,8 @@ public class ConsolePlug
     [PlugMember]
     public static void Clear()
     {
-        KernelConsole.Clear();
-        if (KernelConsole.IsAvailable)
-        {
-            KernelConsole.Canvas.Display();
-        }
+        KernelConsole.Default.Clear();
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -61,7 +73,7 @@ public class ConsolePlug
     [PlugMember]
     public static void set_ForegroundColor(ConsoleColor value)
     {
-        KernelConsole.SetForegroundColor(value);
+        KernelConsole.Default.SetForegroundColor(value);
     }
 
     [PlugMember]
@@ -74,79 +86,83 @@ public class ConsolePlug
     [PlugMember]
     public static void set_BackgroundColor(ConsoleColor value)
     {
-        KernelConsole.SetBackgroundColor(value);
+        KernelConsole.Default.SetBackgroundColor(value);
     }
 
     [PlugMember]
     public static void ResetColor()
     {
-        KernelConsole.ResetColors();
+        KernelConsole.Default.ResetColors();
     }
 
     [PlugMember]
     public static int get_CursorLeft()
     {
-        return KernelConsole.CursorX;
+        return KernelConsole.Default.CursorX;
     }
 
     [PlugMember]
     public static void set_CursorLeft(int value)
     {
-        KernelConsole.CursorX = value;
+        KernelConsole.Default.CursorX = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static int get_CursorTop()
     {
-        return KernelConsole.CursorY;
+        return KernelConsole.Default.CursorY;
     }
 
     [PlugMember]
     public static void set_CursorTop(int value)
     {
-        KernelConsole.CursorY = value;
+        KernelConsole.Default.CursorY = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static void SetCursorPosition(int left, int top)
     {
-        KernelConsole.SetCursorPosition(left, top);
+        KernelConsole.Default.SetCursorPosition(left, top);
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static bool get_CursorVisible()
     {
-        return KernelConsole.CursorVisible;
+        return KernelConsole.Default.CursorVisible;
     }
 
     [PlugMember]
     public static void set_CursorVisible(bool value)
     {
-        KernelConsole.CursorVisible = value;
+        KernelConsole.Default.CursorVisible = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static int get_WindowWidth()
     {
-        return KernelConsole.Cols;
+        return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_WindowHeight()
     {
-        return KernelConsole.Rows;
+        return KernelConsole.Default.Rows;
     }
 
     [PlugMember]
     public static int get_BufferWidth()
     {
-        return KernelConsole.Cols;
+        return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_BufferHeight()
     {
-        return KernelConsole.Rows;
+        return KernelConsole.Default.Rows;
     }
 
     [PlugMember]
@@ -168,11 +184,8 @@ public class ConsolePlug
 
         if (!intercept && keyEvent.KeyChar != '\0')
         {
-            KernelConsole.Write(keyEvent.KeyChar);
-            if (KernelConsole.IsAvailable)
-            {
-                KernelConsole.Canvas.Display();
-            }
+            KernelConsole.Default.Write(keyEvent.KeyChar);
+            DisplayCanvas();
         }
 
         return ToConsoleKeyInfo(keyEvent);

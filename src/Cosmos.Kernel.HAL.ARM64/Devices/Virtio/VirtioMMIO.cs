@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 
@@ -16,6 +17,8 @@ public static class VirtioMMIO
     public const ulong VIRTIO_MMIO_BASE = 0x0a000000;
     public const ulong VIRTIO_MMIO_SIZE = 0x200;
     public const int VIRTIO_MMIO_MAX_DEVICES = 32;
+    // IRQ base for virtio devices on QEMU virt (SPI 16 = INTID 48)
+    public const uint VIRTIO_IRQ_BASE = 48;
 
     // Virtio MMIO magic value ("virt" in little endian)
     public const uint VIRTIO_MAGIC = 0x74726976;
@@ -37,6 +40,7 @@ public static class VirtioMMIO
     public const uint REG_DEVICE_FEATURES_SEL = 0x14;
     public const uint REG_DRIVER_FEATURES = 0x20;
     public const uint REG_DRIVER_FEATURES_SEL = 0x24;
+    public const uint REG_GUEST_PAGE_SIZE = 0x28; // Legacy: must set before using PFN
     public const uint REG_QUEUE_SEL = 0x30;
     public const uint REG_QUEUE_NUM_MAX = 0x34;
     public const uint REG_QUEUE_NUM = 0x38;
@@ -44,7 +48,6 @@ public static class VirtioMMIO
     public const uint REG_QUEUE_PFN = 0x40;       // Legacy: queue page frame number
     public const uint REG_QUEUE_READY = 0x44;
     public const uint REG_QUEUE_NOTIFY = 0x50;
-    public const uint REG_GUEST_PAGE_SIZE = 0x28; // Legacy: must set before using PFN
     public const uint REG_INTERRUPT_STATUS = 0x60;
     public const uint REG_INTERRUPT_ACK = 0x64;
     public const uint REG_STATUS = 0x70;
@@ -64,8 +67,40 @@ public static class VirtioMMIO
     public const uint STATUS_FEATURES_OK = 8;
     public const uint STATUS_FAILED = 128;
 
-    // IRQ base for virtio devices on QEMU virt (SPI 16 = INTID 48)
-    public const uint VIRTIO_IRQ_BASE = 48;
+    /// <summary>
+    /// Converts a kernel virtual address (HHDM) to a guest physical address for DMA.
+    /// Virtio devices perform DMA using guest physical addresses, not kernel virtual addresses.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ulong VirtToPhys(ulong virtAddr)
+    {
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        if (hhdmOffset != 0 && virtAddr >= hhdmOffset)
+        {
+            return virtAddr - hhdmOffset;
+        }
+
+        return virtAddr;
+    }
+
+    /// <summary>
+    /// Converts a physical MMIO address to the HHDM virtual address (TTBR1).
+    /// DeviceMapper maps MMIO regions as Device memory in TTBR1, so all register
+    /// accesses must go through the HHDM address to hit Device-nGnRnE attributes.
+    /// Accessing via raw physical addresses uses TTBR0 (identity mapping) which
+    /// has Normal WB (cacheable) attributes — writes get cached and never reach hardware.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe ulong PhysToVirt(ulong phys)
+    {
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        if (hhdmOffset != 0 && phys < hhdmOffset)
+        {
+            return phys + hhdmOffset;
+        }
+
+        return phys;
+    }
 
     /// <summary>
     /// Scans for virtio devices and returns information about found devices.
@@ -132,7 +167,9 @@ public static class VirtioMMIO
 
             uint magic = Read32(baseAddr, REG_MAGIC);
             if (magic != VIRTIO_MAGIC)
+            {
                 continue;
+            }
 
             uint devId = Read32(baseAddr, REG_DEVICE_ID);
             if (devId == deviceType)
@@ -148,7 +185,7 @@ public static class VirtioMMIO
         return false;
     }
 
-    private static void WriteDeviceTypeName(uint deviceId)
+    internal static void WriteDeviceTypeName(uint deviceId)
     {
         switch (deviceId)
         {
@@ -165,36 +202,36 @@ public static class VirtioMMIO
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint Read32(ulong baseAddr, uint offset)
     {
-        return Native.MMIO.Read32(baseAddr + offset);
+        return Native.MMIO.Read32(PhysToVirt(baseAddr + offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Write32(ulong baseAddr, uint offset, uint value)
     {
-        Native.MMIO.Write32(baseAddr + offset, value);
+        Native.MMIO.Write32(PhysToVirt(baseAddr + offset), value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort Read16(ulong baseAddr, uint offset)
     {
-        return Native.MMIO.Read16(baseAddr + offset);
+        return Native.MMIO.Read16(PhysToVirt(baseAddr + offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Write16(ulong baseAddr, uint offset, ushort value)
     {
-        Native.MMIO.Write16(baseAddr + offset, value);
+        Native.MMIO.Write16(PhysToVirt(baseAddr + offset), value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte Read8(ulong baseAddr, uint offset)
     {
-        return Native.MMIO.Read8(baseAddr + offset);
+        return Native.MMIO.Read8(PhysToVirt(baseAddr + offset));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Write8(ulong baseAddr, uint offset, byte value)
     {
-        Native.MMIO.Write8(baseAddr + offset, value);
+        Native.MMIO.Write8(PhysToVirt(baseAddr + offset), value);
     }
 }

@@ -1,16 +1,77 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
-using SysThread = System.Threading.Thread;
 using Sys = Cosmos.Kernel.System;
+using Monitor = System.Threading.Monitor;
+using SysThread = System.Threading.Thread;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Threading;
 
 public class Kernel : Sys.Kernel
 {
+    /// <summary>Total number of tests announced to the test runner for this suite.</summary>
+    private const int ExpectedTestCount = 53;
+
+    /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
+    private const int LockIterationsPerThread = 100;
+    /// <summary>Expected final counter value after two workers each complete LockIterationsPerThread increments.</summary>
+    private const int ExpectedTotalIncrements = 200;
+    /// <summary>Increment iterations each worker performs in the multiple-threads test.</summary>
+    private const int WorkerIterationCount = 5;
+    /// <summary>Number of contender threads racing for the mutex in the three-contenders test.</summary>
+    private const int ContenderCount = 3;
+
+    /// <summary>Initial wait (ms) for a freshly started thread to be scheduled and run.</summary>
+    private const int ThreadStartupWaitMs = 1000;
+    /// <summary>Initial wait (ms) for both worker threads of the multiple-threads test to complete.</summary>
+    private const int ThreadsCompletionWaitMs = 3000;
+    /// <summary>Initial wait (ms) for the lock/spinlock contention workers to finish their iterations.</summary>
+    private const int LockTestInitialWaitMs = 5000;
+    /// <summary>Extra per-retry wait (ms) when a test result is not yet visible after the initial wait.</summary>
+    private const int RetryWaitMs = 500;
+    /// <summary>Maximum number of extra RetryWaitMs waits before giving up on a counter reaching its target.</summary>
+    private const int MaxExtraWaitRetries = 10;
+    /// <summary>Per-check delay (ms) while polling for the thread-execution flag.</summary>
+    private const int ThreadPollWaitMs = 200;
+    /// <summary>Maximum number of ThreadPollWaitMs checks for the thread-execution flag.</summary>
+    private const int ThreadExecPollRetries = 5;
+
+    /// <summary>Polling interval (ms) while waiting on scheduler-test flags (worker holding, parked, woke, ...).</summary>
+    private const int FlagPollIntervalMs = 50;
+    /// <summary>Maximum number of FlagPollIntervalMs polls while waiting on a scheduler-test flag.</summary>
+    private const int FlagPollRetries = 100;
+    /// <summary>Maximum number of FlagPollIntervalMs polls while waiting for all mutex contenders to acquire.</summary>
+    private const int ContenderPollRetries = 200;
+    /// <summary>Grace wait (ms) letting worker-thread exit paths finish inside the current test cell.</summary>
+    private const int ExitGraceWaitMs = 200;
+    /// <summary>Hold time (ms) the idle-contention worker keeps the mutex, spanning several scheduler ticks.</summary>
+    private const int IdleMutexHoldMs = 300;
+    /// <summary>Hold time (ms) each contender keeps the mutex so the others pile up in _waitingThreads.</summary>
+    private const int MutexContenderHoldMs = 100;
+    /// <summary>Wait (ms) giving the hand-off contender a few quanta to park in _waitingThreads.</summary>
+    private const int ContenderParkWaitMs = 150;
+
+    /// <summary>Polling interval (ms) while waiting for a ThreadPool/Task/async result to complete.</summary>
+    private const int TaskPollIntervalMs = 100;
+    /// <summary>Maximum number of TaskPollIntervalMs polls for a ThreadPool/Task/async result.</summary>
+    private const int TaskPollRetries = 30;
+    /// <summary>Wait (ms) for the second thread of the thread-statics test to finish.</summary>
+    private const int ThreadStaticsWaitMs = 100;
+    /// <summary>Delay (ms) between increments in each multiple-threads worker iteration.</summary>
+    private const int WorkerStepDelayMs = 50;
+
+    /// <summary>Barge-probe result: the releaser's TryAcquire outcome has not been recorded yet.</summary>
+    private const int BargeResultPending = -1;
+    /// <summary>Barge-probe result: the releaser's immediate TryAcquire failed (ownership was handed off).</summary>
+    private const int BargeResultNoBarge = 0;
+    /// <summary>Barge-probe result: the releaser's immediate TryAcquire re-took the mutex (barged in).</summary>
+    private const int BargeResultBarged = 1;
+
     // Shared state for thread tests
     private static volatile bool _threadExecuted;
     private static volatile int _sharedCounter;
@@ -18,13 +79,20 @@ public class Kernel : Sys.Kernel
     private static volatile int _thread2Counter;
     private static Cosmos.Kernel.Core.Scheduler.SpinLock _testLock;
 
+    // Shared state for Monitor/lock tests
+    private static readonly object _lockObj = new object();
+    private static volatile int _lockCounter;
+
+    // Custom delegate types for delegate tests
+    private delegate void VoidDelegate();
+    private delegate int BinaryIntDelegate(int a, int b);
+
     protected override void BeforeRun()
     {
         Serial.WriteString("[Threading] BeforeRun() reached!\n");
         Serial.WriteString("[Threading] Starting tests...\n");
 
-        // Initialize test suite - reduced to 8 tests (removed Thread_Creation test that interferes)
-        TR.Start("Threading Tests", expectedTests: 9);
+        TR.Start("Threading Tests", expectedTests: ExpectedTestCount);
 
         // SpinLock tests
         TR.Run("SpinLock_InitialState_IsUnlocked", TestSpinLockInitialState);
@@ -33,28 +101,205 @@ public class Kernel : Sys.Kernel
         TR.Run("SpinLock_TryAcquire_SucceedsOnUnlocked", TestSpinLockTryAcquireSuccess);
         TR.Run("SpinLock_TryAcquire_FailsOnLocked", TestSpinLockTryAcquireFail);
 
+        // Monitor/lock tests
+        TR.Run("Monitor_Enter_Exit_BasicLocking", TestMonitorEnterExitBasic);
+        TR.Run("Monitor_Enter_Reentrant_SameThread", TestMonitorReentrant);
+        TR.Run("Monitor_Enter_RefBool_SetsLockTaken", TestMonitorEnterRefBool);
+        TR.Run("Monitor_TryEnter_Succeeds", TestMonitorTryEnter);
+        TR.Run("Lock_Statement_BasicExecution", TestLockStatementBasic);
+        TR.Run("Lock_Statement_ProtectsSharedData", TestLockProtectsSharedData);
+        TR.Run("Lock_Statement_Reentrant", TestLockReentrant);
+        TR.Run("Monitor_Exit_WithoutEnter_DoesNotCrash", TestMonitorExitWithoutEnter);
+
         // Thread tests
         TR.Run("Thread_Start_ExecutesDelegate", TestThreadExecution);
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
+        TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
+        TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
+        TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
+        TR.Run("Mutex_ReleaseHandsOffToParkedWaiter", TestMutexReleaseHandsOff);
+
+        // ThreadPool / Task / async-await tests (validate fix for #245, #246)
+        TR.Run("ThreadPool_QueueUserWorkItem_ExecutesCallback", TestThreadPoolQueueUserWorkItem);
+        TR.Run("Task_FromResult_IsCompleted", TestTaskFromResult);
+        TR.Run("Task_Run_ExecutesAction", TestTaskRunExecutesAction);
+        TR.Run("Task_Run_ReturnsResult", TestTaskRunReturnsResult);
+        TR.Run("Async_Method_ReturnsValueViaCompletedTask", TestAsyncCompletedTask);
+        TR.Run("Async_Await_TaskRun_ReturnsValue", TestAsyncAwaitsTaskRun);
+        TR.Run("Async_Chain_PropagatesValue", TestAsyncChain);
+
+        // Delegate tests
+        TR.Run("Delegate_Action_BasicInvoke", TestDelegateActionBasicInvoke);
+        TR.Run("Delegate_Func_ReturnsValue", TestDelegateFuncReturnsValue);
+        TR.Run("Delegate_ActionT_WithParameter", TestDelegateActionWithParameter);
+        TR.Run("Delegate_FuncT_Transform", TestDelegateFuncTransform);
+        TR.Run("Delegate_CustomType_VoidNoParam", TestDelegateCustomVoid);
+        TR.Run("Delegate_CustomType_WithReturn", TestDelegateCustomWithReturn);
+        TR.Run("Delegate_StaticMethod", TestDelegateStaticMethod);
+        TR.Run("Delegate_InstanceMethod", TestDelegateInstanceMethod);
+        TR.Run("Delegate_Multicast_BothCalled", TestDelegateMulticastBothCalled);
+        TR.Run("Delegate_Multicast_InvocationOrder", TestDelegateMulticastOrder);
+        TR.Run("Delegate_Multicast_Remove", TestDelegateMulticastRemove);
+        TR.Run("Delegate_Multicast_GetInvocationList", TestDelegateMulticastGetInvocationList);
+        TR.Run("Delegate_Closure_CapturesLocal", TestDelegateClosureCapturesLocal);
+        TR.Run("Delegate_Closure_MutableCapture", TestDelegateClosureMutableCapture);
+        TR.Run("Delegate_Closure_SharedCapture", TestDelegateClosureSharedCapture);
+        TR.Run("Delegate_Null_SafeInvoke", TestDelegateNullSafeInvoke);
+        TR.Run("Delegate_Equality_SameMethod", TestDelegateEqualitySameMethod);
+        TR.Run("Delegate_Equality_DifferentMethod", TestDelegateEqualityDifferentMethod);
+        TR.Run("Delegate_AsParameter", TestDelegateAsParameter);
+        TR.Run("Delegate_AsReturnValue", TestDelegateAsReturnValue);
+        TR.Run("Delegate_Generic_ValueType", TestDelegateGenericValueType);
+        TR.Run("Delegate_Predicate", TestDelegatePredicate);
+        TR.Run("Delegate_Comparison", TestDelegateComparison);
+        TR.Run("Delegate_Chaining_Pipeline", TestDelegateChaining);
+        TR.Run("Delegate_EventPattern_Multicast", TestDelegateEventPattern);
 
         // Finish test suite
         TR.Finish();
 
         Serial.WriteString("\n[Tests Complete - System Halting]\n");
-
-        Stop();
     }
 
     protected override void Run()
     {
-        // Tests completed in BeforeRun, nothing to do here
+        // All tests ran in BeforeRun; stop the main loop after one iteration
+        Stop();
     }
 
     protected override void AfterRun()
     {
-        Cosmos.Kernel.Kernel.Halt();
+        // Flush coverage data and signal QEMU to terminate
+        TR.Complete();
+        Cosmos.Kernel.System.Power.Halt();
+    }
+
+    // ==================== Monitor/Lock Tests ====================
+
+    private static void TestMonitorEnterExitBasic()
+    {
+        object obj = new object();
+        Monitor.Enter(obj);
+        bool isEntered = Monitor.IsEntered(obj);
+        Monitor.Exit(obj);
+        Assert.True(isEntered, "Monitor.IsEntered should return true while lock is held");
+    }
+
+    private static void TestMonitorReentrant()
+    {
+        object obj = new object();
+        Monitor.Enter(obj);
+        Monitor.Enter(obj);
+        Monitor.Enter(obj);
+        // If we got here without deadlock, reentrant acquisition works
+        Monitor.Exit(obj);
+        Monitor.Exit(obj);
+        Monitor.Exit(obj);
+        Assert.True(true, "Reentrant Monitor.Enter should not deadlock");
+    }
+
+    private static void TestMonitorEnterRefBool()
+    {
+        object obj = new object();
+        bool lockTaken = false;
+        Monitor.Enter(obj, ref lockTaken);
+        Assert.True(lockTaken, "lockTaken should be true after Monitor.Enter");
+        Monitor.Exit(obj);
+    }
+
+    private static void TestMonitorTryEnter()
+    {
+        object obj = new object();
+        bool result = Monitor.TryEnter(obj);
+        Assert.True(result, "TryEnter should succeed on uncontested object");
+        if (result)
+        {
+            Monitor.Exit(obj);
+        }
+    }
+
+    private static void TestLockStatementBasic()
+    {
+        object obj = new object();
+        bool bodyExecuted = false;
+        lock (obj)
+        {
+            bodyExecuted = true;
+        }
+        Assert.True(bodyExecuted, "lock statement body should execute");
+    }
+
+    private static void TestLockProtectsSharedData()
+    {
+        Serial.WriteString("[Test] Testing lock with threads...\n");
+        _lockCounter = 0;
+
+        SysThread thread1 = new SysThread(() =>
+        {
+            for (int i = 0; i < LockIterationsPerThread; i++)
+            {
+                lock (_lockObj)
+                {
+                    _lockCounter++;
+                }
+            }
+        });
+
+        SysThread thread2 = new SysThread(() =>
+        {
+            for (int i = 0; i < LockIterationsPerThread; i++)
+            {
+                lock (_lockObj)
+                {
+                    _lockCounter++;
+                }
+            }
+        });
+
+        thread1.Start();
+        thread2.Start();
+
+        TimerManager.Wait(LockTestInitialWaitMs);
+
+        for (int i = 0; i < MaxExtraWaitRetries && _lockCounter < ExpectedTotalIncrements; i++)
+        {
+            TimerManager.Wait(RetryWaitMs);
+        }
+
+        Serial.WriteString("[Test] Lock counter: ");
+        Serial.WriteNumber((uint)_lockCounter);
+        Serial.WriteString("\n");
+
+        Assert.Equal(ExpectedTotalIncrements, _lockCounter);
+    }
+
+    private static void TestLockReentrant()
+    {
+        object obj = new object();
+        lock (obj)
+        {
+            lock (obj)
+            {
+                // Nested lock on same object should not deadlock
+            }
+        }
+        Assert.True(true, "Nested lock on same object should not deadlock");
+    }
+
+    private static void TestMonitorExitWithoutEnter()
+    {
+        object obj = new object();
+        try
+        {
+            Monitor.Exit(obj); // Should not crash        
+            Assert.Fail("Monitor.Exit should throw if owning thread doesn't own the lock");
+        }
+        catch(SynchronizationLockException)
+        {
+            Assert.True(true, "Monitor.Exit without prior Enter should not crash");
+        }
     }
 
     // ==================== SpinLock Tests ====================
@@ -114,12 +359,12 @@ public class Kernel : Sys.Kernel
 
         // Wait longer for thread to execute (give scheduler more time)
         Serial.WriteString("[Test] Waiting for thread execution...\n");
-        TimerManager.Wait(1000);
+        TimerManager.Wait(ThreadStartupWaitMs);
 
         // Check multiple times with delays
-        for (int i = 0; i < 5 && !_threadExecuted; i++)
+        for (int i = 0; i < ThreadExecPollRetries && !_threadExecuted; i++)
         {
-            TimerManager.Wait(200);
+            TimerManager.Wait(ThreadPollWaitMs);
         }
 
         Assert.True(_threadExecuted, "Thread delegate should have executed");
@@ -131,6 +376,252 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Thread] Delegate executing!\n");
         _threadExecuted = true;
         Serial.WriteString("[Thread] Delegate completed!\n");
+    }
+
+    // ===== Mutex idle-thread contention (scheduler Mutex, not System.Threading) =====
+    // The main kernel thread is the scheduler's idle thread. Blocking it
+    // (BlockThread) only gets it resurrected by the PickNext ?? IdleThread
+    // fallback on the next tick, which re-runs Mutex.Acquire's retry loop:
+    // every pass calls OnThreadBlocked again and subtracts tickets that
+    // OnThreadReady never added, so TotalTickets drifts (and underflows).
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _idleMutex;
+    private static volatile bool _mutexWorkerHolding;
+    private static volatile bool _mutexMainContending;
+    private static volatile bool _mutexTestDone;
+    private static volatile bool _mutexWorkerExited;
+
+    private static void TestMutexIdleThreadContention()
+    {
+        uint cpuId = SchedulerManager.GetCurrentCpuId();
+        Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData? cpuData =
+            SchedulerManager.GetCpuState(cpuId)
+                .GetSchedulerData<Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData>();
+        Assert.True(cpuData != null, "stride per-CPU data should exist");
+
+        _idleMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _mutexWorkerHolding = false;
+        _mutexMainContending = false;
+        _mutexTestDone = false;
+        _mutexWorkerExited = false;
+
+        var worker = new global::System.Threading.Thread(MutexIdleWorker);
+        worker.Start();
+
+        for (int i = 0; i < FlagPollRetries && !_mutexWorkerHolding; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_mutexWorkerHolding, "worker should hold the mutex");
+
+        // Both reads happen with the worker runnable (it spins on the flags,
+        // never blocking), so any delta comes from the idle thread's own
+        // block/ready churn inside Acquire.
+        ulong before = cpuData!.TotalTickets;
+
+        _mutexMainContending = true;
+        _idleMutex.Acquire();
+        _idleMutex.Release();
+
+        ulong after = cpuData.TotalTickets;
+        _mutexTestDone = true;
+
+        // Keep the cell hermetic: wait for the worker to leave its spin and
+        // give its exit path time to finish inside THIS cell, so the
+        // scheduler bookkeeping of the exit can't interleave with the next
+        // cell's thread creation.
+        for (int i = 0; i < FlagPollRetries && !_mutexWorkerExited; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.True(before == after, "idle-thread contention must not drift TotalTickets");
+    }
+
+    private static void MutexIdleWorker()
+    {
+        _idleMutex!.Acquire();
+        _mutexWorkerHolding = true;
+        while (!_mutexMainContending)
+        {
+            // spin until the main (idle) thread is about to contend
+        }
+        // Hold across several scheduler ticks so the contending idle thread
+        // goes through its block/resurrect cycle more than once.
+        TimerManager.Wait(IdleMutexHoldMs);
+        _idleMutex.Release();
+        while (!_mutexTestDone)
+        {
+            // stay runnable until the main thread has sampled TotalTickets
+        }
+        _mutexWorkerExited = true;
+    }
+
+    // ===== Multi-waiter paths (List<Thread> scans on non-empty lists) =====
+    // The single-waiter driver flow keeps _waiters/_waitingThreads empty at
+    // the Contains call, so the list-scan path (EqualityComparer<Thread>)
+    // is otherwise never exercised: the second parked waiter/contender here
+    // is what actually walks a non-empty list.
+    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _twoWaiterEvent;
+    private static volatile bool _waiterAParked, _waiterBParked;
+    private static volatile bool _waiterAWoke, _waiterBWoke;
+
+    private static void TestInterruptEventTwoWaiters()
+    {
+        _twoWaiterEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
+        _waiterAParked = _waiterBParked = false;
+        _waiterAWoke = _waiterBWoke = false;
+
+        var w1 = new global::System.Threading.Thread(TwoWaiterWorkerA);
+        var w2 = new global::System.Threading.Thread(TwoWaiterWorkerB);
+        w1.Start();
+        w2.Start();
+
+        // Let both workers reach Wait() and park; the second one walks the
+        // one-element waiter list on its way in.
+        for (int i = 0; i < FlagPollRetries && !(_waiterAParked && _waiterBParked); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(FlagPollIntervalMs);
+
+        _twoWaiterEvent.Signal();
+        _twoWaiterEvent.Signal();
+
+        for (int i = 0; i < FlagPollRetries && !(_waiterAWoke && _waiterBWoke); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+        Assert.True(_waiterAWoke && _waiterBWoke, "both parked waiters must be woken by two signals");
+    }
+
+    private static void TwoWaiterWorkerA()
+    {
+        _waiterAParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterAWoke = true;
+    }
+
+    private static void TwoWaiterWorkerB()
+    {
+        _waiterBParked = true;
+        _twoWaiterEvent!.Wait();
+        _waiterBWoke = true;
+    }
+
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _contendedMutex;
+    private static volatile int _contenderAcquisitions;
+
+    private static void TestMutexThreeContenders()
+    {
+        _contendedMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _contenderAcquisitions = 0;
+
+        var c1 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c2 = new global::System.Threading.Thread(MutexContenderWorker);
+        var c3 = new global::System.Threading.Thread(MutexContenderWorker);
+        c1.Start();
+        c2.Start();
+        c3.Start();
+
+        // The holder keeps the mutex across several ticks, so the two other
+        // contenders both queue up — the last one scans a non-empty
+        // _waitingThreads list.
+        for (int i = 0; i < ContenderPollRetries && _contenderAcquisitions < ContenderCount; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+        Assert.Equal(ContenderCount, _contenderAcquisitions, "all three contenders must acquire the mutex in turn");
+    }
+
+    private static void MutexContenderWorker()
+    {
+        _contendedMutex!.Acquire();
+        // Hold across a few ticks so the other contenders pile up in
+        // _waitingThreads; the increment is protected by the mutex itself.
+        TimerManager.Wait(MutexContenderHoldMs);
+        _contenderAcquisitions++;
+        _contendedMutex.Release();
+    }
+
+    // ===== Release hand-off (anti-barging) =====
+    // Release used to clear ownership and merely ready the parked waiter;
+    // until that waiter's retry ran, ANY thread could re-take the mutex and
+    // send the waiter to the back of the queue again — repeatable, so a
+    // waiter on a contended mutex could starve. The releaser's immediate
+    // TryAcquire is the deterministic probe: with ownership handed off in
+    // Release it must fail.
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _handoffMutex;
+    private static volatile bool _handoffWorkerHolding;
+    private static volatile bool _handoffReleaseRequested;
+    private static volatile bool _handoffContenderAcquired;
+    private static volatile int _handoffBargeResult; // -1 pending, 0 no barge, 1 barged
+
+    private static void TestMutexReleaseHandsOff()
+    {
+        _handoffMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _handoffWorkerHolding = false;
+        _handoffReleaseRequested = false;
+        _handoffContenderAcquired = false;
+        _handoffBargeResult = BargeResultPending;
+
+        var holder = new global::System.Threading.Thread(HandoffHolderWorker);
+        holder.Start();
+        for (int i = 0; i < FlagPollRetries && !_handoffWorkerHolding; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_handoffWorkerHolding, "holder should own the mutex");
+
+        var contender = new global::System.Threading.Thread(HandoffContenderWorker);
+        contender.Start();
+        // Give the contender a few quanta to park in _waitingThreads.
+        TimerManager.Wait(ContenderParkWaitMs);
+
+        _handoffReleaseRequested = true;
+        for (int i = 0; i < FlagPollRetries && _handoffBargeResult == BargeResultPending; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        for (int i = 0; i < FlagPollRetries && !_handoffContenderAcquired; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+
+        // Exit grace: both worker threads finished their work above; give
+        // their exit paths time to complete inside this cell (see the
+        // idle-contention cell for the rationale).
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.Equal(BargeResultNoBarge, _handoffBargeResult,
+            "Release must hand the mutex to the parked waiter; the releaser's immediate TryAcquire barged in");
+        Assert.True(_handoffContenderAcquired, "the parked waiter must end up owning the mutex");
+    }
+
+    private static void HandoffHolderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffWorkerHolding = true;
+        while (!_handoffReleaseRequested)
+        {
+            // spin: stay runnable so the contender has to park behind us
+        }
+        _handoffMutex.Release();
+        bool barged = _handoffMutex.TryAcquire();
+        _handoffBargeResult = barged ? BargeResultBarged : BargeResultNoBarge;
+        if (barged)
+        {
+            _handoffMutex.Release();
+        }
+    }
+
+    private static void HandoffContenderWorker()
+    {
+        _handoffMutex!.Acquire();
+        _handoffContenderAcquired = true;
+        _handoffMutex.Release();
     }
 
     private static void TestMultipleThreads()
@@ -147,12 +638,12 @@ public class Kernel : Sys.Kernel
 
         // Wait much longer for both threads to complete (they each do 5 iterations with 50ms waits = 250ms minimum)
         // But scheduler overhead means we need more time
-        TimerManager.Wait(3000);
+        TimerManager.Wait(ThreadsCompletionWaitMs);
 
         // Additional waiting if not complete
-        for (int i = 0; i < 10 && (_thread1Counter < 5 || _thread2Counter < 5); i++)
+        for (int i = 0; i < MaxExtraWaitRetries && (_thread1Counter < WorkerIterationCount || _thread2Counter < WorkerIterationCount); i++)
         {
-            TimerManager.Wait(500);
+            TimerManager.Wait(RetryWaitMs);
         }
 
         Serial.WriteString("[Test] Thread1 counter: ");
@@ -161,17 +652,17 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((uint)_thread2Counter);
         Serial.WriteString("\n");
 
-        Assert.Equal(5, _thread1Counter);
-        Assert.Equal(5, _thread2Counter);
+        Assert.Equal(WorkerIterationCount, _thread1Counter);
+        Assert.Equal(WorkerIterationCount, _thread2Counter);
     }
 
     private static void Thread1Worker()
     {
         Serial.WriteString("[Thread1] Started\n");
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < WorkerIterationCount; i++)
         {
             _thread1Counter++;
-            TimerManager.Wait(50);
+            TimerManager.Wait(WorkerStepDelayMs);
         }
         Serial.WriteString("[Thread1] Completed\n");
     }
@@ -179,10 +670,10 @@ public class Kernel : Sys.Kernel
     private static void Thread2Worker()
     {
         Serial.WriteString("[Thread2] Started\n");
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < WorkerIterationCount; i++)
         {
             _thread2Counter++;
-            TimerManager.Wait(50);
+            TimerManager.Wait(WorkerStepDelayMs);
         }
         Serial.WriteString("[Thread2] Completed\n");
     }
@@ -200,12 +691,12 @@ public class Kernel : Sys.Kernel
         thread2.Start();
 
         // Wait much longer for threads to complete (100 lock/unlock iterations each)
-        TimerManager.Wait(5000);
+        TimerManager.Wait(LockTestInitialWaitMs);
 
         // Additional waiting if not complete
-        for (int i = 0; i < 10 && _sharedCounter < 200; i++)
+        for (int i = 0; i < MaxExtraWaitRetries && _sharedCounter < ExpectedTotalIncrements; i++)
         {
-            TimerManager.Wait(500);
+            TimerManager.Wait(RetryWaitMs);
         }
 
         Serial.WriteString("[Test] Final counter: ");
@@ -213,13 +704,13 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("\n");
 
         // With proper locking, counter should be exactly 200
-        Assert.Equal(200, _sharedCounter);
+        Assert.Equal(ExpectedTotalIncrements, _sharedCounter);
     }
 
     private static void SpinLockThread1Worker()
     {
         Serial.WriteString("[Thread1] Starting increments\n");
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < LockIterationsPerThread; i++)
         {
             _testLock.Acquire();
             _sharedCounter++;
@@ -231,7 +722,7 @@ public class Kernel : Sys.Kernel
     private static void SpinLockThread2Worker()
     {
         Serial.WriteString("[Thread2] Starting increments\n");
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < LockIterationsPerThread; i++)
         {
             _testLock.Acquire();
             _sharedCounter++;
@@ -255,9 +746,432 @@ public class Kernel : Sys.Kernel
 
         thread.Start();
 
-        TimerManager.Wait(100); // Wait 10ms for the thread to finish.
+        TimerManager.Wait(ThreadStaticsWaitMs); // Wait 10ms for the thread to finish.
 
         Assert.Equal(18, StaticValue);
         Assert.Equal(42, secondThreadValue);
+    }
+
+    // ==================== ThreadPool / Task / Async-Await Tests ====================
+
+    private static volatile bool _threadPoolExecuted;
+
+    private static void TestThreadPoolQueueUserWorkItem()
+    {
+        Serial.WriteString("[Test] Testing ThreadPool.QueueUserWorkItem...\n");
+        _threadPoolExecuted = false;
+
+        ThreadPool.QueueUserWorkItem(_ => { _threadPoolExecuted = true; });
+
+        for (int i = 0; i < TaskPollRetries && !_threadPoolExecuted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(_threadPoolExecuted, "ThreadPool work item should execute");
+    }
+
+    private static void TestTaskFromResult()
+    {
+        Task<int> t = Task.FromResult(42);
+        Assert.True(t.IsCompleted, "Task.FromResult should be already completed");
+        Assert.Equal(42, t.Result, "Task.FromResult should expose the value via .Result");
+    }
+
+    private static void TestTaskRunExecutesAction()
+    {
+        Serial.WriteString("[Test] Testing Task.Run with Action...\n");
+        bool ran = false;
+
+        Task t = Task.Run(() => { ran = true; });
+
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(t.IsCompleted, "Task.Run task should reach completion");
+        Assert.True(ran, "Task.Run delegate should have executed");
+    }
+
+    private static void TestTaskRunReturnsResult()
+    {
+        Serial.WriteString("[Test] Testing Task.Run<int>...\n");
+        Task<int> t = Task.Run(() => 7 * 6);
+
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(t.IsCompleted, "Task<int>.Run task should reach completion");
+        Assert.Equal(42, t.Result, "Task<int>.Run should return computed value");
+    }
+
+    private static async Task<int> AsyncReturnsValue()
+    {
+        await Task.CompletedTask;
+        return 42;
+    }
+
+    private static void TestAsyncCompletedTask()
+    {
+        Serial.WriteString("[Test] Testing async method with awaited completed task...\n");
+        Task<int> t = AsyncReturnsValue();
+
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(t.IsCompleted, "Async method should complete");
+        Assert.Equal(42, t.Result, "Async method should return 42 via await");
+    }
+
+    private static async Task<int> AsyncAwaitsTaskRun()
+    {
+        return await Task.Run(() => 21 + 21);
+    }
+
+    private static void TestAsyncAwaitsTaskRun()
+    {
+        Serial.WriteString("[Test] Testing async method awaiting Task.Run...\n");
+        Task<int> t = AsyncAwaitsTaskRun();
+
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(t.IsCompleted, "Async method awaiting Task.Run should complete");
+        Assert.Equal(42, t.Result, "Awaited Task.Run should yield 42");
+    }
+
+    private static async Task<int> InnerAsync(int x)
+    {
+        await Task.CompletedTask;
+        return x + 1;
+    }
+
+    private static async Task<int> OuterAsync()
+    {
+        int a = await InnerAsync(10);
+        int b = await InnerAsync(31);
+        return a + b;
+    }
+
+    private static void TestAsyncChain()
+    {
+        Serial.WriteString("[Test] Testing async chain composition...\n");
+        Task<int> t = OuterAsync();
+
+        for (int i = 0; i < TaskPollRetries && !t.IsCompleted; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(t.IsCompleted, "Chained async method should complete");
+        Assert.Equal(43, t.Result, "Async chain (10+1) + (31+1) should equal 43");
+    }
+
+    // ==================== Delegate Tests ====================
+
+    // --- Basic invocation ---
+
+    private static void TestDelegateActionBasicInvoke()
+    {
+        bool invoked = false;
+        Action action = () => { invoked = true; };
+        action();
+        Assert.True(invoked, "Action delegate should set invoked flag when called");
+    }
+
+    private static void TestDelegateFuncReturnsValue()
+    {
+        Func<int> getAnswer = () => 42;
+        int result = getAnswer();
+        Assert.Equal(42, result, "Func<int> should return 42");
+    }
+
+    private static void TestDelegateActionWithParameter()
+    {
+        int received = 0;
+        Action<int> action = (x) => { received = x; };
+        action(99);
+        Assert.Equal(99, received, "Action<int> should receive and store the parameter");
+    }
+
+    private static void TestDelegateFuncTransform()
+    {
+        Func<int, int> doubler = x => x * 2;
+        int result = doubler(21);
+        Assert.Equal(42, result, "Func<int,int> should double the input");
+    }
+
+    // --- Custom delegate types ---
+
+    private static void TestDelegateCustomVoid()
+    {
+        bool called = false;
+        VoidDelegate d = () => { called = true; };
+        d();
+        Assert.True(called, "Custom void delegate should be invoked");
+    }
+
+    private static void TestDelegateCustomWithReturn()
+    {
+        BinaryIntDelegate add = (a, b) => a + b;
+        int result = add(10, 32);
+        Assert.Equal(42, result, "Custom BinaryIntDelegate should add the two parameters");
+    }
+
+    // --- Static and instance method delegates ---
+
+    private static int StaticMultiply(int x, int y) => x * y;
+
+    private static void TestDelegateStaticMethod()
+    {
+        Func<int, int, int> multiply = StaticMultiply;
+        int result = multiply(6, 7);
+        Assert.Equal(42, result, "Delegate bound to static method should compute 6*7=42");
+    }
+
+    private class DelegateAccumulator
+    {
+        public int Total { get; private set; }
+        public void Add(int value) => Total += value;
+    }
+
+    private static void TestDelegateInstanceMethod()
+    {
+        var accumulator = new DelegateAccumulator();
+        Action<int> add = accumulator.Add;
+        add(10);
+        add(32);
+        Assert.Equal(42, accumulator.Total, "Instance method delegate should accumulate values into the bound object");
+    }
+
+    // --- Multicast delegates ---
+
+    private static void TestDelegateMulticastBothCalled()
+    {
+        int callCount = 0;
+        Action a = () => { callCount++; };
+        Action b = () => { callCount++; };
+        Action combined = a + b;
+        combined();
+        Assert.Equal(2, callCount, "Multicast delegate should invoke both handlers");
+    }
+
+    private static void TestDelegateMulticastOrder()
+    {
+        // Verify that multicast delegates invoke handlers in registration order
+        int[] log = new int[3];
+        int index = 0;
+
+        Action first = () => { log[index] = 1; index++; };
+        Action second = () => { log[index] = 2; index++; };
+        Action third = () => { log[index] = 3; index++; };
+
+        Action combined = first + second + third;
+        combined();
+
+        Assert.Equal(1, log[0], "First handler should be invoked first");
+        Assert.Equal(2, log[1], "Second handler should be invoked second");
+        Assert.Equal(3, log[2], "Third handler should be invoked third");
+    }
+
+    private static void TestDelegateMulticastRemove()
+    {
+        int callCount = 0;
+        Action a = () => { callCount++; };
+        Action b = () => { callCount += 10; };
+
+        Action combined = a + b;
+        combined -= b;
+        combined();
+
+        // Only 'a' should remain: callCount == 1, not 11
+        Assert.Equal(1, callCount, "After removing handler b, only handler a should fire");
+    }
+
+    private static void TestDelegateMulticastGetInvocationList()
+    {
+        Action a = () => { };
+        Action b = () => { };
+        Action c = () => { };
+
+        Action combined = a + b + c;
+        Delegate[] list = combined.GetInvocationList();
+
+        Assert.Equal(3, list.Length, "GetInvocationList should return 3 delegates after combining three");
+    }
+
+    // --- Closures ---
+
+    private static void TestDelegateClosureCapturesLocal()
+    {
+        int x = 10;
+        Func<int> getX = () => x;
+        int result = getX();
+        Assert.Equal(10, result, "Closure should capture the local variable value at invocation time");
+    }
+
+    private static void TestDelegateClosureMutableCapture()
+    {
+        // Lambda mutates the captured variable; outer scope sees the change
+        int counter = 0;
+        Action increment = () => { counter++; };
+
+        increment();
+        increment();
+        increment();
+
+        Assert.Equal(3, counter, "Closure should mutate the captured variable; outer scope should see 3");
+    }
+
+    private static void TestDelegateClosureSharedCapture()
+    {
+        // Two distinct lambdas capturing the same local variable share the same closure slot
+        int shared = 0;
+        Action addTen = () => { shared += 10; };
+        Action addFive = () => { shared += 5; };
+
+        addTen();
+        addFive();
+
+        Assert.Equal(15, shared, "Both closures sharing a captured variable should both modify it (10 + 5 = 15)");
+    }
+
+    // --- Null delegate ---
+
+    private static void TestDelegateNullSafeInvoke()
+    {
+        // ?. on a null delegate must not throw; it's a no-op
+        Action? nullDelegate = null;
+        nullDelegate?.Invoke();
+        // Reaching here without a fault means the test passes
+        Assert.True(true, "Null?.Invoke() should be a safe no-op and not fault");
+    }
+
+    // --- Delegate equality ---
+
+    private static void DelegateEqualityTarget1() { }
+    private static void DelegateEqualityTarget2() { }
+
+    private static void TestDelegateEqualitySameMethod()
+    {
+        // Two delegates wrapping the same static method must compare equal
+        Action a = DelegateEqualityTarget1;
+        Action b = DelegateEqualityTarget1;
+        Assert.True(a == b, "Delegates wrapping the same static method should be equal");
+    }
+
+    private static void TestDelegateEqualityDifferentMethod()
+    {
+        // Delegates wrapping different methods must compare unequal
+        Action a = DelegateEqualityTarget1;
+        Action b = DelegateEqualityTarget2;
+        Assert.True(a != b, "Delegates wrapping different methods should not be equal");
+    }
+
+    // --- Delegate as parameter and return value ---
+
+    private static int ApplyTransform(int value, Func<int, int> transform)
+    {
+        return transform(value);
+    }
+
+    private static void TestDelegateAsParameter()
+    {
+        Func<int, int> square = x => x * x;
+        int result = ApplyTransform(7, square);
+        Assert.Equal(49, result, "Delegate passed as parameter should be invoked: 7*7=49");
+    }
+
+    private static Func<int, int> CreateAdder(int amount)
+    {
+        return x => x + amount;
+    }
+
+    private static void TestDelegateAsReturnValue()
+    {
+        // CreateAdder captures 'amount' in a closure and returns the delegate
+        Func<int, int> addTen = CreateAdder(10);
+        int result = addTen(32);
+        Assert.Equal(42, result, "Factory-returned delegate should close over 'amount': 32+10=42");
+    }
+
+    // --- Generic delegates with value types ---
+
+    private static void TestDelegateGenericValueType()
+    {
+        Func<long, long> negate = x => -x;
+        long result = negate(42L);
+        Assert.Equal(-42L, result, "Generic Func<long,long> should negate the input");
+    }
+
+    // --- Predicate<T> ---
+
+    private static void TestDelegatePredicate()
+    {
+        Predicate<int> isEven = x => (x % 2) == 0;
+
+        Assert.True(isEven(4), "Predicate: 4 should be even");
+        Assert.False(isEven(7), "Predicate: 7 should be odd");
+        Assert.True(isEven(0), "Predicate: 0 should be even");
+        Assert.False(isEven(1), "Predicate: 1 should be odd");
+    }
+
+    // --- Comparison<T> ---
+
+    private static void TestDelegateComparison()
+    {
+        // Descending comparator: larger value sorts first
+        Comparison<int> descending = (a, b) => b - a;
+
+        // a=5, b=3 → b-a = -2 < 0 → a (5) comes before b (3) in descending order ✓
+        int result = descending(5, 3);
+        Assert.True(result < 0, "Descending comparison: compare(5,3) should be negative (5 before 3)");
+
+        result = descending(3, 5);
+        Assert.True(result > 0, "Descending comparison: compare(3,5) should be positive (3 after 5)");
+
+        result = descending(4, 4);
+        Assert.Equal(0, result, "Descending comparison: compare(4,4) should be zero (equal)");
+    }
+
+    // --- Delegate chaining / composition ---
+
+    private static void TestDelegateChaining()
+    {
+        Func<int, int> addOne = x => x + 1;
+        Func<int, int> multiplyByThree = x => x * 3;
+
+        // Manual pipeline: (13 + 1) * 3 = 42
+        Func<int, int> pipeline = x => multiplyByThree(addOne(x));
+        int result = pipeline(13);
+        Assert.Equal(42, result, "Composed pipeline (13+1)*3 should equal 42");
+    }
+
+    // --- Event-style multicast pattern ---
+
+    private static void TestDelegateEventPattern()
+    {
+        int eventFireCount = 0;
+        string? lastEventData = null;
+
+        // Simulate an event using a nullable multicast delegate
+        Action<string>? handlers = null;
+
+        // Subscribe two handlers
+        handlers += (data) => { eventFireCount++; lastEventData = data; };
+        handlers += (_) => { eventFireCount++; };
+
+        // Fire the event
+        handlers?.Invoke("hello");
+
+        Assert.Equal(2, eventFireCount, "Both event handlers should fire");
+        Assert.Equal("hello", lastEventData, "First handler should receive the event payload");
     }
 }

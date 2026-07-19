@@ -1,16 +1,8 @@
 <Project>
-  <!-- Platform detection -->
-  <PropertyGroup>
-    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
-    <IsMacOS Condition="'$(OS)' != 'Windows_NT' AND $([MSBuild]::IsOSPlatform('OSX'))">true</IsMacOS>
-    <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
-  </PropertyGroup>
+  <!-- Cross-OS assembler resolution via ResolveCosmosToolTask. -->
+  <Import Project="Asm.Build.targets"/>
 
-  <Import Project="Asm.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
-  <Import Project="Asm.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
-  <Import Project="Asm.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
-
-  <Target Name="FindSourceFilesForYasm" AfterTargets="Build">
+  <Target Name="FindAsmSourceFiles" AfterTargets="Build">
     <PropertyGroup>
       <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
     </PropertyGroup>
@@ -39,15 +31,14 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <!-- Search for .asm files (YASM/NASM) for x64, .s files (GNU AS) for ARM64 -->
-      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'x64' or '$(TargetArchitecture)' == ''">@(AsmSearchPath->'%(FullPath)/*.asm')</AsmSearchPattern>
-      <AsmSearchPattern Condition="'$(TargetArchitecture)' == 'arm64'">@(AsmSearchPath->'%(FullPath)/*.s')</AsmSearchPattern>
+      <!-- Both x64 and ARM64 use GAS-syntax .s files assembled by clang -->
+      <AsmSearchPattern>@(AsmSearchPath->'%(FullPath)/*.s')</AsmSearchPattern>
     </PropertyGroup>
 
     <Message Text="⚙️  [ASM] TargetArchitecture: $(TargetArchitecture), CosmosArch: $(CosmosArch)" Importance="High" />
     <Message Text="⚙️  [ASM] Searching assembly files on: @(AsmSearchPath)" Importance="High" />
     <ItemGroup>
-      <!-- Use the search pattern to find the .asm files -->
+      <!-- Use the search pattern to find the .s files -->
       <AsmSearch Include="$(AsmSearchPattern)" />
       <!-- Remove Duplicates -->
       <AsmSearch Remove="@(AsmFiles)" />
@@ -58,20 +49,23 @@
     <Message Text="✅ [ASM] Number of Asm files found: @(AsmFiles->Count())" Importance="High" />
   </Target>
 
-  <!-- Target that invokes the YasmBuildTask to compile assembly source files -->
-  <Target Name="BuildYasm" AfterTargets="Build" DependsOnTargets="FindSourceFilesForYasm; GetYasm">
+  <!-- Target that invokes the AsmBuildTask to compile assembly source files -->
+  <Target Name="BuildAsm" AfterTargets="Build" DependsOnTargets="FindAsmSourceFiles; GetAsmTool">
     <PropertyGroup>
-      <!-- Yasm fallback paths - ONLY for x64 (yasm doesn't support ARM64) -->
-      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == '' and Exists('/opt/homebrew/bin/yasm')">/opt/homebrew/bin/yasm</YasmPath>
-      <YasmPath Condition="'$(TargetArchitecture)' != 'arm64' and $(YasmPath) == ''">/usr/bin/yasm</YasmPath>
       <!-- Adjust output path if needed -->
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>
 
+    <!-- A kernel can never link without the native assembly sources: fail loudly here
+         instead of producing 38 undefined _native_*/Rhp* symbols at link time.
+         An empty list usually means the Cosmos.Kernel.Native.X64/ARM64 package was not
+         restored (e.g. restore ran without the RuntimeIdentifier/CosmosArch the build uses). -->
+    <Error Condition="'@(AsmFiles)' == ''"
+           Text="No assembly source files found. The Cosmos.Kernel.Native.X64/ARM64 package providing them was likely missing at restore time — re-run restore with the same RuntimeIdentifier (-r) and CosmosArch as the build."/>
 
-    <!-- Invoke the custom Yasm task -->
-    <YasmBuildTask
-      YasmPath="$(YasmPath)"
+    <!-- Invoke the custom Asm task -->
+    <AsmBuildTask
+      ClangPath="$(AsmToolPath)"
       OutputPath="$(AsmOutputPath)"
       SourceFiles="@(AsmFiles)"
       TargetArchitecture="$(TargetArchitecture)" />
@@ -80,7 +74,7 @@
   </Target>
 
   <!-- Clean target to remove the asm folder -->
-  <Target Name="CleanYasm" BeforeTargets="Clean">
+  <Target Name="CleanAsm" BeforeTargets="Clean">
     <PropertyGroup>
       <AsmOutputPath>$(IntermediateOutputPath)/cosmos/asm/</AsmOutputPath>
     </PropertyGroup>

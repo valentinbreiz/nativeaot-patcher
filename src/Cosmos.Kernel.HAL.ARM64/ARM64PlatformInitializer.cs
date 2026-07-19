@@ -2,8 +2,13 @@
 
 using Cosmos.Build.API.Enum;
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.ARM64.Cpu;
+using Cosmos.Kernel.Core.ARM64.IO;
+using Cosmos.Kernel.Core.ARM64.Power;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.HAL.ARM64.Cpu;
+using Cosmos.Kernel.Core.Power;
+using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
 using Cosmos.Kernel.HAL.ARM64.Devices.Input;
 using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
@@ -18,16 +23,74 @@ namespace Cosmos.Kernel.HAL.ARM64;
 /// </summary>
 public class ARM64PlatformInitializer : IPlatformInitializer
 {
+    /// <summary>Number of microseconds in one second, used to convert the generic-timer frequency (Hz) into ticks per microsecond.</summary>
+    private const ulong MicrosecondsPerSecond = 1_000_000UL;
+
+    /// <summary>Crude spin iterations (dsb sy + isb barriers) per microsecond used when firmware left CNTFRQ unprogrammed.</summary>
+    private const uint FallbackSpinLoopsPerMicrosecond = 100;
+
     private GenericTimer? _timer;
-    private VirtioKeyboard? _virtioKeyboard;
-    private VirtioNet? _networkDevice;
 
     public string PlatformName => "ARM64";
     public PlatformArchitecture Architecture => PlatformArchitecture.ARM64;
 
     public IPortIO CreatePortIO() => new ARM64MemoryIO();
     public ICpuOps CreateCpuOps() => new ARM64CpuOps();
+    public IPowerOps CreatePowerOps() => new ARM64PowerOps();
     public IInterruptController CreateInterruptController() => new ARM64InterruptController();
+
+    public void PreparePciMapping(ulong ecamBase)
+    {
+        if (ecamBase != 0)
+        {
+            DeviceMapper.EnsureMapped(ecamBase);
+        }
+    }
+
+    public void EnsureMmioMapped(ulong physBase)
+    {
+        // Limine's HHDM on aarch64 only covers RAM with Normal-cacheable
+        // attributes; device MMIO has to be mapped explicitly as Device
+        // memory so register reads/writes aren't reordered or cached.
+        // Safe to call repeatedly — DeviceMapper.EnsureMapped no-ops if the
+        // mapping already exists.
+        if (physBase != 0)
+        {
+            DeviceMapper.EnsureMapped(physBase);
+        }
+    }
+
+    public void DmaBarrier()
+    {
+        // dsb sy + isb: orders Normal-memory descriptor/queue writes against
+        // the Device-memory doorbell store that follows (and device-written
+        // flags against the payload reads that follow them). ARM64 does not
+        // order Normal vs Device accesses on its own.
+        Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+    }
+
+    /// <inheritdoc />
+    public void DelayMicroseconds(uint microseconds)
+    {
+        // Generic-timer busy wait: CNTVCT/CNTFRQ are readable from EL1
+        // without any driver init, so this works during phase-3 device
+        // bring-up. Falls back to a crude spin if firmware left CNTFRQ
+        // unprogrammed (should not happen on QEMU virt or real EL2 boots).
+        ulong freq = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetFrequency();
+        if (freq == 0)
+        {
+            for (uint i = 0; i < microseconds * FallbackSpinLoopsPerMicrosecond; i++)
+            {
+                Cosmos.Kernel.Core.ARM64.Bridge.DeviceMapperNative.DsbIsb();
+            }
+            return;
+        }
+
+        ulong target = Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() + (freq * microseconds + (MicrosecondsPerSecond - 1UL)) / MicrosecondsPerSecond;
+        while (Cosmos.Kernel.Core.ARM64.Bridge.GenericTimerNative.GetCounter() < target)
+        {
+        }
+    }
 
     public void InitializeHardware()
     {
@@ -40,49 +103,27 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         Serial.WriteString("[ARM64HAL] Registering timer interrupt handler...\n");
         _timer.RegisterIRQHandler();
 
-        // Scan for virtio devices
-        Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
-        VirtioMMIO.ScanDevices();
+        // Initialize RTC (reads boot wall-clock time from PL031 if available)
+        Serial.WriteString("[ARM64HAL] Initializing RTC...\n");
+        new RTC().Initialize();
 
-        // Initialize virtio keyboard
-        _virtioKeyboard = VirtioKeyboard.FindAndCreate();
-        if (_virtioKeyboard != null)
+        if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
         {
-            _virtioKeyboard.Initialize();
-            if (_virtioKeyboard.IsInitialized)
-            {
-                Serial.WriteString("[ARM64HAL] Virtio keyboard initialized\n");
-            }
-            else
-            {
-                Serial.WriteString("[ARM64HAL] Virtio keyboard initialization failed\n");
-                _virtioKeyboard = null;
-            }
-        }
-        else
-        {
-            Serial.WriteString("[ARM64HAL] No virtio keyboard found\n");
+            DeviceMapper.EnsureMapped(VirtioMMIO.VIRTIO_MMIO_BASE);
+            // Scan for virtio devices
+            Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
+            VirtioDevice.InitializeDevices();
         }
 
-        // Try to find VirtioNet MMIO network device (if network feature enabled)
-        if (CosmosFeatures.NetworkEnabled)
-        {
-            Serial.WriteString("[ARM64HAL] Looking for VirtioNet MMIO network device...\n");
-            _networkDevice = VirtioNet.FindAndCreate();
-            if (_networkDevice != null)
-            {
-                Serial.WriteString("[ARM64HAL] VirtioNet MMIO device found, initializing...\n");
-                _networkDevice.Initialize();
-            }
-            else
-            {
-                Serial.WriteString("[ARM64HAL] No VirtioNet MMIO device found\n");
-            }
-        }
     }
 
     public ITimerDevice CreateTimer()
     {
+        if (!CosmosFeatures.TimerEnabled)
+        {
+            return null!;
+        }
+
         if (_timer == null)
         {
             _timer = new GenericTimer();
@@ -93,16 +134,27 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
     public IKeyboardDevice[] GetKeyboardDevices()
     {
-        if (_virtioKeyboard != null && _virtioKeyboard.IsInitialized)
+        if (!CosmosFeatures.KeyboardEnabled)
         {
-            return [_virtioKeyboard];
+            return [];
         }
-        return [];
+
+        return VirtioDevice.GetKeyboards();
+    }
+
+    public IMouseDevice[] GetMouseDevices()
+    {
+        if (!CosmosFeatures.MouseEnabled)
+        {
+            return [];
+        }
+
+        return VirtioDevice.GetMice();
     }
 
     public INetworkDevice? GetNetworkDevice()
     {
-        return _networkDevice;
+        return VirtioDevice.GetDevice<VirtioNet>();
     }
 
     public uint GetCpuCount()

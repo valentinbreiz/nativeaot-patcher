@@ -59,7 +59,9 @@ public unsafe struct ThreadContext
         fixed (byte* neon = Neon)
         {
             for (int i = 0; i < 512; i++)
+            {
                 neon[i] = 0;
+            }
         }
 
         // Clear all general purpose registers

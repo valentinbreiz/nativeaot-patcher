@@ -118,7 +118,9 @@ public static class ResourceManager
 
         uint endOffset = offset + numBytes;
         if (endOffset < numBytes || endOffset > aThis.Size)
+        {
             throw new BadImageFormatException();
+        }
 
         value = Utf8Decode(new((byte*)aThis.OffsetToAddress(offset), (int)numBytes));
 

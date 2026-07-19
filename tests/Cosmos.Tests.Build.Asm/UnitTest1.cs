@@ -18,23 +18,38 @@ public class UnitTest1
             .Callback<BuildErrorEventArgs>(e => errors.Add(e));
     }
 
-    [Theory]
-    [InlineData("/usr/bin/yasm", PlatformID.Unix)]
-    public void Test1(string path, PlatformID platform)
+    private static string GetClangPath()
     {
-        if (Environment.OSVersion.Platform != platform)
-            throw SkipException.ForSkip("skiping this test");
-
-        YasmBuildTask yasm = new()
+        var paths = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator);
+        if (paths != null)
         {
-            YasmPath = path,
-            SourceFiles = ["./asm/test.asm"],
+            string exeName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "clang.exe" : "clang";
+            foreach (var p in paths)
+            {
+                var fullPath = Path.Combine(p, exeName);
+                if (File.Exists(fullPath))
+                {
+                    return fullPath;
+                }
+            }
+        }
+        return "clang";
+    }
+
+    [Fact]
+    public void Test1()
+    {
+        AsmBuildTask asm = new()
+        {
+            ClangPath = GetClangPath(),
+            SourceFiles = ["./asm/test.s"],
             OutputPath = "./output",
+            TargetArchitecture = "x64",
             BuildEngine = buildEngine.Object
         };
 
 
-        bool success = yasm.Execute();
+        bool success = asm.Execute();
 
         Assert.True(success);
     }

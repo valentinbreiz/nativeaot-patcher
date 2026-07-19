@@ -1,0 +1,74 @@
+<Project>
+  <!-- Cross-OS clang resolution via ResolveCosmosToolTask. -->
+  <Import Project="CC.Build.targets"/>
+
+  <Target Name="FindCSourceFilesForCC" BeforeTargets="BuildCC">
+    <PropertyGroup>
+      <!-- Derive architecture from RID first, then fall back to CosmosArch -->
+      <TargetArchitecture Condition="'$(RuntimeIdentifier)' != '' and '$(TargetArchitecture)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</TargetArchitecture>
+      <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
+    </PropertyGroup>
+
+    <!-- Exclude Folders/Files that don't exist -->
+    <ItemGroup>
+      <NonExistentPaths Include="@(GCCProject)" Condition="!Exists('%(FullPath)')" />
+      <GCCProject Remove="@(NonExistentPaths)" />
+    </ItemGroup>
+
+    <Warning Text="Folder does not exist: %(NonExistentPaths.Identity)" Condition="@(NonExistentPaths) != ''" />
+
+    <!-- Override Folders For Architecture Specific Ones -->
+    <ItemGroup Condition="'$(TargetArchitecture)' != ''">
+      <GCCProjectWithArch Include="@(GCCProject)" Condition="Exists('%(FullPath)/$(TargetArchitecture)/')" />
+      <GCCProject Remove="@(GCCProjectWithArch)"/>
+      <GCCProject Include="@(GCCProjectWithArch->'%(FullPath)/$(TargetArchitecture)/')"/>
+    </ItemGroup>
+
+    <Message Text="[CC] Found C project directories: @(GCCProject)" Importance="High" />
+  </Target>
+
+  <!-- Target to compile C files with Clang -->
+  <Target Name="BuildCC" AfterTargets="BuildAsm" DependsOnTargets="FindCSourceFilesForCC; GetCC">
+    <PropertyGroup>
+      <CCOutputPath>$(IntermediateOutputPath)cosmos/cobj/</CCOutputPath>
+      <!-- Default compiler flags -->
+      <CCCompilerFlags Condition="'$(CCCompilerFlags)' == ''">-O2 -fno-stack-protector -nostdinc -fno-builtin</CCCompilerFlags>
+      <!-- Architecture-specific flags with target for cross-compilation -->
+      <CCCompilerFlags Condition="'$(TargetArchitecture)' == 'x64'">$(CCCompilerFlags) --target=x86_64-elf -DARCH_X64 -m64 -mcmodel=kernel -fno-PIC -ffreestanding</CCCompilerFlags>
+      <CCCompilerFlags Condition="'$(TargetArchitecture)' == 'arm64'">$(CCCompilerFlags) --target=aarch64-none-elf -DARCH_ARM64 -march=armv8-a -mcmodel=large -fno-PIC -ffreestanding -mno-outline-atomics</CCCompilerFlags>
+      <!-- Add include paths from GCCIncludePath items -->
+      <CCCompilerFlags Condition="'@(GCCIncludePath)' != ''">$(CCCompilerFlags) @(GCCIncludePath->'-I%(Identity)', ' ')</CCCompilerFlags>
+    </PropertyGroup>
+
+    <!-- Create output directory if needed -->
+    <MakeDir Directories="$(CCOutputPath)" Condition="!Exists('$(CCOutputPath)')" />
+
+    <!-- Flatten all GCCProject directories into a single .c file list -->
+    <PropertyGroup>
+      <CCSourcePattern>@(GCCProject->'%(FullPath)/*.c')</CCSourcePattern>
+    </PropertyGroup>
+    <ItemGroup>
+      <CSourceFiles Include="$(CCSourcePattern)" />
+    </ItemGroup>
+
+    <Message Text="[CC] C source files: @(CSourceFiles->Count())" Importance="High" />
+
+    <!-- Single invocation with all C files -->
+    <CCBuildTask
+      CCPath="$(CCPath)"
+      SourceFiles="@(CSourceFiles)"
+      OutputPath="$(CCOutputPath)"
+      CompilerFlags="$(CCCompilerFlags)" />
+
+    <Message Text="[CC] C files compiled to object files in: $(CCOutputPath)" Importance="High" />
+  </Target>
+
+  <!-- Clean target -->
+  <Target Name="CleanCC" BeforeTargets="Clean">
+    <PropertyGroup>
+      <CCOutputPath>$(IntermediateOutputPath)cosmos/cobj/</CCOutputPath>
+    </PropertyGroup>
+
+    <RemoveDir Directories="$(CCOutputPath)" />
+  </Target>
+</Project>

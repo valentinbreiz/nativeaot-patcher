@@ -1,12 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.ARM64.Cpu;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL.ARM64.Cpu;
 using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Input;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
@@ -17,18 +16,16 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Input;
 /// </summary>
 public unsafe class VirtioKeyboard : KeyboardDevice
 {
-    // Linux input event types
-    private const ushort EV_SYN = 0x00;
-    private const ushort EV_KEY = 0x01;
-    private const ushort EV_REL = 0x02;
-    private const ushort EV_ABS = 0x03;
-
-    // Event queue index
-    private const int EVENTQ = 0;
-    private const int STATUSQ = 1;
+    [StructLayout(LayoutKind.Sequential)]
+    private struct VirtioInputEvent
+    {
+        public ushort Type;
+        public ushort Code;
+        public uint Value;
+    }
 
     // Queue size
-    private const uint QUEUE_SIZE = 64;
+    private const uint QueueSize = 64;
 
     private readonly ulong _baseAddress;
     private readonly uint _irq;
@@ -37,15 +34,11 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
     // Event buffers
     private VirtioInputEvent* _eventBuffers;
-    private const int NUM_EVENT_BUFFERS = 32;
+    private const int EventBufferCount = 32;
 
     private bool _initialized;
     private bool _irqRegistered;
 
-    public static VirtioKeyboard? Instance { get; private set; }
-
-    // Static callback for key events (set by KeyboardManager) - mirrors x64 PS2Keyboard
-    // Note: OnKeyPressed (from base class) is set by KeyboardManager.RegisterKeyboard()
 
     /// <summary>
     /// Returns true if the device was successfully initialized.
@@ -54,40 +47,11 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
     public override bool KeyAvailable => false;  // Events are pushed via interrupt
 
-    private VirtioKeyboard(ulong baseAddress, uint irq, uint mmioVersion)
+    internal VirtioKeyboard(ulong baseAddress, uint irq, uint mmioVersion)
     {
         _baseAddress = baseAddress;
         _irq = irq;
         _mmioVersion = mmioVersion;
-    }
-
-    /// <summary>
-    /// Finds and creates a virtio keyboard device.
-    /// </summary>
-    public static VirtioKeyboard? FindAndCreate()
-    {
-        Serial.Write("[VirtioKeyboard] Searching for virtio-input device...\n");
-
-        if (!VirtioMMIO.FindDevice(VirtioMMIO.VIRTIO_DEV_INPUT, out ulong baseAddr, out uint irq))
-        {
-            Serial.Write("[VirtioKeyboard] No virtio-input device found\n");
-            return null;
-        }
-
-        // Read MMIO version (1 = legacy, 2 = modern)
-        uint version = VirtioMMIO.Read32(baseAddr, VirtioMMIO.REG_VERSION);
-
-        Serial.Write("[VirtioKeyboard] Found virtio-input at 0x");
-        Serial.WriteHex(baseAddr);
-        Serial.Write(" IRQ=");
-        Serial.WriteNumber(irq);
-        Serial.Write(" MMIO version=");
-        Serial.WriteNumber(version);
-        Serial.Write("\n");
-
-        var keyboard = new VirtioKeyboard(baseAddr, irq, version);
-        Instance = keyboard;
-        return keyboard;
     }
 
     /// <summary>
@@ -144,7 +108,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Set up event queue
-        if (!SetupQueue(EVENTQ))
+        if (!SetupQueue(VirtioInput.EVENTQ))
         {
             Serial.Write("[VirtioKeyboard] ERROR: Failed to setup event queue\n");
             VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_STATUS, VirtioMMIO.STATUS_FAILED);
@@ -152,14 +116,14 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         // Allocate event buffers and add to queue
-        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(NUM_EVENT_BUFFERS * sizeof(VirtioInputEvent)));
-        for (int i = 0; i < NUM_EVENT_BUFFERS; i++)
+        _eventBuffers = (VirtioInputEvent*)MemoryOp.Alloc((uint)(EventBufferCount * sizeof(VirtioInputEvent)));
+        for (int i = 0; i < EventBufferCount; i++)
         {
             AddEventBuffer(i);
         }
 
         // Notify device that buffers are available
-        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, EVENTQ);
+        VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
 
         // Set DRIVER_OK to complete initialization
         status = VirtioMMIO.Read32(_baseAddress, VirtioMMIO.REG_STATUS);
@@ -210,7 +174,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             return false;
         }
 
-        uint queueSize = maxSize < QUEUE_SIZE ? maxSize : QUEUE_SIZE;
+        uint queueSize = maxSize < QueueSize ? maxSize : QueueSize;
 
         Serial.Write("[VirtioKeyboard] Setting up queue ");
         Serial.WriteNumber((uint)queueIndex);
@@ -264,13 +228,17 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     private void AddEventBuffer(int bufferIndex)
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         int descIdx = _eventQueue.AllocDescriptor();
         if (descIdx < 0)
+        {
             return;
+        }
 
-        ulong bufferAddr = (ulong)(&_eventBuffers[bufferIndex]);
+        ulong bufferAddr = VirtioMMIO.VirtToPhys((ulong)(&_eventBuffers[bufferIndex]));
         _eventQueue.SetupDescriptor(descIdx, bufferAddr, (uint)sizeof(VirtioInputEvent),
             Virtqueue.VRING_DESC_F_WRITE, 0);
         _eventQueue.AddAvailable((ushort)descIdx);
@@ -279,46 +247,54 @@ public unsafe class VirtioKeyboard : KeyboardDevice
     /// <summary>
     /// Registers the IRQ handler for keyboard interrupts.
     /// </summary>
-    public void RegisterIRQHandler()
+    private void RegisterIRQHandler()
     {
         Serial.Write("[VirtioKeyboard] Registering IRQ handler for INTID ");
         Serial.WriteNumber(_irq);
         Serial.Write("\n");
 
-        // Configure interrupt as edge-triggered (virtio uses MSI-style signaling)
-        GIC.ConfigureInterrupt(_irq, true);
+        // Register handler BEFORE enabling the interrupt in the GIC.
+        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
-        // Enable interrupt in GIC
+        // Configure interrupt as level-triggered (VirtIO MMIO uses level-triggered signaling)
+        GIC.ConfigureInterrupt(_irq, false);
         GIC.SetPriority(_irq, 0x80);
         GIC.EnableInterrupt(_irq);
-
-        // Register handler
-        InterruptManager.SetHandler((byte)_irq, HandleIRQ);
 
         Serial.Write("[VirtioKeyboard] IRQ handler registered\n");
     }
 
     private static void HandleIRQ(ref IRQContext ctx)
     {
-        if (Instance == null || !Instance._initialized)
+        var keyboard = VirtioDevice.GetDeviceFromIRQ<VirtioKeyboard>(ctx.interrupt);
+
+        if (keyboard is null)
+        {
             return;
+        }
 
-        // Read and acknowledge interrupt
-        uint intStatus = VirtioMMIO.Read32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
-        VirtioMMIO.Write32(Instance._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        // ALWAYS acknowledge the virtio interrupt to deassert the level-triggered line.
+        uint intStatus = VirtioMMIO.Read32(keyboard._baseAddress, VirtioMMIO.REG_INTERRUPT_STATUS);
+        if (intStatus != 0)
+        {
+            VirtioMMIO.Write32(keyboard._baseAddress, VirtioMMIO.REG_INTERRUPT_ACK, intStatus);
+        }
 
-        //Serial.Write("[VirtioKeyboard] IRQ! status=0x");
-        //Serial.WriteHex(intStatus);
-        //Serial.Write("\n");
+        if (!keyboard._initialized)
+        {
+            return;
+        }
 
         // Process used buffers
-        Instance.ProcessEvents();
+        keyboard.ProcessEvents();
     }
 
     private void ProcessEvents()
     {
         if (_eventQueue == null)
+        {
             return;
+        }
 
         bool hasBuffers = _eventQueue.HasUsedBuffers();
         if (!hasBuffers)
@@ -329,12 +305,14 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         while (_eventQueue.HasUsedBuffers())
         {
             if (!_eventQueue.GetUsedBuffer(out uint id, out uint len))
+            {
                 break;
+            }
 
             // Process the event
             VirtioInputEvent* evt = &_eventBuffers[id];
 
-            if (evt->Type == EV_KEY)
+            if (evt->Type == VirtioInput.EV_KEY)
             {
                 // Convert Linux keycode to PS2 scan code
                 byte scanCode = LinuxToPS2ScanCode(evt->Code);
@@ -347,7 +325,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 //Serial.Write(released ? " released\n" : " pressed\n");
 
                 // Invoke instance callback (set by KeyboardManager.RegisterKeyboard)
-                Instance?.OnKeyPressed?.Invoke(scanCode, released);
+                OnKeyPressed?.Invoke(scanCode, released);
             }
 
             // Re-add buffer to queue
@@ -355,7 +333,7 @@ public unsafe class VirtioKeyboard : KeyboardDevice
             AddEventBuffer((int)id);
 
             // Notify device
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, EVENTQ);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_NOTIFY, VirtioInput.EVENTQ);
         }
     }
 
@@ -374,7 +352,9 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         }
 
         if (!_initialized || _eventQueue == null)
+        {
             return;
+        }
 
         _pollCount++;
 
@@ -416,27 +396,6 @@ public unsafe class VirtioKeyboard : KeyboardDevice
                 ProcessEvents();
             }
         }
-    }
-
-    /// <summary>
-    /// Static poll for use from timer or main loop.
-    /// </summary>
-    public static void PollStatic()
-    {
-        Instance?.Poll();
-    }
-
-    /// <summary>
-    /// Checks if GIC interrupt is pending.
-    /// </summary>
-    public void DebugGicState()
-    {
-        bool pending = GIC.IsInterruptPending(_irq);
-        Serial.Write("[VirtioKeyboard] GIC IRQ ");
-        Serial.WriteNumber(_irq);
-        Serial.Write(" pending=");
-        Serial.Write(pending ? "true" : "false");
-        Serial.Write("\n");
     }
 
     public override void UpdateLeds()
@@ -559,13 +518,5 @@ public unsafe class VirtioKeyboard : KeyboardDevice
 
             _ => 0x00    // Unknown key
         };
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct VirtioInputEvent
-    {
-        public ushort Type;
-        public ushort Code;
-        public uint Value;
     }
 }

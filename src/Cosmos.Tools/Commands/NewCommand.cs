@@ -15,6 +15,7 @@ public class NewSettings : CommandSettings
     [Description("Output directory (defaults to current directory)")]
     public string? Output { get; set; }
 
+    /*
     [CommandOption("-a|--arch")]
     [Description("Target architecture (x64, arm64)")]
     [DefaultValue("x64")]
@@ -24,6 +25,7 @@ public class NewSettings : CommandSettings
     [Description("Include graphics support")]
     [DefaultValue(true)]
     public bool Graphics { get; set; } = true;
+    */
 }
 
 public class NewCommand : AsyncCommand<NewSettings>
@@ -34,8 +36,8 @@ public class NewCommand : AsyncCommand<NewSettings>
         AnsiConsole.MarkupLine("  [bold]Creating Cosmos Kernel Project[/]");
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.MarkupLine($"  Name: [blue]{settings.Name}[/]");
-        AnsiConsole.MarkupLine($"  Architecture: [blue]{settings.Arch}[/]");
-        AnsiConsole.MarkupLine($"  Graphics: [blue]{(settings.Graphics ? "Yes" : "No")}[/]");
+        // AnsiConsole.MarkupLine($"  Architecture: [blue]{settings.Arch}[/]");
+        // AnsiConsole.MarkupLine($"  Graphics: [blue]{(settings.Graphics ? "Yes" : "No")}[/]");
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.WriteLine();
 
@@ -45,9 +47,11 @@ public class NewCommand : AsyncCommand<NewSettings>
         {
             "new", "cosmos-kernel",
             "-n", settings.Name,
-            "-o", outputDir,
+            "-o", outputDir
+            /*
             "--TargetArch", settings.Arch,
             "--EnableGraphics", settings.Graphics.ToString().ToLower()
+            */
         };
 
         AnsiConsole.MarkupLine($"  [dim]Running: dotnet {string.Join(" ", args)}[/]");

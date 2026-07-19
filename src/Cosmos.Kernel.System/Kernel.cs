@@ -1,5 +1,6 @@
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Cpu;
 
 namespace Cosmos.Kernel.System;
 
@@ -7,7 +8,7 @@ namespace Cosmos.Kernel.System;
 /// Base class for all Cosmos user kernels.
 /// Provides the BeforeRun/Run/AfterRun lifecycle pattern.
 /// </summary>
-public abstract class Kernel
+public abstract partial class Kernel
 {
     protected bool mStarted;
     protected bool mStopped;
@@ -31,8 +32,13 @@ public abstract class Kernel
         Serial.WriteString("[Kernel] Calling OnBoot()...\n");
         OnBoot();
 
-        Serial.WriteString("[Kernel] Enabling interrupts...\n");
-        InternalCpu.EnableInterrupts();
+        if (InterruptManager.IsEnabled)
+        {
+            Serial.WriteString("[Kernel] Enabling interrupts...\n");
+            InternalCpu.EnableInterrupts();
+        }
+
+        EarlyGop.Enabled = false;
 
         Serial.WriteString("[Kernel] Calling BeforeRun()...\n");
         BeforeRun();

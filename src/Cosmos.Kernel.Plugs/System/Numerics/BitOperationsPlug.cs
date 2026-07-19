@@ -19,7 +19,9 @@ public static class BitOperationsPlug
     {
         // Log2(0) is undefined, but we return 0 to match CoreLib behavior
         if (value == 0)
+        {
             return 0;
+        }
 
         // Simple software implementation: count bits until we reach the highest set bit
         int result = 0;
@@ -40,7 +42,9 @@ public static class BitOperationsPlug
     {
         // Log2(0) is undefined, but we return 0 to match CoreLib behavior
         if (value == 0)
+        {
             return 0;
+        }
 
         // Simple software implementation: count bits until we reach the highest set bit
         int result = 0;

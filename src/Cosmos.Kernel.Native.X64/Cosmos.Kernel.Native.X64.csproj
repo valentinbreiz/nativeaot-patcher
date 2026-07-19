@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.37</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
@@ -16,17 +15,11 @@
 
   <ItemGroup>
     <Content Include="build\Cosmos.Kernel.Native.X64.props" PackagePath="build\" />
-    <Content Include="IO\*.asm" PackagePath="build\IO" />
-    <Content Include="Debug\*.asm" PackagePath="build\Debug" />
-    <Content Include="CPU\*.asm" PackagePath="build\CPU" />
-    <Content Include="Memory\*.asm" PackagePath="build\Memory" />
-    <Content Include="Runtime\*.asm" PackagePath="build\Runtime" />
-    <Content Include="ACPI\*.c" PackagePath="build\ACPI" />
-    <Content Include="ACPI\lai\core\*.c" PackagePath="build\ACPI\lai\core" />
-    <Content Include="ACPI\lai\core\*.h" PackagePath="build\ACPI\lai\core" />
-    <Content Include="ACPI\lai\helpers\*.c" PackagePath="build\ACPI\lai\helpers" />
-    <Content Include="ACPI\lai\drivers\*.c" PackagePath="build\ACPI\lai\drivers" />
-    <Content Include="ACPI\lai\include\**\*.h" PackagePath="build\ACPI\lai\include" />
+    <Content Include="IO\*.s" PackagePath="build\IO" />
+    <Content Include="Debug\*.s" PackagePath="build\Debug" />
+    <Content Include="CPU\*.s" PackagePath="build\CPU" />
+    <Content Include="Memory\*.s" PackagePath="build\Memory" />
+    <Content Include="Runtime\*.s" PackagePath="build\Runtime" />
   </ItemGroup>
 
 </Project>

@@ -12,7 +12,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-        TR.Start("TypeCasting Tests", expectedTests: 16);
+        TR.Start("TypeCasting Tests", expectedTests: 17);
 
         // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
         TR.Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);
@@ -49,21 +49,23 @@ public class Kernel : Sys.Kernel
         TR.Run("TryCatch_Filter_WhenFalse", TestTryCatchFilterWhenFalse);
         TR.Run("TryFinally", TestTryFinally);
         TR.Run("FilterAndCatchResume", TestFilterAndCatchResume);
+        TR.Run("TryCatch_ConsoleWriteLineExMessage", TestTryCatchConsoleWriteLineExMessage);
 
         Serial.WriteString("[TypeCasting Tests] All tests completed\n");
         TR.Finish();
-
-        Stop();
     }
 
     protected override void Run()
     {
-        // Tests completed in BeforeRun, nothing to do here
+        // All tests ran in BeforeRun; stop the main loop after one iteration
+        Stop();
     }
 
     protected override void AfterRun()
     {
-        Cosmos.Kernel.Kernel.Halt();
+        // Flush coverage data and signal QEMU to terminate
+        TR.Complete();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
     // ==================== Class Hierarchy Tests ====================
@@ -313,7 +315,7 @@ public class Kernel : Sys.Kernel
         }
 
         resumed = true;
-        
+
         Assert.True(filterRan, "Filter should have run");
         Assert.True(catchRan, "Catch should have run");
         Assert.True(resumed, "Execution should resume after catch");
@@ -323,6 +325,33 @@ public class Kernel : Sys.Kernel
     {
         flag = true;
         return true;
+    }
+
+    private static void TestTryCatchConsoleWriteLineExMessage()
+    {
+        const string expectedMessage = "hello world!";
+        string? caughtMessage = null;
+        bool consoleWriteLineReturned = false;
+        bool resumedAfterCatch = false;
+
+        try
+        {
+            throw new Exception(expectedMessage);
+        }
+        catch (Exception ex)
+        {
+            caughtMessage = ex.Message;
+            Console.WriteLine(ex.Message);
+            consoleWriteLineReturned = true;
+        }
+
+        resumedAfterCatch = true;
+
+        Assert.Equal(expectedMessage, caughtMessage);
+        Assert.True(consoleWriteLineReturned,
+            "Console.WriteLine(ex.Message) inside a catch must return without page-faulting");
+        Assert.True(resumedAfterCatch,
+            "Execution must resume after the catch funclet exits");
     }
 }
 

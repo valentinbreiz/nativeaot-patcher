@@ -104,10 +104,14 @@ public class PropertyPatcher
         foreach (Instruction instruction in method.Body.Instructions)
         {
             if (!opcodes.Contains(instruction.OpCode) || instruction.Operand is not FieldReference fr)
+            {
                 continue;
+            }
 
             if (!string.IsNullOrEmpty(fieldName) && fr.Resolve()?.Name != fieldName)
+            {
                 continue;
+            }
 
             int idx = method.Body.Instructions.IndexOf(instruction);
             return (instruction, idx);
@@ -154,7 +158,9 @@ public class PropertyPatcher
         foreach (Instruction instruction in instructions)
         {
             if (instruction.Operand is not FieldReference fieldRef || fieldRef.FullName != oldField.FullName)
+            {
                 continue;
+            }
 
             _log.Debug($"Replacing instruction: {instruction}");
 

@@ -8,14 +8,4 @@
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Memory/" />
     <AsmSearchPath Include="$(MSBuildThisFileDirectory)/Runtime/" />
   </ItemGroup>
-
-  <!-- Add C source directories for ACPI/LAI -->
-  <ItemGroup Condition="'$(RuntimeIdentifier)' == '' OR $(RuntimeIdentifier.EndsWith('-x64'))">
-    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/core/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/helpers/" />
-    <GCCProject Include="$(MSBuildThisFileDirectory)/ACPI/lai/drivers/" />
-    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/ACPI/lai/include/" />
-    <GCCIncludePath Include="$(MSBuildThisFileDirectory)/ACPI/lai/core/" />
-  </ItemGroup>
 </Project>

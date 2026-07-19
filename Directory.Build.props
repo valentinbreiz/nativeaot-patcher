@@ -19,8 +19,44 @@
 
   </PropertyGroup>
 
+  <!--
+    Single source of truth for the version of every Cosmos package.
+
+    The authoritative literal lives in `global.json` under
+    `msbuild-sdks.Cosmos.Sdk` — that's what MSBuild's SDK resolver reads for
+    `<Sdk Name="Cosmos.Sdk" />` references in every kernel csproj, so keeping
+    it in global.json lets in-repo kernels build without hardcoded versions.
+
+    Resolution order for $(VersionPrefix):
+      1. Env var / `-p:VersionPrefix=` override (Release CI sets this from the
+         git tag, e.g. `3.0.44`)
+      2. `msbuild-sdks.Cosmos.Sdk` in global.json (rewritten in-place by
+         `./.devcontainer/postCreateCommand.sh` to `<base>.<yyyyMMdd>` for
+         local dev / PR CI so packages get a unique dev version per day —
+         ALWAYS pick this up here so sibling csprojs built in a fresh shell
+         see the same value the setup script generated)
+
+    Everything else (Directory.Packages.props, the Cosmos.Sdk shipped Sdk.props,
+    the cosmos-kernel template, Cosmos.Kernel's generated VersionString and
+    kmain_version.h, the BuildCache test fixture) derives from $(VersionPrefix).
+  -->
   <PropertyGroup>
-    <VersionPrefix>3.0.37</VersionPrefix>
+    <_CosmosGlobalJsonPath>$(MSBuildThisFileDirectory)global.json</_CosmosGlobalJsonPath>
+    <VersionPrefix Condition="'$(VersionPrefix)' == '' and Exists('$(_CosmosGlobalJsonPath)')">$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(_CosmosGlobalJsonPath)')), '&quot;Cosmos\.Sdk&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</VersionPrefix>
+  </PropertyGroup>
+
+  <!--
+    AssemblyVersion / FileVersion must be `major.minor.build.revision` with each
+    component <= 65535, so we can't stuff a date-based revision (ddMMyyyy) in
+    there like VersionPrefix allows. Strip any trailing components beyond the
+    first three and append `.0` to produce a valid 4-part assembly version.
+    The full stamped $(VersionPrefix) is still used for the NuGet package
+    version, which has no such restriction.
+  -->
+  <PropertyGroup>
+    <_CosmosAssemblyBaseVersion>$([System.Text.RegularExpressions.Regex]::Match($(VersionPrefix), '^\d+\.\d+\.\d+').Value)</_CosmosAssemblyBaseVersion>
+    <AssemblyVersion Condition="'$(_CosmosAssemblyBaseVersion)' != ''">$(_CosmosAssemblyBaseVersion).0</AssemblyVersion>
+    <FileVersion Condition="'$(_CosmosAssemblyBaseVersion)' != ''">$(_CosmosAssemblyBaseVersion).0</FileVersion>
   </PropertyGroup>
 
   <!-- Normalize TargetArchitecture early so GCC targets pick the right toolchain -->
@@ -29,42 +65,11 @@
     <TargetArchitecture Condition="'$(TargetArchitecture)' == '' and '$(CosmosArch)' != ''">$(CosmosArch)</TargetArchitecture>
   </PropertyGroup>
 
-  <Target Name="SetDynamicVersion" BeforeTargets="GenerateAssemblyInfo">
-    <PropertyGroup>
-      <VersionSuffix>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmm"))</VersionSuffix>
-      <Version>$(VersionPrefix).$(VersionSuffix)</Version>
-    </PropertyGroup>
-    <Message Importance="High" Text="Version: $(Version)" />
-  </Target>
+  <!-- Clang defaults to 'clang' on PATH — set by Cosmos.Build.CC.props -->
 
-  <!-- Prefer Homebrew cross compilers when available to avoid hardcoded /opt/homebrew paths in downstream targets -->
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/opt/homebrew/bin/brew')">/opt/homebrew</HomebrewPrefix>
-    <HomebrewPrefix Condition="'$(HomebrewPrefix)' == '' and Exists('/usr/local/bin/brew')">/usr/local</HomebrewPrefix>
-
-    <!-- GCCPath only if not already set by the caller; mirrors ResolveHomebrewGCC but runs earlier as a safety net -->
-    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/opt/x86_64-elf-gcc/bin/x86_64-elf-gcc</GCCPath>
-    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'x64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/x86_64-elf-gcc')">$(HomebrewPrefix)/bin/x86_64-elf-gcc</GCCPath>
-    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/opt/aarch64-elf-gcc/bin/aarch64-elf-gcc</GCCPath>
-    <GCCPath Condition="'$(GCCPath)' == '' and '$(TargetArchitecture)' == 'arm64' and '$(HomebrewPrefix)' != '' and Exists('$(HomebrewPrefix)/bin/aarch64-elf-gcc')">$(HomebrewPrefix)/bin/aarch64-elf-gcc</GCCPath>
-  </PropertyGroup>
-
-  <!-- Override Native Assembly paths to use local source -->
-  <ItemGroup Condition="'$(CosmosArch)' == 'x64' AND Exists('$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Runtime/')">
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Runtime/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/IO/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/CPU/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Memory/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.X64/Debug/" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(CosmosArch)' == 'arm64' AND Exists('$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Runtime/')">
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Runtime/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/IO/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/CPU/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Memory/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Debug/" />
-    <AsmSearchPath Include="$(MSBuildThisFileDirectory)src/Cosmos.Kernel.Native.ARM64/Devices/" />
-  </ItemGroup>
+  <!-- Native ASM files come from the NuGet packages (Cosmos.Kernel.Native.X64/ARM64).
+       Local-source overrides removed to avoid duplicate-symbol conflicts when both the
+       local copy and the NuGet copy are picked up by AsmSearchPath. To iterate on native
+       ASM, rebuild the package via `make setup`. -->
 
 </Project>

@@ -1,0 +1,209 @@
+name: Release
+
+# Single source of version = git tag.
+# Push a `v*` tag (e.g. `v3.0.44`) to:
+#   1. Build all NuGet packages with VersionPrefix=<tag>
+#   2. Publish them to NuGet.org
+#   3. Build the Windows installer
+#   4. Create a GitHub release
+#
+# `workflow_dispatch` is available for manual reruns / testing; manual runs
+# only build artifacts and DO NOT publish to NuGet or create a GitHub release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (e.g., 3.0.44). Leave empty to derive from global.json.'
+        required: false
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  # ── Build all NuGet packages ─────────────────────────────────────────────────
+  build-packages:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 🔧 Cache Build Tools
+        id: cache-tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cosmos/tools
+          key: cosmos-tools-linux-x64-${{ hashFiles('.github/workflows/build-tools.yml') }}
+
+      - name: ⬇️ Download Build Tools
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          mkdir -p "$TOOLS_DIR"
+          echo "Downloading tools from release: tools-latest"
+          for asset in llvm-tools xorriso qemu; do
+            gh release download tools-latest --pattern "${asset}-*-linux-x64.tar.gz" --dir /tmp/cosmos-tools
+            tar xzf /tmp/cosmos-tools/${asset}-*-linux-x64.tar.gz -C "$TOOLS_DIR"
+          done
+
+      - name: 🔗 Add Tools to PATH
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          echo "$TOOLS_DIR/llvm-tools/bin" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/xorriso" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/qemu" >> $GITHUB_PATH
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ -n "${{ inputs.version }}" ]]; then
+            version="${{ inputs.version }}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF#refs/tags/v}"
+          else
+            # Fallback: read from global.json `msbuild-sdks.Cosmos.Sdk`
+            version=$(grep -oP '"Cosmos\.Sdk"\s*:\s*"\K[^"]+' global.json)
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Using version: $version"
+
+      - name: 🔨 Build packages
+        env:
+          # Single source of truth: $(VersionPrefix) flows from this env var into
+          # every Cosmos package via Directory.Build.props, Directory.Packages.props,
+          # the Cosmos.Sdk Sdk.props pack-time substitution, the Cosmos.Build.Templates
+          # template, Cosmos.Kernel's KernelVersion.g.cs / kmain_version.h codegen,
+          # and the BuildCache test fixture. postCreateCommand.sh also rewrites
+          # global.json `msbuild-sdks.Cosmos.Sdk` to this value so in-repo kernels
+          # using `<Sdk Name="Cosmos.Sdk" />` resolve the CI-built package.
+          VersionPrefix: ${{ steps.version.outputs.version }}
+        run: |
+          dotnet nuget locals all --clear
+          ./.devcontainer/postCreateCommand.sh
+
+      - name: 📤 Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cosmos-packages
+          path: artifacts/package/release/*.nupkg
+          retention-days: 7
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+  # ── Publish to NuGet (tag pushes only) ───────────────────────────────────────
+  publish-nuget:
+    name: Publish to NuGet
+    needs: build-packages
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: packages
+
+      - name: Push to NuGet
+        run: |
+          for pkg in packages/*.nupkg; do
+            dotnet nuget push "$pkg" \
+              --api-key "${{ secrets.NUGET_API_KEY }}" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+
+  # ── Windows Installer ────────────────────────────────────────────────────────
+  build-installer-windows:
+    name: Windows Installer
+    needs: build-packages
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: setup/bundle/packages
+
+      - name: Install cosmos CLI
+        run: dotnet tool install -g Cosmos.Tools --add-source setup/bundle/packages
+        shell: pwsh
+
+      - name: Build installer via cosmos install
+        run: cosmos install --auto --setup setup/bundle
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-windows
+          path: setup/output/CosmosSetup-*.exe
+          retention-days: 30
+
+  # ── Create GitHub Release ────────────────────────────────────────────────────
+  create-release:
+    name: Create Release
+    needs: [build-packages, publish-nuget, build-installer-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: false
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ needs.build-packages.outputs.version }}"
+          body: |
+            ### Downloads
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Requires .NET 10 SDK, run installer |
+            | Linux / macOS | `dotnet tool install -g Cosmos.Tools && cosmos install` | Requires .NET 10 SDK |
+
+            ### Prerequisites
+
+            - [.NET 10 SDK](https://dot.net/download)
+
+            ### Quick Start
+
+            - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/install.html)
+          draft: false
+          prerelease: false
+          files: |
+            installers/installer-windows/*

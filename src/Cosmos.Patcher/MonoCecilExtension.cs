@@ -1849,7 +1849,9 @@ public static class MonoCecilExtensions
 
         Logger.Debug($"[GetArgument] Argument found: Type = {argTypeName}, Value = {argument.Value.Value}");
         if (argTypeName == typeof(Type).FullName)
+        {
             return (T?)(object?)argument.Value.Value.ToString();
+        }
 
         if (!typeof(T).IsEnum || !Enum.TryParse(typeof(T), argument.Value.Value.ToString(), out object? enumValue))
         {

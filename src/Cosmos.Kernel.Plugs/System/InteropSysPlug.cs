@@ -3,6 +3,16 @@
 using System;
 using System.Diagnostics;
 using Cosmos.Build.API.Attributes;
+using Cosmos.Kernel.Core;
+using Monitor = Cosmos.Kernel.Core.Scheduler.Monitor;
+using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.IO;
+#if ARCH_X64
+using Cosmos.Kernel.HAL.X64.Devices.Clock;
+#elif ARCH_ARM64
+using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
+#endif
+
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -50,6 +60,24 @@ public static class InteropSysPlug
         GetNonCryptographicallySecureRandomBytes(buffer, length);
     }
 
+    [PlugMember]
+    public static long GetLowResolutionTimestamp()
+    {
+
+        if (CosmosFeatures.TimerEnabled)
+        {
+            if (RTC.Instance == null)
+            {
+                return 0;
+            }
+
+            return RTC.Instance.GetElapsedTicks() / TimeSpan.TicksPerMillisecond;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 
     [PlugMember]
     public static int GetErrNo()
@@ -62,6 +90,101 @@ public static class InteropSysPlug
     public static void SetErrNo(int value)
     {
         // No-op for now
+    }
+
+    /// <summary>
+    /// dlopen replacement. There is no dynamic library loading on bare metal, so
+    /// every load fails. This is what turns a call to an unplugged
+    /// libSystem.Native P/Invoke into a catchable <see cref="DllNotFoundException"/>:
+    /// without it, the lazy P/Invoke resolver recurses through its own unplugged
+    /// P/Invokes (LoadLibrary, GetProcessPath, ...) until the stack overflows and
+    /// the kernel triple-faults.
+    /// </summary>
+    [PlugMember]
+    internal static IntPtr LoadLibrary(string filename)
+    {
+        return IntPtr.Zero;
+    }
+
+    /// <summary>
+    /// The kernel image is the process. A fixed path keeps
+    /// <c>AppContext.BaseDirectory</c> (used by the P/Invoke resolver's library
+    /// search, among others) from re-entering an unresolvable P/Invoke.
+    /// </summary>
+    [PlugMember]
+    internal static string? GetProcessPath()
+    {
+        return "/kernel.elf";
+    }
+
+    [PlugMember]
+    internal static IntPtr LowLevelMonitor_Create()
+    {
+        Monitor monitor = new();
+        var gchandle = new GCHandle<Monitor>(monitor);
+
+        return GCHandle<Monitor>.ToIntPtr(gchandle);
+    }
+
+    [PlugMember]
+    internal static void LowLevelMonitor_Destroy(IntPtr monitor)
+    {
+        var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
+        gchandle.Target.Dispose();
+        gchandle.Dispose();
+    }
+
+    [PlugMember]
+    internal static void LowLevelMonitor_Acquire(IntPtr monitor)
+    {
+        Serial.Write("[LowLevelMonitor] Acquire BEGIN\n");
+        var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
+        gchandle.Target.Acquire();
+        Serial.Write("[LowLevelMonitor] Acquire END\n");
+    }
+
+    [PlugMember]
+    internal static void LowLevelMonitor_Release(IntPtr monitor)
+    {
+        Serial.Write("[LowLevelMonitor] Release\n");
+        var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
+        gchandle.Target.Release();
+    }
+
+    [PlugMember]
+    internal static void LowLevelMonitor_Wait(IntPtr monitor)
+    {
+        Serial.Write("[LowLevelMonitor] Wait BEGIN\n");
+        var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
+        gchandle.Target.Wait();
+        Serial.Write("[LowLevelMonitor] Wait END\n");
+    }
+
+    [PlugMember]
+    internal static bool LowLevelMonitor_TimedWait(IntPtr monitor, int timeoutMilliseconds)
+    {
+        Serial.Write("[LowLevelMonitor] LowLevelMonitor_TimedWait: BEGIN, timeout=");
+        Serial.Write(timeoutMilliseconds);
+        Serial.Write("ms\n");
+        var mon = GCHandle<Monitor>.FromIntPtr(monitor).Target;
+
+        if (timeoutMilliseconds < 0)
+        {
+            mon.Wait();
+            return true;
+        }
+
+        mon.Wait(timeoutMilliseconds);
+
+        return true;
+    }
+
+    [PlugMember]
+    internal static void LowLevelMonitor_Signal_Release(IntPtr monitor)
+    {
+        Serial.Write("[LowLevelMonitor] Signal_Release\n");
+        var gchandle = GCHandle<Monitor>.FromIntPtr(monitor);
+        gchandle.Target.Signal();
     }
 
 }

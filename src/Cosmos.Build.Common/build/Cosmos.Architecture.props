@@ -4,17 +4,11 @@
 
   <!-- Architecture-specific tool paths -->
   <PropertyGroup Condition="'$(CosmosArch)' == 'x64'">
-    <CosmosAssembler>yasm</CosmosAssembler>
-    <CosmosAssemblerFormat>elf64</CosmosAssemblerFormat>
     <CosmosLinkerEmulation>elf_x86_64</CosmosLinkerEmulation>
-    <CosmosGccTarget>x86_64-elf</CosmosGccTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CosmosArch)' == 'arm64'">
-    <CosmosAssembler>aarch64-elf-as</CosmosAssembler>
-    <CosmosAssemblerFormat>elf64</CosmosAssemblerFormat>
     <CosmosLinkerEmulation>aarch64elf</CosmosLinkerEmulation>
-    <CosmosGccTarget>aarch64-elf</CosmosGccTarget>
   </PropertyGroup>
 
   <ItemGroup>

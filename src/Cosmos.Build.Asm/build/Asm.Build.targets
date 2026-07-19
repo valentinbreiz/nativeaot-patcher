@@ -1,0 +1,22 @@
+<Project>
+  <!--
+    Resolves the assembler tool. Both x64 and ARM64 use the clang integrated
+    assembler with a per-arch target triple set in AsmBuildTask.
+    UsingTask for ResolveCosmosToolTask is declared in Cosmos.Build.Common.props.
+  -->
+  <Target Name="GetAsmTool">
+    <PropertyGroup>
+      <TargetArchitecture Condition="$(RuntimeIdentifier) != ''">$(RuntimeIdentifier.Split('-')[1])</TargetArchitecture>
+    </PropertyGroup>
+
+    <ResolveCosmosToolTask
+        Condition="'$(AsmToolPath)' == ''"
+        ToolName="clang">
+      <Output TaskParameter="ResolvedPath" PropertyName="AsmToolPath" />
+    </ResolveCosmosToolTask>
+
+    <PropertyGroup>
+      <AsmToolPath>$(AsmToolPath.Trim())</AsmToolPath>
+    </PropertyGroup>
+  </Target>
+</Project>

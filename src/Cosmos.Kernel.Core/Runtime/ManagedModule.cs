@@ -99,13 +99,6 @@ public static unsafe partial class ManagedModule
         s_modules = modules;
         s_moduleCount = modules.Length;
 
-        // Run module initializers ([ModuleInitializer] methods) - these register HAL platforms
-        Serial.WriteString("[ManagedModule] - Running Module Initializers\n");
-        for (int i = 0; i < modules.Length; i++)
-        {
-            RunInitializers(modules[i], ReadyToRunSectionType.ModuleInitializerList);
-        }
-
         Serial.WriteString("[ManagedModule] - Initilizing Module Handlers - Complete\n");
     }
 
@@ -238,7 +231,9 @@ public static unsafe partial class ManagedModule
 
                     nuint rawSize = pMT->BaseSize - (nuint)(2 * sizeof(IntPtr));
                     if (pMT->HasComponentSize)
+                    {
                         rawSize += (uint)Unsafe.As<RawArrayData>(obj).Length * (nuint)pMT->ComponentSize;
+                    }
 
                     byte* destPtr = (byte*)Unsafe.AsPointer(ref Unsafe.As<RawData>(obj).Data);
 

@@ -3,8 +3,14 @@ name: .NET Tests
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
   pull_request:
     branches: [ "**" ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
 
 jobs:
   patcher-tests:
@@ -128,8 +134,32 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🔗 Install Linking Tools
-        run: sudo apt-get update && sudo apt-get install -y yasm
+      - name: 🔧 Cache Build Tools
+        id: cache-tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cosmos/tools
+          key: cosmos-tools-linux-x64-${{ hashFiles('.github/workflows/build-tools.yml') }}
+
+      - name: ⬇️ Download Build Tools
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          mkdir -p "$TOOLS_DIR"
+          echo "Downloading tools from release: tools-latest"
+          for asset in llvm-tools xorriso qemu; do
+            gh release download tools-latest --pattern "${asset}-*-linux-x64.tar.gz" --dir /tmp/cosmos-tools
+            tar xzf /tmp/cosmos-tools/${asset}-*-linux-x64.tar.gz -C "$TOOLS_DIR"
+          done
+
+      - name: 🔗 Add Tools to PATH
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          echo "$TOOLS_DIR/llvm-tools/bin" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/xorriso" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/qemu" >> $GITHUB_PATH
 
       - name: 🔄 Restore Dependencies
         run: dotnet restore ./tests/Cosmos.Tests.Build.Asm/Cosmos.Tests.Build.Asm.csproj
@@ -152,73 +182,75 @@ jobs:
           name: Cosmos.Build.Asm.Test-Results
           path: ./tests/Cosmos.Tests.Build.Asm/TestResults/Cosmos.Tests.Build.Asm.trx
 
-  unix-iso-tests:
-    name: Run ISO Build Tests - Unix (${{ matrix.arch }})
+  build-cache-tests:
+    name: Run Build Cache Tests
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       matrix:
         os: [ ubuntu-latest ]
         dotnet-version: [ 10.0.x ]
-        arch: [ x64, arm64 ]
-        include:
-          - arch: x64
-            rid: linux-x64
-            assembler: yasm
-          - arch: arm64
-            rid: linux-arm64
-            assembler: gcc-aarch64-linux-gnu
     steps:
-      - name: 📥 Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: 🛠️ Setup .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🧹 Clear NuGet cache before building packages
+      - name: Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
-      - name: 🔄 Compile Packages (multi-arch)
+      - name: Build and Install Cosmos Packages
         run: ./.devcontainer/postCreateCommand.sh
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
-      - name: 🔗 Install Common Linking Tools
-        run: sudo apt-get update && sudo apt-get install -y xorriso lld
-
-      - name: 🔗 Install x64 Assembler
-        if: matrix.arch == 'x64'
-        run: sudo apt-get install -y yasm
-
-      - name: 🔗 Install ARM64 Cross-Compilation Tools
-        if: matrix.arch == 'arm64'
-        run: sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
-
-      - name: Build ISO for ${{ matrix.arch }}
-        run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            ARCH_DEFINE="ARCH_ARM64"
-          else
-            ARCH_DEFINE="ARCH_X64"
-          fi
-          dotnet publish -c Debug -r ${{ matrix.rid }} -p:DefineConstants="$ARCH_DEFINE" -p:CosmosArch=${{ matrix.arch }} --verbosity detailed ./examples/DevKernel/DevKernel.csproj -o ./output-${{ matrix.arch }}
-
-      - name: 🕵️‍♂️ Verify Output
-        run: |
-          [ -f ./output-${{ matrix.arch }}/DevKernel.iso ] && echo "ISO exists for ${{ matrix.arch }}" || (echo "ISO missing for ${{ matrix.arch }}" && exit 1)
-
-      - name: 📤 Upload ISO
-        uses: actions/upload-artifact@v4
+      - name: 🔧 Cache Build Tools
+        id: cache-tools
+        uses: actions/cache@v4
         with:
-          name: DevKernel-ISO-${{ matrix.arch }}-${{ github.job }}-${{ matrix.arch }}-${{ github.run_number }}
-          path: ./output-${{ matrix.arch }}/DevKernel.iso
+          path: ~/.cosmos/tools
+          key: cosmos-tools-linux-x64-${{ hashFiles('.github/workflows/build-tools.yml') }}
+
+      - name: ⬇️ Download Build Tools
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          mkdir -p "$TOOLS_DIR"
+          echo "Downloading tools from release: tools-latest"
+          for asset in llvm-tools xorriso qemu; do
+            gh release download tools-latest --pattern "${asset}-*-linux-x64.tar.gz" --dir /tmp/cosmos-tools
+            tar xzf /tmp/cosmos-tools/${asset}-*-linux-x64.tar.gz -C "$TOOLS_DIR"
+          done
+
+      - name: 🔗 Add Tools to PATH
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          echo "$TOOLS_DIR/llvm-tools/bin" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/xorriso" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/qemu" >> $GITHUB_PATH
+
+      - name: Build Test Project
+        run: dotnet build ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --configuration Debug
+
+      - name: Run Build Cache Tests
+        run: dotnet test ./tests/Cosmos.Tests.BuildCache/Cosmos.Tests.BuildCache.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.BuildCache.trx" -v normal
+        env:
+          PATH: ${{ github.workspace }}/.dotnet/tools:$HOME/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Cosmos.Tests.BuildCache-Results
+          path: ./tests/Cosmos.Tests.BuildCache/TestResults/Cosmos.Tests.BuildCache.trx
 
   windows-iso-tests:
     name: Run ISO Build Tests - Windows (${{ matrix.arch }})
@@ -243,56 +275,25 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🛠️ Setup .NET
+      - name: 🛠️ Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🧹 Clear NuGet cache before building packages
+      - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
       - name: 🔄 Compile Packages (multi-arch)
         shell: pwsh
         run: ./.devcontainer/postCreateCommand.ps1
 
-      - name: 🔗 Install Assembler & Linking Tools
-        uses: crazy-max/ghaction-chocolatey@v3.3.0
-        with:
-          args: install -y llvm yasm
+      - name: 🔧 Install Build Tools
+        run: cosmos install --tools --auto
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: 🔗 Install xorriso
-        shell: pwsh
-        run: |
-          # Download xorriso for Windows from PeyTy's build
-          curl -LO https://github.com/AliOS-OSDev/xorriso/releases/download/Release/xorriso-1.5.6.pl02-windows-amd64.exe
-          New-Item -ItemType Directory -Force -Path C:\xorriso | Out-Null
-          Move-Item xorriso-1.5.6.pl02-windows-amd64.exe C:\xorriso\xorriso.exe
-          echo "C:\xorriso" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: 🔗 Install x64 GCC Toolchain
-        if: matrix.arch == 'x64'
-        shell: pwsh
-        run: |
-          curl -LO https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-windows.zip
-          Expand-Archive x86_64-elf-tools-windows.zip -DestinationPath C:\x86_64-elf-tools
-          echo "C:\x86_64-elf-tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: 🔗 Install ARM64 GCC Toolchain
-        if: matrix.arch == 'arm64'
-        shell: pwsh
-        run: |
-          curl -LO https://github.com/mmozeiko/build-gcc-arm/releases/download/gcc-v15.2.0/gcc-v15.2.0-aarch64-none-elf.7z
-          7z x gcc-v15.2.0-aarch64-none-elf.7z -oC:\aarch64-elf-tools
-          # Find the bin directory (archive may have a root folder)
-          $binPath = Get-ChildItem -Path C:\aarch64-elf-tools -Recurse -Directory -Filter "bin" | Select-Object -First 1 -ExpandProperty FullName
-          Write-Host "Adding to PATH: $binPath"
-          echo $binPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+      - name: 🔍 Verify Tools Installation
+        run: cosmos check
 
       - name: Build ISO for ${{ matrix.arch }}
         shell: pwsh
@@ -331,43 +332,32 @@ jobs:
         include:
           - arch: x64
             rid: linux-x64
-            gcc_package: x86_64-elf-gcc
-            binutils_package: x86_64-elf-binutils
           - arch: arm64
             rid: linux-arm64
-            gcc_package: aarch64-elf-gcc
-            binutils_package: aarch64-elf-binutils
     steps:
-      - name: 📥 Checkout Code
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: 🛠️ Setup .NET
+      - name: 🛠️ Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: 🧹 Clear NuGet cache before building packages
+      - name: 🗑️ Clear NuGet Cache
         run: dotnet nuget locals all --clear
 
       - name: 🔄 Compile Packages (multi-arch)
         run: ./.devcontainer/postCreateCommand.sh
 
-      - name: 🔗 Install Common Linking Tools
-        run: brew install lld xorriso yasm
+      - name: 🔧 Install Build Tools
+        run: cosmos install --tools --auto
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: 🔗 Install Cross-Compilation Tools
-        run: |
-          # Install real GCC ELF cross-compilers (not Clang-based)
-          # These support -mcmodel=kernel (x64) and -mcmodel=large (arm64) needed for bare-metal kernels
-          brew install ${{ matrix.gcc_package }} ${{ matrix.binutils_package }}
-
-      - name: 🔧 Install ilc
-        run: dotnet tool install -g ilc --add-source ./artifacts/package/release
-
-      - name: 🔧 Install Patcher
-        run: dotnet tool install -g Cosmos.Patcher --add-source ./artifacts/package/release
+      - name: 🔍 Verify Tools Installation
+        run: cosmos check
 
       - name: Build ISO for ${{ matrix.arch }}
         run: |

@@ -4,6 +4,38 @@ set -e
 
 echo "=== Starting postCreate setup (multi-arch) ==="
 
+# ── Resolve Cosmos package version ───────────────────────────────────────────
+# Single source of truth, in order of precedence:
+#   1. $VersionPrefix env var (set by Release CI from the git tag)
+#   2. Latest `v*` git tag (local dev on a full clone)
+#   3. global.json `msbuild-sdks.Cosmos.Sdk` (PR CI / shallow checkouts where
+#      git tags aren't fetched; the committed value is the current release)
+# If none of these resolve a 3-component base version, we bail out loudly
+# rather than silently building broken packages with a hardcoded literal.
+if [[ -z "${VersionPrefix:-}" ]]; then
+  BASE_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || true)
+  BASE_TAG="${BASE_TAG#v}"
+  if [[ -z "$BASE_TAG" ]]; then
+    BASE_TAG=$(sed -nE 's/.*"Cosmos\.Sdk"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' global.json | head -n1)
+  fi
+  if [[ -z "$BASE_TAG" ]]; then
+    echo "ERROR: could not resolve Cosmos base version from git tags or global.json" >&2
+    exit 1
+  fi
+  # yyyyMMdd (not ddMMyyyy) to avoid NuGet stripping a leading zero from the
+  # day component when normalizing the package version.
+  DATE_SUFFIX=$(date +%Y%m%d)
+  VersionPrefix="${BASE_TAG}.${DATE_SUFFIX}"
+fi
+export VersionPrefix
+echo "Using Cosmos package version: ${VersionPrefix}"
+
+# Rewrite global.json `msbuild-sdks.Cosmos.Sdk` so kernel projects
+# (`<Sdk Name="Cosmos.Sdk" />` without a literal Version) resolve to the
+# version we're about to build. Uses sed since jq isn't always available.
+sed -i.bak -E "s|(\"Cosmos\.Sdk\"[[:space:]]*:[[:space:]]*\")[^\"]+(\")|\1${VersionPrefix}\2|" global.json
+rm -f global.json.bak
+
 # Clear Cosmos packages from NuGet cache
 echo "Clearing Cosmos packages from NuGet cache..."
 rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
@@ -24,6 +56,12 @@ mkdir -p artifacts/multiarch
 # Add local source
 dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
 
+# Download Limine bootloader (bundled in Cosmos.Build.Common NuGet package)
+echo "Downloading Limine bootloader..."
+rm -rf artifacts/limine
+git clone https://github.com/Limine-Bootloader/Limine.git --branch=v10.x-binary --depth=1 artifacts/limine
+rm -rf artifacts/limine/.git
+
 # Build and pack each project individually in dependency order
 # Note: GeneratePackageOnBuild=true in Directory.Build.props means build also packs
 echo "Building and packing base projects..."
@@ -32,9 +70,10 @@ dotnet build src/Cosmos.Build.Common/Cosmos.Build.Common.csproj -c Release --no-
 
 echo "Building and packing build tools..."
 dotnet build src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj -c Release --no-incremental
-dotnet build src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Build.CC/Cosmos.Build.CC.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj -c Release --no-incremental
+dotnet build src/Cosmos.Build.Analyzer.Patcher.Package/Cosmos.Build.Analyzer.Patcher.Package.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Patcher/Cosmos.Patcher.csproj -c Release --no-incremental
 dotnet build src/Cosmos.Tools/Cosmos.Tools.csproj -c Release --no-incremental
 
@@ -55,11 +94,21 @@ dotnet build src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release -p:Ge
 dotnet pack src/Cosmos.Kernel.Debug/Cosmos.Kernel.Debug.csproj -c Release --no-build -o artifacts/package/release
 dotnet build src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release -p:GeneratePackageOnBuild=false
 dotnet pack src/Cosmos.Kernel.Boot.Limine/Cosmos.Kernel.Boot.Limine.csproj -c Release --no-build -o artifacts/package/release
+dotnet build src/Cosmos.Kernel.SourceGenerators/Cosmos.Kernel.SourceGenerators.csproj -c Release -p:GeneratePackageOnBuild=false
+dotnet pack src/Cosmos.Kernel.SourceGenerators/Cosmos.Kernel.SourceGenerators.csproj -c Release --no-build -o artifacts/package/release
 
 echo "Verifying arch-independent packages..."
 ls -la artifacts/package/release/Cosmos.Kernel.HAL.Interfaces.*.nupkg
 ls -la artifacts/package/release/Cosmos.Kernel.Debug.*.nupkg
 ls -la artifacts/package/release/Cosmos.Kernel.Boot.*.nupkg
+
+# Architecture-specific Core bridge packages (single-arch, host all LibraryImport
+# declarations consumed by HAL.X64/HAL.ARM64 — must be built before them)
+echo "Building and packing architecture-specific Core bridge packages..."
+dotnet build src/Cosmos.Kernel.Core.X64/Cosmos.Kernel.Core.X64.csproj -c Release -p:GeneratePackageOnBuild=false
+dotnet pack src/Cosmos.Kernel.Core.X64/Cosmos.Kernel.Core.X64.csproj -c Release --no-build -o artifacts/package/release
+dotnet build src/Cosmos.Kernel.Core.ARM64/Cosmos.Kernel.Core.ARM64.csproj -c Release -p:GeneratePackageOnBuild=false
+dotnet pack src/Cosmos.Kernel.Core.ARM64/Cosmos.Kernel.Core.ARM64.csproj -c Release --no-build -o artifacts/package/release
 
 # Architecture-specific HAL packages (build first, then pack)
 echo "Building and packing architecture-specific HAL packages..."
@@ -113,8 +162,10 @@ echo "Packing multi-arch packages..."
 for proj in "${MULTIARCH_PROJECTS[@]}"; do
     echo "Packing $proj..."
     find "artifacts/obj/$proj" -name "*.nuspec" -delete 2>/dev/null || true
-    # Only delete exact package name (not prefix matches like Cosmos.Kernel.* which would delete Native, HAL, etc)
-    rm -f "artifacts/package/release/${proj}.3.0."*.nupkg 2>/dev/null || true
+    # Only delete exact package name (not prefix matches like Cosmos.Kernel.* which would
+    # delete Native, HAL, etc). Anchoring on a digit catches any version (real package
+    # names start with a letter after the dot, real versions start with a digit).
+    rm -f "artifacts/package/release/${proj}".[0-9]*.nupkg 2>/dev/null || true
     dotnet pack "src/$proj/$proj.csproj" -c Release -o artifacts/package/release -p:NoBuild=true
 done
 
@@ -137,8 +188,9 @@ dotnet restore ./nativeaot-patcher.slnx
 
 # Install global tools
 echo "Installing global tools..."
-dotnet tool install -g ilc --add-source artifacts/package/release || dotnet tool update -g ilc --add-source artifacts/package/release || true
-dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release || dotnet tool update -g Cosmos.Patcher --add-source artifacts/package/release || true
-dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release || dotnet tool update -g Cosmos.Tools --add-source artifacts/package/release || true
+dotnet tool uninstall -g Cosmos.Patcher 2>/dev/null || true
+dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
+dotnet tool uninstall -g Cosmos.Tools 2>/dev/null || true
+dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release
 
 echo "=== PostCreate setup completed (multi-arch) ==="

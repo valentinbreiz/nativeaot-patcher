@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.Memory.GarbageCollector;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
@@ -13,9 +11,87 @@ namespace Cosmos.Kernel.Tests.Memory;
 
 public unsafe class Kernel : Sys.Kernel
 {
+    /// <summary>Number of test cases registered with the TestRunner in BeforeRun.</summary>
+    private const int ExpectedTestCount = 71;
+
+    /// <summary>Expected argv length: argv[0] ("cosmos") plus the 3 args passed by limine.conf.</summary>
+    private const int ExpectedArgvLength = 4;
+
+    /// <summary>Hash code of boxed 'c': char.GetHashCode packs the char value into both 16-bit halves.</summary>
+    private const int BoxedCharHashCode = 0x00630063;
+
+    /// <summary>Length of the int array used by the allocation-and-access test.</summary>
+    private const int AllocIntArrayLength = 100;
+
+    /// <summary>Size of the large-allocation test buffer (1 MiB).</summary>
+    private const int LargeAllocationSizeBytes = 1024 * 1024;
+
+    /// <summary>Marker byte (0b1010_1010) written to the first byte of the large allocation.</summary>
+    private const byte LargeAllocFirstMarker = 0xAA;
+
+    /// <summary>Marker byte (0b0101_0101) written to the last byte of the large allocation.</summary>
+    private const byte LargeAllocLastMarker = 0x55;
+
+    /// <summary>MemCopy test length below the 16-byte SIMD threshold.</summary>
+    private const int CopyLength8Bytes = 8;
+
+    /// <summary>MemCopy test length at the SIMD threshold (smallest SIMD-enabled copy).</summary>
+    private const int CopyLength16Bytes = 16;
+
+    /// <summary>MemCopy test length: one 16-byte SIMD block plus an 8-byte tail.</summary>
+    private const int CopyLength24Bytes = 24;
+
+    /// <summary>MemCopy test length: two 16-byte SIMD blocks.</summary>
+    private const int CopyLength32Bytes = 32;
+
+    /// <summary>MemCopy test length: three 16-byte SIMD blocks.</summary>
+    private const int CopyLength48Bytes = 48;
+
+    /// <summary>Test length of four 16-byte SIMD blocks; also used by the MemSet and byte[] Array.Copy tests.</summary>
+    private const int CopyLength64Bytes = 64;
+
+    /// <summary>MemCopy test length: five 16-byte SIMD blocks.</summary>
+    private const int CopyLength80Bytes = 80;
+
+    /// <summary>MemCopy test length: eight 16-byte SIMD blocks.</summary>
+    private const int CopyLength128Bytes = 128;
+
+    /// <summary>Large SIMD test length; also used by the large byte[] Array.Copy test.</summary>
+    private const int CopyLength256Bytes = 256;
+
+    /// <summary>Large SIMD test length with an 8-byte unaligned tail.</summary>
+    private const int CopyLength264Bytes = 264;
+
+    /// <summary>Mask that truncates an index to a byte value when building fill patterns.</summary>
+    private const int ByteValueMask = 0xFF;
+
+    /// <summary>Fill value for the MemSet test.</summary>
+    private const byte MemSetFillValue = 0xAB;
+
+    /// <summary>Buffer length for the overlapping MemMove tests.</summary>
+    private const int OverlapBufferLength = 32;
+
+    /// <summary>Number of bytes moved in the overlapping MemMove tests.</summary>
+    private const int OverlapMoveLength = 16;
+
+    /// <summary>Byte distance between source and destination in the overlapping MemMove tests.</summary>
+    private const int OverlapOffset = 8;
+
+    /// <summary>Sentinel written to source buffers to prove data was (or was not) copied.</summary>
+    private const byte SourceSentinel = 0xAA;
+
+    /// <summary>Sentinel pre-loaded into destination buffers to detect unexpected writes.</summary>
+    private const byte DestSentinel = 0xBB;
+
+    /// <summary>Below-HHDM probe address that VirtualToPhysical must pass through unchanged.</summary>
+    private const ulong PhysicalProbeAddress = 0x1000;
+
+    /// <summary>Base of the top-2GiB kernel image window where NativeAOT places code and statics.</summary>
+    private const ulong KernelImageWindowBase = 0xFFFF_FFFF_8000_0000;
+
     protected override void BeforeRun()
     {
-        TR.Start("Memory Tests", expectedTests: 85);
+        TR.Start("Memory Tests", expectedTests: ExpectedTestCount);
 
         // Boxing/Unboxing Tests
         TR.Run("Boxing_Char", TestBoxingChar);
@@ -87,6 +163,15 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("MemCopy_1Byte", TestMemCopy1Byte);
         TR.Run("MemMove_Overlap_DestBeforeSrc", TestMemMoveOverlapDestBeforeSrc);
 
+        // Per-thread allocation accounting (TLAB)
+        TR.Run("Memory_ThreadAllocBytesPositive", TestThreadAllocBytesPositive);
+        TR.Run("Memory_TotalAllocBytesPositive", TestTotalAllocBytesPositive);
+
+        // Cmdline parsing — limine.conf passes "arg1 arg2 arg3"
+        TR.Run("Cmdline_ArgCount", TestCmdlineArgCount);
+        TR.Run("Cmdline_Argv0IsCosmos", TestCmdlineArgv0);
+        TR.Run("Cmdline_ArgValues", TestCmdlineArgValues);
+
         // Array.Copy Tests (uses SIMD via memmove/RhBulkMoveWithWriteBarrier)
         TR.Run("ArrayCopy_IntArray", TestArrayCopyIntArray);
         TR.Run("ArrayCopy_ByteArray", TestArrayCopyByteArray);
@@ -94,43 +179,27 @@ public unsafe class Kernel : Sys.Kernel
         TR.Run("ArrayCopy_ZeroLength", TestArrayCopyZeroLength);
         TR.Run("ArrayCopy_Overlap", TestArrayCopyOverlap);
 
-        // Garbage Collection Tests
-        TR.Run("GC_IsEnabled", TestGCIsEnabled);
-        TR.Run("GC_GetStats", TestGCGetStats);
-        TR.Run("GC_CollectBasic", TestGCCollectBasic);
-        TR.Run("GC_StatsIncrement", TestGCStatsIncrement);
-        TR.Run("GC_ExactCollectionCount", TestGCExactCollectionCount);
-        TR.Run("GC_ObjectSurvival", TestGCObjectSurvival);
-        TR.Run("GC_StringSurvival", TestGCStringSurvival);
-        TR.Run("GC_ArraySurvival", TestGCArraySurvival);
-        TR.Run("GC_ListSurvival", TestGCListSurvival);
-        TR.Run("GC_UnreachableExactCount", TestGCUnreachableExactCount);
-        TR.Run("GC_ObjectGraphSurvival", TestGCObjectGraphSurvival);
-        TR.Run("GC_MixedTypeSurvival", TestGCMixedTypeSurvival);
-        TR.Run("GC_AllocAfterCollect", TestGCAllocAfterCollect);
-        TR.Run("GC_WeakReference", TestGCWeakReference);
-        TR.Run("GC_LargeAllocCollect", TestGCLargeAllocationAndCollect);
-        TR.Run("GC_StructArraySurvival", TestGCStructArraySurvival);
-        TR.Run("GC_DictSurvival", TestGCDictionarySurvival);
-        TR.Run("GC_PageAccounting", TestGCPageAccounting);
-        TR.Run("GC_DependentHandle", TestGCDependentHandle);
-        TR.Run("GC_DependentHandleCleanup", TestGCDependentHandleCleanup);
-        TR.Run("GC_HandleStoreIntegrity", TestGCHandleStoreIntegrity);
-        TR.Run("GC_PinnedHeapReuse", TestGCPinnedHeapReuse);
+        // VirtualToPhysical — the DMA-address translation every storage/GIC
+        // buffer goes through. Pins the two valid classes and the loud
+        // rejection of the invalid one.
+        TR.Run("V2P_HhdmAlias_Translates", TestV2PHhdmAliasTranslates);
+        TR.Run("V2P_PhysicalValue_PassesThrough", TestV2PPhysicalPassesThrough);
+        TR.Run("V2P_KernelImageAddress_Rejected", TestV2PKernelImageRejected);
 
         TR.Finish();
-
-        Stop();
     }
 
     protected override void Run()
     {
-        // Tests completed in BeforeRun, nothing to do here
+        // All tests ran in BeforeRun; stop the main loop after one iteration
+        Stop();
     }
 
     protected override void AfterRun()
     {
-        Cosmos.Kernel.Kernel.Halt();
+        // Flush coverage data and signal QEMU to terminate
+        TR.Complete();
+        Cosmos.Kernel.System.Power.Halt();
     }
 
     // ==================== Boxing/Unboxing Tests ====================
@@ -139,7 +208,7 @@ public unsafe class Kernel : Sys.Kernel
     {
         object boxed = 'c';
         Assert.Equal("c", boxed.ToString());
-        Assert.Equal(0x00630063, boxed.GetHashCode());
+        Assert.Equal(BoxedCharHashCode, boxed.GetHashCode());
 
         char unboxed = (char)boxed;
         Assert.True(unboxed == 'c', "Boxing: char to object and back");
@@ -257,7 +326,7 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestIntArrayAllocation()
     {
-        int[] array = new int[100];
+        int[] array = new int[AllocIntArrayLength];
         for (int i = 0; i < 10; i++)
         {
             array[i] = i * 10;
@@ -297,11 +366,11 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestLargeAllocation()
     {
-        int size = 1024 * 1024; // 1MB
+        int size = LargeAllocationSizeBytes;
         byte[] large = new byte[size];
-        large[0] = 0xAA;
-        large[size - 1] = 0x55;
-        Assert.True(large.Length == size && large[0] == 0xAA && large[size - 1] == 0x55, "Memory: 1MB allocation");
+        large[0] = LargeAllocFirstMarker;
+        large[size - 1] = LargeAllocLastMarker;
+        Assert.True(large.Length == size && large[0] == LargeAllocFirstMarker && large[size - 1] == LargeAllocLastMarker, "Memory: 1MB allocation");
     }
 
     // ==================== Generic Collection Tests ====================
@@ -456,7 +525,10 @@ public unsafe class Kernel : Sys.Kernel
         list.Add(3);
 
         int sum = 0;
-        foreach (int i in list) sum += i;
+        foreach (int i in list)
+        {
+            sum += i;
+        }
 
         Assert.True(sum == 6, "List foreach iteration");
     }
@@ -474,7 +546,7 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestDictionaryIndexer()
     {
         Dictionary<string, int> dict = new Dictionary<string, int>();
-        
+
         string keyA = "KeyA";
         string keyB = "KeyB";
         string keyC = "KeyC";
@@ -485,9 +557,9 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(dict[keyA] == 10 && dict[keyB] == 20, "Dictionary string key Add/Get");
 
         // 2. Test Update via Indexer
-        dict[keyA] = 30; 
+        dict[keyA] = 30;
         Assert.True(dict[keyA] == 30, "Dictionary string key Update");
-        
+
         // 3. Test Insert via Indexer
         dict[keyC] = 40;
         Assert.True(dict[keyC] == 40, "Dictionary string key Insert via Indexer");
@@ -555,7 +627,10 @@ public unsafe class Kernel : Sys.Kernel
         dict.Add(2, "Two");
 
         int keySum = 0;
-        foreach (var k in dict.Keys) keySum += k;
+        foreach (var k in dict.Keys)
+        {
+            keySum += k;
+        }
 
         Assert.True(keySum == 3, "Dictionary.Keys iteration");
 
@@ -579,207 +654,333 @@ public unsafe class Kernel : Sys.Kernel
         IEnumerable<int> enumerable = arr;
 
         int sum = 0;
-        foreach (int i in enumerable) sum += i;
+        foreach (int i in enumerable)
+        {
+            sum += i;
+        }
 
         Assert.True(sum == 6, "IEnumerable foreach on array");
+    }
+
+    // ==================== Per-Thread Allocation Tests ====================
+
+    private static void TestThreadAllocBytesPositive()
+    {
+        // GC.GetAllocatedBytesForCurrentThread() tracks per-thread TLAB allocations.
+        // After all the previous allocation tests, it must be > 0.
+        long threadBytes = GC.GetAllocatedBytesForCurrentThread();
+        Assert.True(threadBytes > 0, "Memory: per-thread allocated bytes must be > 0, got: " + threadBytes);
+    }
+
+    private static void TestTotalAllocBytesPositive()
+    {
+        // GC.GetTotalAllocatedBytes() must be > 0 after allocations
+        long total = GC.GetTotalAllocatedBytes(precise: false);
+        Assert.True(total > 0, "Memory: total allocated bytes must be > 0");
     }
 
     // ==================== Memory Copy Tests ====================
 
     private static void TestMemCopy8Bytes()
     {
-        byte* src = stackalloc byte[8];
-        byte* dest = stackalloc byte[8];
+        byte* src = stackalloc byte[CopyLength8Bytes];
+        byte* dest = stackalloc byte[CopyLength8Bytes];
 
-        for (int i = 0; i < 8; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 8; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength8Bytes; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
 
-        MemoryOp.MemCopy(dest, src, 8);
+        for (int i = 0; i < CopyLength8Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength8Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < CopyLength8Bytes; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 8-byte copy");
     }
 
     private static void TestMemCopy16Bytes()
     {
-        byte* src = stackalloc byte[16];
-        byte* dest = stackalloc byte[16];
+        byte* src = stackalloc byte[CopyLength16Bytes];
+        byte* dest = stackalloc byte[CopyLength16Bytes];
 
-        for (int i = 0; i < 16; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 16; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength16Bytes; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
 
-        MemoryOp.MemCopy(dest, src, 16);
+        for (int i = 0; i < CopyLength16Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength16Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < CopyLength16Bytes; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 16-byte copy");
     }
 
     private static void TestMemCopy24Bytes()
     {
-        byte* src = stackalloc byte[24];
-        byte* dest = stackalloc byte[24];
+        byte* src = stackalloc byte[CopyLength24Bytes];
+        byte* dest = stackalloc byte[CopyLength24Bytes];
 
-        for (int i = 0; i < 24; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 24; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength24Bytes; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
 
-        MemoryOp.MemCopy(dest, src, 24);
+        for (int i = 0; i < CopyLength24Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength24Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 24; i++)
+        for (int i = 0; i < CopyLength24Bytes; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 24-byte copy");
     }
 
     private static void TestMemCopy32Bytes()
     {
-        byte* src = stackalloc byte[32];
-        byte* dest = stackalloc byte[32];
+        byte* src = stackalloc byte[CopyLength32Bytes];
+        byte* dest = stackalloc byte[CopyLength32Bytes];
 
-        for (int i = 0; i < 32; i++) src[i] = (byte)(i + 1);
-        for (int i = 0; i < 32; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength32Bytes; i++)
+        {
+            src[i] = (byte)(i + 1);
+        }
 
-        MemoryOp.MemCopy(dest, src, 32);
+        for (int i = 0; i < CopyLength32Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength32Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 32; i++)
+        for (int i = 0; i < CopyLength32Bytes; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 32-byte copy");
     }
 
     private static void TestMemCopy48Bytes()
     {
-        byte* src = stackalloc byte[48];
-        byte* dest = stackalloc byte[48];
+        byte* src = stackalloc byte[CopyLength48Bytes];
+        byte* dest = stackalloc byte[CopyLength48Bytes];
 
-        for (int i = 0; i < 48; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 48; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength48Bytes; i++)
+        {
+            src[i] = (byte)((i + 1) & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 48);
+        for (int i = 0; i < CopyLength48Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength48Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 48; i++)
+        for (int i = 0; i < CopyLength48Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 48-byte copy");
     }
 
     private static void TestMemCopy64Bytes()
     {
-        byte* src = stackalloc byte[64];
-        byte* dest = stackalloc byte[64];
+        byte* src = stackalloc byte[CopyLength64Bytes];
+        byte* dest = stackalloc byte[CopyLength64Bytes];
 
-        for (int i = 0; i < 64; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 64; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength64Bytes; i++)
+        {
+            src[i] = (byte)((i + 1) & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 64);
+        for (int i = 0; i < CopyLength64Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 64-byte copy");
     }
 
     private static void TestMemCopy80Bytes()
     {
-        byte* src = stackalloc byte[80];
-        byte* dest = stackalloc byte[80];
+        byte* src = stackalloc byte[CopyLength80Bytes];
+        byte* dest = stackalloc byte[CopyLength80Bytes];
 
-        for (int i = 0; i < 80; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 80; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength80Bytes; i++)
+        {
+            src[i] = (byte)((i + 1) & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 80);
+        for (int i = 0; i < CopyLength80Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength80Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 80; i++)
+        for (int i = 0; i < CopyLength80Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 80-byte copy");
     }
 
     private static void TestMemCopy128Bytes()
     {
-        byte* src = stackalloc byte[128];
-        byte* dest = stackalloc byte[128];
+        byte* src = stackalloc byte[CopyLength128Bytes];
+        byte* dest = stackalloc byte[CopyLength128Bytes];
 
-        for (int i = 0; i < 128; i++) src[i] = (byte)((i + 1) & 0xFF);
-        for (int i = 0; i < 128; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength128Bytes; i++)
+        {
+            src[i] = (byte)((i + 1) & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 128);
+        for (int i = 0; i < CopyLength128Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength128Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < CopyLength128Bytes; i++)
         {
-            if (dest[i] != (byte)((i + 1) & 0xFF)) passed = false;
+            if (dest[i] != (byte)((i + 1) & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 128-byte copy");
     }
 
     private static void TestMemCopy256Bytes()
     {
-        byte* src = stackalloc byte[256];
-        byte* dest = stackalloc byte[256];
+        byte* src = stackalloc byte[CopyLength256Bytes];
+        byte* dest = stackalloc byte[CopyLength256Bytes];
 
-        for (int i = 0; i < 256; i++) src[i] = (byte)(i & 0xFF);
-        for (int i = 0; i < 256; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength256Bytes; i++)
+        {
+            src[i] = (byte)(i & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 256);
+        for (int i = 0; i < CopyLength256Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength256Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 256-byte copy");
     }
 
     private static void TestMemCopy264Bytes()
     {
-        byte* src = stackalloc byte[264];
-        byte* dest = stackalloc byte[264];
+        byte* src = stackalloc byte[CopyLength264Bytes];
+        byte* dest = stackalloc byte[CopyLength264Bytes];
 
-        for (int i = 0; i < 264; i++) src[i] = (byte)(i & 0xFF);
-        for (int i = 0; i < 264; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength264Bytes; i++)
+        {
+            src[i] = (byte)(i & ByteValueMask);
+        }
 
-        MemoryOp.MemCopy(dest, src, 264);
+        for (int i = 0; i < CopyLength264Bytes; i++)
+        {
+            dest[i] = 0;
+        }
+
+        MemoryOp.MemCopy(dest, src, CopyLength264Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 264; i++)
+        for (int i = 0; i < CopyLength264Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemCopy: 264-byte copy");
     }
 
     private static void TestMemSet64Bytes()
     {
-        byte* dest = stackalloc byte[64];
+        byte* dest = stackalloc byte[CopyLength64Bytes];
 
         // Clear first
-        for (int i = 0; i < 64; i++) dest[i] = 0;
+        for (int i = 0; i < CopyLength64Bytes; i++)
+        {
+            dest[i] = 0;
+        }
 
         // Fill with value 0xAB
-        MemoryOp.MemSet(dest, 0xAB, 64);
+        MemoryOp.MemSet(dest, MemSetFillValue, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            if (dest[i] != 0xAB) passed = false;
+            if (dest[i] != MemSetFillValue)
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemSet: 64 bytes with 0xAB");
     }
@@ -787,24 +988,37 @@ public unsafe class Kernel : Sys.Kernel
     private static void TestMemMoveOverlap()
     {
         // Test overlapping copy (dest > src)
-        byte* buffer = stackalloc byte[32];
+        byte* buffer = stackalloc byte[OverlapBufferLength];
 
-        for (int i = 0; i < 16; i++) buffer[i] = (byte)(i + 1);
-        for (int i = 16; i < 32; i++) buffer[i] = 0;
+        for (int i = 0; i < OverlapMoveLength; i++)
+        {
+            buffer[i] = (byte)(i + 1);
+        }
+
+        for (int i = OverlapMoveLength; i < OverlapBufferLength; i++)
+        {
+            buffer[i] = 0;
+        }
 
         // Move 16 bytes from offset 0 to offset 8 (overlapping)
-        MemoryOp.MemMove(buffer + 8, buffer, 16);
+        MemoryOp.MemMove(buffer + OverlapOffset, buffer, OverlapMoveLength);
 
         bool passed = true;
         // First 8 bytes should be unchanged
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < OverlapOffset; i++)
         {
-            if (buffer[i] != (byte)(i + 1)) passed = false;
+            if (buffer[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         // Bytes 8-23 should be copies of original 0-15
-        for (int i = 8; i < 24; i++)
+        for (int i = OverlapOffset; i < OverlapOffset + OverlapMoveLength; i++)
         {
-            if (buffer[i] != (byte)(i - 8 + 1)) passed = false;
+            if (buffer[i] != (byte)(i - OverlapOffset + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemMove: overlapping regions");
     }
@@ -813,34 +1027,40 @@ public unsafe class Kernel : Sys.Kernel
     {
         byte* src = stackalloc byte[1];
         byte* dest = stackalloc byte[1];
-        src[0] = 0xAA;
-        dest[0] = 0xBB;
+        src[0] = SourceSentinel;
+        dest[0] = DestSentinel;
         MemoryOp.MemCopy(dest, src, 0);
-        Assert.True(dest[0] == 0xBB, "MemCopy: 0 bytes is no-op");
+        Assert.True(dest[0] == DestSentinel, "MemCopy: 0 bytes is no-op");
     }
 
     private static void TestMemCopy1Byte()
     {
         byte* src = stackalloc byte[1];
         byte* dest = stackalloc byte[1];
-        src[0] = 0xAA;
-        dest[0] = 0xBB;
+        src[0] = SourceSentinel;
+        dest[0] = DestSentinel;
         MemoryOp.MemCopy(dest, src, 1);
-        Assert.True(dest[0] == 0xAA, "MemCopy: 1 byte copy");
+        Assert.True(dest[0] == SourceSentinel, "MemCopy: 1 byte copy");
     }
 
     private static void TestMemMoveOverlapDestBeforeSrc()
     {
-        byte* buffer = stackalloc byte[32];
-        for (int i = 0; i < 32; i++) buffer[i] = (byte)i;
+        byte* buffer = stackalloc byte[OverlapBufferLength];
+        for (int i = 0; i < OverlapBufferLength; i++)
+        {
+            buffer[i] = (byte)i;
+        }
 
         // Move 16 bytes from offset 8 to offset 0 (overlapping, dest < src)
-        MemoryOp.MemMove(buffer, buffer + 8, 16);
+        MemoryOp.MemMove(buffer, buffer + OverlapOffset, OverlapMoveLength);
 
         bool passed = true;
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < OverlapMoveLength; i++)
         {
-            if (buffer[i] != (byte)(i + 8)) passed = false;
+            if (buffer[i] != (byte)(i + OverlapOffset))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "MemMove: overlapping regions (dest < src)");
     }
@@ -860,34 +1080,46 @@ public unsafe class Kernel : Sys.Kernel
 
     private static void TestArrayCopyByteArray()
     {
-        byte[] source = new byte[64];
-        byte[] dest = new byte[64];
+        byte[] source = new byte[CopyLength64Bytes];
+        byte[] dest = new byte[CopyLength64Bytes];
 
-        for (int i = 0; i < 64; i++) source[i] = (byte)(i + 1);
+        for (int i = 0; i < CopyLength64Bytes; i++)
+        {
+            source[i] = (byte)(i + 1);
+        }
 
-        Array.Copy(source, dest, 64);
+        Array.Copy(source, dest, CopyLength64Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < CopyLength64Bytes; i++)
         {
-            if (dest[i] != (byte)(i + 1)) passed = false;
+            if (dest[i] != (byte)(i + 1))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "Array.Copy: byte[] 64 bytes");
     }
 
     private static void TestArrayCopyLargeArray()
     {
-        byte[] source = new byte[256];
-        byte[] dest = new byte[256];
+        byte[] source = new byte[CopyLength256Bytes];
+        byte[] dest = new byte[CopyLength256Bytes];
 
-        for (int i = 0; i < 256; i++) source[i] = (byte)(i & 0xFF);
+        for (int i = 0; i < CopyLength256Bytes; i++)
+        {
+            source[i] = (byte)(i & ByteValueMask);
+        }
 
-        Array.Copy(source, dest, 256);
+        Array.Copy(source, dest, CopyLength256Bytes);
 
         bool passed = true;
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < CopyLength256Bytes; i++)
         {
-            if (dest[i] != (byte)(i & 0xFF)) passed = false;
+            if (dest[i] != (byte)(i & ByteValueMask))
+            {
+                passed = false;
+            }
         }
         Assert.True(passed, "Array.Copy: byte[] 256 bytes (large SIMD)");
     }
@@ -913,420 +1145,113 @@ public unsafe class Kernel : Sys.Kernel
         Assert.True(passed, "Array.Copy: overlapping regions");
     }
 
-    // ==================== Garbage Collection Tests ====================
+    // ==================== Cmdline Parsing Tests ====================
+    // Bootloader/limine.conf passes `cmdline: arg1 arg2 arg3`. These tests
+    // walk the full path: limine -> kmain -> __build_argv -> ArgvParser ->
+    // NativeAOT __managed__Main -> Environment.GetCommandLineArgs().
 
-    private static void TestGCIsEnabled()
+    private static void TestCmdlineArgCount()
     {
-        Assert.True(GarbageCollector.IsEnabled, "GC: IsEnabled should be true");
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.Equal(ExpectedArgvLength, args.Length, "Cmdline: argv0 + 3 parsed args");
     }
 
-    private static void TestGCGetStats()
+    private static void TestCmdlineArgv0()
     {
-        GarbageCollector.GetStats(out int totalCollections, out int totalObjectsFreed);
-        // After running all previous tests, some collections may have already happened
-        // (from allocation pressure). Both counters must be non-negative.
-        Assert.True(totalCollections >= 0, "GC: totalCollections must be non-negative");
-        Assert.True(totalObjectsFreed >= 0, "GC: totalObjectsFreed must be non-negative");
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.True(args.Length >= 1, "Cmdline: argv has argv[0]");
+        Assert.True(args[0] == "cosmos", "Cmdline: argv[0] is \"cosmos\"");
     }
 
-    private static void TestGCCollectBasic()
+    private static void TestCmdlineArgValues()
     {
-        // Snapshot before
-        GarbageCollector.GetStats(out int collsBefore, out int freedBefore);
-
-        int freed = GarbageCollector.Collect();
-        Assert.True(freed >= 0, "GC: Collect must return non-negative freed count");
-
-        // Verify stats incremented by exactly 1 collection
-        GarbageCollector.GetStats(out int collsAfter, out int freedAfter);
-        Assert.Equal(collsBefore + 1, collsAfter, "GC: Collect must increment collection count by exactly 1");
-        Assert.Equal(freedBefore + freed, freedAfter, "GC: totalObjectsFreed must increase by exact freed count");
-    }
-
-    private static void TestGCStatsIncrement()
-    {
-        // Run 3 collections and verify exact increments
-        GarbageCollector.GetStats(out int collsBefore, out int freedBefore);
-
-        int freed1 = GarbageCollector.Collect();
-        int freed2 = GarbageCollector.Collect();
-        int freed3 = GarbageCollector.Collect();
-
-        GarbageCollector.GetStats(out int collsAfter, out int freedAfter);
-
-        // Exactly 3 collections must have been recorded
-        Assert.Equal(collsBefore + 3, collsAfter, "GC: 3 successive Collects must increment count by exactly 3");
-
-        // Total freed must be exact sum
-        int expectedFreed = freedBefore + freed1 + freed2 + freed3;
-        Assert.Equal(expectedFreed, freedAfter, "GC: totalObjectsFreed must equal sum of all Collect return values");
-    }
-
-    private static void TestGCExactCollectionCount()
-    {
-        // Verify that even a collection that frees nothing still increments the counter
-        // First collect to clean up any existing garbage
-        GarbageCollector.Collect();
-
-        GarbageCollector.GetStats(out int collsBefore, out int freedBefore);
-
-        // Second collect on a clean heap — likely frees 0 objects
-        int freed = GarbageCollector.Collect();
-
-        GarbageCollector.GetStats(out int collsAfter, out int freedAfter);
-
-        // Collection count must always increment by 1, even if freed == 0
-        Assert.Equal(collsBefore + 1, collsAfter, "GC: collection count increments even when freed == 0");
-        Assert.Equal(freedBefore + freed, freedAfter, "GC: freed accounting exact even for zero-freed collection");
-    }
-
-    private static void TestGCObjectSurvival()
-    {
-        // Reachable boxed values must survive collection
-        object boxed = 42;
-        GarbageCollector.Collect();
-        Assert.True((int)boxed == 42, "GC: boxed int survives collection");
-    }
-
-    private static void TestGCStringSurvival()
-    {
-        // Dynamically created strings must survive when reachable
-        string s1 = "Hello";
-        string s2 = "World";
-        string concat = s1 + " " + s2;
-        GarbageCollector.Collect();
-        Assert.True(concat == "Hello World", "GC: concatenated string survives collection");
-    }
-
-    private static void TestGCArraySurvival()
-    {
-        // Arrays must survive collection when reachable
-        int[] arr = new int[10];
-        for (int i = 0; i < 10; i++) arr[i] = i * 10;
-        GarbageCollector.Collect();
-        Assert.Equal(10, arr.Length, "GC: array length survives collection");
-        Assert.True(arr[0] == 0 && arr[5] == 50 && arr[9] == 90, "GC: array contents survive collection");
-    }
-
-    private static void TestGCListSurvival()
-    {
-        // List<T> with internal array must survive collection
-        List<int> list = new List<int>();
-        list.Add(100);
-        list.Add(200);
-        list.Add(300);
-        GarbageCollector.Collect();
-        Assert.Equal(3, list.Count, "GC: list count survives collection");
-        Assert.True(list[0] == 100 && list[1] == 200 && list[2] == 300, "GC: list contents survive collection");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void AllocateExactUnreachable(int count, int arraySize)
-    {
-        // Each iteration creates exactly 1 unreachable byte[] object
-        for (int i = 0; i < count; i++)
-        {
-            object obj = new byte[arraySize];
-            // Prevent optimizer from removing the allocation
-            if (obj == null) break;
-        }
-    }
-
-    private static void TestGCUnreachableExactCount()
-    {
-        // Collect twice to stabilize — clear any prior garbage
-        GarbageCollector.Collect();
-        GarbageCollector.Collect();
-
-        GarbageCollector.GetStats(out int _, out int freedBefore);
-
-        // Allocate exactly 50 unreachable byte[64] arrays
-        // Each byte[64]: BaseSize(24) + 64*1 = 88, Align(88) = 88
-        const int objectCount = 50;
-        AllocateExactUnreachable(objectCount, 64);
-
-        // Collect — must free exactly those 50 objects (plus possibly some
-        // internal allocations from the loop itself, e.g., enumerator objects)
-        int freed = GarbageCollector.Collect();
-
-        GarbageCollector.GetStats(out int _2, out int freedAfter);
-
-        // freed must be at least objectCount - 2 (conservative scanning may
-        // falsely retain a few objects when stack values coincidentally look like
-        // GC heap pointers)
-        Assert.True(freed >= objectCount - 2,
-            "GC: must free at least " + (objectCount - 2) + " unreachable byte[64] objects, freed: " + freed);
-
-        // freedAfter - freedBefore must match the Collect return value exactly
-        Assert.Equal(freed, freedAfter - freedBefore,
-            "GC: totalObjectsFreed delta must match Collect return value exactly");
-    }
-
-    private static void TestGCObjectGraphSurvival()
-    {
-        // Object graph: list holding strings must keep everything alive
-        List<string> strings = new List<string>();
-        strings.Add("Alpha");
-        strings.Add("Beta");
-        strings.Add("Gamma");
-
-        GarbageCollector.Collect();
-
-        Assert.Equal(3, strings.Count, "GC: object graph list count survives");
-        Assert.True(strings[0] == "Alpha", "GC: object graph first element survives");
-        Assert.True(strings[2] == "Gamma", "GC: object graph last element survives");
-    }
-
-    private static void TestGCMixedTypeSurvival()
-    {
-        // Various types allocated and kept alive across GC
-        byte[] byteArr = new byte[] { 0xAA, 0xBB, 0xCC };
-        int[] intArr = new int[] { 1, 2, 3 };
-        string str = "MixedTest";
-        object boxedLong = 9876543210L;
-        TestPoint point = new TestPoint { X = 42, Y = 99 };
-        object boxedPoint = point;
-
-        GarbageCollector.Collect();
-
-        Assert.True(byteArr[0] == 0xAA && byteArr[2] == 0xCC, "GC: byte array survives mixed collection");
-        Assert.Equal(2, intArr[1], "GC: int array survives mixed collection");
-        Assert.True(str == "MixedTest", "GC: string survives mixed collection");
-        Assert.True((long)boxedLong == 9876543210L, "GC: boxed long survives mixed collection");
-        TestPoint unboxed = (TestPoint)boxedPoint;
-        Assert.True(unboxed.X == 42 && unboxed.Y == 99, "GC: boxed struct survives mixed collection");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void AllocateGarbage(int count, int size)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            byte[] temp = new byte[size];
-            if (temp == null) break;
-        }
-    }
-
-    private static void TestGCAllocAfterCollect()
-    {
-        // Generate garbage then collect, then allocate again
-        AllocateGarbage(50, 256);
-
-        GarbageCollector.GetStats(out int collsBefore, out int _);
-        int freed = GarbageCollector.Collect();
-        GarbageCollector.GetStats(out int collsAfter, out int _2);
-
-        // Exactly 1 collection must have been recorded
-        Assert.Equal(collsBefore + 1, collsAfter, "GC: exactly 1 collection after AllocateGarbage");
-        // Must have freed at least 50 objects
-        Assert.True(freed >= 50, "GC: must free at least 50 garbage byte[256] arrays, freed: " + freed);
-
-        // Must be able to allocate after GC reclaims memory
-        int[] newArr = new int[100];
-        for (int i = 0; i < 100; i++) newArr[i] = i;
-        Assert.Equal(99, newArr[99], "GC: allocation works after collection");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static WeakReference CreateWeakRef()
-    {
-        object target = new byte[128];
-        return new WeakReference(target);
-    }
-
-    private static void TestGCWeakReference()
-    {
-        // Create a weak reference to an object that becomes unreachable
-        WeakReference weakRef = CreateWeakRef();
-
-        // After collection, the weak handle's target must be cleared
-        GarbageCollector.Collect();
-        GarbageCollector.Collect(); // Second pass to ensure weak handles are freed
-
-        Assert.True(!weakRef.IsAlive, "GC: weak reference cleared after collection");
-        Assert.True(weakRef.Target == null, "GC: weak reference target is null after collection");
-    }
-
-    private static void TestGCLargeAllocationAndCollect()
-    {
-        // Allocate 20 × byte[4096], let them become garbage, then collect
-        const int count = 20;
-        AllocateGarbage(count, 4096);
-
-        GarbageCollector.GetStats(out int _, out int freedBefore);
-        int freed = GarbageCollector.Collect();
-        GarbageCollector.GetStats(out int _2, out int freedAfter);
-
-        // Must free at least the 20 large arrays
-        Assert.True(freed >= count,
-            "GC: must free at least " + count + " large byte[4096] arrays, freed: " + freed);
-        Assert.Equal(freed, freedAfter - freedBefore,
-            "GC: freedAfter - freedBefore must match freed count exactly");
-
-        // Must be able to allocate again after large garbage is collected
-        byte[] postGC = new byte[8192];
-        postGC[0] = 0xDE;
-        postGC[8191] = 0xAD;
-        Assert.Equal((byte)0xDE, postGC[0], "GC: post-GC large alloc byte 0");
-        Assert.Equal((byte)0xAD, postGC[8191], "GC: post-GC large alloc last byte");
-    }
-
-    private static void TestGCStructArraySurvival()
-    {
-        // Array of structs with value-type fields must survive GC
-        TestPoint[] points = new TestPoint[5];
-        for (int i = 0; i < 5; i++)
-        {
-            points[i] = new TestPoint { X = i * 10, Y = i * 20 };
-        }
-
-        GarbageCollector.Collect();
-
-        Assert.Equal(5, points.Length, "GC: struct array length survives");
-        Assert.Equal(0, points[0].X, "GC: struct array [0].X survives");
-        Assert.Equal(0, points[0].Y, "GC: struct array [0].Y survives");
-        Assert.Equal(40, points[4].X, "GC: struct array [4].X survives");
-        Assert.Equal(80, points[4].Y, "GC: struct array [4].Y survives");
-    }
-
-    private static void TestGCDictionarySurvival()
-    {
-        // Dictionary with string keys and int values must survive GC
-        Dictionary<string, int> dict = new Dictionary<string, int>();
-        dict.Add("One", 1);
-        dict.Add("Two", 2);
-        dict.Add("Three", 3);
-
-        GarbageCollector.Collect();
-
-        Assert.Equal(3, dict.Count, "GC: dictionary count survives collection");
-        Assert.Equal(1, dict["One"], "GC: dictionary value 'One' survives");
-        Assert.Equal(3, dict["Three"], "GC: dictionary value 'Three' survives");
-        Assert.True(dict.ContainsKey("Two"), "GC: dictionary ContainsKey after collection");
-    }
-
-    private static void TestGCPageAccounting()
-    {
-        // Verify PageAllocator accounting is consistent before and after GC
-        ulong totalPages = PageAllocator.TotalPageCount;
-        ulong freePagesBefore = PageAllocator.FreePageCount;
-        ulong usedPagesBefore = totalPages - freePagesBefore;
-
-        // Total pages must be positive
-        Assert.True(totalPages > 0, "GC: TotalPageCount must be > 0");
-
-        // Used pages must not exceed total
-        Assert.True(usedPagesBefore <= totalPages,
-            "GC: used pages (" + usedPagesBefore + ") must be <= total (" + totalPages + ")");
-
-        // Allocate garbage to consume pages, then collect to reclaim
-        AllocateGarbage(30, 4096);
-        GarbageCollector.Collect();
-
-        ulong freePagesAfter = PageAllocator.FreePageCount;
-
-        // Total pages must stay constant (physical memory doesn't change)
-        Assert.Equal((int)totalPages, (int)PageAllocator.TotalPageCount,
-            "GC: TotalPageCount must not change after GC");
-
-        // Free pages should stay the same or increase after GC (segments released)
-        Assert.True(freePagesAfter >= freePagesBefore,
-            "GC: free pages after collect (" + freePagesAfter + ") must be >= before (" + freePagesBefore + ")");
-    }
-
-    // ==================== Dependent Handle & Handle Store Tests ====================
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (object key, ConditionalWeakTable<object, byte[]> table) CreateDependentHandleScenario()
-    {
-        object key = new object();
-        var table = new ConditionalWeakTable<object, byte[]>();
-        table.AddOrUpdate(key, new byte[64]);
-        return (key, table);
-    }
-
-    private static void TestGCDependentHandle()
-    {
-        // A ConditionalWeakTable keeps its values alive as long as the key is alive.
-        // The value has NO direct reference from the key - only through the dependent handle.
-        var (key, table) = CreateDependentHandleScenario();
-
-        GarbageCollector.Collect();
-
-        // The value should survive because key is still alive
-        bool found = table.TryGetValue(key, out byte[] value);
-        Assert.True(found, "GC: ConditionalWeakTable value must survive when key is alive");
-        Assert.True(value != null && value.Length == 64, "GC: ConditionalWeakTable value data intact");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static ConditionalWeakTable<object, byte[]> CreateOrphanedDepHandle()
-    {
-        var table = new ConditionalWeakTable<object, byte[]>();
-        object key = new object();
-        table.AddOrUpdate(key, new byte[128]);
-        // key becomes unreachable after return
-        return table;
-    }
-
-    private static void TestGCDependentHandleCleanup()
-    {
-        var table = CreateOrphanedDepHandle();
-
-        GarbageCollector.Collect();
-        GarbageCollector.Collect();
-
-        // Table should be empty now - the key is dead, so the entry should be removed
-        int count = 0;
-        foreach (var kv in table) count++;
-        Assert.Equal(0, count, "GC: ConditionalWeakTable entries cleared when key is dead");
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (WeakReference, WeakReference, WeakReference) CreateThreeWeakRefs()
-    {
-        // NoInlining ensures the byte[] pointers don't remain on the caller's stack
-        return (
-            new WeakReference(new byte[32]),
-            new WeakReference(new byte[32]),
-            new WeakReference(new byte[32])
-        );
-    }
-
-    private static void TestGCHandleStoreIntegrity()
-    {
-        // Allocate handles via NoInlining helper to avoid conservative scan false positives
-        var (wr1, wr2, wr3) = CreateThreeWeakRefs();
-
-        // Force collection to exercise handle scanning
-        GarbageCollector.Collect();
-        GarbageCollector.Collect();
-
-        // All weak refs should be cleared (targets are unreachable)
-        Assert.True(!wr1.IsAlive, "GC: handle store wr1 cleared");
-        Assert.True(!wr2.IsAlive, "GC: handle store wr2 cleared");
-        Assert.True(!wr3.IsAlive, "GC: handle store wr3 cleared");
-
-        // Allocate more handles to verify store still works
-        object alive = new byte[64];
-        WeakReference wr4 = new WeakReference(alive);
-        GarbageCollector.Collect();
-        Assert.True(wr4.IsAlive, "GC: handle store works after cleanup");
-    }
-
-    private static void TestGCPinnedHeapReuse()
-    {
-        // Verify pinned allocations don't crash after GC
-        GC.AllocateArray<byte>(32, pinned: true);
-        GarbageCollector.Collect();
-        byte[] arr = GC.AllocateArray<byte>(32, pinned: true);
-        Assert.True(arr != null, "GC: pinned allocation works after collection");
+        string[] args = Environment.GetCommandLineArgs();
+        Assert.True(args.Length >= ExpectedArgvLength, "Cmdline: argv has 3 parsed args");
+        Assert.True(args[1] == "arg1", "Cmdline: argv[1] == arg1");
+        Assert.True(args[2] == "arg2", "Cmdline: argv[2] == arg2");
+        Assert.True(args[3] == "arg3", "Cmdline: argv[3] == arg3");
     }
 
     private class SimpleStringComparer : IEqualityComparer<string>
     {
         public bool Equals(string x, string y) => x == y || (x != null && y != null && x.Equals(y));
         public int GetHashCode(string obj) => obj?.GetHashCode() ?? 0;
+    }
+
+    // ==================== VirtualToPhysical ====================
+
+    // Non-GC static: NativeAOT places primitive statics in the kernel
+    // image's data section, i.e. the top-2GiB kernel window — exactly the
+    // address class VirtualToPhysical must refuse to "translate".
+    private static ulong s_v2pImageProbe;
+
+    private static unsafe ulong HhdmOffset()
+        => Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response != null
+            ? Cosmos.Kernel.Boot.Limine.Limine.HHDM.Response->Offset
+            : 0;
+
+    // On x64 the allocator hands out HHDM aliases (RamStart = HHDM + phys)
+    // and translation is exact offset subtraction; on arm64 the heap lives
+    // in the identity-mapped low range and the same call must pass through
+    // unchanged. Pin the translation contract for whichever space the
+    // allocator actually uses on this arch.
+    private static unsafe void TestV2PHhdmAliasTranslates()
+    {
+        ulong hhdm = HhdmOffset();
+        Assert.True(hhdm != 0, "Limine HHDM response must be present");
+
+        void* page = PageAllocator.AllocPages(PageType.Unmanaged, 1, zero: true);
+        Assert.True(page != null, "page allocation must succeed");
+
+        ulong va = (ulong)page;
+        ulong phys = PageAllocator.VirtualToPhysical(va);
+        if (va >= hhdm)
+        {
+            Assert.True(phys == va - hhdm, "HHDM alias must translate by exact offset subtraction");
+        }
+        else
+        {
+            Assert.True(phys == va, "identity-space allocation must pass through unchanged");
+        }
+
+        PageAllocator.Free(page);
+    }
+
+    // Values below the HHDM base look already-physical and must pass
+    // through unchanged — storage drivers hand such values straight to
+    // device doorbells.
+    private static void TestV2PPhysicalPassesThrough()
+    {
+        ulong phys = PageAllocator.VirtualToPhysical(PhysicalProbeAddress);
+        Assert.True(phys == PhysicalProbeAddress, "already-physical values must pass through unchanged");
+    }
+
+    // Kernel-image addresses (statics, code) are higher-half but NOT HHDM
+    // aliases: subtracting the HHDM offset from one yields a garbage
+    // physical address — silent DMA corruption. The translation must
+    // reject them loudly instead of returning the bogus value.
+    private static void TestV2PKernelImageRejected()
+    {
+        ulong va = V2PProbeAddress();
+        Assert.True(va >= KernelImageWindowBase, "a primitive static must live in the kernel image window");
+        Assert.True(V2PRejects(va), "VirtualToPhysical must reject kernel-image addresses instead of fabricating a physical address");
+    }
+
+    private static unsafe ulong V2PProbeAddress()
+        => (ulong)Unsafe.AsPointer(ref s_v2pImageProbe);
+
+    // Single try/catch in its own helper (arm64 EH inlining quirk).
+    private static bool V2PRejects(ulong virtualAddress)
+    {
+        try
+        {
+            PageAllocator.VirtualToPhysical(virtualAddress);
+            return false;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return true;
+        }
     }
 }
 

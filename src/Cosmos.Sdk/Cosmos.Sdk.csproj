@@ -1,12 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.0.37</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Sdk\Sdk.props" PackagePath="Sdk\" />
+    <!-- Sdk.targets has no version tokens; ship as-is. -->
     <Content Include="Sdk\Sdk.targets" PackagePath="Sdk\" />
   </ItemGroup>
+
+  <!--
+    Sdk.props ships into the Cosmos.Sdk NuGet package and is consumed by external
+    kernel projects via <Sdk Name="Cosmos.Sdk" Version="X.Y.Z" />. It contains
+    @CosmosPackageVersion@ tokens that must be replaced with the literal version
+    at pack time so downstream consumers see a real version, not a token.
+  -->
+  <Target Name="GenerateSdkPropsWithVersion"
+          BeforeTargets="AssignTargetPaths"
+          Inputs="Sdk\Sdk.props"
+          Outputs="$(IntermediateOutputPath)Sdk.props">
+    <PropertyGroup>
+      <_SdkPropsTemplate>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Sdk\Sdk.props'))</_SdkPropsTemplate>
+      <_SdkPropsBaked>$(_SdkPropsTemplate.Replace('@CosmosPackageVersion@', '$(VersionPrefix)'))</_SdkPropsBaked>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)Sdk.props"
+                      Lines="$(_SdkPropsBaked)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <FileWrites Include="$(IntermediateOutputPath)Sdk.props" />
+      <Content Include="$(IntermediateOutputPath)Sdk.props"
+               PackagePath="Sdk\Sdk.props"
+               Pack="true"
+               Visible="false" />
+    </ItemGroup>
+  </Target>
 </Project>

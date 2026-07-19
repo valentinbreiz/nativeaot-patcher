@@ -6,6 +6,7 @@
 .global _simd_copy_64
 .global _simd_copy_128
 .global _simd_copy_128_blocks
+.global _simd_copy_nt_128_blocks
 .global _simd_fill_16_blocks
 
 .text
@@ -79,6 +80,41 @@ _simd_copy_128_blocks:
     b.ne    .Lcopy_loop
 
 .Lcopy_done:
+    ret
+
+// void _simd_copy_nt_128_blocks(void* dest, void* src, int blockCount)
+// Copies multiple 128-byte blocks using non-temporal store hints (stnp) so a
+// large write-only target (framebuffer blit) does not evict the working set.
+// ARM64: x0 = dest, x1 = src, x2 = blockCount
+_simd_copy_nt_128_blocks:
+    // Check if blockCount is 0
+    cbz     x2, .Lcopy_nt_done
+
+.Lcopy_nt_loop:
+    // Load 128 bytes into Q0-Q7
+    ldp     q0, q1, [x1]
+    ldp     q2, q3, [x1, #32]
+    ldp     q4, q5, [x1, #64]
+    ldp     q6, q7, [x1, #96]
+
+    // Non-temporal stores of 128 bytes from Q0-Q7
+    stnp    q0, q1, [x0]
+    stnp    q2, q3, [x0, #32]
+    stnp    q4, q5, [x0, #64]
+    stnp    q6, q7, [x0, #96]
+
+    // Advance pointers by 128 bytes
+    add     x1, x1, #128
+    add     x0, x0, #128
+
+    // Decrement block counter and loop if not zero
+    subs    x2, x2, #1
+    b.ne    .Lcopy_nt_loop
+
+    // Make the weakly-ordered NT stores visible before returning
+    dmb     sy
+
+.Lcopy_nt_done:
     ret
 
 // void _simd_fill_16_blocks(void* dest, int value, int blockCount)

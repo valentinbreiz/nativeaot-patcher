@@ -1,8 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Scheduler;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
@@ -172,6 +175,8 @@ public static unsafe partial class GarbageCollector
 
     /// <summary>
     /// Default segment size. Grows as needed.
+    /// Note: increasing this (e.g. 64KB) requires enabling ScanStaticRoots in MarkPhase
+    /// to prevent GC from collecting objects only reachable through static fields.
     /// </summary>
     private static uint s_maxSegmentSize = (uint)PageAllocator.PageSize;
 
@@ -224,6 +229,50 @@ public static unsafe partial class GarbageCollector
     /// Cumulative number of objects freed across all collections.
     /// </summary>
     private static int s_totalObjectsFreed;
+
+    /// <summary>
+    /// Last GC duration in timestamp ticks (Stopwatch ticks).
+    /// </summary>
+    private static long s_lastGCDurationTicks;
+
+    /// <summary>
+    /// Interval between last GC end and previous GC end in ticks.
+    /// </summary>
+    private static long s_lastGCIntervalTicks;
+
+    /// <summary>
+    /// Timestamp of last GC end (Stopwatch ticks).
+    /// </summary>
+    private static long s_lastGCEndTick;
+
+    // Last recorded generation 0 metrics (before/after last collection)
+    private static ulong s_lastGen0SizeBefore;
+    private static ulong s_lastGen0FragmentationBefore;
+    private static ulong s_lastGen0SizeAfter;
+    private static ulong s_lastGen0FragmentationAfter;
+
+    /// <summary>
+    /// Cumulative total of all bytes ever allocated through the GC.
+    /// Increments on every allocation, never decrements.
+    /// Used by <c>RhGetTotalAllocatedBytes</c> / <c>GC.GetTotalAllocatedBytes()</c>.
+    /// </summary>
+    private static ulong s_totalAllocatedBytes;
+
+    /// <summary>
+    /// Number of live objects currently on the pinned object heap.
+    /// Incremented on pinned allocation, decremented on pinned sweep free.
+    /// </summary>
+    private static ulong s_pinnedHeapObjectCount;
+
+    /// <summary>
+    /// Fallback allocation context used when the scheduler is not enabled (single-thread mode).
+    /// </summary>
+    private static AllocContext s_fallbackAllocContext;
+
+    /// <summary>
+    /// Cumulative unused TLAB bytes from dead threads. Subtracted from total allocation stats.
+    /// </summary>
+    private static ulong s_deadThreadsNonAllocBytes;
 
     // --- Properties ---
 
@@ -283,9 +332,13 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        // Allocate mark stack
-        s_markStackCapacity = 4096;
-        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+        // Allocate mark stack. Capacity MUST match the backing allocation:
+        // one 4K page holds 512 nint entries, and PushMarkStack bounds-checks
+        // against s_markStackCapacity before growing — a larger capacity here
+        // means the mark phase writes past the page and corrupts adjacent
+        // allocations as soon as more than 512 objects are pending.
+        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, s_markStackPageCount, true);
+        s_markStackCapacity = (int)(s_markStackPageCount * PageAllocator.PageSize / (ulong)sizeof(nint));
         if (s_markStack == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
@@ -311,12 +364,23 @@ public static unsafe partial class GarbageCollector
             return 0;
         }
 
+        // TODO: Add compilation option to disable metric collection
         int freedCount;
         using (InternalCpu.DisableInterruptsScope())
         {
+            // Record GC start timestamp
+            long gcStart = Stopwatch.GetTimestamp();
+
             Serial.WriteString("[GC] Collection #");
             Serial.WriteNumber((uint)s_totalCollections + 1);
             Serial.WriteString("\n");
+
+            // Return all TLABs before collection — stamps unused gaps as FreeBlocks
+            ReturnAllAllocContexts();
+
+            // Record pre-GC metrics
+            s_lastGen0SizeBefore = GetGenerationSize(0);
+            s_lastGen0FragmentationBefore = GetCurrentFragmentation(0);
 
             // Clear free lists - will be rebuilt during sweep
             for (int i = 0; i < NumSizeClasses; i++)
@@ -338,33 +402,33 @@ public static unsafe partial class GarbageCollector
             ReorderPinnedSegmentsAndFreeEmpty();
             RecomputeHeapRange();
 
+            // Record post-GC metrics
+            s_lastGen0SizeAfter = GetGenerationSize(0);
+            s_lastGen0FragmentationAfter = GetCurrentFragmentation(0);
+
             s_totalCollections++;
             s_totalObjectsFreed += freedCount;
 
             Serial.WriteString("[GC] Freed ");
             Serial.WriteNumber((uint)freedCount);
             Serial.WriteString(" objects\n");
+
+            // Record GC end timestamp and compute duration/interval
+            long gcEnd = Stopwatch.GetTimestamp();
+            long duration = gcEnd - gcStart;
+            long interval = s_lastGCEndTick == 0 ? duration : gcEnd - s_lastGCEndTick;
+            s_lastGCDurationTicks = duration;
+            s_lastGCIntervalTicks = interval;
+            s_lastGCEndTick = gcEnd;
         }
 
         return freedCount;
     }
-
-    /// <summary>
-    /// Gets cumulative GC statistics.
-    /// </summary>
-    /// <param name="totalCollections">Total number of collections performed.</param>
-    /// <param name="totalObjectsFreed">Total number of objects freed across all collections.</param>
-    public static void GetStats(out int totalCollections, out int totalObjectsFreed)
-    {
-        totalCollections = s_totalCollections;
-        totalObjectsFreed = s_totalObjectsFreed;
-    }
-
     // --- Internal methods ---
 
     /// <summary>
     /// Allocates memory for a managed object. Called by the runtime allocation helpers.
-    /// Tries free list, then bump allocation, then triggers a collection as a last resort.
+    /// Uses per-thread TLAB fast path for non-pinned allocations.
     /// </summary>
     /// <param name="size">Requested object size in bytes.</param>
     /// <param name="flags">Runtime allocation flags (e.g., pinned object heap).</param>
@@ -376,10 +440,17 @@ public static unsafe partial class GarbageCollector
             Initialize();
         }
 
-        // Check for pinned object allocation
+        // Pinned objects bypass TLABs
         if ((flags & GC_ALLOC_FLAGS.GC_ALLOC_PINNED_OBJECT_HEAP) != 0)
         {
-            return AllocPinnedObject(size, flags);
+            GCObject* pinned = AllocPinnedObject(size, flags);
+            if (pinned != null)
+            {
+                ref AllocContext pac = ref GetCurrentAllocContext();
+                pac.AllocBytesUoh += Align((uint)size);
+            }
+
+            return pinned;
         }
 
         uint allocSize = Align((uint)size);
@@ -388,37 +459,61 @@ public static unsafe partial class GarbageCollector
             allocSize = MinBlockSize;
         }
 
-        // Try free list allocation first
-        void* result = AllocFromFreeList(allocSize);
-        if (result != null)
+        // TLAB fast path
+        ref AllocContext ac = ref GetCurrentAllocContext();
+        byte* newPtr = ac.AllocPtr + allocSize;
+        if (newPtr <= ac.AllocLimit)
         {
+            byte* result = ac.AllocPtr;
+            ac.AllocPtr = newPtr;
+            ac.AllocBytes += allocSize;
+            s_totalAllocatedBytes += allocSize;
             return (GCObject*)result;
         }
 
-        // Try fast bump allocation from last segment
-        result = BumpAllocInSegment(s_lastSegment, allocSize);
-        if (result != null)
-        {
-            return (GCObject*)result;
-        }
+        // Slow path: refill TLAB and retry
+        return AllocObjectSlow(ref ac, allocSize);
+    }
 
-        // Slow path: walk segments from s_lastSegment and append if needed
-        result = AllocateObjectSlow(allocSize);
-        if (result != null)
+    /// <summary>
+    /// Slow path for object allocation: refills the TLAB, then retries. If all else fails, triggers GC.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static GCObject* AllocObjectSlow(ref AllocContext ac, uint allocSize)
+    {
+        if (RefillAllocContext(ref ac, allocSize))
         {
+            byte* result = ac.AllocPtr;
+            ac.AllocPtr += allocSize;
+            ac.AllocBytes += allocSize;
+            s_totalAllocatedBytes += allocSize;
             return (GCObject*)result;
         }
 
         // Last resort: collect and retry
         Collect();
 
-        result = AllocFromFreeList(allocSize);
-        if (result != null)
+        // Re-acquire ref after Collect (ReturnAllAllocContexts resets them)
+        ac = ref GetCurrentAllocContext();
+
+        if (RefillAllocContext(ref ac, allocSize))
         {
+            byte* result = ac.AllocPtr;
+            ac.AllocPtr += allocSize;
+            ac.AllocBytes += allocSize;
+            s_totalAllocatedBytes += allocSize;
             return (GCObject*)result;
         }
 
-        result = AllocateObjectSlow(allocSize);
-        return (GCObject*)result;
+        return null;
+    }
+
+    /// <summary>
+    /// Adds unused TLAB bytes from a dead thread to the cumulative counter.
+    /// Called from <see cref="SchedulerManager.ExitThread"/> before the thread is unregistered.
+    /// </summary>
+    public static void AddDeadThreadNonAllocBytes(ulong unused)
+    {
+        s_deadThreadsNonAllocBytes += unused;
     }
 }

@@ -43,11 +43,11 @@ public class PCScreenFont : Font
 
     public static class Default
     {
-        public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.CustomFont";
+        public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.DefaultFont";
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
     }
 
-    static PCScreenFont _Default = null;
+    static PCScreenFont? _Default = null;
     public static PCScreenFont DefaultFont
     {
         get
@@ -58,7 +58,7 @@ public class PCScreenFont : Font
                 {
                     // Try to load from resources first
                     string embeddedResourceName = AppContext.GetData(Default.DefaultFontKey)?.ToString() ?? Default.DefaultFontName;
-                    var resourceSpan = Cosmos.Kernel.Core.Runtime.ResourceManager.GetResourceAsSpan(embeddedResourceName);
+                    var resourceSpan = Core.Runtime.ResourceManager.GetResourceAsSpan(embeddedResourceName);
 
                     if (resourceSpan.Length > 0)
                     {

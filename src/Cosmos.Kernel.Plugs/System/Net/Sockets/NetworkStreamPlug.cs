@@ -99,7 +99,10 @@ public static class NetworkStreamPlug
     {
         int id = GetId(aThis);
         if (!_streamSockets.TryGetValue(id, out var socket))
+        {
             return false;
+        }
+
         return socket.Available > 0;
     }
 

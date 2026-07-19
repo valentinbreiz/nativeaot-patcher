@@ -1,4 +1,5 @@
 using System;
+using Cosmos.TestRunner.Engine.Hosts;
 using Cosmos.TestRunner.Engine.OutputHandlers;
 
 namespace Cosmos.TestRunner.Engine;
@@ -42,7 +43,7 @@ public class TestConfiguration
     /// <summary>
     /// Timeout in seconds for test execution
     /// </summary>
-    public int TimeoutSeconds { get; set; } = 30;
+    public int TimeoutSeconds { get; set; } = QemuHostDefaults.DefaultTimeoutSeconds;
 
     /// <summary>
     /// Output directory for build artifacts
@@ -83,4 +84,10 @@ public class TestConfiguration
     /// Computed: Should display be shown (based on Mode and ShowDisplay override)
     /// </summary>
     public bool ShouldShowDisplay => ShowDisplay ?? (Mode == TestRunnerMode.Dev);
+
+    /// <summary>
+    /// Enable code coverage instrumentation during build.
+    /// Passes -p:CosmosCoverage=true to dotnet publish.
+    /// </summary>
+    public bool CoverageEnabled { get; set; } = false;
 }

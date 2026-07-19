@@ -55,7 +55,10 @@ public static class TcpClientPlug
     {
         int id = GetId(aThis);
         if (!_clientSockets.TryGetValue(id, out var socket))
+        {
             return false;
+        }
+
         return socket.Connected;
     }
 

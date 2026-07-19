@@ -7,24 +7,52 @@ using Cosmos.Kernel.System.Graphics.Fonts;
 namespace Cosmos.Kernel.System.Graphics;
 
 /// <summary>
-/// Represents a drawing surface.
+/// Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
+/// canvas, or subclassed for hardware-backed canvases (e.g. <see cref="GopCanvas"/>).
 /// </summary>
-public unsafe abstract class Canvas
+public unsafe class Canvas
 {
+    /// <summary>
+    /// Pixel buffer for virtual canvases. Null for hardware-backed subclasses.
+    /// Each element is a raw ARGB pixel value.
+    /// </summary>
+    protected int[]? Buffer;
+
     /// <summary>
     /// The available graphics modes.
     /// </summary>
-    public abstract List<Mode> AvailableModes { get; }
+    public virtual List<Mode> AvailableModes => new() { Mode };
 
     /// <summary>
     /// The default graphics mode.
     /// </summary>
-    public abstract Mode DefaultGraphicsMode { get; }
+    public virtual Mode DefaultGraphicsMode => Mode;
+
+    private Mode _mode;
 
     /// <summary>
     /// The currently used display mode.
     /// </summary>
-    public abstract Mode Mode { get; set; }
+    public virtual Mode Mode
+    {
+        get => _mode;
+        set => _mode = value;
+    }
+
+    /// <summary>
+    /// The width of this canvas in pixels.
+    /// </summary>
+    public int Width => (int)Mode.Width;
+
+    /// <summary>
+    /// The height of this canvas in pixels.
+    /// </summary>
+    public int Height => (int)Mode.Height;
+
+    /// <summary>
+    /// Screen refresh rate in Hz as reported by EDID. Defaults to 60 if unavailable.
+    /// </summary>
+    public virtual int RefreshRate => 60;
 
     /// <summary>
     /// Bytes per pixel (4 in 32bit, 3 in 24bit).
@@ -43,19 +71,53 @@ public unsafe abstract class Canvas
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Canvas"/> class.
+    /// Used by subclasses.
     /// </summary>
-    public Canvas()
+    protected Canvas()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Canvas"/> class.
+    /// Initializes a new instance of the <see cref="Canvas"/> class with a mode.
+    /// Used by subclasses.
     /// </summary>
-    public Canvas(Mode mode)
+    protected Canvas(Mode mode)
     {
+        _mode = mode;
         BytesPerPixel = (int)mode.ColorDepth / 8;
         Stride = (int)mode.ColorDepth / 8;
         Pitch = (int)mode.Width * BytesPerPixel;
+    }
+
+    /// <summary>
+    /// Gets the hardware-backed full-screen canvas using the default graphics mode.
+    /// </summary>
+    public static Canvas GetFullScreen()
+    {
+        return FullScreenCanvas.GetFullScreenCanvas();
+    }
+
+    /// <summary>
+    /// Gets the hardware-backed full-screen canvas using the specified mode.
+    /// </summary>
+    public static Canvas GetFullScreen(Mode mode)
+    {
+        return FullScreenCanvas.GetFullScreenCanvas(mode);
+    }
+
+    /// <summary>
+    /// Creates a virtual (buffer-backed) canvas of the given size.
+    /// </summary>
+    /// <param name="width">The width of the canvas in pixels.</param>
+    /// <param name="height">The height of the canvas in pixels.</param>
+    /// <param name="colorDepth">The color depth (default 32-bit).</param>
+    public Canvas(int width, int height, ColorDepth colorDepth = ColorDepth.ColorDepth32)
+    {
+        _mode = new Mode((uint)width, (uint)height, colorDepth);
+        BytesPerPixel = (int)colorDepth / 8;
+        Stride = (int)colorDepth / 8;
+        Pitch = width * BytesPerPixel;
+        Buffer = new int[width * height];
     }
 
     /// <summary>
@@ -70,7 +132,15 @@ public unsafe abstract class Canvas
     /// Clears the entire canvas with the specified color.
     /// </summary>
     /// <param name="color">The ARGB color to clear the screen with.</param>
-    public abstract void Clear(int color);
+    public virtual void Clear(int color)
+    {
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        Array.Fill(Buffer, color);
+    }
 
     /// <summary>
     /// Clears the entire canvas with the specified color.
@@ -78,19 +148,15 @@ public unsafe abstract class Canvas
     /// <param name="color">The color to clear the screen with.</param>
     public virtual void Clear(Color color)
     {
-        for (int x = 0; x < Mode.Width; x++)
-        {
-            for (int y = 0; y < Mode.Height; y++)
-            {
-                DrawPoint(color, x, y);
-            }
-        }
+        Clear(color.ToArgb());
     }
 
     /// <summary>
     /// Disables the canvas.
     /// </summary>
-    public abstract void Disable();
+    public virtual void Disable()
+    {
+    }
 
     /// <summary>
     /// Sets the pixel at the given coordinates to the specified <paramref name="color"/>.
@@ -98,7 +164,30 @@ public unsafe abstract class Canvas
     /// <param name="color">The color to draw with.</param>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>
-    public abstract void DrawPoint(Color color, int x, int y);
+    public virtual void DrawPoint(Color color, int x, int y)
+    {
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
+
+        if (color.A < 255)
+        {
+            if (color.A == 0)
+            {
+                return;
+            }
+
+            color = AlphaBlend(color, GetPointColor(x, y), color.A);
+        }
+
+        Buffer[y * Width + x] = color.ToArgb();
+    }
 
     /// <summary>
     /// Sets the pixel at the given coordinates to the specified <paramref name="color"/>, without unnecessary color operations.
@@ -106,7 +195,20 @@ public unsafe abstract class Canvas
     /// <param name="color">The color to draw with (raw argb).</param>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>
-    public abstract void DrawPoint(uint color, int x, int y);
+    public virtual void DrawPoint(uint color, int x, int y)
+    {
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
+
+        Buffer[y * Width + x] = (int)color;
+    }
 
     /// <summary>
     /// Sets the pixel at the given coordinates to the specified <paramref name="color"/>. without ToArgb()
@@ -114,32 +216,78 @@ public unsafe abstract class Canvas
     /// <param name="color">The color to draw with (raw argb).</param>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>
-    public abstract void DrawPoint(int color, int x, int y);
+    public virtual void DrawPoint(int color, int x, int y)
+    {
+        if (Buffer == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return;
+        }
+
+        Buffer[y * Width + x] = color;
+    }
 
     /// <summary>
     /// The name of the Canvas implementation.
     /// </summary>
-    public abstract string Name();
+    public virtual string Name() => "Canvas";
 
     /// <summary>
     /// Updates the screen to display the underlying frame-buffer.
-    /// Call this method in order to synchronize the screen with the canvas.
+    /// For virtual canvases, this is a no-op.
     /// </summary>
-    public abstract void Display();
+    public virtual void Display()
+    {
+    }
 
     /// <summary>
     /// Gets the color of the pixel at the given coordinates.
     /// </summary>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>
-    public abstract Color GetPointColor(int x, int y);
+    public virtual Color GetPointColor(int x, int y)
+    {
+        if (Buffer == null)
+        {
+            return Color.Black;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return Color.Black;
+        }
+
+        return Color.FromArgb(Buffer[y * Width + x]);
+    }
 
     /// <summary>
     /// Gets the color of the pixel at the given coordinates in ARGB.
     /// </summary>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>
-    public abstract int GetRawPointColor(int x, int y);
+    public virtual int GetRawPointColor(int x, int y)
+    {
+        if (Buffer == null)
+        {
+            return 0;
+        }
+
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+        {
+            return 0;
+        }
+
+        return Buffer[y * Width + x];
+    }
+
+    /// <summary>
+    /// Gets the raw pixel buffer of this canvas. Returns null for hardware-backed canvases.
+    /// </summary>
+    public int[]? GetBuffer() => Buffer;
 
     internal int GetPointOffset(int x, int y)
     {
@@ -195,7 +343,7 @@ public unsafe abstract class Canvas
     /// <param name="y">The Y coordinate.</param>
     /// <param name="width">The width of the drawn bitmap.</param>
     /// <param name="height">The height of the drawn bitmap.</param>
-    /// <param name="startIndex">int[] colors tarting position</param>
+    /// <param name="startIndex">int[] colors starting position</param>
     public virtual void DrawArray(int[] colors, int x, int y, int width, int height, int startIndex)
     {
         for (int X = 0; X < width; X++)
@@ -203,6 +351,34 @@ public unsafe abstract class Canvas
             for (int Y = 0; Y < height; Y++)
             {
                 DrawPoint(colors[Y * width + X + startIndex], x + X, y + Y);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Draws another canvas onto this one at the specified position.
+    /// </summary>
+    /// <param name="canvas">The source canvas to draw.</param>
+    /// <param name="x">The X coordinate on this canvas.</param>
+    /// <param name="y">The Y coordinate on this canvas.</param>
+    public virtual void DrawCanvas(Canvas canvas, int x, int y)
+    {
+        var srcBuffer = canvas.GetBuffer();
+        int srcWidth = canvas.Width;
+        int srcHeight = canvas.Height;
+
+        if (srcBuffer != null)
+        {
+            DrawArray(srcBuffer, x, y, srcWidth, srcHeight);
+        }
+        else
+        {
+            for (int sx = 0; sx < srcWidth; sx++)
+            {
+                for (int sy = 0; sy < srcHeight; sy++)
+                {
+                    DrawPoint(canvas.GetRawPointColor(sx, sy), x + sx, y + sy);
+                }
             }
         }
     }
@@ -314,13 +490,16 @@ public unsafe abstract class Canvas
 
         if (dy == 0) // The line is horizontal
         {
-            DrawHorizontalLine(color, dx, x1, y1);
+            // DrawHorizontalLine only walks in the positive direction; start
+            // from the leftmost point so right-to-left lines are not dropped.
+            DrawHorizontalLine(color, Math.Abs(dx), Math.Min(x1, x2), y1);
             return;
         }
 
         if (dx == 0) // The line is vertical
         {
-            DrawVerticalLine(color, dy, x1, y1);
+            // Same as above: start from the topmost point.
+            DrawVerticalLine(color, Math.Abs(dy), x1, Math.Min(y1, y2));
             return;
         }
 
@@ -377,7 +556,6 @@ public unsafe abstract class Canvas
     /// <param name="x0">The X center coordinate.</param>
     /// <param name="y0">The Y center coordinate.</param>
     /// <param name="radius">The radius of the circle to draw.</param>
-    /// <param name="preventOffBoundPixels">Prevents drawing outside the bounds of the canvas.</param>
     public virtual void DrawFilledCircle(Color color, int x0, int y0, int radius)
     {
         int x = radius;
@@ -647,13 +825,13 @@ public unsafe abstract class Canvas
     /// <returns>A new <see cref="Bitmap"/> containing the copied region.</returns>
     public virtual Bitmap GetImage(int x, int y, int width, int height)
     {
-        Bitmap bitmap = new Bitmap((uint)x, (uint)y, ColorDepth.ColorDepth32);
+        Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32);
 
-        for (int posy = y, desty = 0; posy < y + y; posy++, desty++)
+        for (int posy = 0; posy < height; posy++)
         {
-            for (int posx = x, destx = 0; posx < x + x; posx++, destx++)
+            for (int posx = 0; posx < width; posx++)
             {
-                bitmap.RawData[desty * x + destx] = GetRawPointColor(posx, posy);
+                bitmap.RawData[posy * width + posx] = GetRawPointColor(x + posx, y + posy);
             }
         }
         return bitmap;
@@ -799,6 +977,14 @@ public unsafe abstract class Canvas
     /// <param name="y">The origin Y coordinate.</param>
     public virtual void DrawString(string str, Font font, Color color, int x, int y)
     {
+        ArgumentNullException.ThrowIfNull(font);
+
+        if (font is TrueTypeFont trueType)
+        {
+            DrawString(str, trueType, trueType.SizePx, color, x, y);
+            return;
+        }
+
         var len = str.Length;
         var width = font.Width;
 
@@ -810,12 +996,99 @@ public unsafe abstract class Canvas
     }
 
     /// <summary>
+    /// Draws a string using the given TrueType font, with per-glyph advances,
+    /// kerning and anti-aliased edges blended onto the existing pixels.
+    /// </summary>
+    /// <param name="str">The string to draw.</param>
+    /// <param name="font">The TrueType font to use.</param>
+    /// <param name="sizePx">The text size in pixels.</param>
+    /// <param name="color">The color to write the string with.</param>
+    /// <param name="x">The origin X coordinate (left edge of the text).</param>
+    /// <param name="y">The origin Y coordinate (top of the text line).</param>
+    public virtual void DrawString(string str, TrueTypeFont font, int sizePx, Color color, int x, int y)
+    {
+        int ascent = font.GetAscent(sizePx);
+        int penX = x;
+        char previous = '\0';
+
+        for (int i = 0; i < str.Length; i++)
+        {
+            char c = str[i];
+            TrueTypeGlyph? glyph = font.GetGlyph(c, sizePx);
+            if (glyph == null)
+            {
+                continue;
+            }
+
+            if (previous != '\0')
+            {
+                penX += font.GetKerning(previous, c, sizePx);
+            }
+
+            DrawGlyph(glyph, color, penX + glyph.OffsetX, y + ascent + glyph.OffsetY);
+            penX += glyph.Advance;
+            previous = c;
+        }
+    }
+
+    /// <summary>
+    /// Blends a rasterized TrueType glyph onto the canvas, tinting its
+    /// coverage with the given color.
+    /// </summary>
+    /// <param name="glyph">The rasterized glyph to draw.</param>
+    /// <param name="color">The color to tint the glyph with.</param>
+    /// <param name="x">The X coordinate of the left edge of the glyph bitmap.</param>
+    /// <param name="y">The Y coordinate of the top edge of the glyph bitmap.</param>
+    private void DrawGlyph(TrueTypeGlyph glyph, Color color, int x, int y)
+    {
+        byte[]? coverage = glyph.Coverage;
+        if (coverage == null)
+        {
+            return;
+        }
+
+        for (int gy = 0; gy < glyph.Height; gy++)
+        {
+            int py = y + gy;
+            if (py < 0 || py >= Mode.Height)
+            {
+                continue;
+            }
+
+            for (int gx = 0; gx < glyph.Width; gx++)
+            {
+                int px = x + gx;
+                if (px < 0 || px >= Mode.Width)
+                {
+                    continue;
+                }
+
+                byte alpha = (byte)(coverage[(gy * glyph.Width) + gx] * color.A / 255);
+                if (alpha == 0)
+                {
+                    continue;
+                }
+
+                DrawPoint(Color.FromArgb(alpha, color.R, color.G, color.B), px, py);
+            }
+        }
+    }
+
+    /// <summary>
     /// Draws a single character using the given bitmap font.
     /// </summary>
     /// <param name="c">The character to draw.</param>
     /// <inheritdoc cref="DrawString(string, Font, Color, int, int)"/>
     public virtual void DrawChar(char c, Font font, Color color, int x, int y)
     {
+        ArgumentNullException.ThrowIfNull(font);
+
+        if (font is TrueTypeFont trueType)
+        {
+            DrawString(c.ToString(), trueType, trueType.SizePx, color, x, y);
+            return;
+        }
+
         var height = font.Height;
         var width = font.Width;
         var data = font.Data;

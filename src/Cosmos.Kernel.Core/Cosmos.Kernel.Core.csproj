@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.37</Version>
     <!-- Multi-arch package: contains both x64 and arm64 builds -->
     <IsMultiArchPackage>true</IsMultiArchPackage>
     <IsPackable>true</IsPackable>
@@ -21,9 +20,15 @@
   <!-- Architecture-specific source files (defines are set by Cosmos.ArchitecturePicker.props) -->
   <ItemGroup Condition="'$(CosmosArch)' != 'arm64'">
     <Compile Remove="Scheduler\ThreadContext.ARM64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\CfiArch.ARM64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\RegisterContext.ARM64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\ExceptionHelper.ARM64.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(CosmosArch)' == 'arm64'">
     <Compile Remove="Scheduler\ThreadContext.X64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\CfiArch.X64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\RegisterContext.X64.cs" />
+    <Compile Remove="Runtime\ExceptionHandling\ExceptionHelper.X64.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,13 +62,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
-    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
-    <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Runtime" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Core.X64" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Core.ARM64" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\**" Pack="true" PackagePath="build\" />
+    <ProjectReference Include="..\Cosmos.Kernel.Debug\Cosmos.Kernel.Debug.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
+    <ProjectReference Include="..\Cosmos.Kernel.Boot.Limine\Cosmos.Kernel.Boot.Limine.csproj" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\**" PackagePath="build\" />
   </ItemGroup>
 
   <!-- Multi-arch packaging support -->

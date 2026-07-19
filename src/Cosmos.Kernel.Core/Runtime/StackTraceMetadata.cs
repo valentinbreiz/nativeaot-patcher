@@ -269,7 +269,9 @@ namespace Cosmos.Kernel.Core.Runtime
                     init
                     {
                         if (value)
+                        {
                             _rvaAndIsHiddenBit |= IsHiddenFlag;
+                        }
                     }
                 }
                 public Handle OwningType { get; init; }

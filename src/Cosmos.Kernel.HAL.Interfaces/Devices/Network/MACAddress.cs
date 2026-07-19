@@ -85,17 +85,40 @@ public class MACAddress : IComparable
             MACAddress other = (MACAddress)obj;
             int i = 0;
             i = bytes[0].CompareTo(other.bytes[0]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
+
             i = bytes[1].CompareTo(other.bytes[1]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
+
             i = bytes[2].CompareTo(other.bytes[2]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
+
             i = bytes[3].CompareTo(other.bytes[3]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
+
             i = bytes[4].CompareTo(other.bytes[4]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
+
             i = bytes[5].CompareTo(other.bytes[5]);
-            if (i != 0) return i;
+            if (i != 0)
+            {
+                return i;
+            }
 
             return 0;
         }

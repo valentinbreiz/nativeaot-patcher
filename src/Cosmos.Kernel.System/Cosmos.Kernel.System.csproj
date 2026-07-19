@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>3.0.37</Version>
     <!-- Multi-arch package: built for both x64 and arm64 -->
     <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -18,10 +17,46 @@
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Kernel.Core\Cosmos.Kernel.Core.csproj" PrivateAssets="none" />
     <ProjectReference Include="..\Cosmos.Kernel.HAL\Cosmos.Kernel.HAL.csproj" PrivateAssets="none" />
+    <ProjectReference Include="..\Cosmos.Build.Analyzer.Patcher\Cosmos.Build.Analyzer.Patcher.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Graphics\Fonts\CustomFont.psf" />
+    <EmbeddedResource Include="Graphics\Fonts\DefaultFont.psf" />
+  </ItemGroup>
+
+  <!--
+    Generate the C# version constant for Cosmos.Kernel.System.Kernel from
+    $(VersionPrefix). Becomes a partial of the public abstract Kernel base
+    class so user kernels read the version via Kernel.VersionString.
+  -->
+  <Target Name="GenerateKernelVersionCs"
+          BeforeTargets="CoreCompile"
+          Inputs="$(MSBuildProjectFullPath)"
+          Outputs="$(IntermediateOutputPath)KernelVersion.g.cs">
+    <PropertyGroup>
+      <_KernelVersionCsFile>$(IntermediateOutputPath)KernelVersion.g.cs</_KernelVersionCsFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <_KernelVersionCsLine Include="// &lt;auto-generated/&gt;" />
+      <_KernelVersionCsLine Include="namespace Cosmos.Kernel.System%3B" />
+      <_KernelVersionCsLine Include="public abstract partial class Kernel" />
+      <_KernelVersionCsLine Include="{" />
+      <_KernelVersionCsLine Include="    public const string VersionString = &quot;$(VersionPrefix)&quot;%3B" />
+      <_KernelVersionCsLine Include="}" />
+    </ItemGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(_KernelVersionCsFile)"
+                      Lines="@(_KernelVersionCsLine)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(_KernelVersionCsFile)" />
+      <FileWrites Include="$(_KernelVersionCsFile)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <Folder Include="Vfs\" />
   </ItemGroup>
 
   <!-- Multi-arch packaging support -->

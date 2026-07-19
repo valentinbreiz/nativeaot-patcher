@@ -5,15 +5,10 @@
     <CosmosAsmFrameworkPath>$(IntermediateOutputPath)cosmos-asm\</CosmosAsmFrameworkPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <YasmPath Condition="'$(YasmPath)' == '' OR !Exists('$(YasmPath)')">/usr/bin/yasm</YasmPath>
-  </PropertyGroup>
-
   <PropertyGroup>
     <CosmosAsmTasksAssembly
       Condition="'$(CosmosAsmTasksAssembly)' == '' OR !Exists('$(CosmosAsmTasksAssembly)')">$(MSBuildThisFileDirectory)\..\tasks\netstandard2.0\Cosmos.Build.Asm.dll</CosmosAsmTasksAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="Cosmos.Build.Asm.Tasks.YasmBuildTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
-  <UsingTask TaskName="Cosmos.Build.Asm.Tasks.LdTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
+  <UsingTask TaskName="Cosmos.Build.Asm.Tasks.AsmBuildTask" AssemblyFile="$(CosmosAsmTasksAssembly)"/>
 </Project>

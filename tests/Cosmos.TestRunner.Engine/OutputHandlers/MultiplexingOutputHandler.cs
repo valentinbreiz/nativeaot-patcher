@@ -18,7 +18,9 @@ public class MultiplexingOutputHandler : OutputHandlerBase
     public void AddHandler(OutputHandlerBase handler)
     {
         if (handler == null)
+        {
             throw new ArgumentNullException(nameof(handler));
+        }
 
         _handlers.Add(handler);
     }

@@ -1,8 +1,11 @@
-using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.Bridge;
 
 namespace Cosmos.Kernel.Core.Memory;
 
-public static unsafe partial class MemoryOp
+/// <summary>
+/// Native SIMD imports live in Bridge/Import/SimdNative.cs.
+/// </summary>
+public static unsafe class MemoryOp
 {
     public static void InitializeHeap(ulong heapBase, ulong heapSize) =>
         PageAllocator.InitializeHeap((byte*)heapBase, heapSize);
@@ -11,39 +14,15 @@ public static unsafe partial class MemoryOp
 
     public static void Free(void* ptr) => Heap.Heap.Free(ptr);
 
-    #region Native SIMD Imports
-
-    [LibraryImport("*", EntryPoint = "_simd_copy_16")]
-    [SuppressGCTransition]
-    private static partial void SimdCopy16(byte* dest, byte* src);
-
-    [LibraryImport("*", EntryPoint = "_simd_copy_32")]
-    [SuppressGCTransition]
-    private static partial void SimdCopy32(byte* dest, byte* src);
-
-    [LibraryImport("*", EntryPoint = "_simd_copy_64")]
-    [SuppressGCTransition]
-    private static partial void SimdCopy64(byte* dest, byte* src);
-
-    [LibraryImport("*", EntryPoint = "_simd_copy_128")]
-    [SuppressGCTransition]
-    private static partial void SimdCopy128(byte* dest, byte* src);
-
-    [LibraryImport("*", EntryPoint = "_simd_copy_128_blocks")]
-    [SuppressGCTransition]
-    private static partial void SimdCopy128Blocks(byte* dest, byte* src, int blockCount);
-
-    [LibraryImport("*", EntryPoint = "_simd_fill_16_blocks")]
-    [SuppressGCTransition]
-    private static partial void SimdFill16Blocks(byte* dest, int value, int blockCount);
-
-    #endregion
 
     #region MemSet
 
     public static void MemSet(byte* dest, byte value, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 16)
         {
@@ -63,7 +42,10 @@ public static unsafe partial class MemoryOp
 
     public static void MemSet(uint* dest, uint value, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 4)
         {
@@ -88,15 +70,18 @@ public static unsafe partial class MemoryOp
         int blockCount = count / 16;
         if (blockCount > 0)
         {
-            SimdFill16Blocks(dest, (int)value, blockCount);
+            SimdNative.Fill16Blocks(dest, (int)value, blockCount);
             offset = blockCount * 16;
         }
 
-        // Fill remaining bytes using scalar (with the byte value extracted)
-        byte byteValue = (byte)(value & 0xFF);
+        // Fill remaining bytes using scalar, preserving the 32-bit pattern phase:
+        // dest[0] carries byte 0 of the pattern and SIMD blocks are 16 bytes (a whole
+        // number of patterns), so byte offset & 3 selects the right pattern byte.
+        // Using only the low byte here corrupted non-uniform fills (e.g. ARGB pixels)
+        // whenever the byte count was not a multiple of 16.
         while (offset < count)
         {
-            dest[offset] = byteValue;
+            dest[offset] = (byte)(value >> ((offset & 3) * 8));
             offset++;
         }
     }
@@ -110,7 +95,10 @@ public static unsafe partial class MemoryOp
     /// </summary>
     public static void MemCopy(byte* dest, byte* src, int count)
     {
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         if (count >= 16)
         {
@@ -148,31 +136,33 @@ public static unsafe partial class MemoryOp
     {
         int offset = 0;
 
-        // Copy 128-byte blocks
-        while (count - offset >= 128)
+        // Copy 128-byte blocks in a single native call: the stub loops internally,
+        // one P/Invoke per block would dominate large copies (e.g. framebuffer swaps).
+        int blockCount = count / 128;
+        if (blockCount > 0)
         {
-            SimdCopy128(dest + offset, src + offset);
-            offset += 128;
+            SimdNative.Copy128Blocks(dest, src, blockCount);
+            offset = blockCount * 128;
         }
 
         // Copy 64-byte chunk
         if (count - offset >= 64)
         {
-            SimdCopy64(dest + offset, src + offset);
+            SimdNative.Copy64(dest + offset, src + offset);
             offset += 64;
         }
 
         // Copy 32-byte chunk
         if (count - offset >= 32)
         {
-            SimdCopy32(dest + offset, src + offset);
+            SimdNative.Copy32(dest + offset, src + offset);
             offset += 32;
         }
 
         // Copy 16-byte chunk
         if (count - offset >= 16)
         {
-            SimdCopy16(dest + offset, src + offset);
+            SimdNative.Copy16(dest + offset, src + offset);
             offset += 16;
         }
 
@@ -187,6 +177,30 @@ public static unsafe partial class MemoryOp
     public static void MemCopy(uint* dest, uint* src, int count)
     {
         MemCopy((byte*)dest, (byte*)src, count * sizeof(uint));
+    }
+
+    /// <summary>
+    /// Memory copy using non-temporal stores: the destination bypasses the cache.
+    /// Use for large write-only targets that are never read back (framebuffer blits) —
+    /// regular stores would evict a full frame's worth of cache every copy.
+    /// Requires a 16-byte aligned destination; falls back to MemCopy otherwise.
+    /// </summary>
+    public static void MemCopyNonTemporal(byte* dest, byte* src, int count)
+    {
+        if (count < 128 || ((ulong)dest & 15) != 0)
+        {
+            MemCopy(dest, src, count);
+            return;
+        }
+
+        int blockCount = count / 128;
+        SimdNative.CopyNT128Blocks(dest, src, blockCount);
+
+        int offset = blockCount * 128;
+        if (count > offset)
+        {
+            MemCopy(dest + offset, src + offset, count - offset);
+        }
     }
 
     #endregion

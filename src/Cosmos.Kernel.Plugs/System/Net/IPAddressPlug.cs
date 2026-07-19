@@ -92,8 +92,16 @@ public static class IPAddressPlug
     // Simple byte to string without using .NET formatting (avoids resource loading)
     private static string ByteToString(byte value)
     {
-        if (value == 0) return "0";
-        if (value < 10) return ((char)('0' + value)).ToString();
+        if (value == 0)
+        {
+            return "0";
+        }
+
+        if (value < 10)
+        {
+            return ((char)('0' + value)).ToString();
+        }
+
         if (value < 100)
         {
             char d1 = (char)('0' + value / 10);

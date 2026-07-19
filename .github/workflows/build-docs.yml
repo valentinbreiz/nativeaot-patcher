@@ -3,8 +3,8 @@ name: Build Docs
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ "**" ]
+    paths:
+      - 'docs/**'
 
 jobs:
   build:
@@ -28,9 +28,15 @@ jobs:
         dotnet tool update -g docfx
         echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
 
-    - name: Restore solution
+    # Restore only what DocFX consumes (the src/Cosmos.Kernel.* projects).
+    # Restoring nativeaot-patcher.slnx pulls in examples/DevKernel, whose
+    # NuGet.Config requires the artifacts/package/release local source — that
+    # folder doesn't exist on a fresh checkout, so the slnx restore fails with
+    # NU1301. Cosmos.Kernel transitively project-references everything DocFX
+    # needs, so restoring it alone is sufficient and avoids the local source.
+    - name: Restore docs projects
       shell: pwsh
-      run: dotnet restore nativeaot-patcher.slnx
+      run: dotnet restore src/Cosmos.Kernel/Cosmos.Kernel.csproj
 
     - name: Build Docs
       shell: pwsh

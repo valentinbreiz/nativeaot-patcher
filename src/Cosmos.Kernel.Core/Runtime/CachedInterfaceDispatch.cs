@@ -57,7 +57,7 @@ namespace Cosmos.Kernel.Core.Runtime
         /// Called from RhpInitialDynamicInterfaceDispatch to resolve interface method calls.
         /// </summary>
         [RuntimeExport("RhpCidResolve")]
-        private static unsafe IntPtr RhpCidResolve(object pObject, IntPtr pCell)
+        internal static unsafe IntPtr RhpCidResolve(object pObject, IntPtr pCell)
         {
             //Serial.WriteString("[CID] Start\n");
 
@@ -94,7 +94,7 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhpResolveInterfaceMethod")]
-        private static IntPtr RhpResolveInterfaceMethod(object pObject, IntPtr pCell)
+        internal static IntPtr RhpResolveInterfaceMethod(object pObject, IntPtr pCell)
         {
             if (pObject == null)
             {
@@ -118,7 +118,7 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhResolveDispatch")]
-        private static IntPtr RhResolveDispatch(object pObject, MethodTable* interfaceType, ushort slot)
+        internal static IntPtr RhResolveDispatch(object pObject, MethodTable* interfaceType, ushort slot)
         {
             DispatchCellInfo cellInfo = default;
             cellInfo.CellType = DispatchCellType.InterfaceAndSlot;
@@ -129,13 +129,23 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhResolveDispatchOnType")]
-        private static IntPtr RhResolveDispatchOnType(MethodTable* pInstanceType, MethodTable* pInterfaceType, ushort slot)
+        internal static IntPtr RhResolveDispatchOnType(MethodTable* pInstanceType, MethodTable* pInterfaceType, ushort slot)
         {
             return DispatchResolve.FindInterfaceMethodImplementationTarget(pInstanceType,
                                                                           pInterfaceType,
                                                                           slot,
                                                                           flags: default,
                                                                           ppGenericContext: null);
+        }
+
+        [RuntimeExport("RhResolveStaticDispatchOnType")]
+        internal static IntPtr RhResolveStaticDispatchOnType(MethodTable* pInstanceType, MethodTable* pInterfaceType, ushort slot, MethodTable** ppGenericContext)
+        {
+            return DispatchResolve.FindInterfaceMethodImplementationTarget(pInstanceType,
+                                                                          pInterfaceType,
+                                                                          slot,
+                                                                          DispatchResolve.ResolveFlags.Static,
+                                                                          ppGenericContext);
         }
 
         private static unsafe IntPtr RhResolveDispatchWorker(object pObject, void* cell, ref DispatchCellInfo cellInfo)
@@ -276,7 +286,9 @@ namespace Cosmos.Kernel.Core.Runtime
                 SmallHeap.Alloc((uint)(sizeof(InterfaceDispatchCell) * 2));
 
             if (pCell == null)
+            {
                 return IntPtr.Zero;
+            }
 
             // Initialize the dispatch cell
             // Cell[0].m_pStub would point to RhpInitialDynamicInterfaceDispatch in a full implementation

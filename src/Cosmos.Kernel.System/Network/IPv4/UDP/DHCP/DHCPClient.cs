@@ -89,7 +89,10 @@ public class DHCPClient : UdpClient
         for (int i = 0; i < NetworkManager.DeviceCount; i++)
         {
             var networkDevice = NetworkManager.GetDevice(i);
-            if (networkDevice == null) continue;
+            if (networkDevice == null)
+            {
+                continue;
+            }
 
             Address source = IPConfig.FindNetwork(DHCPServerAddress(networkDevice));
             var dhcpRelease = new DHCPRelease(source, DHCPServerAddress(networkDevice), networkDevice.MacAddress);
@@ -117,7 +120,10 @@ public class DHCPClient : UdpClient
         for (int i = 0; i < NetworkManager.DeviceCount; i++)
         {
             var networkDevice = NetworkManager.GetDevice(i);
-            if (networkDevice == null) continue;
+            if (networkDevice == null)
+            {
+                continue;
+            }
 
             IPConfig.Enable(networkDevice, new Address(0, 0, 0, 0), new Address(0, 0, 0, 0), new Address(0, 0, 0, 0));
 
@@ -140,7 +146,10 @@ public class DHCPClient : UdpClient
         for (int i = 0; i < NetworkManager.DeviceCount; i++)
         {
             var networkDevice = NetworkManager.GetDevice(i);
-            if (networkDevice == null) continue;
+            if (networkDevice == null)
+            {
+                continue;
+            }
 
             var dhcpRequest = new DHCPRequest(networkDevice.MacAddress, requestedAddress);
             OutgoingBuffer.AddPacket(dhcpRequest);
@@ -163,7 +172,10 @@ public class DHCPClient : UdpClient
             for (int i = 0; i < NetworkManager.DeviceCount; i++)
             {
                 var networkDevice = NetworkManager.GetDevice(i);
-                if (networkDevice == null) continue;
+                if (networkDevice == null)
+                {
+                    continue;
+                }
 
                 if (packet.Client == null || packet.Client.ToString() == null)
                 {

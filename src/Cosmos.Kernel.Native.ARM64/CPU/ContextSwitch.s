@@ -1,10 +1,10 @@
 // ARM64 Context Switch Support
 // Functions for preemptive multithreading on ARM64
 
-.global _native_arm64_set_context_switch_sp
-.global _native_arm64_get_context_switch_sp
-.global _native_arm64_get_sp
-.global _native_arm64_set_context_switch_new_thread
+.global _native_set_context_switch_sp
+.global _native_get_context_switch_sp
+.global _native_get_sp
+.global _native_set_context_switch_new_thread
 .global _context_switch_target_sp
 .global _context_switch_is_new_thread
 .global _temp_is_new_thread
@@ -31,38 +31,38 @@ _temp_is_new_thread:
 
 .section .text
 
-// void _native_arm64_set_context_switch_sp(nuint newSp)
+// void _native_set_context_switch_sp(nuint newSp)
 // Sets the target SP for context switch. Called from managed code
 // during timer interrupt to request a context switch.
 // x0 = new SP to switch to (pointing to saved context)
 .balign 4
-_native_arm64_set_context_switch_sp:
+_native_set_context_switch_sp:
     adrp    x1, _context_switch_target_sp
     add     x1, x1, :lo12:_context_switch_target_sp
     str     x0, [x1]
     ret
 
-// nuint _native_arm64_get_context_switch_sp(void)
+// nuint _native_get_context_switch_sp(void)
 // Gets the current context switch target SP (for debugging)
 .balign 4
-_native_arm64_get_context_switch_sp:
+_native_get_context_switch_sp:
     adrp    x1, _context_switch_target_sp
     add     x1, x1, :lo12:_context_switch_target_sp
     ldr     x0, [x1]
     ret
 
-// nuint _native_arm64_get_sp(void)
+// nuint _native_get_sp(void)
 // Gets the current SP value
 .balign 4
-_native_arm64_get_sp:
+_native_get_sp:
     mov     x0, sp
     ret
 
-// void _native_arm64_set_context_switch_new_thread(int isNew)
+// void _native_set_context_switch_new_thread(int isNew)
 // Sets whether the target thread is NEW (1) or RESUMED (0)
 // x0 = isNew flag
 .balign 4
-_native_arm64_set_context_switch_new_thread:
+_native_set_context_switch_new_thread:
     adrp    x1, _context_switch_is_new_thread
     add     x1, x1, :lo12:_context_switch_is_new_thread
     str     x0, [x1]

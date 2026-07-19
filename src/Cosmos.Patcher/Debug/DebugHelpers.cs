@@ -63,10 +63,18 @@ public static class DebugHelpers
     private static IEnumerable<IMemberDefinition> GetMembers(TypeDefinition type)
     {
         foreach (var method in type.Methods)
+        {
             yield return method;
+        }
+
         foreach (var property in type.Properties)
+        {
             yield return property;
+        }
+
         foreach (var field in type.Fields)
+        {
             yield return field;
+        }
     }
 }

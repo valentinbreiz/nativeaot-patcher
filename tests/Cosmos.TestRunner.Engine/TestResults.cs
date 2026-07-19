@@ -17,6 +17,13 @@ public class TestResults
     public bool TimedOut { get; set; }
     public string UartLog { get; set; } = string.Empty;
     public int ExpectedTestCount { get; set; }
+    public bool SuiteCompleted { get; set; }
+
+    /// <summary>
+    /// Code coverage data: method IDs that were hit during execution.
+    /// Empty if coverage instrumentation was not enabled.
+    /// </summary>
+    public List<ushort> CoverageHitMethodIds { get; set; } = new();
 
     public int TotalTests => ExpectedTestCount > 0 ? ExpectedTestCount : Tests.Count;
     public int PassedTests => Tests.Count(t => t.Status == TestStatus.Passed);

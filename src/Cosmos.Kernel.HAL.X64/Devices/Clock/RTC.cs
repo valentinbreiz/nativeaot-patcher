@@ -1,8 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.HAL.Devices;
+using Cosmos.Kernel.HAL.Devices.Clock;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Clock;
 
@@ -54,14 +57,19 @@ public class RTC : Device
     /// </summary>
     public bool IsInitialized { get; private set; }
 
+    /// <summary>Mirrors the ARM64 RTC property name for cross-arch compatibility.</summary>
+    public bool IsAvailable => IsInitialized;
+
     /// <summary>
     /// Initialize the RTC and capture boot time.
     /// Should be called after TSC calibration.
     /// </summary>
-    public void Initialize()
+    public unsafe void Initialize()
     {
         if (IsInitialized)
+        {
             return;
+        }
 
         Serial.Write("[RTC] Initializing...\n");
 
@@ -70,34 +78,82 @@ public class RTC : Device
         // Capture current TSC as boot reference
         BootTsc = X64CpuOps.ReadTSC();
 
-        // Read current time from RTC
+        // Priority 1: EFI Runtime Services GetTime
+        if (EfiRtc.TryGetTime(out long efiTicks))
+        {
+            BootTimeTicks = efiTicks;
+            IsInitialized = true;
+            Serial.Write("[RTC] Initialized\n");
+            return;
+        }
+
+        // Priority 2: Limine boot time
+        if (Limine.BootTime.Response != null)
+        {
+            long unixSecs = Limine.BootTime.Response->BootTime;
+            if (unixSecs > 0)
+            {
+                BootTimeTicks = DateTime.UnixEpoch.Ticks + unixSecs * TimeSpan.TicksPerSecond;
+                Serial.Write("[RTC] Boot time (Limine): ");
+                LogTime(BootTimeTicks);
+                IsInitialized = true;
+                Serial.Write("[RTC] Initialized\n");
+                return;
+            }
+        }
+
+        // Priority 3: CMOS RTC
         var (year, month, day, hour, minute, second) = ReadTime();
-
-        // Convert to DateTime ticks
-        // DateTime ticks are 100-nanosecond intervals since 0001-01-01
         BootTimeTicks = DateToTicks(year, month, day) + TimeToTicks(hour, minute, second);
-
-        Serial.Write("[RTC] Boot time: ");
-        Serial.WriteNumber((ulong)year);
-        Serial.Write("-");
-        if (month < 10) Serial.Write("0");
-        Serial.WriteNumber((ulong)month);
-        Serial.Write("-");
-        if (day < 10) Serial.Write("0");
-        Serial.WriteNumber((ulong)day);
-        Serial.Write(" ");
-        if (hour < 10) Serial.Write("0");
-        Serial.WriteNumber((ulong)hour);
-        Serial.Write(":");
-        if (minute < 10) Serial.Write("0");
-        Serial.WriteNumber((ulong)minute);
-        Serial.Write(":");
-        if (second < 10) Serial.Write("0");
-        Serial.WriteNumber((ulong)second);
-        Serial.Write("\n");
+        Serial.Write("[RTC] Boot time (CMOS): ");
+        LogTime(BootTimeTicks);
 
         IsInitialized = true;
         Serial.Write("[RTC] Initialized\n");
+    }
+
+    private static void LogTime(long ticks)
+    {
+        var dt = new System.DateTime(ticks, System.DateTimeKind.Utc);
+        int year = dt.Year, month = dt.Month, day = dt.Day;
+        int hour = dt.Hour, minute = dt.Minute, second = dt.Second;
+        Serial.WriteNumber((ulong)year);
+        Serial.Write("-");
+        if (month < 10)
+        {
+            Serial.Write("0");
+        }
+
+        Serial.WriteNumber((ulong)month);
+        Serial.Write("-");
+        if (day < 10)
+        {
+            Serial.Write("0");
+        }
+
+        Serial.WriteNumber((ulong)day);
+        Serial.Write(" ");
+        if (hour < 10)
+        {
+            Serial.Write("0");
+        }
+
+        Serial.WriteNumber((ulong)hour);
+        Serial.Write(":");
+        if (minute < 10)
+        {
+            Serial.Write("0");
+        }
+
+        Serial.WriteNumber((ulong)minute);
+        Serial.Write(":");
+        if (second < 10)
+        {
+            Serial.Write("0");
+        }
+
+        Serial.WriteNumber((ulong)second);
+        Serial.Write(" UTC\n");
     }
 
     /// <summary>
@@ -107,7 +163,9 @@ public class RTC : Device
     public long GetCurrentTicks()
     {
         if (!IsInitialized)
+        {
             return 0;
+        }
 
         // Calculate elapsed time since boot using TSC
         ulong currentTsc = X64CpuOps.ReadTSC();
@@ -118,14 +176,44 @@ public class RTC : Device
         // DateTime ticks are 10,000,000 per second
         long tscFrequency = X64CpuOps.TscFrequency;
         if (tscFrequency <= 0)
+        {
             tscFrequency = 1_000_000_000; // Default 1 GHz
+        }
 
         // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
         // Use 128-bit math to avoid overflow
-        ulong elapsedTicks = MultiplyDivide(elapsedTsc, 10_000_000, (ulong)tscFrequency);
+        ulong elapsedTicks = MultiplyDivide(elapsedTsc, TimeSpan.TicksPerSecond, (ulong)tscFrequency);
 
         return BootTimeTicks + (long)elapsedTicks;
     }
+
+    public long GetElapsedTicks()
+    {
+        if (!IsInitialized)
+        {
+            return 0;
+        }
+
+        // Calculate elapsed time since boot using TSC
+        ulong currentTsc = X64CpuOps.ReadTSC();
+        ulong elapsedTsc = currentTsc - BootTsc;
+
+        // Convert TSC ticks to DateTime ticks (100-nanosecond intervals)
+        // TSC frequency is in Hz (ticks per second)
+        // DateTime ticks are 10,000,000 per second
+        long tscFrequency = X64CpuOps.TscFrequency;
+        if (tscFrequency <= 0)
+        {
+            tscFrequency = 1_000_000_000; // Default 1 GHz
+        }
+
+        // elapsedTicks = elapsedTsc * 10_000_000 / tscFrequency
+        // Use 128-bit math to avoid overflow
+        ulong elapsedTicks = MultiplyDivide(elapsedTsc, TimeSpan.TicksPerSecond, (ulong)tscFrequency);
+
+        return (long)elapsedTicks;
+    }
+
 
     /// <summary>
     /// Reads a byte from a CMOS register.
@@ -186,9 +274,13 @@ public class RTC : Device
         {
             bool pm = (ReadCMOS(RegHours) & 0x80) != 0;
             if (hour == 12)
+            {
                 hour = pm ? (byte)12 : (byte)0;
+            }
             else if (pm)
+            {
                 hour = (byte)(hour + 12);
+            }
         }
 
         // Calculate full year
@@ -242,7 +334,7 @@ public class RTC : Device
         days += day - 1;
 
         // Convert to ticks (100-nanosecond intervals)
-        return days * TicksPerDay;
+        return days * TimeSpan.TicksPerDay;
     }
 
     /// <summary>
@@ -250,7 +342,7 @@ public class RTC : Device
     /// </summary>
     private static long TimeToTicks(int hour, int minute, int second)
     {
-        return hour * TicksPerHour + minute * TicksPerMinute + second * TicksPerSecond;
+        return hour * TimeSpan.TicksPerHour + minute * TimeSpan.TicksPerMinute + second * TimeSpan.TicksPerSecond;
     }
 
     /// <summary>
@@ -273,10 +365,4 @@ public class RTC : Device
         result += remainder * b / c;
         return result;
     }
-
-    // DateTime tick constants
-    private const long TicksPerSecond = 10_000_000L;
-    private const long TicksPerMinute = TicksPerSecond * 60;
-    private const long TicksPerHour = TicksPerMinute * 60;
-    private const long TicksPerDay = TicksPerHour * 24;
 }

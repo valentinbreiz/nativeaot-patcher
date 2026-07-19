@@ -6,7 +6,7 @@
     <Project Path="src/Cosmos.Build.API/Cosmos.Build.API.csproj" />
     <Project Path="src/Cosmos.Build.Asm/Cosmos.Build.Asm.csproj" />
     <Project Path="src/Cosmos.Build.Common/Cosmos.Build.Common.csproj" />
-    <Project Path="src/Cosmos.Build.GCC/Cosmos.Build.GCC.csproj" />
+    <Project Path="src/Cosmos.Build.CC/Cosmos.Build.CC.csproj" />
     <Project Path="src/Cosmos.Build.Ilc/Cosmos.Build.Ilc.csproj" />
     <Project Path="src/Cosmos.Build.Patcher/Cosmos.Build.Patcher.csproj" />
     <Project Path="src/Cosmos.Build.Templates/Cosmos.Build.Templates.csproj" />

@@ -7,9 +7,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- Reference the protocol for parsing messages -->
   <ItemGroup>
     <ProjectReference Include="../Cosmos.TestRunner.Protocol/Cosmos.TestRunner.Protocol.csproj" />
+    <!-- Reuse the QEMU launcher and tool resolver from cosmos run so tests and CLI agree on argv. -->
+    <ProjectReference Include="../../src/Cosmos.Tools/Cosmos.Tools.csproj" />
   </ItemGroup>
 
 </Project>

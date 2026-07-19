@@ -11,13 +11,12 @@ public unsafe partial class StartupCodeHelpersPlug
     [PlugMember]
     public static void RunModuleInitializers()
     {
-        // Already run early in ManagedModule.InitializeModules()
+        ManagedModule.RunModuleInitializers();
     }
 
     [PlugMember]
     internal static int GetLoadedModules(TypeManagerHandle[] outputModules)
     {
-        Serial.WriteString("[StartupCodeHelpers] - Getting Loaded Modules\n");
         return ManagedModule.GetLoadedModules(outputModules);
     }
 }

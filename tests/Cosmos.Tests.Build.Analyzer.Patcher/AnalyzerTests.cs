@@ -19,30 +19,6 @@ public class AnalyzerTests
     private static readonly MetadataReference s_platformSpecificAttributeReference =
         MetadataReference.CreateFromFile(typeof(PlatformSpecificAttribute).Assembly.Location);
 
-
-    [Fact]
-    public async Task Test_TypeNotFoundDiagnostic()
-    {
-        const string code = """
-                            using System;
-                            using Cosmos.Build.API.Attributes;
-
-                            namespace ConsoleApplication1
-                            {
-                                [Plug("System.NonExistent", IsOptional = false)]
-                                public static class Test
-                                {
-                                    [DllImport("example.dll")]
-                                    public static extern void ExternalMethod();
-                                }
-                            }
-                            """;
-        ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
-        Assert.Contains(diagnostics,
-            d => d.Id == DiagnosticMessages.TypeNotFound.Id && d.GetMessage().Contains("System.NonExistent"));
-    }
-
-
     [Fact]
     public async Task Test_AnalyzeAccessedMember()
     {

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>Cosmos.Build.Templates</PackageId>
-    <Version>3.0.37</Version>
     <Title>Cosmos Build Templates</Title>
     <Description>Build templates and configuration files for Cosmos kernel development including linker scripts, bootloader configurations, and dotnet new project templates.</Description>
     <PackageTags>cosmos;build;templates;dotnet-new;kernel;os</PackageTags>
@@ -23,11 +22,41 @@
     <Compile Remove="**\*" />
   </ItemGroup>
 
-  <!-- Include template files as Content -->
+  <!-- Include template files as Content. KernelName.csproj is excluded here and
+       re-injected by GenerateKernelTemplateProj below with @CosmosPackageVersion@
+       substituted at pack time. -->
   <ItemGroup>
-    <Content Include="templates\**\*" />
+    <Content Include="templates\**\*" Exclude="templates\cosmos-kernel\KernelName.csproj" />
     <Content Include="Linker\**\*" />
     <Content Include="Bootloader\**\*" />
   </ItemGroup>
+
+  <!--
+    KernelName.csproj ships into the Cosmos.Build.Templates NuGet template package
+    and is materialized verbatim by `dotnet new cosmos-kernel`. It contains
+    @CosmosPackageVersion@ tokens that must be replaced with the literal version
+    at pack time.
+  -->
+  <Target Name="GenerateKernelTemplateProj"
+          BeforeTargets="AssignTargetPaths"
+          Inputs="templates\cosmos-kernel\KernelName.csproj"
+          Outputs="$(IntermediateOutputPath)KernelName.csproj">
+    <PropertyGroup>
+      <_KernelTemplateTemplate>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)templates\cosmos-kernel\KernelName.csproj'))</_KernelTemplateTemplate>
+      <_KernelTemplateBaked>$(_KernelTemplateTemplate.Replace('@CosmosPackageVersion@', '$(VersionPrefix)'))</_KernelTemplateBaked>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)KernelName.csproj"
+                      Lines="$(_KernelTemplateBaked)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <FileWrites Include="$(IntermediateOutputPath)KernelName.csproj" />
+      <Content Include="$(IntermediateOutputPath)KernelName.csproj"
+               PackagePath="content\templates\cosmos-kernel\KernelName.csproj"
+               Pack="true"
+               Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>

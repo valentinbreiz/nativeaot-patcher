@@ -133,7 +133,10 @@ public static class SocketPlug
     {
         int id = GetId(aThis);
         if (_localEndPoints.TryGetValue(id, out var ep))
+        {
             return ep;
+        }
+
         return null;
     }
 
@@ -142,7 +145,10 @@ public static class SocketPlug
     {
         int id = GetId(aThis);
         if (_remoteEndPoints.TryGetValue(id, out var ep))
+        {
             return ep;
+        }
+
         return null;
     }
 
@@ -235,7 +241,10 @@ public static class SocketPlug
             sm = _tcpStateMachines[id];
         }
 
-        while (sm.WaitStatus(Status.ESTABLISHED) != true) ;
+        while (sm.WaitStatus(Status.ESTABLISHED) != true)
+        {
+            ;
+        }
 
         _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToByteArray()), sm.RemoteEndPoint.Port);
         _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToByteArray()), sm.LocalEndPoint.Port);
@@ -791,9 +800,18 @@ public static class SocketPlug
         }
         else if (sm.Status == Status.CLOSING || sm.Status == Status.CLOSE_WAIT)
         {
-            while (sm.WaitStatus(Status.CLOSED) != true) ;
+            if (sm.WaitStatus(Status.CLOSED, timeout))
+            {
+                Tcp.RemoveConnection(sm);
+            }
+            else
+            {
+                // The final ACK never arrived — detach instead of blocking
+                // forever; Tcp reaps the connection once it reaches CLOSED.
+                Serial.WriteString("[SocketPlug] CloseTcp: passive close pending, detaching connection\n");
+                sm.Detached = true;
+            }
 
-            Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);
             _endpoints.Remove(id);
             _localEndPoints.Remove(id);
@@ -808,17 +826,33 @@ public static class SocketPlug
         }
         else if (sm.Status == Status.ESTABLISHED)
         {
+            // Set status BEFORE sending the FIN — same race as ConnectTcp:
+            // SendEmptyPacket pumps NetworkStack.Update, which can process the
+            // peer's immediate FIN|ACK inline. Under ESTABLISHED that runs the
+            // passive close all the way to CLOSED, and an assignment after the
+            // send would overwrite CLOSED with FIN_WAIT1 and hang the close.
+            sm.Status = Status.FIN_WAIT1;
             sm.SendEmptyPacket(Flags.FIN | Flags.ACK);
 
-            sm.Status = Status.FIN_WAIT1;
+            // Wait for the peer to ACK our FIN. Once it is ACKed the close has
+            // succeeded from the caller's point of view — the peer may hold
+            // its half of the connection open for as long as it wants
+            // (issue #369), so Close() must not block on or throw for the
+            // peer's own FIN.
+            sm.WaitLeaveStatus(Status.FIN_WAIT1, timeout);
 
-            if (sm.WaitStatus(Status.CLOSED, 5000) == false)
+            if (sm.Status == Status.CLOSED)
             {
-                Serial.WriteString("[SocketPlug] Close Failed to close TCP connection!\n");
-                throw new Exception("Failed to close TCP connection!");
+                Tcp.RemoveConnection(sm);
+            }
+            else
+            {
+                // Half-close: detach the state machine so it finishes the
+                // handshake in the background; Tcp reaps it on CLOSED.
+                Serial.WriteString("[SocketPlug] CloseTcp: peer FIN pending, detaching connection\n");
+                sm.Detached = true;
             }
 
-            Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);
         }
 

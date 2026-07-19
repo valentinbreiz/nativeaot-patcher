@@ -1,336 +1,101 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug x64 DevKernel",
-      "type": "cppdbg",
-      "request": "launch",
-      "MIMode": "gdb",
-      "sourceFileMap": {
-        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
-      },
-
-      "miDebuggerPath": "gdb",
-      "targetArchitecture": "x64",
-      "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/DevKernel.elf",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "miDebuggerServerAddress": "localhost:1234",
-      "preLaunchTask": "Debug x64 DevKernel",
-      "postDebugTask": "Stop QEMU x64",
-      "setupCommands": [
+    "version": "0.2.0",
+    "configurations": [
         {
-          "description": "Enable pretty-printing",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
+            "name": "Debug x64 DevKernel",
+            "type": "cppdbg",
+            "request": "launch",
+            "MIMode": "gdb",
+            "sourceFileMap": {
+                "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+            },
+            "miDebuggerPath": "gdb",
+            "targetArchitecture": "x64",
+            "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-x64/DevKernel.elf",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerServerAddress": "localhost:1234",
+            "preLaunchTask": "Debug x64 DevKernel",
+            "postDebugTask": "Stop QEMU x64",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set disassembly flavor",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set pagination off",
+                    "text": "set pagination off",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "None"
         },
         {
-          "description": "Set disassembly flavor",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
+            "name": "Debug ARM64 DevKernel",
+            "type": "cppdbg",
+            "request": "launch",
+            "MIMode": "gdb",
+            "sourceFileMap": {
+                "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
+            },
+            "miDebuggerPath": "gdb-multiarch",
+            "targetArchitecture": "arm64",
+            "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/DevKernel.elf",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "miDebuggerServerAddress": "localhost:1234",
+            "preLaunchTask": "Debug ARM64 DevKernel",
+            "postDebugTask": "Stop QEMU ARM64",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set pagination off",
+                    "text": "set pagination off",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set step mode",
+                    "text": "set step-mode on",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture",
+                    "text": "set architecture aarch64",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Set target endian",
+                    "text": "set endian little",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable scheduler locking",
+                    "text": "set scheduler-locking step",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "None"
         },
         {
-          "description": "Set pagination off",
-          "text": "set pagination off",
-          "ignoreFailures": true
+            "name": "Cosmos: Debug Kernel",
+            "type": "cosmos-debug",
+            "request": "launch"
         }
-      ],
-      "launchCompleteCommand": "None"
-    },
-    {
-      "name": "Debug ARM64 DevKernel",
-      "type": "cppdbg",
-      "request": "launch",
-      "MIMode": "gdb",
-      "sourceFileMap": {
-        "/_/src/runtime": "${workspaceFolder}/dotnet/runtime"
-      },
-
-      "miDebuggerPath": "gdb-multiarch",
-      "targetArchitecture": "arm64",
-      "program": "${workspaceFolder}/artifacts/bin/DevKernel/debug_linux-arm64/DevKernel.elf",
-      "args": [],
-      "stopAtEntry": true,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "miDebuggerServerAddress": "localhost:1234",
-      "preLaunchTask": "Debug ARM64 DevKernel",
-      "postDebugTask": "Stop QEMU ARM64",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set pagination off",
-          "text": "set pagination off",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set step mode",
-          "text": "set step-mode on",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set architecture",
-          "text": "set architecture aarch64",
-          "ignoreFailures": false
-        },
-        {
-          "description": "Set target endian",
-          "text": "set endian little",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Enable scheduler locking",
-          "text": "set scheduler-locking step",
-          "ignoreFailures": true
-        }
-      ],
-      "launchCompleteCommand": "None"
-    },
-    {
-      "name": "Debug Test Runner (HelloWorld x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "x64",
-        "60",
-        "${workspaceFolder}/test-results.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (HelloWorld ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.HelloWorld",
-        "arm64",
-        "90",
-        "${workspaceFolder}/test-results-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (TypeCasting x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting",
-        "x64",
-        "60",
-        "${workspaceFolder}/test-results-typecasting-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (TypeCasting ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.TypeCasting",
-        "arm64",
-        "90",
-        "${workspaceFolder}/test-results-typecasting-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Memory x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Memory",
-        "x64",
-        "60",
-        "${workspaceFolder}/test-results-memory-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Memory ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Memory",
-        "arm64",
-        "90",
-        "${workspaceFolder}/test-results-memory-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Timer x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Timer",
-        "x64",
-        "120",
-        "${workspaceFolder}/test-results-timer-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Timer ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Timer",
-        "arm64",
-        "180",
-        "${workspaceFolder}/test-results-timer-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Network x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Network",
-        "x64",
-        "120",
-        "${workspaceFolder}/test-results-network-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Network ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Network",
-        "arm64",
-        "180",
-        "${workspaceFolder}/test-results-network-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Threading x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "x64",
-        "120",
-        "${workspaceFolder}/test-results-threading-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Threading ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Threading",
-        "arm64",
-        "180",
-        "${workspaceFolder}/test-results-threading-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-     {
-      "name": "Debug Test Runner (Graphic x64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
-        "x64",
-        "120",
-        "${workspaceFolder}/test-results-graphic-x64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Debug Test Runner (Graphic ARM64)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "Build Test Runner",
-      "program": "${workspaceFolder}/artifacts/bin/Cosmos.TestRunner.Engine/debug/Cosmos.TestRunner.Engine.dll",
-      "args": [
-        "${workspaceFolder}/tests/Kernels/Cosmos.Kernel.Tests.Graphic",
-        "arm64",
-        "180",
-        "${workspaceFolder}/test-results-graphic-arm64.xml",
-        "dev"
-      ],
-      "cwd": "${workspaceFolder}",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    }
-  ]
+    ]
 }

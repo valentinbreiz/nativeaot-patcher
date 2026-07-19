@@ -1,3 +1,5 @@
+using Cosmos.Kernel.Core.Memory.GarbageCollector;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
@@ -24,6 +26,9 @@ public unsafe class Thread : SchedulerExtensible
     public ulong TotalRuntime { get; set; }
     public ulong LastScheduledAt { get; set; }
     public ulong WakeupTime { get; set; }
+
+    // ===== GC Allocation Context (TLAB) =====
+    public AllocContext AllocContext;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private object[][] _threadStaticStorage;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -33,6 +38,11 @@ public unsafe class Thread : SchedulerExtensible
     /// Default stack size for new threads (64KB).
     /// </summary>
     public const nuint DefaultStackSize = 64 * 1024;
+
+    /// <summary>
+    /// Maximum number of threads tracked by the global thread registry.
+    /// </summary>
+    public const int MaxThreadCount = 256;
 
     /// <summary>
     /// Allocates and initializes the thread stack with initial context.

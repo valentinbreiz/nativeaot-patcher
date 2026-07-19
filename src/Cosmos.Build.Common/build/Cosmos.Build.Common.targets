@@ -16,18 +16,49 @@
     <IsLinux Condition="'$(OS)' != 'Windows_NT' AND '$(IsMacOS)' != 'true'">true</IsLinux>
   </PropertyGroup>
 
-  <Import Project="Common.Build.Unix.targets" Condition="'$(IsLinux)' == 'true'"/>
-  <Import Project="Common.Build.macOS.targets" Condition="'$(IsMacOS)' == 'true'"/>
-  <Import Project="Common.Build.Windows.targets" Condition="'$(IsWindows)' == 'true'"/>
+  <!-- Cross-OS tool resolution (xorriso, ld.lld) via ResolveCosmosToolTask. -->
+  <Import Project="Common.Build.Tools.targets"/>
 
-  <Target Name="LinkTarget" DependsOnTargets="$(LinkTargetDependsOn)" AfterTargets="Build">
-    <!-- Define paths used for linking and ISO creation -->
+  <!-- Content-hash based linker caching: hash all .o/.obj + exports file -->
+  <Target Name="CheckLinkCache" DependsOnTargets="$(LinkTargetDependsOn)">
     <PropertyGroup>
       <ElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)', '$(AssemblyName).elf'))</ElfBinary>
       <AsmObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'asm'))</AsmObjDir>
       <CObjDir>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', 'cobj'))</CObjDir>
+      <_LinkCacheFile>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', '.link-hash'))</_LinkCacheFile>
     </PropertyGroup>
 
+    <ItemGroup>
+      <_LinkInputFiles Include="$(AsmObjDir)/*.obj"/>
+      <_LinkInputFiles Include="$(CObjDir)/*.obj"/>
+      <_LinkInputFiles Include="$(CObjDir)/*.o"/>
+      <_LinkInputFiles Include="%(ManagedBinary.OutputFile)"/>
+      <_LinkInputFiles Include="$(ExportsFile)" Condition="'$(ExportsFile)' != '' AND Exists('$(ExportsFile)')"/>
+    </ItemGroup>
+
+    <ComputeInputsHashTask InputFiles="@(_LinkInputFiles)">
+      <Output TaskParameter="Hash" PropertyName="_CurrentLinkHash" />
+    </ComputeInputsHashTask>
+
+    <ReadLinesFromFile File="$(_LinkCacheFile)" Condition="Exists('$(_LinkCacheFile)')">
+      <Output TaskParameter="Lines" ItemName="_PreviousLinkHashLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_PreviousLinkHash>@(_PreviousLinkHashLines)</_PreviousLinkHash>
+      <_LinkCacheHit Condition="'$(_CurrentLinkHash)' != '' AND '$(_CurrentLinkHash)' == '$(_PreviousLinkHash)' AND Exists('$(ElfBinary)')">true</_LinkCacheHit>
+    </PropertyGroup>
+
+    <Message Condition="'$(_LinkCacheHit)' == 'true'" Importance="High"
+             Text="Linker cache hit — skipping link (hash: $(_CurrentLinkHash))" />
+  </Target>
+
+  <!-- Wrapper: runs CheckLinkCache, then conditionally invokes the link work via CallTarget. -->
+  <Target Name="LinkTarget" DependsOnTargets="CheckLinkCache" AfterTargets="Build">
+    <CallTarget Targets="_LinkTargetCore" Condition="'$(_LinkCacheHit)' != 'true'" />
+  </Target>
+
+  <Target Name="_LinkTargetCore">
     <ItemGroup>
       <ObjFiles Include="$(AsmObjDir)/*.obj"/>
       <!-- GCC produced object files -->
@@ -61,39 +92,79 @@
       <LinkerArgs Include="--error-limit=0"/>
       <LinkerArgs Condition="$(ExportsFile) != ''" Include="--version-script &quot;$(ExportsFile)&quot;"/>
     </ItemGroup>
-    <Error Condition="'$(LdLinkerPath)' == ''" Text="❌ Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property"/>
 
+    <Error Condition="'$(LdLinkerPath)' == ''" Text="Error: 'ld.lld' linker was not found. Install llvm or set the 'LdLinkerPath' property"/>
     <Exec Command="&quot;$(LdLinkerPath)&quot; @(LinkerArgs, ' ')"/>
-    <Message Text="✅ Built ELF: $(AssemblyName).elf in publish folder" Importance="High"/>
+    <Message Text="Built ELF: $(AssemblyName).elf" Importance="High"/>
+
+    <!-- Write cache hash after successful linking -->
+    <WriteLinesToFile File="$(_LinkCacheFile)" Lines="$(_CurrentLinkHash)" Overwrite="true" />
   </Target>
 
-  <Target Name="BuildISO" AfterTargets="LinkTarget">
-    <Message Text="🚀 Creating ISO image with Limine..." Importance="High"/>
+  <!-- Content-hash based ISO caching: hash ELF + limine.conf -->
+  <Target Name="CheckIsoCache" DependsOnTargets="LinkTarget">
+    <PropertyGroup>
+      <_IsoCacheFile>$([MSBuild]::NormalizePath('$(IntermediateOutputPath)', 'cosmos', '.iso-hash'))</_IsoCacheFile>
+      <_LimineConf>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', 'Bootloader', 'limine.conf'))</_LimineConf>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_IsoInputFiles Include="$(ElfBinary)" Condition="Exists('$(ElfBinary)')"/>
+      <_IsoInputFiles Include="$(_LimineConf)" Condition="Exists('$(_LimineConf)')"/>
+    </ItemGroup>
+
+    <ComputeInputsHashTask InputFiles="@(_IsoInputFiles)">
+      <Output TaskParameter="Hash" PropertyName="_CurrentIsoHash" />
+    </ComputeInputsHashTask>
+
+    <ReadLinesFromFile File="$(_IsoCacheFile)" Condition="Exists('$(_IsoCacheFile)')">
+      <Output TaskParameter="Lines" ItemName="_PreviousIsoHashLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_PreviousIsoHash>@(_PreviousIsoHashLines)</_PreviousIsoHash>
+      <_IsoCacheHit Condition="'$(_CurrentIsoHash)' != '' AND '$(_CurrentIsoHash)' == '$(_PreviousIsoHash)' AND Exists('$(IsoOutput)')">true</_IsoCacheHit>
+    </PropertyGroup>
+
+    <Message Condition="'$(_IsoCacheHit)' == 'true'" Importance="High"
+             Text="ISO cache hit — skipping ISO creation (hash: $(_CurrentIsoHash))" />
+  </Target>
+
+  <!-- Wrapper: runs CheckIsoCache, then conditionally invokes the ISO work via CallTarget. -->
+  <Target Name="BuildISO" DependsOnTargets="CheckIsoCache" AfterTargets="LinkTarget">
+    <CallTarget Targets="_BuildIsoCore" Condition="'$(_IsoCacheHit)' != 'true'" />
+  </Target>
+
+  <Target Name="_BuildIsoCore" DependsOnTargets="GetXorriso">
+    <Message Text="Creating ISO image with Limine..." Importance="High"/>
 
     <!-- Remove old ISO directory if it exists -->
     <RemoveDir Directories="$(IsoRoot)"/>
 
-    <!-- Define normalized paths for Limine -->
+    <!-- Limine bootloader files bundled in the NuGet package (tools/Limine/) -->
     <PropertyGroup>
+      <LiminePkgDir>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'tools', 'Limine'))</LiminePkgDir>
       <LimineDir>$([MSBuild]::NormalizePath('$(CosmosIntermediateOutputPath)', 'limine'))</LimineDir>
-      <LimineBinary>$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
+      <LimineBinary Condition="'$(IsWindows)' == 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine.exe'))</LimineBinary>
+      <LimineBinary Condition="'$(IsWindows)' != 'true'">$([MSBuild]::NormalizePath('$(LimineDir)', 'limine'))</LimineBinary>
       <IsoRootBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot'))</IsoRootBoot>
       <IsoRootBootLimine>$([MSBuild]::NormalizePath('$(IsoRoot)', 'boot', 'limine'))</IsoRootBootLimine>
       <IsoRootEfiBoot>$([MSBuild]::NormalizePath('$(IsoRoot)', 'EFI', 'BOOT'))</IsoRootEfiBoot>
     </PropertyGroup>
 
     <!-- Create new directories for Limine and EFI boot files -->
+    <MakeDir Directories="$(LimineDir)"/>
     <MakeDir Directories="$(IsoRootBootLimine)"/>
     <MakeDir Directories="$(IsoRootEfiBoot)"/>
 
+    <!-- Copy bundled Limine files from NuGet package to intermediate output -->
     <ItemGroup>
-      <!-- Includes any files under 'limine' folder -->
-      <LimineFiles Include="$(LimineDir)/**"/>
+      <BundledLimineFiles Include="$(LiminePkgDir)/*"/>
     </ItemGroup>
+    <Copy SourceFiles="@(BundledLimineFiles)" DestinationFolder="$(LimineDir)" SkipUnchangedFiles="true"/>
 
-    <!-- Download and build Limine (only if not already there) -->
-    <Exec Command="git clone https://github.com/limine-bootloader/limine.git --branch=v9.x-binary --depth=1 &quot;$(LimineDir)&quot;" IgnoreExitCode="true"/>
-    <Exec Command="make -C &quot;$(LimineDir)&quot; CC=clang"/>
+    <!-- On Unix, build the limine CLI tool from the bundled source -->
+    <Exec Condition="'$(IsWindows)' != 'true'" Command="make -C &quot;$(LimineDir)&quot;"/>
 
     <!-- Copy built ELF and Limine config to ISO root -->
     <Copy SourceFiles="$(ElfBinary)" DestinationFolder="$(IsoRootBoot)"/>
@@ -102,8 +173,8 @@
     <!-- Copy Limine files -->
     <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios.sys'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-bios-cd.bin'));$([MSBuild]::NormalizePath('$(LimineDir)', 'limine-uefi-cd.bin'))" DestinationFolder="$(IsoRootBootLimine)"/>
     <!-- Copy architecture-specific UEFI bootloader -->
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTX64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'x64'"/>
-    <Copy SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTAA64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)" Condition="'$(CosmosArch)' == 'arm64'"/>
+    <Copy Condition="'$(CosmosArch)' == 'x64'" SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTX64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)"/>
+    <Copy Condition="'$(CosmosArch)' == 'arm64'" SourceFiles="$([MSBuild]::NormalizePath('$(LimineDir)', 'BOOTAA64.EFI'))" DestinationFolder="$(IsoRootEfiBoot)"/>
 
     <!-- Arguments for xorriso to generate an ISO with MBR and UEFI boot entries -->
     <ItemGroup>
@@ -129,7 +200,10 @@
 
     <!-- Install Limine on the new ISO -->
     <Exec Command="&quot;$(LimineBinary)&quot; bios-install &quot;$(IsoOutput)&quot;"/>
-    <Message Text="✅ ISO created at: $(IsoOutput)" Importance="High"/>
+    <Message Text="ISO created at: $(IsoOutput)" Importance="High"/>
+
+    <!-- Write cache hash after successful ISO creation -->
+    <WriteLinesToFile File="$(_IsoCacheFile)" Lines="$(_CurrentIsoHash)" Overwrite="true" />
   </Target>
 
   <Target Name="PublishISO" AfterTargets="Publish">

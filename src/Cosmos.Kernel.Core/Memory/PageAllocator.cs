@@ -18,6 +18,21 @@ public static unsafe class PageAllocator
     /// </list></remarks>
     public const ulong PageSize = 4096;
 
+    /// <summary>Base of the kernel-image window (top 2 GiB of the canonical higher half); addresses at or above it are kernel-image mappings, not HHDM aliases.</summary>
+    private const ulong KernelImageWindow = 0xFFFFFFFF80000000UL;
+
+    /// <summary>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset). Public so drivers translating HHDM aliases for DMA share the same base.</summary>
+    public const ulong DefaultHhdmOffset = 0xFFFF800000000000UL;
+
+    /// <summary>Bytes per kilobyte; applied once for KB and twice for MB conversions in diagnostics.</summary>
+    private const ulong BytesPerKilobyte = 1024;
+
+    /// <summary>Number of RAT entries between progress messages while initializing the RAT.</summary>
+    private const ulong RatInitProgressInterval = 10000;
+
+    /// <summary>Arbitrary marker byte written and read back to verify the RAT memory is writable.</summary>
+    private const byte RatWriteTestValue = 123;
+
     /// <summary>
     /// Start of area usable for heap, and also start of heap.
     /// </summary>
@@ -45,6 +60,11 @@ public static unsafe class PageAllocator
     private static byte* mRAT;
 
     /// <summary>
+    /// Virtual address of the RAT base (one byte per page).
+    /// </summary>
+    public static ulong RatAddress => (ulong)mRAT;
+
+    /// <summary>
     /// Pointer to end of the heap
     /// </summary>
     private static byte* HeapEnd;
@@ -55,20 +75,36 @@ public static unsafe class PageAllocator
     public static ulong RamSize;
 
     /// <summary>
-    /// Convert virtual address to physical address for Higher Half Kernel mapping
+    /// Convert virtual address to physical address for Higher Half Kernel mapping.
+    /// Subtracts the Limine HHDM offset when the address is an HHDM alias;
+    /// passes through values that look already-physical. Kernel-image
+    /// addresses (statics, stack, code — the top-2GiB window) are higher-half
+    /// but NOT HHDM aliases: subtracting the offset from one fabricates a
+    /// garbage physical address, and a device DMA aimed at it corrupts
+    /// whatever lives there. Those are rejected loudly instead — callers
+    /// that need DMA from static data must copy it to a heap buffer first.
     /// </summary>
     /// <param name="virtualAddress">Virtual address to convert</param>
     /// <returns>Physical address</returns>
-    private static ulong VirtualToPhysical(ulong virtualAddress)
+    public static ulong VirtualToPhysical(ulong virtualAddress)
     {
-        // Higher Half Kernel mapping: virtual addresses start with 0xFFFF8000
-        // Remove the higher half offset to get physical address
-        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
-        if (virtualAddress >= HigherHalfOffset)
+        if (virtualAddress >= KernelImageWindow)
         {
-            return virtualAddress - HigherHalfOffset;
+            Serial.WriteString("[PageAllocator] ERROR: VirtualToPhysical(0x");
+            Serial.WriteHex(virtualAddress);
+            Serial.WriteString(") is a kernel-image address, not an HHDM alias\n");
+            throw new ArgumentOutOfRangeException(nameof(virtualAddress),
+                "Kernel-image addresses have no HHDM alias; copy to a heap buffer for DMA.");
         }
-        // If not in higher half mapping, assume it's already physical
+
+        ulong hhdmOffset = Limine.HHDM.Response != null
+            ? Limine.HHDM.Response->Offset
+            : DefaultHhdmOffset;
+
+        if (virtualAddress >= hhdmOffset)
+        {
+            return virtualAddress - hhdmOffset;
+        }
         return virtualAddress;
     }
 
@@ -181,7 +217,7 @@ public static unsafe class PageAllocator
                 Serial.WriteString(" - 0x");
                 Serial.WriteHex((ulong)entry->Base + entry->Length);
                 Serial.WriteString(" (");
-                Serial.WriteNumber(entry->Length / 1024 / 1024);
+                Serial.WriteNumber(entry->Length / BytesPerKilobyte / BytesPerKilobyte);
                 Serial.WriteString(" MB) Type: ");
                 Serial.WriteNumber((uint)entry->Type);
 
@@ -240,7 +276,7 @@ public static unsafe class PageAllocator
                     Serial.WriteString(" - 0x");
                     Serial.WriteHex(kernelEnd);
                     Serial.WriteString(" (");
-                    Serial.WriteNumber((kernelEnd - kernelStart) / 1024 / 1024);
+                    Serial.WriteNumber((kernelEnd - kernelStart) / BytesPerKilobyte / BytesPerKilobyte);
                     Serial.WriteString(" MB)\n");
                 }
                 else if (entry->Type == LimineMemmapType.Framebuffer)
@@ -252,7 +288,7 @@ public static unsafe class PageAllocator
                     Serial.WriteString(" - 0x");
                     Serial.WriteHex(framebufferEnd);
                     Serial.WriteString(" (");
-                    Serial.WriteNumber((framebufferEnd - framebufferStart) / 1024 / 1024);
+                    Serial.WriteNumber((framebufferEnd - framebufferStart) / BytesPerKilobyte / BytesPerKilobyte);
                     Serial.WriteString(" MB)\n");
                 }
             }
@@ -277,7 +313,7 @@ public static unsafe class PageAllocator
                     Serial.WriteString("[PageAllocator] ARM64: Using identity mapping (phys == virt)\n");
 #else
                     // x64: Use higher-half mapping
-                    virtualStart = physStart + 0xFFFF800000000000UL;
+                    virtualStart = physStart + DefaultHhdmOffset;
 #endif
                     ulong entrySize = entry->Length;
 
@@ -286,7 +322,7 @@ public static unsafe class PageAllocator
                     Serial.WriteString(" - 0x");
                     Serial.WriteHex(physEnd);
                     Serial.WriteString(" (");
-                    Serial.WriteNumber(entrySize / 1024 / 1024);
+                    Serial.WriteNumber(entrySize / BytesPerKilobyte / BytesPerKilobyte);
                     Serial.WriteString(" MB)");
 
                     // Check if this region overlaps with kernel/modules
@@ -328,7 +364,7 @@ public static unsafe class PageAllocator
                         usableSize = entrySize;
 
                         Serial.WriteString("[PageAllocator] ✓ Best candidate so far: ");
-                        Serial.WriteNumber(usableSize / 1024 / 1024);
+                        Serial.WriteNumber(usableSize / BytesPerKilobyte / BytesPerKilobyte);
                         Serial.WriteString(" MB\n");
                     }
                 }
@@ -345,7 +381,7 @@ public static unsafe class PageAllocator
         Serial.WriteString("  Start (virt): 0x");
         Serial.WriteHex((ulong)usableStart);
         Serial.WriteString("\n  Size: ");
-        Serial.WriteNumber(usableSize / 1024 / 1024);
+        Serial.WriteNumber(usableSize / BytesPerKilobyte / BytesPerKilobyte);
         Serial.WriteString(" MB (");
         Serial.WriteNumber(usableSize);
         Serial.WriteString(" bytes)\n");
@@ -382,7 +418,7 @@ public static unsafe class PageAllocator
         Serial.WriteString(", RAT pages: ");
         Serial.WriteNumber(xRatPageCount);
         Serial.WriteString(", RAT size: ");
-        Serial.WriteNumber(xRatTotalSize / 1024);
+        Serial.WriteNumber(xRatTotalSize / BytesPerKilobyte);
         Serial.WriteString(" KB\n");
 
         // IMPORTANT: Following Cosmos OS structure, place RAT at the END of usable memory
@@ -402,7 +438,7 @@ public static unsafe class PageAllocator
         Serial.WriteString("\n  RAT end: 0x");
         Serial.WriteHex((ulong)(mRAT + xRatTotalSize));
         Serial.WriteString("\n  Heap size: ");
-        Serial.WriteNumber(RamSize / 1024 / 1024);
+        Serial.WriteNumber(RamSize / BytesPerKilobyte / BytesPerKilobyte);
         Serial.WriteString(" MB\n");
 
         // Sanity checks
@@ -432,7 +468,7 @@ public static unsafe class PageAllocator
             mRAT[i] = (byte)PageType.Empty;
 
             // Progress indicator every 10000 pages to confirm loop is progressing
-            if (i > 0 && i % 10000 == 0)
+            if (i > 0 && i % RatInitProgressInterval == 0)
             {
                 Serial.WriteString("[PageAllocator] Initialized ");
                 Serial.WriteNumber(i);
@@ -467,14 +503,14 @@ public static unsafe class PageAllocator
         Serial.WriteString("\n  Free pages: ");
         Serial.WriteNumber(FreePageCount);
         Serial.WriteString("\n  Usable heap: ");
-        Serial.WriteNumber(FreePageCount * PageSize / 1024 / 1024);
+        Serial.WriteNumber(FreePageCount * PageSize / BytesPerKilobyte / BytesPerKilobyte);
         Serial.WriteString(" MB\n");
 
         // Test RAT is writable
         Serial.WriteString("[PageAllocator] Testing RAT write access...\n");
         byte testValue = mRAT[0];
-        mRAT[0] = 123;
-        if (mRAT[0] != 123)
+        mRAT[0] = RatWriteTestValue;
+        if (mRAT[0] != RatWriteTestValue)
         {
             Serial.WriteString("[PageAllocator] ERROR: RAT is not writable!\n");
             throw new Exception("RAT memory is not writable!");
@@ -549,7 +585,9 @@ public static unsafe class PageAllocator
             byte* pageAddress = RamStart + (ulong)offset * PageSize;
 
             if ((ulong)offset >= TotalPageCount)
+            {
                 return null;
+            }
 
             mRAT[offset] = (byte)aType;
 
@@ -646,9 +684,32 @@ public static unsafe class PageAllocator
     /// </summary>
     /// <param name="aPtr"></param>
     public static void Free(void* aPtr) => Free(GetFirstPageAllocatorIndex(aPtr));
-    internal static void DumpPageCounts()
+    /// <summary>
+    /// Fills out per-PageType counts by scanning the RAT. Returns zeros when
+    /// the heap is not yet initialized. Used by the live-debug snapshot so
+    /// the host VS Code extension can show RAT composition without pausing.
+    /// </summary>
+    public static void GetPageCountsByType(
+        out ulong empty,
+        out ulong gcHeap,
+        out ulong heapSmall,
+        out ulong heapMedium,
+        out ulong heapLarge,
+        out ulong unmanaged,
+        out ulong pageDirectory,
+        out ulong pageAllocator,
+        out ulong smt,
+        out ulong extension,
+        out ulong unknown)
     {
-        ulong empty = 0, heapSmall = 0, heapMedium = 0, heapLarge = 0, unmanaged = 0, pageDirectory = 0, pageAllocator = 0, smt = 0, extension = 0, unknown = 0, gcHeap = 0;
+        empty = gcHeap = heapSmall = heapMedium = heapLarge = unmanaged =
+            pageDirectory = pageAllocator = smt = extension = unknown = 0;
+
+        if (mRAT == null || TotalPageCount == 0)
+        {
+            return;
+        }
+
         for (ulong i = 0; i < TotalPageCount; i++)
         {
             byte b = mRAT[i];
@@ -667,6 +728,22 @@ public static unsafe class PageAllocator
                 default: unknown++; break;
             }
         }
+    }
+
+    internal static void DumpPageCounts()
+    {
+        GetPageCountsByType(
+            out ulong empty,
+            out ulong gcHeap,
+            out ulong heapSmall,
+            out ulong heapMedium,
+            out ulong heapLarge,
+            out ulong unmanaged,
+            out ulong pageDirectory,
+            out ulong pageAllocator,
+            out ulong smt,
+            out ulong extension,
+            out ulong unknown);
 
         Serial.WriteString("[PageAllocator] Page counts by type:\n");
         Serial.WriteString("  Empty: "); Serial.WriteNumber(empty); Serial.WriteString("\n");

@@ -37,7 +37,7 @@ public sealed class KeyboardTextReader : TextReader
             switch (keyEvent.Key)
             {
                 case ConsoleKeyEx.Enter:
-                    KernelConsole.WriteLine();
+                    KernelConsole.Default.WriteLine();
                     return sb.ToString();
 
                 case ConsoleKeyEx.Backspace:
@@ -48,35 +48,35 @@ public sealed class KeyboardTextReader : TextReader
                         cursorPos--;
 
                         // Move cursor back
-                        KernelConsole.MoveCursorLeft();
+                        KernelConsole.Default.MoveCursorLeft();
 
                         // If we're not at the end, shift remaining chars left
                         if (cursorPos < sb.Length)
                         {
                             // Save current position
-                            int savedX = KernelConsole.CursorX;
-                            int savedY = KernelConsole.CursorY;
+                            int savedX = KernelConsole.Default.CursorX;
+                            int savedY = KernelConsole.Default.CursorY;
 
                             // Redraw remaining characters
                             for (int i = cursorPos; i < sb.Length; i++)
                             {
-                                KernelConsole.Write(sb[i]);
+                                KernelConsole.Default.Write(sb[i]);
                             }
                             // Clear the last position (now empty)
-                            KernelConsole.Write(' ');
+                            KernelConsole.Default.Write(' ');
 
                             // Restore cursor position
-                            KernelConsole.SetCursorPosition(savedX, savedY);
+                            KernelConsole.Default.SetCursorPosition(savedX, savedY);
                         }
                         else
                         {
                             // Simple case: at end of string
-                            KernelConsole.Write(' ');
-                            KernelConsole.MoveCursorLeft();
+                            KernelConsole.Default.Write(' ');
+                            KernelConsole.Default.MoveCursorLeft();
                         }
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -88,23 +88,23 @@ public sealed class KeyboardTextReader : TextReader
                         sb.Remove(cursorPos, 1);
 
                         // Save current position
-                        int savedX = KernelConsole.CursorX;
-                        int savedY = KernelConsole.CursorY;
+                        int savedX = KernelConsole.Default.CursorX;
+                        int savedY = KernelConsole.Default.CursorY;
 
                         // Redraw remaining characters
                         for (int i = cursorPos; i < sb.Length; i++)
                         {
-                            KernelConsole.Write(sb[i]);
+                            KernelConsole.Default.Write(sb[i]);
                         }
                         // Clear the last position (now empty)
-                        KernelConsole.Write(' ');
+                        KernelConsole.Default.Write(' ');
 
                         // Restore cursor position
-                        KernelConsole.SetCursorPosition(savedX, savedY);
+                        KernelConsole.Default.SetCursorPosition(savedX, savedY);
 
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -113,10 +113,10 @@ public sealed class KeyboardTextReader : TextReader
                     if (cursorPos > 0)
                     {
                         cursorPos--;
-                        KernelConsole.MoveCursorLeft();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorLeft();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -125,10 +125,10 @@ public sealed class KeyboardTextReader : TextReader
                     if (cursorPos < sb.Length)
                     {
                         cursorPos++;
-                        KernelConsole.MoveCursorRight();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorRight();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -138,10 +138,10 @@ public sealed class KeyboardTextReader : TextReader
                     while (cursorPos > 0)
                     {
                         cursorPos--;
-                        KernelConsole.MoveCursorLeft();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorLeft();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -151,10 +151,10 @@ public sealed class KeyboardTextReader : TextReader
                     while (cursorPos < sb.Length)
                     {
                         cursorPos++;
-                        KernelConsole.MoveCursorRight();
-                        if (KernelConsole.IsAvailable)
+                        KernelConsole.Default.MoveCursorRight();
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;
@@ -169,28 +169,28 @@ public sealed class KeyboardTextReader : TextReader
                             cursorPos++;
 
                             // Save current position after typing the new char
-                            int afterTyping = KernelConsole.CursorX + 1;
-                            int savedY = KernelConsole.CursorY;
+                            int afterTyping = KernelConsole.Default.CursorX + 1;
+                            int savedY = KernelConsole.Default.CursorY;
 
                             // Redraw from current position
                             for (int i = cursorPos - 1; i < sb.Length; i++)
                             {
-                                KernelConsole.Write(sb[i]);
+                                KernelConsole.Default.Write(sb[i]);
                             }
 
                             // Move cursor to correct position
-                            KernelConsole.SetCursorPosition(afterTyping, savedY);
+                            KernelConsole.Default.SetCursorPosition(afterTyping, savedY);
                         }
                         else
                         {
                             // Append character at end
                             sb.Append(keyEvent.KeyChar);
                             cursorPos++;
-                            KernelConsole.Write(keyEvent.KeyChar);
+                            KernelConsole.Default.Write(keyEvent.KeyChar);
                         }
-                        if (KernelConsole.IsAvailable)
+                        if (KernelConsole.Default.IsAvailable)
                         {
-                            KernelConsole.Canvas.Display();
+                            KernelConsole.Default.Canvas.Display();
                         }
                     }
                     break;

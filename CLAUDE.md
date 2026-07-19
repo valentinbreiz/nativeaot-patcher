@@ -1,67 +1,71 @@
-# NativeAOT-Patcher
+# NativeAOT-Patcher (Cosmos Gen3)
 
-NativeAOT patcher for Cosmos OS - ports the Cosmos plug system to NativeAOT for building bare-metal C# kernels.
+Bare-metal C# kernel framework using NativeAOT. Ports the Cosmos plug system to NativeAOT for building x64 and ARM64 OS kernels.
 
-## Build Commands
+## Setup
 
-```bash
-# Setup (first time or after src/ changes)
-./.devcontainer/postCreateCommand.sh [x64|arm64]
-
-# Build x64 kernel
-dotnet publish -c Debug -r linux-x64 -p:DefineConstants="ARCH_X64" \
-  ./examples/DevKernel/DevKernel.csproj -o ./output-x64
-
-# Build ARM64 kernel
-dotnet publish -c Debug -r linux-arm64 -p:DefineConstants="ARCH_ARM64" -p:CosmosArch=arm64 \
-  ./examples/DevKernel/DevKernel.csproj -o ./output-arm64
-
-# Test x64 with QEMU
-qemu-system-x86_64 -cdrom ./output-x64/DevKernel.iso -m 512M -serial file:uart.log -nographic
-
-# Test ARM64 with QEMU (requires UEFI)
-qemu-system-aarch64 -M virt -cpu cortex-a72 -m 512M \
-  -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-  -cdrom ./output-arm64/DevKernel.iso -serial file:uart.log -nographic
-```
-
-## Project Structure
-
-- `src/Cosmos.Kernel.*` - Kernel core libraries
-- `src/Cosmos.Build.*` - Build system
-- `src/Cosmos.Patcher` - IL patcher
-- `examples/DevKernel/` - Test kernel (use for development)
-- `tests/Kernels/` - Test runner kernels
-- `dotnet/runtime/` - .NET runtime submodule
-
-## Task Master (Hamster)
-
-**IMPORTANT:** Use Task Master for all work. Tasks sync with Hamster cloud.
+Requires .NET SDK 10.0.100+ (see `global.json`). First time or after `src/` changes:
 
 ```bash
-task-master list                              # List all tasks
-task-master next                              # Get next task
-task-master show VAL-35                       # Show task details
-task-master set-status --id=VAL-35 --status=in-progress
-task-master update-task --id=VAL-42 --prompt="Findings..."
-task-master add-task --prompt="New task description"
+./.devcontainer/postCreateCommand.sh
 ```
 
-Task IDs use format `VAL-XX`. Update tasks with progress/findings as you work.
+This builds all packages in dependency order, installs global tools (`cosmos-patcher`, `cosmos`), and configures a local NuGet source at `artifacts/package/release/`.
 
-## Code Style
+## Makefile (development with DevKernel)
 
-- Use C# 12 features, target .NET 9
-- Kernel code must be AOT-compatible (no reflection, dynamic code)
-- Use `[RuntimeExport("name")]` for functions callable from native code
-- Use `[LibraryImport("*")]` for native imports
-- Architecture-specific code uses `#if ARCH_X64` / `#if ARCH_ARM64`
+Defaults: `ARCH=x64`, `TIMEOUT=30`, `KERNEL=HelloWorld`. Append `ARCH=arm64` to any target for ARM64.
 
-## Key Files
+```bash
+make setup                          # Build all packages (.devcontainer/postCreateCommand.sh)
+make build                          # Build DevKernel ISO
+make run                            # Build + run in QEMU (x64 uses KVM)
+make clean                          # Remove output-x64/, output-arm64/, artifacts/
+make test KERNEL=Memory             # Run a kernel test suite (HelloWorld, Memory, TypeCasting, Timer, Network, Runtime, Threading, Math, GarbageCollector, Graphic, Storage, Fat, File, ...)
+make test KERNEL=HelloWorld ARCH=arm64 TIMEOUT=90
+```
 
-- `src/Cosmos.Kernel.Core/Runtime/Stdllib.cs` - Runtime helper stubs (RhpThrowEx, etc.)
-- `src/Cosmos.Kernel.Core/Memory/Memory.cs` - Memory allocation
-- `src/Cosmos.Kernel.Native.X64/` - x64 assembly files (.asm)
+Build pipeline: Source -> Patcher (IL method replacement via Mono.Cecil) -> ILC (AOT) -> GCC (linking) -> ISO (xorriso + Limine bootloader).
+
+## Code style
+
+- C# 14, .NET 10, 4-space indentation, Allman braces (see `.editorconfig`)
+- Kernel code must be AOT-compatible: no reflection, no dynamic code generation
+- `[UnmanagedCallersOnly(EntryPoint = "...")]` for native-to-managed entry points
+- `[RuntimeExport("name")]` only for NativeAOT/runtime-required exports in Core (`Rh*`, `memmove`, `sqrt`, etc.)
+- `[LibraryImport("*")]` for native imports
+- Architecture-specific code: `#if ARCH_X64` / `#if ARCH_ARM64` to avoid + only tolerated in Cosmos.Kernel.Core or Cosmos.Kernel.Plugs.
+- Private fields: `_camelCase`, static fields: `s_camelCase`, constants: `PascalCase`
+- Braces required (`csharp_prefer_braces = true:error`)
+- Avoid `var` - use explicit types
+
+## Architecture
+
+Dual-arch (x64/ARM64) with compile-time selection via `DefineConstants` and `RuntimeIdentifier`:
+
+- **Native x64**: `src/Cosmos.Kernel.Native.X64/` - YASM `.asm` files (Runtime, WriteBarriers, InterfaceDispatch, Interrupts, etc.)
+- **Native ARM64**: `src/Cosmos.Kernel.Native.ARM64/` - GAS `.s` files
+- **HAL x64**: `src/Cosmos.Kernel.HAL.X64/`
+- **HAL ARM64**: `src/Cosmos.Kernel.HAL.ARM64/`
+- Multi-arch packages bundle both architectures; NuGet selects by RID at build time
+
+## Feature switches
+
+Kernel features are toggled via MSBuild properties in kernel `.csproj` files (all default to `true`):
+
+`CosmosEnableInterrupts`, `CosmosEnableUART`, `CosmosEnablePCI`, `CosmosEnableTimer`, `CosmosEnableKeyboard`, `CosmosEnableMouse`, `CosmosEnableNetwork`, `CosmosEnableStorage`, `CosmosEnableGraphics`, `CosmosEnableScheduler`
+
+## Key paths
+
+- `src/Cosmos.Sdk/Sdk/` - SDK props/targets consumed by kernel projects
+- `src/Cosmos.Patcher/` - IL patcher CLI tool (Mono.Cecil-based)
+- `src/Cosmos.Kernel.Core/Runtime/` - Runtime stubs (RhpThrowEx, exception handling, etc.)
+- `src/Cosmos.Kernel.Core/Memory/` - Memory allocation
+- `src/Cosmos.Kernel.System/` - Higher-level services (Graphics, Network, Input, Timer, IO)
+- `examples/DevKernel/` - Development kernel (use for testing changes)
+- `tests/Kernels/` - 8 kernel test suites
+- `dotnet/runtime/` - .NET runtime submodule (release/10.0 branch)
+- `artifacts/` - Build outputs, NuGet packages, Limine bootloader
 
 ## GitHub
 
@@ -69,3 +73,5 @@ Task IDs use format `VAL-XX`. Update tasks with progress/findings as you work.
 gh issue list --repo valentinbreiz/nativeaot-patcher
 gh issue view <number> --repo valentinbreiz/nativeaot-patcher
 ```
+
+Priority board: https://github.com/users/valentinbreiz/projects/2/views/2

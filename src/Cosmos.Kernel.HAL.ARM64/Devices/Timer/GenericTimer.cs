@@ -1,11 +1,11 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.ARM64.Bridge;
+using Cosmos.Kernel.Core.ARM64.Cpu;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Timer;
 
 namespace Cosmos.Kernel.HAL.ARM64.Devices.Timer;
@@ -13,8 +13,9 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 /// <summary>
 /// ARM64 Generic Timer (Architected Timer) implementation.
 /// Uses the physical timer (CNTP_*) for scheduling interrupts.
+/// Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/GenericTimerNative.cs.
 /// </summary>
-public partial class GenericTimer : TimerDevice
+public class GenericTimer : TimerDevice
 {
     /// <summary>
     /// Singleton instance of the Generic Timer.
@@ -38,48 +39,24 @@ public partial class GenericTimer : TimerDevice
     private ulong _ticksPerPeriod;
 
     /// <summary>
-    /// Physical timer interrupt number on GIC.
-    /// For QEMU virt machine: INTID 30 (non-secure physical timer).
+    /// Physical timer interrupt number on GIC: INTID 30, the non-secure
+    /// physical timer PPI (alias of <see cref="GIC.TIMER_NONSEC_PHYS"/>).
     /// </summary>
-    public const uint PhysicalTimerIrq = 30;
+    public const uint PhysicalTimerIrq = GIC.TIMER_NONSEC_PHYS;
 
     /// <summary>
     /// Default timer period: 10ms (100 Hz) for scheduling.
     /// </summary>
     public const ulong DefaultPeriodNs = 10_000_000;
 
-    // Native functions for timer register access
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_frequency")]
-    [SuppressGCTransition]
-    private static partial ulong GetTimerFrequency();
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_counter")]
-    [SuppressGCTransition]
-    private static partial ulong GetCounter();
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_set_compare")]
-    [SuppressGCTransition]
-    private static partial void SetCompare(ulong value);
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_enable")]
-    [SuppressGCTransition]
-    private static partial void EnableTimer();
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_disable")]
-    [SuppressGCTransition]
-    private static partial void DisableTimer();
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_set_tval")]
-    [SuppressGCTransition]
-    private static partial void SetTimerValue(uint ticks);
-
-    [LibraryImport("*", EntryPoint = "_native_arm64_timer_get_ctl")]
-    [SuppressGCTransition]
-    private static partial uint GetTimerControl();
-
     public GenericTimer()
     {
     }
+
+    /// <summary>
+    /// The hardware counter frequency in Hz (CNTFRQ_EL0).
+    /// </summary>
+    public ulong TimerFrequency => _timerFrequency;
 
     /// <inheritdoc/>
     public override uint Frequency => (uint)(1_000_000_000UL / _periodNs);
@@ -94,7 +71,7 @@ public partial class GenericTimer : TimerDevice
         Instance = this;
 
         // Read timer frequency from CNTFRQ_EL0
-        _timerFrequency = GetTimerFrequency();
+        _timerFrequency = GenericTimerNative.GetFrequency();
         Serial.Write("[GenericTimer] Timer frequency: ");
         Serial.WriteNumber(_timerFrequency);
         Serial.Write(" Hz\n");
@@ -128,7 +105,9 @@ public partial class GenericTimer : TimerDevice
     public override void SetFrequency(uint frequency)
     {
         if (frequency == 0)
+        {
             return;
+        }
 
         ulong periodNs = 1_000_000_000UL / frequency;
         SetPeriod(periodNs);
@@ -145,18 +124,18 @@ public partial class GenericTimer : TimerDevice
         if (_ticksPerPeriod > uint.MaxValue)
         {
             Serial.Write("[GenericTimer] WARNING: ticks per period exceeds 32-bit, clamping\n");
-            SetTimerValue(uint.MaxValue);
+            GenericTimerNative.SetTval(uint.MaxValue);
         }
         else
         {
-            SetTimerValue((uint)_ticksPerPeriod);
+            GenericTimerNative.SetTval((uint)_ticksPerPeriod);
         }
 
         // Enable the timer (ENABLE=1, IMASK=0)
-        EnableTimer();
+        GenericTimerNative.Enable();
 
         Serial.Write("[GenericTimer] Timer started, CTL=0x");
-        Serial.WriteHex(GetTimerControl());
+        Serial.WriteHex(GenericTimerNative.GetCtl());
         Serial.Write("\n");
     }
 
@@ -165,7 +144,7 @@ public partial class GenericTimer : TimerDevice
     /// </summary>
     public void Stop()
     {
-        DisableTimer();
+        GenericTimerNative.Disable();
         Serial.Write("[GenericTimer] Timer stopped\n");
     }
 
@@ -197,18 +176,20 @@ public partial class GenericTimer : TimerDevice
     private static unsafe void HandleIRQ(ref IRQContext ctx)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         _timerTickCount++;
 
         // Re-arm the timer for the next period
         if (Instance._ticksPerPeriod > uint.MaxValue)
         {
-            SetTimerValue(uint.MaxValue);
+            GenericTimerNative.SetTval(uint.MaxValue);
         }
         else
         {
-            SetTimerValue((uint)Instance._ticksPerPeriod);
+            GenericTimerNative.SetTval((uint)Instance._ticksPerPeriod);
         }
 
         // Invoke the OnTick handler (for TimerManager)
@@ -218,9 +199,9 @@ public partial class GenericTimer : TimerDevice
         uint cpuId = 0;
 
         // Calculate SP pointing to saved context for context switching
-        // On ARM64, ctx is at offset 512 from start of saved context (after NEON regs)
+        // On ARM64, ctx sits one NEON save area above the start of the saved context
         nuint contextPtr = (nuint)Unsafe.AsPointer(ref ctx);
-        nuint currentSp = contextPtr - 512;  // SP points to start of NEON save area
+        nuint currentSp = contextPtr - ARM64InterruptController.NeonSaveAreaBytes;  // SP points to start of NEON save area
 
         // Log first few ticks and then periodically
         if (_timerTickCount <= 5 || _timerTickCount % 100 == 0)
@@ -241,18 +222,18 @@ public partial class GenericTimer : TimerDevice
     /// <inheritdoc/>
     public override void Wait(uint timeoutMs)
     {
-        ulong targetTicks = GetCounter() + ((_timerFrequency * timeoutMs) / 1000);
+        ulong targetTicks = GenericTimerNative.GetCounter() + ((_timerFrequency * timeoutMs) / 1000);
 
-        while (GetCounter() < targetTicks)
+        while (GenericTimerNative.GetCounter() < targetTicks)
         {
-            // Busy wait
+            InternalCpu.Halt();
         }
     }
 
     /// <summary>
     /// Gets the current counter value.
     /// </summary>
-    public ulong GetCurrentCounter() => GetCounter();
+    public ulong GetCurrentCounter() => GenericTimerNative.GetCounter();
 
     /// <summary>
     /// Gets the timer period in nanoseconds.

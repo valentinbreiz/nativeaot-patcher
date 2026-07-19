@@ -120,11 +120,12 @@ public static unsafe partial class GarbageCollector
                         split->MethodTable = s_freeMethodTable;
                         split->Size = (int)remainder;
                         split->Next = null;
-                        AddToFreeList(split);
+                        AddToFreeList(split, 'a');
                     }
 
                     // Clear and return
                     MemoryOp.MemSet((byte*)block, 0, (int)size);
+                    s_totalAllocatedBytes += size;
                     return block;
                 }
 
@@ -155,6 +156,7 @@ public static unsafe partial class GarbageCollector
             void* result = segment->Bump;
             segment->Bump = newBump;
             segment->UsedSize += size;
+            s_totalAllocatedBytes += size;
             s_currentSegment = segment;
             s_lastSegment = segment;
             return result;
@@ -242,11 +244,220 @@ public static unsafe partial class GarbageCollector
         s_heapRangeDirty = true;
     }
 
+    // --- Raw variants (no s_totalAllocatedBytes increment) for TLAB refill ---
+
+    /// <summary>
+    /// Allocates from the free list without incrementing <see cref="s_totalAllocatedBytes"/>.
+    /// Used by TLAB refill to avoid double-counting (individual objects are counted at TLAB alloc time).
+    /// </summary>
+    private static void* AllocFromFreeListRaw(uint size)
+    {
+        if (!s_freeListsInitialized)
+        {
+            return null;
+        }
+
+        int sizeClass = -1;
+        uint classSize = MinSizeClass;
+        for (int i = 0; i < NumSizeClasses; i++, classSize <<= 1)
+        {
+            if (size <= classSize)
+            {
+                sizeClass = i;
+                break;
+            }
+        }
+
+        if (sizeClass < 0)
+        {
+            return null;
+        }
+
+        for (int i = sizeClass; i < NumSizeClasses; i++)
+        {
+            FreeBlock* block = s_freeLists[i];
+            if (block == null)
+            {
+                continue;
+            }
+
+            FreeBlock* prev = null;
+            while (block != null)
+            {
+                if (block->Size >= size)
+                {
+                    uint remainder = (uint)(block->Size - size);
+
+                    if (remainder != 0 && remainder < MinBlockSize)
+                    {
+                        prev = block;
+                        block = block->Next;
+                        continue;
+                    }
+
+                    if (prev != null)
+                    {
+                        prev->Next = block->Next;
+                    }
+                    else
+                    {
+                        s_freeLists[i] = block->Next;
+                    }
+
+                    if (remainder >= MinBlockSize)
+                    {
+                        FreeBlock* split = (FreeBlock*)((byte*)block + size);
+                        split->MethodTable = s_freeMethodTable;
+                        split->Size = (int)remainder;
+                        split->Next = null;
+                        AddToFreeList(split, 'r');
+                    }
+
+                    MemoryOp.MemSet((byte*)block, 0, (int)size);
+                    return block;
+                }
+
+                prev = block;
+                block = block->Next;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Removes and returns the largest free-list block of at least
+    /// <paramref name="minSize"/> bytes, taken whole (no split) and zeroed.
+    /// TLAB-refill fallback: lets refills reuse the sub-TlabSize blocks that
+    /// sweep leaves in partially live segments instead of growing the heap
+    /// with a new segment. The unused tail is stamped back to the free list
+    /// by the next <see cref="StampUnusedTlab"/> like any other TLAB gap.
+    /// </summary>
+    private static void* AllocLargestFromFreeListRaw(uint minSize, out uint blockSize)
+    {
+        blockSize = 0;
+        if (!s_freeListsInitialized)
+        {
+            return null;
+        }
+
+        for (int i = NumSizeClasses - 1; i >= 0; i--)
+        {
+            FreeBlock* prev = null;
+            FreeBlock* best = null;
+            FreeBlock* bestPrev = null;
+            for (FreeBlock* block = s_freeLists[i]; block != null; block = block->Next)
+            {
+                if ((uint)block->Size >= minSize && (best == null || block->Size > best->Size))
+                {
+                    best = block;
+                    bestPrev = prev;
+                }
+
+                prev = block;
+            }
+
+            if (best != null)
+            {
+                if (bestPrev != null)
+                {
+                    bestPrev->Next = best->Next;
+                }
+                else
+                {
+                    s_freeLists[i] = best->Next;
+                }
+
+                blockSize = (uint)best->Size;
+                MemoryOp.MemSet((byte*)best, 0, (int)blockSize);
+                return best;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Bump allocation in a segment without incrementing <see cref="s_totalAllocatedBytes"/>.
+    /// Used by TLAB refill.
+    /// </summary>
+    private static void* BumpAllocInSegmentRaw(GCSegment* segment, uint size)
+    {
+        if (segment == null)
+        {
+            return null;
+        }
+
+        byte* newBump = segment->Bump + size;
+        if (newBump <= segment->End)
+        {
+            void* result = segment->Bump;
+            segment->Bump = newBump;
+            segment->UsedSize += size;
+            s_currentSegment = segment;
+            s_lastSegment = segment;
+            return result;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Slow allocation path without incrementing <see cref="s_totalAllocatedBytes"/>.
+    /// Walks segments and allocates a new one if needed. Used by TLAB refill.
+    /// </summary>
+    private static void* AllocateObjectSlowRaw(uint size)
+    {
+        if (s_segments == null)
+        {
+            return null;
+        }
+
+        if (s_lastSegment == null)
+        {
+            s_lastSegment = s_segments;
+        }
+
+        GCSegment* start = s_lastSegment;
+
+        for (GCSegment* seg = start; seg != null; seg = seg->Next)
+        {
+            void* result = BumpAllocInSegmentRaw(seg, size);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        for (GCSegment* seg = s_segments; seg != start; seg = seg->Next)
+        {
+            void* result = BumpAllocInSegmentRaw(seg, size);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        GCSegment* newSegment = AllocateSegment(size);
+        if (newSegment == null)
+        {
+            return null;
+        }
+
+        AppendSegment(newSegment);
+        s_lastSegment = newSegment;
+        s_currentSegment = newSegment;
+
+        return BumpAllocInSegmentRaw(newSegment, size);
+    }
+
     /// <summary>
     /// Inserts a free block into the appropriate size-class free list.
     /// </summary>
     /// <param name="block">The free block to add.</param>
-    private static void AddToFreeList(FreeBlock* block)
+    /// <param name="source">Call-site tag for diagnostics: 'a'=AllocFromFreeList split,
+    /// 'r'=AllocFromFreeListRaw split, 't'=TLAB gap stamp, 's'=sweep, 'p'=pinned heap.</param>
+    private static void AddToFreeList(FreeBlock* block, char source)
     {
         if (!s_freeListsInitialized || block == null || block->Size < MinBlockSize)
         {
@@ -270,6 +481,22 @@ public static unsafe partial class GarbageCollector
         if (sizeClass < 0)
         {
             sizeClass = NumSizeClasses - 1;
+        }
+
+        // Cheap last-line guard against re-inserting the current head: a second
+        // head-insert of the same block would set block->Next = block, and the
+        // next free-list walk would spin forever inside DisableInterrupts (this
+        // is how the double TLAB-stamp bug hung Collect(); see StampUnusedTlab).
+        // Deeper duplicates/overlaps need the O(list) debug tripwire this check
+        // replaced — reintroduce it locally when hunting free-list corruption.
+        if (s_freeLists[sizeClass] == block)
+        {
+            Serial.WriteString("[GC] BUG: duplicate free-list head insert src=");
+            Serial.WriteString(source == 'a' ? "a" : source == 'r' ? "r" : source == 't' ? "t" : source == 's' ? "s" : "p");
+            Serial.WriteString(" blk=0x");
+            Serial.WriteHex((ulong)block);
+            Serial.WriteString("\n");
+            return;
         }
 
         block->Next = s_freeLists[sizeClass];

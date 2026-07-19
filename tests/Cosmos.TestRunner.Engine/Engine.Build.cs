@@ -72,6 +72,8 @@ public partial class Engine
 
         string cosmosArch = _config.Architecture.ToLowerInvariant();
 
+        string coverageArg = _config.CoverageEnabled ? "-p:CosmosCoverage=true " : "";
+
         var startInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
@@ -80,6 +82,7 @@ public partial class Engine
                        $"-r {runtime} " +
                        $"-p:DefineConstants=\"{defineConstants}\" " +
                        $"-p:CosmosArch=\"{cosmosArch}\" " +
+                       $"{coverageArg}" +
                        $"\"{projectFile}\" " +
                        $"-o \"{outputDir}\"",
             WorkingDirectory = _config.KernelProjectPath,

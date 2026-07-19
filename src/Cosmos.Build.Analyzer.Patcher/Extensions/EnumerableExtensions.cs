@@ -8,7 +8,11 @@ public static class EnumerableExtensions
         using IEnumerator<T> enumerator = enumerable.GetEnumerator();
         while (enumerator.MoveNext())
         {
-            if (!predicate(enumerator.Current)) continue;
+            if (!predicate(enumerator.Current))
+            {
+                continue;
+            }
+
             value = enumerator.Current;
             return true;
         }

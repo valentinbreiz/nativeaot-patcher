@@ -81,7 +81,7 @@ public class UdpClient : IDisposable
         this.localPort = localPort;
         if (localPort > 0)
         {
-            clients.Add((uint)localPort, this);
+            clients[(uint)localPort] = this;
         }
     }
 

@@ -1,6 +1,10 @@
-- name: Docs
-  href: articles/
+- name: User Guide
+  href: articles/user/
+- name: Developer Docs
+  href: articles/dev/
 - name: Roadmap
   href: roadmap.md
+- name: Credits
+  href: credits.md
 - name: API
   href: api/

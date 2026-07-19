@@ -145,7 +145,9 @@ public class ILCloner
         Dictionary<Instruction, Instruction> instructionMap)
     {
         if (!sourceMethod.Body.HasExceptionHandlers)
+        {
             return;
+        }
 
         foreach (ExceptionHandler handler in sourceMethod.Body.ExceptionHandlers)
         {

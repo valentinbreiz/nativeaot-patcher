@@ -1,7 +1,5 @@
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
-
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 
 namespace Cosmos.Kernel;
 

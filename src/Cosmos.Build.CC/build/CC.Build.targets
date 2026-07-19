@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    Cross-OS clang resolution via ResolveCosmosToolTask (declared in
+    Cosmos.Build.Common.props). Replaces three per-OS files that hardcoded
+    paths under ~/.cosmos/tools or %LOCALAPPDATA%\Cosmos\Tools.
+  -->
+  <Target Name="GetCC">
+    <ResolveCosmosToolTask ToolName="clang" OverridePath="$(CCPath)">
+      <Output TaskParameter="ResolvedPath" PropertyName="CCPath" />
+    </ResolveCosmosToolTask>
+    <PropertyGroup>
+      <CCPath>$(CCPath.Trim())</CCPath>
+    </PropertyGroup>
+  </Target>
+</Project>

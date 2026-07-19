@@ -1,0 +1,52 @@
+<Project>
+  <!--
+    Cross-OS resolution of ld.lld and xorriso via ResolveCosmosToolTask.
+    The task implements: explicit override -> system tool (version-matched against
+    the bundle's VERSION stamp) -> bundled tool. Replaces three per-OS targets
+    files (Common.Build.Unix.targets, .macOS.targets, .Windows.targets) that each
+    hardcoded paths with no version awareness.
+  -->
+
+  <!-- xorriso resolution + Windows-only IsoRoot path translation -->
+  <!-- (UsingTask for ResolveCosmosToolTask is declared in Cosmos.Build.Common.props) -->
+  <PropertyGroup>
+    <IsoRoot Condition="'$(IsoRoot)' == ''">$(DefaultIsoRoot)</IsoRoot>
+  </PropertyGroup>
+
+  <!--
+    On Windows the bundled xorriso runs against the MSYS2 posix layer
+    (msys-2.0.dll). It expects /cygdrive/<drive>/<path> style inputs, not
+    C:\path. Keep this conversion on Windows; on Unix/macOS pass IsoRoot through.
+  -->
+  <PropertyGroup Condition="'$(IsWindows)' == 'true'">
+    <IsoRootAbsolute>$([System.IO.Path]::GetFullPath('$(IsoRoot)'))</IsoRootAbsolute>
+    <IsoRootNoColon>$([System.String]::Copy('$(IsoRootAbsolute)').Replace(':', ''))</IsoRootNoColon>
+    <IsoRootSlashes>$([System.String]::Copy('$(IsoRootNoColon)').Replace('\', '/'))</IsoRootSlashes>
+    <FinalIsoRoot>/cygdrive/$(IsoRootSlashes)</FinalIsoRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsWindows)' != 'true'">
+    <FinalIsoRoot>$(IsoRoot)</FinalIsoRoot>
+  </PropertyGroup>
+
+  <!--
+    Resolve XorrisoBinary at property-evaluation time so the BuildISO target
+    can use it directly. Wrapped in a target so MSBuild can call it on demand
+    too (e.g. dependency target ordering).
+  -->
+  <Target Name="GetXorriso" Condition="'$(XorrisoBinary)' == ''">
+    <ResolveCosmosToolTask ToolName="xorriso">
+      <Output TaskParameter="ResolvedPath" PropertyName="XorrisoBinary" />
+    </ResolveCosmosToolTask>
+  </Target>
+
+  <Target Name="GetLinker" Condition="'$(LdLinkerPath)' == ''">
+    <ResolveCosmosToolTask ToolName="lld" OverridePath="$(LdLinkerPath)">
+      <Output TaskParameter="ResolvedPath" PropertyName="LdLinkerPath" />
+    </ResolveCosmosToolTask>
+  </Target>
+
+  <!-- Make BuildISO depend on GetXorriso so the binary is resolved before xorriso is invoked. -->
+  <PropertyGroup>
+    <BuildISODependsOn>GetXorriso;$(BuildISODependsOn)</BuildISODependsOn>
+  </PropertyGroup>
+</Project>

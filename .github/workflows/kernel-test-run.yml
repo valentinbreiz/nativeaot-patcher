@@ -1,0 +1,185 @@
+name: Run Kernel Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      suite_name:
+        description: 'Display name (e.g. HelloWorld)'
+        required: true
+        type: string
+      suite_id:
+        description: 'Slug identifier (e.g. helloworld)'
+        required: true
+        type: string
+      kernel_path:
+        description: 'Path to kernel test project'
+        required: true
+        type: string
+      timeout_x64:
+        description: 'QEMU timeout for x64 (seconds)'
+        required: true
+        type: number
+      timeout_arm64:
+        description: 'QEMU timeout for arm64 (seconds)'
+        required: true
+        type: number
+      step_timeout_minutes:
+        description: 'GitHub step timeout in minutes'
+        required: true
+        type: number
+      job_timeout_minutes:
+        description: 'GitHub job timeout in minutes; must exceed step_timeout_minutes plus setup/build time, or the job is cancelled before the step budget is spent'
+        required: false
+        type: number
+        default: 30
+      coverage:
+        description: 'Enable code coverage instrumentation'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  run-tests:
+    name: ${{ inputs.suite_name }} Tests - ${{ matrix.arch }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.job_timeout_minutes }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet-version: [ 10.0.x ]
+        arch: [ x64, arm64 ]
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: 📥 Download Cosmos Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cosmos-packages
+          path: artifacts/package/release
+
+      - name: 🔄 Sync global.json with built packages
+        run: |
+          # Extract the actual version from the built Cosmos.Sdk package
+          PKG_VERSION=$(ls artifacts/package/release/Cosmos.Sdk.*.nupkg | sed -nE 's/.*Cosmos\.Sdk\.([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.nupkg/\1/p' | head -n1)
+          if [ -n "$PKG_VERSION" ]; then
+            echo "Syncing global.json Cosmos.Sdk version to: $PKG_VERSION"
+            sed -i -E "s|(\"Cosmos\.Sdk\"[[:space:]]*:[[:space:]]*\")[^\"]+(\")|\1${PKG_VERSION}\2|" global.json
+            cat global.json
+          else
+            echo "WARNING: Could not determine package version from artifacts"
+          fi
+
+      - name: 📦 Configure NuGet Local Source
+        run: |
+          dotnet nuget locals all --clear
+          rm -rf ~/.nuget/packages/cosmos.* 2>/dev/null || true
+          dotnet nuget remove source local-packages 2>/dev/null || true
+          dotnet nuget add source "$PWD/artifacts/package/release" --name local-packages
+
+      - name: 🔧 Install Global Tools
+        run: |
+          dotnet tool uninstall -g Cosmos.Patcher 2>/dev/null || true
+          dotnet tool install -g Cosmos.Patcher --add-source artifacts/package/release
+          dotnet tool uninstall -g Cosmos.Tools 2>/dev/null || true
+          dotnet tool install -g Cosmos.Tools --add-source artifacts/package/release
+
+      - name: 🔧 Cache Build Tools
+        id: cache-tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cosmos/tools
+          key: cosmos-tools-linux-x64-${{ hashFiles('.github/workflows/build-tools.yml') }}
+
+      - name: ⬇️ Download Build Tools
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          mkdir -p "$TOOLS_DIR"
+          echo "Downloading tools from release: tools-latest"
+          for asset in llvm-tools xorriso qemu; do
+            gh release download tools-latest --pattern "${asset}-*-linux-x64.tar.gz" --dir /tmp/cosmos-tools
+            tar xzf /tmp/cosmos-tools/${asset}-*-linux-x64.tar.gz -C "$TOOLS_DIR"
+          done
+
+      - name: 🔗 Add Tools to PATH
+        run: |
+          TOOLS_DIR="$HOME/.cosmos/tools"
+          echo "$TOOLS_DIR/llvm-tools/bin" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/xorriso" >> $GITHUB_PATH
+          echo "$TOOLS_DIR/qemu" >> $GITHUB_PATH
+
+      - name: 🔍 Verify Tools Installation
+        run: cosmos check
+
+      - name: 🔨 Build Test Runner Engine
+        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
+
+      - name: 🧪 Run ${{ inputs.suite_name }} Kernel Tests
+        id: run-tests
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            TIMEOUT=${{ inputs.timeout_arm64 }}
+          else
+            TIMEOUT=${{ inputs.timeout_x64 }}
+          fi
+          COVERAGE_ARG=""
+          if [ "${{ inputs.coverage }}" = "true" ]; then
+            COVERAGE_ARG="--coverage"
+          fi
+          echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
+          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
+            --no-build \
+            -- ${{ inputs.kernel_path }} \
+            ${{ matrix.arch }} \
+            $TIMEOUT \
+            test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
+            ci \
+            $COVERAGE_ARG
+        timeout-minutes: ${{ inputs.step_timeout_minutes }}
+        continue-on-error: false
+
+      - name: 📤 Upload Test Results XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml
+          retention-days: 30
+
+      - name: 📤 Upload Coverage JSON
+        uses: actions/upload-artifact@v4
+        if: always() && inputs.coverage
+        with:
+          name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: coverage-${{ matrix.arch }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: 📤 Upload UART Debug Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: uart-log-${{ inputs.suite_id }}-${{ matrix.arch }}
+          path: uart-output.log
+          retention-days: 7
+
+      - name: 📤 Upload Test Kernel ISO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.suite_name }}-Test-ISO-${{ matrix.arch }}
+          path: |
+            ${{ inputs.kernel_path }}/output-${{ matrix.arch }}/*.iso
+            ${{ inputs.kernel_path }}/output-${{ matrix.arch }}/*.elf
+          retention-days: 7

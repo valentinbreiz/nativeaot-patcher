@@ -25,6 +25,9 @@ class Program
             config.AddCommand<BuildCommand>("build")
                 .WithDescription("Build a Cosmos kernel project");
 
+            config.AddCommand<RunCommand>("run")
+                .WithDescription("Boot a built kernel ISO in QEMU");
+
             config.AddCommand<InfoCommand>("info")
                 .WithDescription("Show platform and environment information");
 

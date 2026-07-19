@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices;
@@ -32,11 +33,87 @@ public class PciDevice : Device
     public readonly PciBist Bist;
     public readonly PciInterruptPin InterruptPin;
 
-    public const ushort ConfigAddressPort = 0xCF8;
-    public const ushort ConfigDataPort = 0xCFC;
+    // Capability list walking (register offsets come from the Config enum).
+    /// <summary>Offset of the next-capability pointer within a capability header.</summary>
+    private const byte CapabilityNextPointerOffset = 1;
+    /// <summary>Mask clearing the two reserved low bits of a capability pointer (dword aligned).</summary>
+    private const byte CapabilityPointerMask = 0xFC;
+    /// <summary>Upper bound on capability-list entries (the cap area spans 0x40..0xFF, 4-byte aligned).</summary>
+    private const int MaxCapabilityEntries = 48;
+    /// <summary>Status register bit 4 — Capabilities List present.</summary>
+    private const ushort StatusCapabilitiesListMask = 0x0010;
 
-    // ARM64 ECAM Base Address (QEMU virt machine VIRT_PCIE_ECAM)
-    private const ulong PciEcamBase = 0x3F000000;
+    // Type-0 header geometry (BAR slots start at Config.Bar0).
+    /// <summary>Size in bytes of one BAR slot in configuration space.</summary>
+    private const int BarSlotSizeBytes = 4;
+    /// <summary>Number of Base Address Registers in a Type-0 (Normal) PCI header.</summary>
+    private const int BarCount = 6;
+
+    // BAR bit-field layout (PCI 3.0 §6.2.5.1). PciDevice owns BAR decoding;
+    // these are public so BAR-manipulating consumers share one definition.
+    /// <summary>BAR bit 0 — set when the BAR maps I/O space instead of memory space.</summary>
+    public const uint BarIoSpaceMask = 0x1;
+    /// <summary>Mask selecting the address bits of a memory BAR (low 4 bits are flags).</summary>
+    public const uint BarMemoryAddressMask = 0xFFFFFFF0;
+    /// <summary>Shift down to the memory BAR type field (bits 2:1).</summary>
+    public const int BarTypeShift = 1;
+    /// <summary>Mask for the memory BAR type field after shifting.</summary>
+    public const uint BarTypeMask = 0x3;
+    /// <summary>Memory BAR type value indicating a 64-bit BAR.</summary>
+    public const uint BarType64Bit = 0x2;
+    /// <summary>Shift placing the upper BAR half into bits 63:32 of the combined address.</summary>
+    public const int BarUpperHalfShift = 32;
+
+    /// <summary>Vendor ID value read back from an absent device (bus reads as all ones).</summary>
+    private const uint InvalidVendorId = 0xFF;
+    /// <summary>Device ID value read back from an absent device (bus reads as all ones).</summary>
+    private const uint InvalidDeviceId = 0xFFFF;
+
+    /// <summary>Command register flags set by EnableMemory: I/O Space, Memory Space and Bus Master (bits 2:0).</summary>
+    private const ushort CommandEnableFlags = (ushort)(PciCommand.Io | PciCommand.Memory | PciCommand.Master);
+
+    // x86 Configuration Mechanism #1 (CONFIG_ADDRESS) encoding.
+    /// <summary>CONFIG_ADDRESS I/O port of Configuration Mechanism #1 (0xCF8).</summary>
+    private const ushort ConfigAddressPort = 0xCF8;
+    /// <summary>CONFIG_DATA I/O port of Configuration Mechanism #1 (32-bit window at 0xCFC..0xCFF).</summary>
+    private const ushort ConfigDataPort = 0xCFC;
+    /// <summary>Enable bit (bit 31) of the CONFIG_ADDRESS value for Configuration Mechanism #1.</summary>
+    private const uint ConfigEnableBit = 0x80000000;
+    /// <summary>Shift placing the bus number into CONFIG_ADDRESS bits 23:16.</summary>
+    private const int ConfigBusShift = 16;
+    /// <summary>Mask for the 5-bit device (slot) number.</summary>
+    private const uint ConfigSlotMask = 0x1F;
+    /// <summary>Shift placing the slot number into CONFIG_ADDRESS bits 15:11.</summary>
+    private const int ConfigSlotShift = 11;
+    /// <summary>Mask for the 3-bit function number.</summary>
+    private const uint ConfigFunctionMask = 0x07;
+    /// <summary>Shift placing the function number into CONFIG_ADDRESS bits 10:8.</summary>
+    private const int ConfigFunctionShift = 8;
+    /// <summary>Mask aligning a config-space offset down to its containing dword.</summary>
+    private const byte ConfigDwordAlignMask = 0xFC;
+    /// <summary>Byte-lane mask: offset of a byte within the 32-bit data window at 0xCFC..0xCFF.</summary>
+    private const byte ConfigByteLaneMask = 3;
+    /// <summary>Word-lane mask: offset of a 16-bit word within the 32-bit data window.</summary>
+    private const byte ConfigWordLaneMask = 2;
+    /// <summary>Number of bytes in one config-space dword.</summary>
+    private const int ConfigDwordSizeBytes = 4;
+    /// <summary>Number of bits per byte, used to convert a byte lane into a shift amount.</summary>
+    private const int BitsPerByte = 8;
+    /// <summary>Mask extracting one byte from the 32-bit config data value.</summary>
+    private const uint ConfigByteMask = 0xFF;
+    /// <summary>Mask extracting one word from the 32-bit config data value.</summary>
+    private const uint ConfigWordMask = 0xFFFF;
+
+    // PCIe ECAM (Enhanced Configuration Access Mechanism) address encoding.
+    /// <summary>Shift placing the bus number into ECAM address bits 27:20.</summary>
+    private const int EcamBusShift = 20;
+    /// <summary>Shift placing the device (slot) number into ECAM address bits 19:15.</summary>
+    private const int EcamSlotShift = 15;
+    /// <summary>Shift placing the function number into ECAM address bits 14:12.</summary>
+    private const int EcamFunctionShift = 12;
+
+    // ECAM Base Address (discovered from ACPI MCFG table at runtime)
+    private static ulong s_pciEcamBase;
 
     public readonly PciBaseAddressBar[] BaseAddressBar;
 
@@ -44,8 +121,8 @@ public class PciDevice : Device
 
     public PciCommand Command
     {
-        get => (PciCommand)ReadRegister16(0x04);
-        set => WriteRegister16(0x04, (ushort)value);
+        get => (PciCommand)ReadRegister16((byte)Config.Command);
+        set => WriteRegister16((byte)Config.Command, (ushort)value);
     }
 
     /// <summary>
@@ -85,7 +162,7 @@ public class PciDevice : Device
         InterruptPin = (PciInterruptPin)ReadRegister8((byte)Config.InterruptPin);
         InterruptLine = ReadRegister8((byte)Config.InterruptLine);
 
-        if ((uint)VendorId == 0xFF && (uint)DeviceId == 0xFFFF)
+        if ((uint)VendorId == InvalidVendorId && (uint)DeviceId == InvalidDeviceId)
         {
             DeviceExists = false;
         }
@@ -96,19 +173,93 @@ public class PciDevice : Device
 
         if (HeaderType == PciHeaderType.Normal)
         {
-            BaseAddressBar = new PciBaseAddressBar[6];
-            BaseAddressBar[0] = new PciBaseAddressBar(ReadRegister32(0x10));
-            BaseAddressBar[1] = new PciBaseAddressBar(ReadRegister32(0x14));
-            BaseAddressBar[2] = new PciBaseAddressBar(ReadRegister32(0x18));
-            BaseAddressBar[3] = new PciBaseAddressBar(ReadRegister32(0x1C));
-            BaseAddressBar[4] = new PciBaseAddressBar(ReadRegister32(0x20));
-            BaseAddressBar[5] = new PciBaseAddressBar(ReadRegister32(0x24));
+            BaseAddressBar = new PciBaseAddressBar[BarCount];
+            for (int i = 0; i < BarCount; i++)
+            {
+                BaseAddressBar[i] = new PciBaseAddressBar(ReadRegister32((byte)((byte)Config.Bar0 + i * BarSlotSizeBytes)));
+            }
         }
 
         Serial.WriteString("[PciDevice] Init Done \n");
     }
 
     public void EnableDevice() => Command |= PciCommand.Master | PciCommand.Io | PciCommand.Memory;
+
+    /// <summary>
+    /// Returns the full physical base address of memory BAR
+    /// <paramref name="barIndex"/>. For 64-bit BARs this combines the
+    /// lower BAR with the immediately-following upper BAR; for 32-bit
+    /// BARs it returns just the lower 32 bits. I/O BARs, out-of-range
+    /// indices, and a 64-bit claim with no following BAR return 0.
+    /// Both halves are read live from config space — the ctor-cached
+    /// <see cref="BaseAddressBar"/> copy is an enumeration-time snapshot,
+    /// and splicing it with a live upper half would combine two different
+    /// addresses once a BAR is reprogrammed.
+    /// </summary>
+    public ulong GetBar64Address(int barIndex)
+    {
+        if (BaseAddressBar == null || barIndex < 0 || barIndex >= BaseAddressBar.Length)
+        {
+            return 0;
+        }
+
+        uint lower = ReadRegister32((byte)((byte)Config.Bar0 + barIndex * BarSlotSizeBytes));
+        if ((lower & BarIoSpaceMask) == 1)
+        {
+            return 0; // I/O BAR
+        }
+
+        ulong addr = lower & BarMemoryAddressMask;
+        if (((lower >> BarTypeShift) & BarTypeMask) == BarType64Bit)
+        {
+            // 64-bit BAR: the next BAR slot holds the upper half. A 64-bit
+            // claim on the last slot is malformed — report 0 rather than a
+            // lower-half-only address.
+            if (barIndex + 1 >= BaseAddressBar.Length)
+            {
+                return 0;
+            }
+
+            ulong upper = ReadRegister32((byte)((byte)Config.Bar0 + (barIndex + 1) * BarSlotSizeBytes));
+            addr |= upper << BarUpperHalfShift;
+        }
+        return addr;
+    }
+
+    /// <summary>
+    /// Walks the PCI capabilities linked list and returns the config-space
+    /// offset of the first capability whose ID matches <paramref name="capId"/>,
+    /// or 0 if not found. The list is gated on Status[4] (Capabilities List)
+    /// and the capability pointer at config offset 0x34 (only valid for
+    /// Type-0 / Normal headers).
+    /// </summary>
+    public byte FindCapability(byte capId)
+    {
+        if (HeaderType != PciHeaderType.Normal)
+        {
+            return 0;
+        }
+
+        ushort status = ReadRegister16((byte)Config.Status);
+        if ((status & StatusCapabilitiesListMask) == 0)
+        {
+            return 0;
+        }
+
+        byte offset = (byte)(ReadRegister8((byte)Config.CapabilityPointer) & CapabilityPointerMask);
+        // The list is at most 48 entries long (the cap area is 0x40..0xFF).
+        // Bound the walk so a malformed list cannot loop forever.
+        for (int i = 0; offset != 0 && i < MaxCapabilityEntries; i++)
+        {
+            byte id = ReadRegister8(offset);
+            if (id == capId)
+            {
+                return offset;
+            }
+            offset = (byte)(ReadRegister8((byte)(offset + CapabilityNextPointerOffset)) & CapabilityPointerMask);
+        }
+        return 0;
+    }
 
     /// <summary>
     /// Get header type.
@@ -176,9 +327,9 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         return Native.MMIO.Read8(addr);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % 4 * 8)) & 0xFF);
+        return (byte)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % ConfigDwordSizeBytes * BitsPerByte)) & ConfigByteMask);
 #endif
     }
 
@@ -188,9 +339,14 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         Native.MMIO.Write8(addr, value);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteByte(ConfigDataPort, value);
+        // PCI Configuration Mechanism #1 mirrors the 32-bit data port at
+        // 0xCFC..0xCFF. A byte access to offset N within the dword must
+        // hit port 0xCFC + (N & 3), otherwise the byte lands at the wrong
+        // position in the dword.
+        ushort dataPort = (ushort)(ConfigDataPort + (offset & ConfigByteLaneMask));
+        PlatformHAL.PortIO.WriteByte(dataPort, value);
 #endif
     }
 
@@ -217,9 +373,9 @@ public class PciDevice : Device
         }
         return Native.MMIO.Read16(addr);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        return (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % 4 * 8)) & 0xFFFF);
+        return (ushort)((PlatformHAL.PortIO.ReadDWord(ConfigDataPort) >> (offset % ConfigDwordSizeBytes * BitsPerByte)) & ConfigWordMask);
 #endif
     }
 
@@ -229,9 +385,12 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         Native.MMIO.Write16(addr, value);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
-        PlatformHAL.PortIO.WriteWord(ConfigDataPort, value);
+        // 16-bit access at offset 2 within the dword must hit port 0xCFE,
+        // not 0xCFC — see WriteConfig8 for the rationale.
+        ushort dataPort = (ushort)(ConfigDataPort + (offset & ConfigWordLaneMask));
+        PlatformHAL.PortIO.WriteWord(dataPort, value);
 #endif
     }
 
@@ -241,7 +400,7 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         return Native.MMIO.Read32(addr);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
         return PlatformHAL.PortIO.ReadDWord(ConfigDataPort);
 #endif
@@ -253,7 +412,7 @@ public class PciDevice : Device
         ulong addr = GetEcamAddress(bus, slot, func, offset);
         Native.MMIO.Write32(addr, value);
 #else
-        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & 0xFC);
+        uint xAddr = GetAddressBase(bus, slot, func) | (uint)(offset & ConfigDwordAlignMask);
         PlatformHAL.PortIO.WriteDWord(ConfigAddressPort, xAddr);
         PlatformHAL.PortIO.WriteDWord(ConfigDataPort, value);
 #endif
@@ -265,15 +424,31 @@ public class PciDevice : Device
     /// Get address base for x86 Configuration Mechanism #1.
     /// </summary>
     private static uint GetAddressBase(uint aBus, uint aSlot, uint aFunction) =>
-        0x80000000 | (aBus << 16) | ((aSlot & 0x1F) << 11) | ((aFunction & 0x07) << 8);
+        ConfigEnableBit | (aBus << ConfigBusShift) | ((aSlot & ConfigSlotMask) << ConfigSlotShift) | ((aFunction & ConfigFunctionMask) << ConfigFunctionShift);
 
     /// <summary>
-    /// Get ECAM address for ARM64.
+    /// Sets the ECAM base address (physical) discovered from ACPI MCFG.
+    /// Called by LibraryInitializer before PCI scanning.
     /// </summary>
-    private static ulong GetEcamAddress(ushort bus, ushort slot, ushort func, byte offset)
+    internal static void SetEcamBase(ulong physBase)
     {
-        // ECAM Base + (Bus << 20) + (Device << 15) + (Function << 12) + Offset
-        return PciEcamBase + ((ulong)bus << 20) + ((ulong)slot << 15) + ((ulong)func << 12) + offset;
+        s_pciEcamBase = physBase;
+        if (physBase != 0)
+        {
+            Serial.WriteString("[PciDevice] ECAM base from ACPI MCFG: 0x");
+            Serial.WriteHex(physBase);
+            Serial.WriteString("\n");
+        }
+    }
+
+    /// <summary>
+    /// Get ECAM address for ARM64 (returns virtual address via HHDM).
+    /// </summary>
+    private static unsafe ulong GetEcamAddress(ushort bus, ushort slot, ushort func, byte offset)
+    {
+        ulong phys = s_pciEcamBase + ((ulong)bus << EcamBusShift) + ((ulong)slot << EcamSlotShift) + ((ulong)func << EcamFunctionShift) + offset;
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        return phys + hhdmOffset;
     }
 
     /// <summary>
@@ -282,9 +457,9 @@ public class PciDevice : Device
     /// <param name="enable">bool value.</param>
     public void EnableMemory(bool enable)
     {
-        ushort command = ReadRegister16(0x04);
+        ushort command = ReadRegister16((byte)Config.Command);
 
-        ushort flags = 0x0007;
+        ushort flags = CommandEnableFlags;
 
         if (enable)
         {
@@ -295,14 +470,14 @@ public class PciDevice : Device
             command &= (ushort)~flags;
         }
 
-        WriteRegister16(0x04, command);
+        WriteRegister16((byte)Config.Command, command);
     }
 
     public void EnableBusMaster(bool enable)
     {
-        ushort command = ReadRegister16(0x04);
+        ushort command = ReadRegister16((byte)Config.Command);
 
-        ushort flags = 1 << 2;
+        ushort flags = (ushort)PciCommand.Master;
 
         if (enable)
         {
@@ -313,6 +488,6 @@ public class PciDevice : Device
             command &= (ushort)~flags;
         }
 
-        WriteRegister16(0x04, command);
+        WriteRegister16((byte)Config.Command, command);
     }
 }

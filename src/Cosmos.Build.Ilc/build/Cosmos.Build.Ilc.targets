@@ -8,6 +8,7 @@
     TaskName="GetPackageDirectory"
     AssemblyFile="$(MicrosoftNETBuildTasksAssembly)"
   />
+  <!-- ComputeInputsHashTask is registered in Cosmos.Build.Common.props -->
 
   <!-- Resolves the path of 'ilc' to IlcToolsPath. -->
   <Target Name="ResolveIlcToolsPath" AfterTargets="Build" DependsOnTargets="ResolvePackageAssets">
@@ -19,18 +20,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <!-- For ARM64 cross-compilation, always use x64 host ILC tools -->
-      <HostILCompilerPack Include="runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler"
-                          Condition="'$(CosmosArch)' == 'arm64'">
+      <!-- Always use the host OS ILC tools (ILC runs on the build machine, not the target) -->
+      <HostILCompilerPack Include="runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler">
         <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
         <NuGetPackageId>runtime.$(IlcHostOs)-x64.Microsoft.DotNet.ILCompiler</NuGetPackageId>
-      </HostILCompilerPack>
-
-      <!-- For x64 native compilation, use the native ILC -->
-      <HostILCompilerPack Include="runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler"
-                          Condition="'$(CosmosArch)' == 'x64'">
-        <NuGetPackageVersion>$(BundledNETCoreAppPackageVersion)</NuGetPackageVersion>
-        <NuGetPackageId>runtime.$(RuntimeIdentifier).Microsoft.DotNet.ILCompiler</NuGetPackageId>
       </HostILCompilerPack>
     </ItemGroup>
 
@@ -117,6 +110,7 @@
       <IlcArg Include="--splitinit"/>
       <IlcArg Include="--nativelib"/>
       <IlcArg Include="--noinlinetls"/>
+      <IlcArg Include="--scanreflection"/>
       <IlcArg Include="-g"/>
       <IlcArg Include="--gdwarf-5"/>
       <IlcArg Include="-O"/>
@@ -133,8 +127,42 @@
     <WriteLinesToFile File="%(ManagedBinary.RspFile)" Lines="@(IlcArg)" Overwrite="true"/>
   </Target>
 
-  <Target Name="CompileWithIlc" AfterTargets="Build" DependsOnTargets="WriteIlcRsp;ResolveIlcToolsPath">
-    <Message Importance="High" Text="⚙️ [ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
+  <!-- Content-hash based ILC caching: hash all input DLLs + ref DLLs, set _IlcCacheHit. -->
+  <Target Name="CheckIlcCache">
+    <PropertyGroup>
+      <_IlcCacheFile>$(IlcIntermediateOutputPath).ilc-hash</_IlcCacheFile>
+      <_IlcOutputFile>$([MSBuild]::NormalizePath('$(IlcIntermediateOutputPath)$(AssemblyName).o'))</_IlcOutputFile>
+    </PropertyGroup>
+
+    <ComputeInputsHashTask InputFiles="@(IlcCompileInput);@(IlcReferences)">
+      <Output TaskParameter="Hash" PropertyName="_CurrentIlcHash" />
+    </ComputeInputsHashTask>
+
+    <ReadLinesFromFile File="$(_IlcCacheFile)" Condition="Exists('$(_IlcCacheFile)')">
+      <Output TaskParameter="Lines" ItemName="_PreviousIlcHashLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_PreviousIlcHash>@(_PreviousIlcHashLines)</_PreviousIlcHash>
+      <_IlcCacheHit Condition="'$(_CurrentIlcHash)' != '' AND '$(_CurrentIlcHash)' == '$(_PreviousIlcHash)' AND Exists('$(_IlcOutputFile)')">true</_IlcCacheHit>
+    </PropertyGroup>
+
+    <Message Condition="'$(_IlcCacheHit)' == 'true'" Importance="High"
+             Text="ILC cache hit — skipping compilation (hash: $(_CurrentIlcHash))" />
+  </Target>
+
+  <!-- Wrapper: always runs dependencies (which set _IlcCacheHit), then conditionally invokes
+       the core via CallTarget. CallTarget is a task, so its Condition is evaluated at execution
+       time (after dependencies have run) — unlike a target-level Condition, which MSBuild
+       evaluates at dependency-resolution time before the dependencies run. -->
+  <Target Name="CompileWithIlc"
+          AfterTargets="Build"
+          DependsOnTargets="WriteIlcRsp;ResolveIlcToolsPath;CheckIlcCache">
+    <CallTarget Targets="_CompileWithIlcCore" Condition="'$(_IlcCacheHit)' != 'true'" />
+  </Target>
+
+  <Target Name="_CompileWithIlcCore">
+    <Message Importance="High" Text="[ILC] Compiling: %(ManagedBinary.Identity) with RSP: %(ManagedBinary.RspFile)"/>
     <Exec
       Command="&quot;$(IlcToolsPath)ilc&quot; @&quot;%(ManagedBinary.RspFile)&quot;"
       WorkingDirectory="$(FullIntermediateOutputPath)"
@@ -143,6 +171,8 @@
       StandardErrorImportance="High"
     />
 
-    <Message Importance="High" Text="✅ [ILC] Output: %(ManagedBinary.OutputFile)"/>
+    <Message Importance="High" Text="[ILC] Output: %(ManagedBinary.OutputFile)"/>
+
+    <WriteLinesToFile File="$(_IlcCacheFile)" Lines="$(_CurrentIlcHash)" Overwrite="true" />
   </Target>
 </Project>

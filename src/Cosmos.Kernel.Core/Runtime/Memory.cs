@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -36,7 +37,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewArray(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
@@ -52,7 +55,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewPtrArrayFast(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
@@ -67,7 +72,9 @@ public static unsafe class Memory
     internal static unsafe void* RhpNewArrayFast(MethodTable* pMT, int length)
     {
         if (length < 0)
+        {
             return null;
+        }
 
         uint size = pMT->BaseSize + (uint)length * pMT->ComponentSize;
 
@@ -112,31 +119,31 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhSpanHelpers_MemCopy")]
-    private static unsafe void RhSpanHelpers_MemCopy(byte* dest, byte* src, UIntPtr len)
+    internal static unsafe void RhSpanHelpers_MemCopy(byte* dest, byte* src, UIntPtr len)
     {
         MemoryOp.MemCopy(dest, src, (int)len);
     }
 
     [RuntimeExport("memmove")]
-    private static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
+    internal static unsafe void memmove(byte* dest, byte* src, UIntPtr len)
     {
         MemoryOp.MemMove(dest, src, (int)len);
     }
 
     [RuntimeExport("memset")]
-    private static unsafe void memset(byte* dest, int value, UIntPtr len)
+    internal static unsafe void memset(byte* dest, int value, UIntPtr len)
     {
         MemoryOp.MemSet(dest, (byte)value, (int)len);
     }
 
     [RuntimeExport("RhNewString")]
-    private static unsafe void* RhNewString(MethodTable* pEEType, int length)
+    internal static unsafe void* RhNewString(MethodTable* pEEType, int length)
     {
         return RhpNewArray(pEEType, length);
     }
 
     [RuntimeExport("RhRegisterFrozenSegment")]
-    static unsafe IntPtr RhRegisterFrozenSegment(void* pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
+    internal static unsafe IntPtr RhRegisterFrozenSegment(void* pSegmentStart, nuint allocSize, nuint commitSize, nuint reservedSize)
     {
         if (GarbageCollector.IsEnabled)
         {
@@ -149,7 +156,7 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhUpdateFrozenSegment")]
-    static unsafe void RhUpdateFrozenSegment(IntPtr seg, void* allocated, void* committed)
+    internal static unsafe void RhUpdateFrozenSegment(IntPtr seg, void* allocated, void* committed)
     {
         if (GarbageCollector.IsEnabled)
         {
@@ -158,25 +165,25 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhHandleSet")]
-    static IntPtr RhHandleSet(object obj)
+    internal static IntPtr RhHandleSet(object obj)
     {
         return IntPtr.Zero;
     }
 
     [RuntimeExport("RhHandleFree")]
-    static void RhHandleFree(IntPtr handle)
+    internal static void RhHandleFree(IntPtr handle)
     {
         GarbageCollector.FreeHandle(handle);
     }
 
     [RuntimeExport("RhpHandleAlloc")]
-    static IntPtr RhpHandleAlloc(GCObject* obj, GCHandleType handleType)
+    internal static IntPtr RhpHandleAlloc(GCObject* obj, GCHandleType handleType)
     {
         return GarbageCollector.AllocateHandler(obj, handleType, UIntPtr.Zero);
     }
 
     [RuntimeExport("RhpHandleAllocDependent")]
-    static IntPtr RhpHandleAllocDependent(GCObject* primary, GCObject* secondary)
+    internal static IntPtr RhpHandleAllocDependent(GCObject* primary, GCObject* secondary)
     {
         return GarbageCollector.AllocateHandler(primary, GCHandleType.Normal, (nuint)secondary);
     }

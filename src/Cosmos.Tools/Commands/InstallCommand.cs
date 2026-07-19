@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Text.Json;
 using Cosmos.Tools.Platform;
 using Spectre.Console;
@@ -9,136 +10,77 @@ namespace Cosmos.Tools.Commands;
 
 public class InstallSettings : CommandSettings
 {
-    [CommandOption("-a|--arch")]
-    [Description("Target architecture (x64, arm64, or 'all' for both)")]
-    public string? Arch { get; set; }
-
-    [CommandOption("-t|--tool")]
-    [Description("Specific tool to install (e.g., 'yasm', 'lld')")]
-    public string? Tool { get; set; }
-
     [CommandOption("-y|--auto")]
     [Description("Automatically install without prompting")]
     public bool Auto { get; set; }
 
-    [CommandOption("--skip-extension")]
-    [Description("Skip VS Code extension installation")]
-    public bool SkipExtension { get; set; }
+    [CommandOption("--setup <DIR>")]
+    [Description("Bundle all tools into DIR for offline installer packaging")]
+    public string? Setup { get; set; }
+
+    [CommandOption("--tools")]
+    [Description("Only install system tools (QEMU, clang, lld, xorriso) from the Cosmos tools release")]
+    public bool Tools { get; set; }
+
+    [CommandOption("--packages")]
+    [Description("Only install Cosmos dotnet tools, templates, and VS Code extension")]
+    public bool Packages { get; set; }
 }
 
 public class InstallCommand : AsyncCommand<InstallSettings>
 {
+    private const string ToolsRepo = "valentinbreiz/nativeaot-patcher";
+    private const string ToolsReleaseTag = "tools-latest";
+
     public override async Task<int> ExecuteAsync(CommandContext context, InstallSettings settings)
     {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("  [bold]Cosmos Tools Installer[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.MarkupLine($"  Platform: [blue]{PlatformInfo.GetDistroName()}[/] ({PlatformInfo.CurrentArch})");
-        AnsiConsole.MarkupLine($"  Package Manager: [blue]{PlatformInfo.GetPackageManager()}[/]");
-        AnsiConsole.WriteLine("  " + new string('-', 50));
-        AnsiConsole.WriteLine();
+        string mode = settings.Setup != null
+            ? $"Setup bundle -> {Path.GetFullPath(settings.Setup)}"
+            : "Local install";
+        CommandHelper.PrintHeader("Cosmos Tools Installer", mode);
 
-        var results = await ToolChecker.CheckAllToolsAsync(settings.Arch);
-        var missingTools = results.Where(r => !r.Found).ToList();
-
-        if (!string.IsNullOrEmpty(settings.Tool))
+        if (!settings.Auto)
         {
-            missingTools = missingTools
-                .Where(r => r.Tool.Name.Contains(settings.Tool, StringComparison.OrdinalIgnoreCase) ||
-                           r.Tool.DisplayName.Contains(settings.Tool, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            bool proceed = AnsiConsole.Confirm("  Proceed with installation?", false);
+            if (!proceed)
+            {
+                AnsiConsole.WriteLine("  Installation cancelled.");
+                return 0;
+            }
+            AnsiConsole.WriteLine();
         }
 
-        if (missingTools.Count == 0)
+        if (settings.Setup != null)
         {
-            AnsiConsole.MarkupLine("  [green]All system tools are already installed![/]");
+            return await BuildSetupAsync(settings);
         }
-        else
+
+        // When neither --tools nor --packages is specified, install everything
+        bool installTools = !settings.Packages || settings.Tools;
+        bool installPackages = !settings.Tools || settings.Packages;
+
+        if (installTools)
         {
-            AnsiConsole.WriteLine("  System tools to install:");
-            AnsiConsole.WriteLine();
-
-            var installPlan = new List<(ToolStatus status, InstallInfo? info, string action)>();
-
-            foreach (var missing in missingTools)
+            bool toolsInstalled = await InstallToolsFromReleaseAsync();
+            await PropagateToolPathsForCIAsync();
+            if (!toolsInstalled)
             {
-                var info = missing.Tool.GetInstallInfo(PlatformInfo.CurrentOS);
-                string action = GetInstallAction(info);
-                installPlan.Add((missing, info, action));
-
-                string required = missing.Tool.Required ? "" : " [dim](optional)[/]";
-                AnsiConsole.MarkupLine($"  - [white]{missing.Tool.DisplayName}[/]{required}");
-                AnsiConsole.MarkupLine($"    [cyan]{action}[/]");
-            }
-
-            AnsiConsole.WriteLine();
-
-            if (!settings.Auto)
-            {
-                bool proceed = AnsiConsole.Confirm("  Proceed with installation?", true);
-                if (!proceed)
-                {
-                    AnsiConsole.WriteLine("  Installation cancelled.");
-                    return 0;
-                }
-            }
-
-            AnsiConsole.WriteLine();
-
-            string packageManager = PlatformInfo.GetPackageManager();
-            var packagesToInstall = new List<string>();
-
-            foreach (var (status, info, action) in installPlan)
-            {
-                if (info == null)
-                {
-                    PrintManualInstruction(status.Tool);
-                    continue;
-                }
-
-                switch (info.Method)
-                {
-                    case "package":
-                        string[]? packages = GetPackagesForManager(info, packageManager);
-                        if (packages != null)
-                        {
-                            packagesToInstall.AddRange(packages);
-                        }
-                        else
-                        {
-                            PrintManualInstruction(status.Tool, info);
-                        }
-                        break;
-
-                    case "download":
-                        await HandleDownloadInstall(status.Tool, info);
-                        break;
-
-                    case "manual":
-                    default:
-                        PrintManualInstruction(status.Tool, info);
-                        break;
-                }
-            }
-
-            if (packagesToInstall.Count > 0)
-            {
-                await InstallPackagesAsync(packageManager, packagesToInstall);
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("  [red]Installation failed: required build tools are still missing.[/]");
+                return 1;
             }
         }
 
-        // Install/update Cosmos dotnet tools and templates
-        await InstallDotnetToolsAsync();
-
-        // Install VS Code extension by default
-        if (!settings.SkipExtension)
+        if (installPackages)
         {
+            await InstallDotnetToolsAsync();
             await InstallVSCodeExtensionAsync();
         }
 
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("  " + new string('-', 50));
         AnsiConsole.MarkupLine("  [green]Installation complete![/]");
+        AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("  Run [blue]cosmos check[/] to verify installation.");
         AnsiConsole.MarkupLine("  Run [blue]cosmos new[/] to create a new kernel project.");
         AnsiConsole.WriteLine();
@@ -146,40 +88,331 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         return 0;
     }
 
-    private static async Task InstallDotnetToolsAsync()
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Tool installation — download from GitHub release `tools-latest`
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private static async Task<bool> InstallToolsFromReleaseAsync()
     {
-        AnsiConsole.WriteLine();
+        string platform = GetPlatformTarget();
+        string ext = OperatingSystem.IsWindows() ? "zip" : "tar.gz";
+        string toolsPath = ToolChecker.GetCosmosToolsPath();
+        Directory.CreateDirectory(toolsPath);
 
-        // Install Cosmos.Patcher tool
-        AnsiConsole.Markup("  Installing Cosmos.Patcher... ");
-        await InstallDotnetToolAsync("Cosmos.Patcher");
+        // Check .NET SDK (manual install only)
+        var dotnetStatus = await ToolChecker.CheckToolAsync(ToolDefinitions.DotNetSdk);
+        if (dotnetStatus.Found)
+        {
+            string ver = dotnetStatus.Version != null ? $" (v{dotnetStatus.Version})" : "";
+            AnsiConsole.MarkupLine($"  [dim].NET SDK{ver} found at {dotnetStatus.Path}[/]");
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("  [yellow].NET SDK not found.[/] Download from: https://dot.net/download");
+        }
 
-        // Install Cosmos templates
-        AnsiConsole.Markup("  Installing Cosmos.Build.Templates... ");
-        await InstallTemplateAsync("Cosmos.Build.Templates");
+        // Fetch release asset list once
+        List<ReleaseAsset> assets;
+        try
+        {
+            assets = await FetchReleaseAssetsAsync(ToolsRepo, ToolsReleaseTag);
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"  [red]Failed to fetch release '{ToolsReleaseTag}' from {ToolsRepo}: {Markup.Escape(ex.Message)}[/]");
+            return false;
+        }
+
+        // Download each unique release asset (dedupe by asset name — llvm-tools covers clang+lld, qemu covers x64+arm64)
+        bool anyDownloaded = false;
+
+        var groups = ToolDefinitions.GetAllTools()
+            .OfType<CommandToolDefinition>()
+            .Where(t => t.ReleaseAsset != null)
+            .GroupBy(t => t.ReleaseAsset!);
+
+        foreach (var group in groups)
+        {
+            string releaseAsset = group.Key;
+
+            // Find the matching asset BEFORE checking system tools — its filename
+            // is the source of truth for "what version cosmos.tools wants".
+            string pattern = $"{releaseAsset}-";
+            string suffix = $"-{platform}.{ext}";
+            var asset = assets.FirstOrDefault(a =>
+                a.Name.StartsWith(pattern, StringComparison.OrdinalIgnoreCase) &&
+                a.Name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+
+            if (asset == null)
+            {
+                AnsiConsole.MarkupLine($"  [red]{releaseAsset}:[/] no asset matching [white]{pattern}*{suffix}[/] in release '{ToolsReleaseTag}'");
+                continue;
+            }
+
+            // Asset name -> "<assetPrefix>-<version>-<platform>.<ext>"
+            string wantedVersion = asset.Name.Substring(pattern.Length, asset.Name.Length - pattern.Length - suffix.Length);
+
+            bool allFoundAndMatching = true;
+            foreach (var tool in group)
+            {
+                var status = await ToolChecker.CheckToolAsync(tool);
+                if (!status.Found)
+                {
+                    AnsiConsole.MarkupLine($"  [dim]{tool.DisplayName} not found.[/]");
+                    allFoundAndMatching = false;
+                    continue;
+                }
+                if (!ToolResolver.VersionsMatch(wantedVersion, status.Version))
+                {
+                    AnsiConsole.MarkupLine(
+                        $"  [yellow]{tool.DisplayName}[/] found at [white]{status.Path}[/] but version [red]{status.Version ?? "?"}[/] != wanted [green]{wantedVersion}[/] — will use bundle.");
+                    allFoundAndMatching = false;
+                    continue;
+                }
+                AnsiConsole.MarkupLine($"  [dim]{tool.DisplayName} (v{status.Version}) found at {status.Path}[/]");
+            }
+
+            if (allFoundAndMatching)
+            {
+                continue;
+            }
+
+            AnsiConsole.Markup($"  Downloading {releaseAsset} ({wantedVersion}) ... ");
+            bool ok = await DownloadAndExtractAsync(asset.DownloadUrl, toolsPath, ext);
+            AnsiConsole.MarkupLine(ok ? "[green]OK[/]" : "[red]FAILED[/]");
+            if (ok)
+            {
+                anyDownloaded = true;
+            }
+        }
+
+        // On Windows, add downloaded tool dirs to user PATH
+        if (anyDownloaded && OperatingSystem.IsWindows())
+        {
+            AnsiConsole.Markup("  Tools -> PATH ... ");
+            bool pathOk = AddToolsToWindowsPath(toolsPath);
+            AnsiConsole.MarkupLine(pathOk ? "[green]OK[/]" : "[yellow]SKIPPED[/]");
+        }
+
+        // Pre-install ResolveAsync calls cached system-tool hits while the bundle
+        // was still missing. Drop them so the verification below sees the freshly
+        // extracted bundle binaries instead of the stale pre-download resolution.
+        if (anyDownloaded)
+        {
+            ToolResolver.InvalidateCache();
+        }
+
+        List<CommandToolDefinition> requiredReleaseTools = ToolDefinitions.GetAllTools()
+            .OfType<CommandToolDefinition>()
+            .Where(static t => t.Required && t.ReleaseAsset != null)
+            .ToList();
+
+        List<CommandToolDefinition> missingRequired = new List<CommandToolDefinition>();
+        foreach (CommandToolDefinition tool in requiredReleaseTools)
+        {
+            ToolStatus status = await ToolChecker.CheckToolAsync(tool);
+            bool detected = status.Found && status.Version != null;
+            if (!detected)
+            {
+                missingRequired.Add(tool);
+            }
+        }
+
+        if (missingRequired.Count > 0)
+        {
+            string missingList = string.Join(", ", missingRequired.Select(static t => t.DisplayName));
+            AnsiConsole.MarkupLine($"  [red]Required tools still missing after install:[/] {Markup.Escape(missingList)}");
+            return false;
+        }
+
+        return true;
     }
 
-    private static async Task InstallDotnetToolAsync(string packageName)
+    private static string GetPlatformTarget()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return "win-x64";
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return "darwin-arm64";
+        }
+        return "linux-x64";
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  GitHub Release asset fetching
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private record ReleaseAsset(string Name, string DownloadUrl);
+
+    private static async Task<List<ReleaseAsset>> FetchReleaseAssetsAsync(string repo, string tag)
+    {
+        using var http = CreateHttpClient();
+        string url = $"https://api.github.com/repos/{repo}/releases/tags/{tag}";
+        string json = await http.GetStringAsync(url);
+        var doc = JsonDocument.Parse(json);
+
+        var result = new List<ReleaseAsset>();
+        if (doc.RootElement.TryGetProperty("assets", out var assetsEl))
+        {
+            foreach (var asset in assetsEl.EnumerateArray())
+            {
+                string? name = asset.GetProperty("name").GetString();
+                string? downloadUrl = asset.GetProperty("browser_download_url").GetString();
+                if (name != null && downloadUrl != null)
+                {
+                    result.Add(new ReleaseAsset(name, downloadUrl));
+                }
+            }
+        }
+        return result;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Download & extract helpers — tar.gz for Unix, zip for Windows
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private static async Task<bool> DownloadAndExtractAsync(string url, string targetDir, string ext)
     {
         try
         {
-            // Try to update first (works if already installed)
-            var psi = new ProcessStartInfo
+            Directory.CreateDirectory(targetDir);
+            return ext switch
             {
-                FileName = "dotnet",
-                Arguments = $"tool update -g {packageName}",
+                "zip" => await DownloadAndExtractZipAsync(url, targetDir),
+                "tar.gz" => await DownloadAndExtractTarGzAsync(url, targetDir),
+                _ => false
+            };
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.Markup($"[red]{Markup.Escape(ex.Message)}[/] ");
+            return false;
+        }
+    }
+
+    private static async Task<bool> DownloadAndExtractZipAsync(string url, string targetDir)
+    {
+        using var http = CreateHttpClient();
+        string tempFile = Path.Combine(Path.GetTempPath(), $"cosmos-{Guid.NewGuid():N}.zip");
+        try
+        {
+            await File.WriteAllBytesAsync(tempFile, await http.GetByteArrayAsync(url));
+            ZipFile.ExtractToDirectory(tempFile, targetDir, overwriteFiles: true);
+            return true;
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
+
+    private static async Task<bool> DownloadAndExtractTarGzAsync(string url, string targetDir)
+    {
+        using var http = CreateHttpClient();
+        string tempFile = Path.Combine(Path.GetTempPath(), $"cosmos-{Guid.NewGuid():N}.tar.gz");
+        try
+        {
+            await File.WriteAllBytesAsync(tempFile, await http.GetByteArrayAsync(url));
+
+            using var proc = Process.Start(new ProcessStartInfo
+            {
+                FileName = "tar",
+                Arguments = $"xzf \"{tempFile}\" -C \"{targetDir}\"",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
-            };
-
-            using var process = Process.Start(psi);
-            if (process == null)
+            });
+            if (proc == null)
             {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
+                return false;
             }
 
+            await proc.WaitForExitAsync();
+            return proc.ExitCode == 0;
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  VS Code extension
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private static async Task<(string? url, string? name)> GetVSCodeExtensionInfoAsync()
+    {
+        using var http = CreateHttpClient();
+        string json = await http.GetStringAsync(
+            "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest");
+        var release = JsonDocument.Parse(json);
+
+        if (release.RootElement.TryGetProperty("assets", out var assets))
+        {
+            foreach (var asset in assets.EnumerateArray())
+            {
+                string? name = asset.GetProperty("name").GetString();
+                if (name?.EndsWith(".vsix") == true)
+                {
+                    return (asset.GetProperty("browser_download_url").GetString(), name);
+                }
+            }
+        }
+        return (null, null);
+    }
+
+    // Downloads the latest .vsix to destDir. Returns the written file path,
+    // or null if no asset was found. Caller prints context-appropriate output.
+    private static async Task<string?> DownloadVSCodeExtensionAsync(string destDir)
+    {
+        var (url, name) = await GetVSCodeExtensionInfoAsync();
+        if (url == null || name == null)
+        {
+            return null;
+        }
+        Directory.CreateDirectory(destDir);
+        string path = Path.Combine(destDir, name);
+        using var http = CreateHttpClient();
+        await File.WriteAllBytesAsync(path, await http.GetByteArrayAsync(url));
+        return path;
+    }
+
+    private static async Task InstallVSCodeExtensionAsync()
+    {
+        string? codeCommand = GetVSCodeCommand();
+        if (codeCommand == null)
+        {
+            AnsiConsole.MarkupLine("  [yellow]VS Code not found in PATH.[/]");
+            return;
+        }
+
+        AnsiConsole.Markup("  Downloading extension from GitHub... ");
+        try
+        {
+            string? tempPath = await DownloadVSCodeExtensionAsync(Path.GetTempPath());
+            if (tempPath == null)
+            {
+                AnsiConsole.MarkupLine("[yellow]SKIPPED (no .vsix found)[/]");
+                return;
+            }
+            AnsiConsole.MarkupLine("[green]OK[/]");
+
+            AnsiConsole.Markup("  Installing extension... ");
+            ProcessStartInfo psi = OperatingSystem.IsWindows()
+                ? new() { FileName = "cmd.exe", Arguments = $"/c {codeCommand} --install-extension \"{tempPath}\" --force", UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true }
+                : new() { FileName = codeCommand, Arguments = $"--install-extension \"{tempPath}\" --force", UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
+
+            using var process = Process.Start(psi);
+            if (process == null) { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); return; }
             await process.WaitForExitAsync();
 
             if (process.ExitCode == 0)
@@ -188,7 +421,60 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
             else
             {
-                // Try install if update failed
+                string error = await process.StandardError.ReadToEndAsync();
+                AnsiConsole.MarkupLine("[red]FAILED[/]");
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
+                }
+            }
+
+            try { File.Delete(tempPath); } catch { }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine("[red]FAILED[/]");
+            AnsiConsole.MarkupLine($"  [red]Error: {Markup.Escape(ex.Message)}[/]");
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Dotnet tools
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private static async Task InstallDotnetToolsAsync()
+    {
+        AnsiConsole.WriteLine();
+
+        AnsiConsole.Markup("  Installing Cosmos.Patcher... ");
+        await InstallDotnetToolAsync("Cosmos.Patcher");
+
+        AnsiConsole.Markup("  Installing Cosmos.Build.Templates... ");
+        await InstallTemplateAsync("Cosmos.Build.Templates");
+    }
+
+    private static async Task InstallDotnetToolAsync(string packageName)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"tool update -g {packageName}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using var process = Process.Start(psi);
+            if (process == null) { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); return; }
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                AnsiConsole.MarkupLine("[green]OK[/]");
+            }
+            else
+            {
                 psi.Arguments = $"tool install -g {packageName}";
                 using var installProcess = Process.Start(psi);
                 if (installProcess != null)
@@ -198,10 +484,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 }
             }
         }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-        }
+        catch { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); }
     }
 
     private static async Task InstallTemplateAsync(string packageName)
@@ -216,188 +499,159 @@ public class InstallCommand : AsyncCommand<InstallSettings>
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
-
             using var process = Process.Start(psi);
-            if (process == null)
-            {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
-            }
-
+            if (process == null) { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); return; }
             await process.WaitForExitAsync();
             AnsiConsole.MarkupLine(process.ExitCode == 0 ? "[green]OK[/]" : "[yellow]SKIPPED[/]");
         }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-        }
+        catch { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); }
     }
 
-    private static async Task InstallVSCodeExtensionAsync()
-    {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("  [bold]Installing VS Code Extension[/]");
-        AnsiConsole.WriteLine();
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Shared helpers
+    // ═══════════════════════════════════════════════════════════════════════
 
-        // Check if 'code' command is available
-        string? codeCommand = GetVSCodeCommand();
-        if (codeCommand == null)
+    private static async Task PropagateToolPathsForCIAsync()
+    {
+        string? githubPath = Environment.GetEnvironmentVariable("GITHUB_PATH");
+        if (githubPath == null)
         {
-            AnsiConsole.MarkupLine("  [yellow]VS Code not found in PATH.[/]");
-            AnsiConsole.MarkupLine("  [yellow]Please install VS Code and ensure 'code' command is available.[/]");
-            AnsiConsole.MarkupLine("  [dim]On macOS: Open VS Code, Cmd+Shift+P, 'Shell Command: Install code command'[/]");
             return;
         }
 
-        AnsiConsole.Markup("  Downloading extension from GitHub... ");
+        var addedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tool in ToolDefinitions.GetAllTools())
+        {
+            if (tool is not CommandToolDefinition cmdTool)
+            {
+                continue;
+            }
 
+            var status = await ToolChecker.CheckToolAsync(cmdTool);
+            if (status.Path == null)
+            {
+                continue;
+            }
+
+            string? dir = Path.GetDirectoryName(status.Path);
+            if (dir != null && addedDirs.Add(dir))
+            {
+                File.AppendAllText(githubPath, dir + "\n");
+            }
+        }
+    }
+
+    // Tool directories that should be on PATH. QEMU exes live under qemu\bin\
+    // (so the bundle's qemu\share\qemu\ BIOS files are discoverable via -L,
+    // which launchers add automatically).
+    private static readonly string[] ToolPathSubDirs =
+    [
+        Path.Combine("llvm-tools", "bin"),
+        "xorriso",
+        Path.Combine("qemu", "bin"),
+        Path.Combine("gdb", "bin")
+    ];
+
+    internal static bool AddToolsToWindowsPath(string toolsPath)
+    {
         try
         {
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Cosmos-Tools");
+            string currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
+            bool changed = false;
 
-            // Get latest release from GitHub API
-            string releaseUrl = "https://api.github.com/repos/valentinbreiz/CosmosVsCodeExtension/releases/latest";
-            string releaseResponse = await httpClient.GetStringAsync(releaseUrl);
-            var releaseJson = JsonDocument.Parse(releaseResponse);
-
-            string? vsixUrl = null;
-            string? vsixName = null;
-
-            // Find .vsix asset in release
-            if (releaseJson.RootElement.TryGetProperty("assets", out var assets))
+            foreach (string sub in ToolPathSubDirs)
             {
-                foreach (var asset in assets.EnumerateArray())
+                string dir = Path.Combine(toolsPath, sub);
+                if (!currentPath.Contains(dir, StringComparison.OrdinalIgnoreCase))
                 {
-                    string? name = asset.GetProperty("name").GetString();
-                    if (name != null && name.EndsWith(".vsix"))
-                    {
-                        vsixUrl = asset.GetProperty("browser_download_url").GetString();
-                        vsixName = name;
-                        break;
-                    }
+                    currentPath = currentPath.Length > 0 ? $"{currentPath};{dir}" : dir;
+                    changed = true;
                 }
             }
 
-            if (vsixUrl == null)
+            if (changed)
             {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                AnsiConsole.MarkupLine("  [yellow]No .vsix file found in latest release.[/]");
-                return;
+                Environment.SetEnvironmentVariable("PATH", currentPath, EnvironmentVariableTarget.User);
             }
 
-            AnsiConsole.MarkupLine("[green]OK[/]");
-
-            // Download the .vsix file
-            AnsiConsole.Markup($"  Downloading {vsixName}... ");
-            byte[] vsixBytes = await httpClient.GetByteArrayAsync(vsixUrl);
-
-            string tempPath = Path.Combine(Path.GetTempPath(), vsixName);
-            await File.WriteAllBytesAsync(tempPath, vsixBytes);
-            AnsiConsole.MarkupLine("[green]OK[/]");
-
-            // Install the extension
-            AnsiConsole.Markup("  Installing extension... ");
-            ProcessStartInfo psi;
-
-            if (OperatingSystem.IsWindows())
-            {
-                psi = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {codeCommand} --install-extension \"{tempPath}\" --force",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-            }
-            else
-            {
-                psi = new ProcessStartInfo
-                {
-                    FileName = codeCommand,
-                    Arguments = $"--install-extension \"{tempPath}\" --force",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-            }
-
-            using var process = Process.Start(psi);
-            if (process == null)
-            {
-                AnsiConsole.MarkupLine("[yellow]SKIPPED[/]");
-                return;
-            }
-
-            await process.WaitForExitAsync();
-
-            if (process.ExitCode == 0)
-            {
-                AnsiConsole.MarkupLine("[green]OK[/]");
-                AnsiConsole.MarkupLine("  [green]VS Code extension installed successfully![/]");
-                AnsiConsole.MarkupLine("  [dim]Reload VS Code to activate the extension.[/]");
-            }
-            else
-            {
-                string error = await process.StandardError.ReadToEndAsync();
-                AnsiConsole.MarkupLine("[red]FAILED[/]");
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
-                }
-            }
-
-            // Clean up temp file
-            try { File.Delete(tempPath); } catch { }
+            return true;
         }
-        catch (Exception ex)
+        catch { return false; }
+    }
+
+    internal static bool RemoveToolsFromWindowsPath(string toolsPath)
+    {
+        try
         {
-            AnsiConsole.MarkupLine("[red]FAILED[/]");
-            AnsiConsole.MarkupLine($"  [red]Error: {Markup.Escape(ex.Message)}[/]");
+            string currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
+            bool changed = false;
+            foreach (string sub in ToolPathSubDirs)
+            {
+                string dir = Path.Combine(toolsPath, sub);
+                string upper = currentPath.ToUpperInvariant();
+                string upperDir = dir.ToUpperInvariant();
+                int idx = upper.IndexOf(upperDir);
+                if (idx >= 0)
+                {
+                    currentPath = currentPath.Remove(idx, dir.Length);
+                    currentPath = currentPath.Replace(";;", ";").Trim(';');
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                Environment.SetEnvironmentVariable("PATH", currentPath, EnvironmentVariableTarget.User);
+            }
+
+            return true;
         }
+        catch { return false; }
+    }
+
+    private static HttpClient CreateHttpClient()
+    {
+        var http = new HttpClient();
+        http.DefaultRequestHeaders.Add("User-Agent", "Cosmos-Tools");
+        string? token = GetGitHubToken();
+        if (!string.IsNullOrEmpty(token))
+        {
+            http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
+        return http;
+    }
+
+    private static string? GetGitHubToken()
+    {
+        string? token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            return token;
+        }
+
+        token = Environment.GetEnvironmentVariable("GH_TOKEN");
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            return token;
+        }
+
+        token = Environment.GetEnvironmentVariable("GITHUB_API_TOKEN");
+        return string.IsNullOrWhiteSpace(token) ? null : token;
     }
 
     private static string? GetVSCodeCommand()
     {
-        // On Windows, VS Code is installed as code.cmd, so we need to check .cmd variants too
         bool isWindows = OperatingSystem.IsWindows();
         string[] commands = isWindows
-            ? new[] { "code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium" }
-            : new[] { "code", "code-insiders", "codium" };
+            ? ["code.cmd", "code", "code-insiders.cmd", "code-insiders", "codium.cmd", "codium"]
+            : ["code", "code-insiders", "codium"];
 
-        foreach (string? cmd in commands)
+        foreach (string cmd in commands)
         {
             try
             {
-                ProcessStartInfo psi;
-
-                if (isWindows)
-                {
-                    // On Windows, use cmd /c to properly resolve .cmd files in PATH
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c {cmd} --version",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-                }
-                else
-                {
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = cmd,
-                        Arguments = "--version",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-                }
+                ProcessStartInfo psi = isWindows
+                    ? new() { FileName = "cmd.exe", Arguments = $"/c {cmd} --version", UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true }
+                    : new() { FileName = cmd, Arguments = "--version", UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
 
                 using var process = Process.Start(psi);
                 if (process != null)
@@ -411,154 +665,103 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
             catch { }
         }
-
         return null;
     }
 
-    private static string GetInstallAction(InstallInfo? info)
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Setup bundle mode — downloads tools-latest Windows assets for the
+    //  offline installer, stages packages/extension, then runs Inno Setup.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private static async Task<int> BuildSetupAsync(InstallSettings settings)
     {
-        if (info == null)
-            return "Manual installation required";
-
-        string packageManager = PlatformInfo.GetPackageManager();
-        string[]? packages = GetPackagesForManager(info, packageManager);
-
-        return info.Method switch
+        if (!OperatingSystem.IsWindows())
         {
-            "package" when packages != null => $"{packageManager} install {string.Join(" ", packages)}",
-            "download" => $"Download from {info.DownloadUrl}",
-            "build" => "Build from source",
-            "manual" => info.ManualInstructions ?? "Manual installation required",
-            _ => "Manual installation required"
+            AnsiConsole.MarkupLine("  [red]Setup mode is only supported on Windows.[/]");
+            return 1;
+        }
+
+        string baseDir = Path.GetFullPath(settings.Setup!);
+        string toolsDir = Path.Combine(baseDir, "tools", "windows");
+        Directory.CreateDirectory(toolsDir);
+
+        List<ReleaseAsset> assets = await FetchReleaseAssetsAsync(ToolsRepo, ToolsReleaseTag);
+        var releaseAssets = ToolDefinitions.GetAllTools()
+            .OfType<CommandToolDefinition>()
+            .Where(t => t.ReleaseAsset != null)
+            .Select(t => t.ReleaseAsset!)
+            .Distinct();
+
+        foreach (string releaseAsset in releaseAssets)
+        {
+            string suffix = $"-win-x64.zip";
+            var asset = assets.FirstOrDefault(a =>
+                a.Name.StartsWith($"{releaseAsset}-", StringComparison.OrdinalIgnoreCase) &&
+                a.Name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+            if (asset == null)
+            {
+                AnsiConsole.MarkupLine($"  [red]{releaseAsset}: no win-x64 asset in '{ToolsReleaseTag}'[/]");
+                continue;
+            }
+            AnsiConsole.Markup($"  {releaseAsset} -> tools/windows/{releaseAsset}/ ... ");
+            bool ok = await DownloadAndExtractAsync(asset.DownloadUrl, toolsDir, "zip");
+            AnsiConsole.MarkupLine(ok ? "[green]OK[/]" : "[red]FAILED[/]");
+        }
+
+        AnsiConsole.Markup("  VS Code Extension ... ");
+        string? vsix = await DownloadVSCodeExtensionAsync(Path.Combine(baseDir, "extensions"));
+        AnsiConsole.MarkupLine(vsix != null ? "[green]OK[/]" : "[yellow]SKIPPED (no .vsix found)[/]");
+
+        string issFile = Path.Combine(Path.GetDirectoryName(baseDir)!, "Cosmos.iss");
+        if (File.Exists(issFile))
+        {
+            AnsiConsole.Markup("  Windows installer -> iscc ... ");
+            bool ok = await BuildInnoSetupAsync(issFile, baseDir);
+            AnsiConsole.MarkupLine(ok ? "[green]OK[/]" : "[red]FAILED[/]");
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.WriteLine("  " + new string('-', 50));
+        AnsiConsole.MarkupLine("  [green]Setup bundle complete![/]");
+        AnsiConsole.WriteLine();
+        return 0;
+    }
+
+    private static async Task<bool> BuildInnoSetupAsync(string issFile, string baseDir)
+    {
+        string packagesDir = Path.Combine(baseDir, "packages");
+        string? version = null;
+        if (Directory.Exists(packagesDir))
+        {
+            var sdkPkg = Directory.GetFiles(packagesDir, "Cosmos.Sdk.*.nupkg").FirstOrDefault();
+            if (sdkPkg != null)
+            {
+                string name = Path.GetFileNameWithoutExtension(sdkPkg);
+                version = name["Cosmos.Sdk.".Length..];
+            }
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "iscc",
+            Arguments = $"\"{issFile}\"",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
         };
-    }
-
-    private static string[]? GetPackagesForManager(InstallInfo info, string packageManager)
-    {
-        return packageManager switch
+        if (version != null)
         {
-            "apt" => info.AptPackages,
-            "dnf" => info.DnfPackages,
-            "pacman" => info.PacmanPackages,
-            "brew" => info.BrewPackages,
-            "choco" => info.ChocoPackages,
-            _ => null
-        };
-    }
-
-    private static async Task InstallPackagesAsync(string packageManager, List<string> packages)
-    {
-        if (packages.Count == 0)
-            return;
-
-        AnsiConsole.MarkupLine($"  Installing packages via [blue]{packageManager}[/]...");
-        AnsiConsole.WriteLine();
-
-        var (command, args) = packageManager switch
-        {
-            "apt" => ("sudo", $"apt-get install -y {string.Join(" ", packages)}"),
-            "dnf" => ("sudo", $"dnf install -y {string.Join(" ", packages)}"),
-            "pacman" => ("sudo", $"pacman -S --noconfirm {string.Join(" ", packages)}"),
-            "brew" => ("brew", $"install {string.Join(" ", packages)}"),
-            "choco" => ("choco", $"install -y {string.Join(" ", packages)}"),
-            _ => throw new InvalidOperationException($"Unknown package manager: {packageManager}")
-        };
-
-        AnsiConsole.MarkupLine($"  [dim]$ {command} {args}[/]");
-        AnsiConsole.WriteLine();
-
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = command,
-                Arguments = args,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-
-            using var process = Process.Start(psi);
-            if (process == null)
-            {
-                AnsiConsole.MarkupLine("  [red]Failed to start package manager[/]");
-                return;
-            }
-
-            string output = await process.StandardOutput.ReadToEndAsync();
-            string error = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
-
-            if (!string.IsNullOrWhiteSpace(output))
-            {
-                foreach (string? line in output.Split('\n').Take(20))
-                {
-                    AnsiConsole.MarkupLine($"  [dim]{Markup.Escape(line)}[/]");
-                }
-            }
-
-            if (process.ExitCode == 0)
-            {
-                AnsiConsole.MarkupLine("  [green]Packages installed successfully[/]");
-            }
-            else
-            {
-                AnsiConsole.MarkupLine($"  [red]Package installation failed (exit code: {process.ExitCode})[/]");
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    AnsiConsole.MarkupLine($"  [red]{Markup.Escape(error)}[/]");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"  [red]Error: {Markup.Escape(ex.Message)}[/]");
-        }
-    }
-
-    private static async Task HandleDownloadInstall(ToolDefinition tool, InstallInfo info)
-    {
-        AnsiConsole.MarkupLine($"  Downloading [white]{tool.DisplayName}[/]...");
-
-        if (string.IsNullOrEmpty(info.DownloadUrl))
-        {
-            PrintManualInstruction(tool, info);
-            return;
+            psi.Environment["COSMOS_VERSION"] = version;
         }
 
-        string toolsPath = ToolChecker.GetCosmosToolsPath();
-        Directory.CreateDirectory(toolsPath);
-
-        AnsiConsole.MarkupLine($"  [cyan]Download from: {info.DownloadUrl}[/]");
-        AnsiConsole.MarkupLine($"  [cyan]Extract to: {toolsPath}[/]");
-        AnsiConsole.WriteLine();
-
-        AnsiConsole.MarkupLine("  [yellow]Automatic download not yet implemented.[/]");
-        AnsiConsole.MarkupLine("  [yellow]Please download and extract manually:[/]");
-        AnsiConsole.MarkupLine($"    1. Download from: {info.DownloadUrl}");
-        AnsiConsole.MarkupLine($"    2. Extract to: {toolsPath}");
-        AnsiConsole.MarkupLine($"    3. Add to PATH: export PATH=\"{toolsPath}/bin:$PATH\"");
-
-        await Task.CompletedTask;
-    }
-
-    private static void PrintManualInstruction(ToolDefinition tool, InstallInfo? info = null)
-    {
-        AnsiConsole.MarkupLine($"  [yellow]Manual installation required for {tool.DisplayName}:[/]");
-
-        if (info?.ManualInstructions != null)
+        using var proc = Process.Start(psi);
+        if (proc == null)
         {
-            AnsiConsole.MarkupLine($"    {info.ManualInstructions}");
-        }
-        else if (info?.DownloadUrl != null)
-        {
-            AnsiConsole.MarkupLine($"    Download from: {info.DownloadUrl}");
-        }
-        else
-        {
-            AnsiConsole.MarkupLine($"    Please install {tool.Name} manually.");
+            return false;
         }
 
-        AnsiConsole.WriteLine();
+        await proc.StandardOutput.ReadToEndAsync();
+        await proc.WaitForExitAsync();
+        return proc.ExitCode == 0;
     }
 }

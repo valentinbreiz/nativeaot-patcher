@@ -36,7 +36,10 @@ public static class IPEndPointPlug
     {
         int id = GetId(aThis);
         if (_addresses.TryGetValue(id, out var addr))
+        {
             return addr;
+        }
+
         return null;
     }
 
@@ -52,7 +55,10 @@ public static class IPEndPointPlug
     {
         int id = GetId(aThis);
         if (_ports.TryGetValue(id, out int port))
+        {
             return port;
+        }
+
         return 0;
     }
 
@@ -79,7 +85,10 @@ public static class IPEndPointPlug
     {
         int id = GetId(aThis);
         if (_addresses.TryGetValue(id, out var addr) && _ports.TryGetValue(id, out int port))
+        {
             return $"{addr}:{port}";
+        }
+
         return "0.0.0.0:0";
     }
 }

@@ -1,5 +1,5 @@
 // ARM64 Exception Vector Table
-// Follows same pattern as x64 Interrupts.asm
+// Follows same pattern as x64 Interrupts.s
 
 .global _native_arm64_exception_vectors
 .global _native_arm64_init_exception_vectors

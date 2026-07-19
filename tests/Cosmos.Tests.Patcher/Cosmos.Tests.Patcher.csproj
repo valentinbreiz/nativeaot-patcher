@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj" />
+    <ProjectReference Include="..\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj" />
     <ProjectReference Include="..\..\src\Cosmos.Patcher\Cosmos.Patcher.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -3,10 +3,9 @@
 
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL.Cpu;
-using Cosmos.Kernel.HAL.Cpu.Data;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.Pci;
@@ -19,14 +18,6 @@ namespace Cosmos.Kernel.HAL.X64.Devices.Network;
 /// </summary>
 public class E1000E : PciDevice, INetworkDevice
 {
-    // Intel Vendor ID
-    public const ushort IntelVendorId = 0x8086;
-
-    // E1000E Device IDs (Intel 82574 family)
-    public const ushort DeviceId82574L = 0x10D3;  // 82574L
-    public const ushort DeviceId82574IT = 0x10F6; // 82574IT
-    public const ushort DeviceId82574 = 0x105E;   // 82574 (generic)
-
     // E1000E Register Offsets
     private const uint REG_CTRL = 0x0000;        // Device Control
     private const uint REG_STATUS = 0x0008;      // Device Status
@@ -94,14 +85,22 @@ public class E1000E : PciDevice, INetworkDevice
     private const uint ICR_RXDMT0 = 1 << 4;      // RX Descriptor Minimum Threshold
     private const uint ICR_RXT0 = 1 << 7;        // RX Timer Interrupt
 
-    // Descriptor count (must be multiple of 8)
-    private const int RX_DESC_COUNT = 32;
-    private const int TX_DESC_COUNT = 32;
-    private const int RX_BUFFER_SIZE = 2048;
+    // TX descriptor CMD bits
+    private const byte TX_CMD_EOP = 1 << 0;      // End of Packet
+    private const byte TX_CMD_IFCS = 1 << 1;     // Insert FCS
+    private const byte TX_CMD_RS = 1 << 3;       // Report Status
+
+    // RX descriptor STATUS bits
+    private const byte RX_STATUS_DD = 1 << 0;    // Descriptor Done
+    private const byte RX_STATUS_EOP = 1 << 1;   // End of Packet
+
+    // Ring geometry (descriptor counts must be a multiple of 8)
+    private const int RxDescCount = 32;
+    private const int TxDescCount = 32;
+    private const int RxBufferSize = 2048;
 
     // PCI Capability IDs
-    private const byte CAP_MSIX = 0x11;
-    private const byte CAP_MSI = 0x05;
+    private const byte MsiCapabilityId = 0x05;
 
     /// <summary>
     /// Singleton instance of the E1000E driver.
@@ -164,15 +163,6 @@ public class E1000E : PciDevice, INetworkDevice
         public ushort Special;
     }
 
-    // TX Command bits
-    private const byte TX_CMD_EOP = 1 << 0;      // End of Packet
-    private const byte TX_CMD_IFCS = 1 << 1;     // Insert FCS
-    private const byte TX_CMD_RS = 1 << 3;       // Report Status
-
-    // RX Status bits
-    private const byte RX_STATUS_DD = 1 << 0;    // Descriptor Done
-    private const byte RX_STATUS_EOP = 1 << 1;   // End of Packet
-
     /// <summary>
     /// Creates a new E1000E driver instance.
     /// </summary>
@@ -199,35 +189,49 @@ public class E1000E : PciDevice, INetworkDevice
         // Try different E1000E device IDs - check each one directly to avoid array allocation
         PciDevice? device;
 
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574L);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.E82574L);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574IT);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.E82574IT);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)DeviceId82574);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.E82574);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         // Additional E1000E device IDs
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EA);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.Pch82577Lm);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EB);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.Pch82577Lc);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
-        device = PciManager.GetDevice((Pci.Enums.VendorId)IntelVendorId, (Pci.Enums.DeviceId)0x10EF);
+        device = PciManager.GetDevice(Pci.Enums.VendorId.Intel, Pci.Enums.DeviceId.Pch82578Dm);
         if (device != null && !device.Claimed)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         // Also check by class (Network Controller = 0x02, Ethernet = 0x00)
         device = PciManager.GetDeviceClass(Pci.Enums.ClassId.NetworkController, (Pci.Enums.SubclassId)0x00, (Pci.Enums.ProgramIf)0x00);
-        if (device != null && !device.Claimed && device.VendorId == IntelVendorId)
+        if (device != null && !device.Claimed && device.VendorId == (ushort)Pci.Enums.VendorId.Intel)
+        {
             return new E1000E(device.Bus, device.Slot, device.Function);
+        }
 
         return null;
     }
@@ -243,7 +247,9 @@ public class E1000E : PciDevice, INetworkDevice
     private unsafe void InitializeNetwork()
     {
         if (_networkInitialized)
+        {
             return;
+        }
 
         Serial.Write("[E1000E] Initializing...\n");
         Serial.Write("[E1000E] MMIO Base: 0x");
@@ -318,7 +324,9 @@ public class E1000E : PciDevice, INetworkDevice
         for (int i = 0; i < 1000; i++)
         {
             if ((ReadMmio(REG_CTRL) & CTRL_RST) == 0)
+            {
                 break;
+            }
         }
 
         // Clear interrupt mask
@@ -397,7 +405,7 @@ public class E1000E : PciDevice, INetworkDevice
     private void DetectMsix()
     {
         // Check if device has capabilities
-        ushort status = ReadRegister16(0x06);
+        ushort status = ReadRegister16((byte)Pci.Enums.Config.Status);
         if ((status & (1 << 4)) == 0)
         {
             Serial.Write("[E1000E] No PCI capabilities\n");
@@ -405,17 +413,17 @@ public class E1000E : PciDevice, INetworkDevice
         }
 
         // Walk capability list
-        byte capPtr = ReadRegister8(0x34);
+        byte capPtr = ReadRegister8((byte)Pci.Enums.Config.CapabilityPointer);
         while (capPtr != 0)
         {
             byte capId = ReadRegister8(capPtr);
-            if (capId == CAP_MSIX)
+            if (capId == MsiX.CapId)
             {
                 _hasMsix = true;
                 // MSI-X table info is at capPtr + 4
-                uint tableInfo = ReadRegister32((byte)(capPtr + 4));
-                uint bar = tableInfo & 0x7;
-                uint offset = tableInfo & ~0x7u;
+                uint tableInfo = ReadRegister32((byte)(capPtr + MsiX.TableOffsetBirOffset));
+                uint bar = tableInfo & MsiX.TableBirMask;
+                uint offset = tableInfo & MsiX.TableOffsetMask;
 
                 if (BaseAddressBar != null && bar < BaseAddressBar.Length)
                 {
@@ -429,7 +437,7 @@ public class E1000E : PciDevice, INetworkDevice
                 Serial.Write("\n");
                 return;
             }
-            else if (capId == CAP_MSI)
+            else if (capId == MsiCapabilityId)
             {
                 Serial.Write("[E1000E] MSI supported (not MSI-X)\n");
             }
@@ -448,7 +456,7 @@ public class E1000E : PciDevice, INetworkDevice
 
         // Allocate descriptor ring (16-byte aligned required by E1000)
         // Allocate extra space to ensure we can align to 16 bytes
-        int descSize = RX_DESC_COUNT * sizeof(RxDescriptor);
+        int descSize = RxDescCount * sizeof(RxDescriptor);
         byte* rawRxDesc = (byte*)MemoryOp.Alloc((uint)(descSize + 16));
         // Align to 16 bytes
         ulong aligned = ((ulong)rawRxDesc + 15) & ~15UL;
@@ -456,12 +464,12 @@ public class E1000E : PciDevice, INetworkDevice
         MemoryOp.MemSet((byte*)_rxDescriptors, 0, descSize);
 
         // Allocate buffer pointers array
-        _rxBuffers = (byte**)MemoryOp.Alloc((uint)(RX_DESC_COUNT * sizeof(byte*)));
+        _rxBuffers = (byte**)MemoryOp.Alloc((uint)(RxDescCount * sizeof(byte*)));
 
         // Allocate buffers and set up descriptors
-        for (int i = 0; i < RX_DESC_COUNT; i++)
+        for (int i = 0; i < RxDescCount; i++)
         {
-            _rxBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
+            _rxBuffers[i] = (byte*)MemoryOp.Alloc(RxBufferSize);
             // E1000 needs physical addresses for DMA
             _rxDescriptors[i].BufferAddress = VirtToPhys((ulong)_rxBuffers[i]);
             _rxDescriptors[i].Status = 0;
@@ -477,8 +485,8 @@ public class E1000E : PciDevice, INetworkDevice
 
         // Set head and tail
         WriteMmio(REG_RDH, 0);
-        WriteMmio(REG_RDT, RX_DESC_COUNT - 1);
-        _rxTail = RX_DESC_COUNT - 1;
+        WriteMmio(REG_RDT, RxDescCount - 1);
+        _rxTail = RxDescCount - 1;
 
         // Enable receiver
         uint rctl = RCTL_EN | RCTL_BAM | RCTL_BSIZE_2048 | RCTL_SECRC;
@@ -496,7 +504,7 @@ public class E1000E : PciDevice, INetworkDevice
 
         // Allocate descriptor ring (16-byte aligned required by E1000)
         // Allocate extra space to ensure we can align to 16 bytes
-        int descSize = TX_DESC_COUNT * sizeof(TxDescriptor);
+        int descSize = TxDescCount * sizeof(TxDescriptor);
         byte* rawTxDesc = (byte*)MemoryOp.Alloc((uint)(descSize + 16));
         // Align to 16 bytes
         ulong aligned = ((ulong)rawTxDesc + 15) & ~15UL;
@@ -504,12 +512,12 @@ public class E1000E : PciDevice, INetworkDevice
         MemoryOp.MemSet((byte*)_txDescriptors, 0, descSize);
 
         // Allocate buffer pointers array
-        _txBuffers = (byte**)MemoryOp.Alloc((uint)(TX_DESC_COUNT * sizeof(byte*)));
+        _txBuffers = (byte**)MemoryOp.Alloc((uint)(TxDescCount * sizeof(byte*)));
 
         // Allocate buffers
-        for (int i = 0; i < TX_DESC_COUNT; i++)
+        for (int i = 0; i < TxDescCount; i++)
         {
-            _txBuffers[i] = (byte*)MemoryOp.Alloc(RX_BUFFER_SIZE);
+            _txBuffers[i] = (byte*)MemoryOp.Alloc(RxBufferSize);
         }
 
         // Set descriptor base address (physical)
@@ -569,7 +577,9 @@ public class E1000E : PciDevice, INetworkDevice
     private static void HandleIRQ(ref IRQContext context)
     {
         if (Instance == null)
+        {
             return;
+        }
 
         // Read and clear interrupt cause
         uint icr = Instance.ReadMmio(REG_ICR);
@@ -599,15 +609,19 @@ public class E1000E : PciDevice, INetworkDevice
         while (true)
         {
             uint head = ReadMmio(REG_RDH);
-            uint next = (_rxTail + 1) % RX_DESC_COUNT;
+            uint next = (_rxTail + 1) % RxDescCount;
 
             if (next == head)
+            {
                 break;
+            }
 
             RxDescriptor* desc = &_rxDescriptors[next];
 
             if ((desc->Status & RX_STATUS_DD) == 0)
+            {
                 break;
+            }
 
             if ((desc->Status & RX_STATUS_EOP) != 0 && desc->Errors == 0)
             {
@@ -637,15 +651,19 @@ public class E1000E : PciDevice, INetworkDevice
     /// </summary>
     public unsafe bool Send(byte[] data, int length)
     {
-        if (!_networkInitialized || data == null || length <= 0 || length > RX_BUFFER_SIZE)
+        if (!_networkInitialized || data == null || length <= 0 || length > RxBufferSize)
+        {
             return false;
+        }
 
-        uint next = (_txTail + 1) % TX_DESC_COUNT;
+        uint next = (_txTail + 1) % TxDescCount;
         uint head = ReadMmio(REG_TDH);
 
         // Check if ring is full
         if (next == head)
+        {
             return false;
+        }
 
         // Copy data to buffer
         byte* dst = _txBuffers[_txTail];
@@ -726,9 +744,11 @@ public class E1000E : PciDevice, INetworkDevice
     /// </summary>
     private static ulong VirtToPhys(ulong virtualAddress)
     {
-        const ulong HigherHalfOffset = 0xFFFF800000000000UL;
-        if (virtualAddress >= HigherHalfOffset)
-            return virtualAddress - HigherHalfOffset;
+        if (virtualAddress >= PageAllocator.DefaultHhdmOffset)
+        {
+            return virtualAddress - PageAllocator.DefaultHhdmOffset;
+        }
+
         return virtualAddress;
     }
 
