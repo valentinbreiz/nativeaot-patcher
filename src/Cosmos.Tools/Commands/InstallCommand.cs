@@ -29,8 +29,8 @@ public class InstallSettings : CommandSettings
 
 public class InstallCommand : AsyncCommand<InstallSettings>
 {
-    private const string ToolsRepo = "valentinbreiz/nativeaot-patcher";
-    private const string ToolsReleaseTag = "tools-latest";
+    internal const string ToolsRepo = "valentinbreiz/nativeaot-patcher";
+    internal const string ToolsReleaseTag = "tools-latest";
 
     public override async Task<int> ExecuteAsync(CommandContext context, InstallSettings settings)
     {
@@ -92,7 +92,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     //  Tool installation — download from GitHub release `tools-latest`
     // ═══════════════════════════════════════════════════════════════════════
 
-    private static async Task<bool> InstallToolsFromReleaseAsync()
+    internal static async Task<bool> InstallToolsFromReleaseAsync()
     {
         string platform = GetPlatformTarget();
         string ext = OperatingSystem.IsWindows() ? "zip" : "tar.gz";
@@ -150,7 +150,13 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
 
             // Asset name -> "<assetPrefix>-<version>-<platform>.<ext>"
-            string wantedVersion = asset.Name.Substring(pattern.Length, asset.Name.Length - pattern.Length - suffix.Length);
+            int versionLength = asset.Name.Length - pattern.Length - suffix.Length;
+            if (versionLength <= 0)
+            {
+                AnsiConsole.MarkupLine($"  [red]{releaseAsset}:[/] malformed asset name [white]{asset.Name}[/] in release '{ToolsReleaseTag}'");
+                continue;
+            }
+            string wantedVersion = asset.Name.Substring(pattern.Length, versionLength);
 
             bool allFoundAndMatching = true;
             foreach (var tool in group)
@@ -228,7 +234,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         return true;
     }
 
-    private static string GetPlatformTarget()
+    internal static string GetPlatformTarget()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -245,9 +251,9 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     //  GitHub Release asset fetching
     // ═══════════════════════════════════════════════════════════════════════
 
-    private record ReleaseAsset(string Name, string DownloadUrl);
+    internal record ReleaseAsset(string Name, string DownloadUrl);
 
-    private static async Task<List<ReleaseAsset>> FetchReleaseAssetsAsync(string repo, string tag)
+    internal static async Task<List<ReleaseAsset>> FetchReleaseAssetsAsync(string repo, string tag)
     {
         using var http = CreateHttpClient();
         string url = $"https://api.github.com/repos/{repo}/releases/tags/{tag}";
@@ -386,7 +392,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         return path;
     }
 
-    private static async Task InstallVSCodeExtensionAsync()
+    internal static async Task InstallVSCodeExtensionAsync()
     {
         string? codeCommand = GetVSCodeCommand();
         if (codeCommand == null)
@@ -453,14 +459,14 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         await InstallTemplateAsync("Cosmos.Build.Templates");
     }
 
-    private static async Task InstallDotnetToolAsync(string packageName)
+    internal static async Task InstallDotnetToolAsync(string packageName, string extraArgs = "")
     {
         try
         {
             var psi = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"tool update -g {packageName}",
+                Arguments = $"tool update -g {packageName}{extraArgs}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
@@ -475,7 +481,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             }
             else
             {
-                psi.Arguments = $"tool install -g {packageName}";
+                psi.Arguments = $"tool install -g {packageName}{extraArgs}";
                 using var installProcess = Process.Start(psi);
                 if (installProcess != null)
                 {
@@ -487,14 +493,14 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         catch { AnsiConsole.MarkupLine("[yellow]SKIPPED[/]"); }
     }
 
-    private static async Task InstallTemplateAsync(string packageName)
+    internal static async Task InstallTemplateAsync(string packageName, string? version = null)
     {
         try
         {
             var psi = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"new install {packageName}",
+                Arguments = $"new install {packageName}{(version != null ? $"::{version}" : "")}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true

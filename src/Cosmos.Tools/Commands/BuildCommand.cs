@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Cosmos.Tools.Platform;
+using Cosmos.Tools.Update;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -168,6 +169,7 @@ public class BuildCommand : AsyncCommand<BuildSettings>
             }
 
             AnsiConsole.WriteLine();
+            await UpdateNotifier.MaybeNotifyAsync();
         }
 
         return success ? 0 : 1;
