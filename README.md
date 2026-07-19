@@ -76,6 +76,15 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
 - [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
 
+## Getting Help
+
+1. **Check the [documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html)** — installation, debugging, and subsystem guides
+2. **Search [existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)** — your problem may already be known
+3. **Ask on [Discord](https://discord.com/invite/kwtBwv6jhD)** — quickest way to get unblocked or sanity-check a setup problem
+4. **File a [new issue](https://github.com/valentinbreiz/nativeaot-patcher/issues/new/choose)** — the bug report template walks you through the details we need (versions, exact command, serial log, symbolicated stack trace)
+
+Reporting a kernel crash? [CONTRIBUTING.md](CONTRIBUTING.md#collecting-diagnostics) shows how to capture the serial log and turn the raw crash addresses into function names — with those two things most crashes can be diagnosed directly.
+
 ## Related resources
 
 - [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
