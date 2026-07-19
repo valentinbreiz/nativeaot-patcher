@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Cosmos.Tools.Platform;
+using Cosmos.Tools.Update;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -31,6 +32,7 @@ public class CheckCommand : AsyncCommand<CheckSettings>
         {
             PrintResults(results);
             PrintSummary(results);
+            await UpdateNotifier.MaybeNotifyAsync();
         }
 
         return 0;

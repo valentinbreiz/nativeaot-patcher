@@ -19,6 +19,9 @@ class Program
             config.AddCommand<InstallCommand>("install")
                 .WithDescription("Install required development tools");
 
+            config.AddCommand<UpdateCommand>("update")
+                .WithDescription("Update Cosmos tools, templates, and the current project to the latest release");
+
             config.AddCommand<NewCommand>("new")
                 .WithDescription("Create a new Cosmos kernel project");
 

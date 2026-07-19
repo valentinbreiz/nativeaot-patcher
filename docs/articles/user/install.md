@@ -45,14 +45,26 @@ cosmos uninstall
 dotnet tool uninstall -g Cosmos.Tools
 ```
 
-## Quick Start
+## Updating
 
-Once installed, create and build your first kernel:
+Update everything in one step — the CLI, the patcher, the build tools, the project templates, and the VS Code extension:
 
 ```bash
-cosmos new MyKernel
-cd MyKernel
-cosmos build
+cosmos update
 ```
 
-Or open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.
+Run it inside a kernel project directory to also move the project's Cosmos version pins (the `Sdk="Cosmos.Sdk/..."` attribute and `Cosmos.*` package references) to the latest release. Additional options:
+
+| Option | Effect |
+|--------|--------|
+| `cosmos update --check` | Report available updates without installing anything |
+| `cosmos update --no-project` | Update the tools but leave project files untouched |
+| `cosmos update --version <VERSION>` | Move the CLI, patcher, templates, and project pins to a specific version (system tools always follow the `tools-latest` bundles) |
+
+Projects pinned to a version newer than the latest release (for example a locally built date-stamped version) are left untouched unless `--version` is passed explicitly.
+
+This works on Windows too — existing installations update in place without re-running the installer. `cosmos build`, `cosmos run`, and `cosmos check` also print a one-line notice when a newer release exists (checked at most once per day; set `COSMOS_NO_UPDATE_NOTIFIER=1` to disable).
+
+## Quick Start
+
+Once installed, see [Kernel Startup](startup.md) to create your first kernel and learn the boot flow.

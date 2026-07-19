@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Cosmos.Tools.Launcher;
 using Cosmos.Tools.Platform;
+using Cosmos.Tools.Update;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -108,6 +109,9 @@ public class RunCommand : AsyncCommand<RunSettings>
             AnsiConsole.MarkupLine($"  [red]{Markup.Escape(ex.Message)}[/]");
             return 1;
         }
+
+        // Notify before QEMU starts — stdio is handed to the guest serial console after this.
+        await UpdateNotifier.MaybeNotifyAsync();
 
         AnsiConsole.MarkupLine($"  Running [blue]{Path.GetFileName(isoPath)}[/] ([blue]{settings.Arch}[/]) via QEMU [dim]({plan.Source.ToString().ToLowerInvariant()}: {plan.BinaryPath})[/]");
         if (plan.Source == ToolSource.Bundle)
