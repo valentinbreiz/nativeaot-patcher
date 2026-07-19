@@ -113,13 +113,37 @@ cosmos install
 <pre><code class="lang-bash">cosmos uninstall
 dotnet tool uninstall -g Cosmos.Tools
 </code></pre>
-<h2 id="quick-start">Quick Start</h2>
-<p>Once installed, create and build your first kernel:</p>
-<pre><code class="lang-bash">cosmos new MyKernel
-cd MyKernel
-cosmos build
+<h2 id="updating">Updating</h2>
+<p>Update everything in one step — the CLI, the patcher, the build tools, the project templates, and the VS Code extension:</p>
+<pre><code class="lang-bash">cosmos update
 </code></pre>
-<p>Or open VS Code and use the Cosmos extension to create, build, and run bare-metal C# kernels directly from the editor.</p>
+<p>Run it inside a kernel project directory to also move the project's Cosmos version pins (the <code>Sdk=&quot;Cosmos.Sdk/...&quot;</code> attribute and <code>Cosmos.*</code> package references) to the latest release. Additional options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cosmos update --check</code></td>
+<td>Report available updates without installing anything</td>
+</tr>
+<tr>
+<td><code>cosmos update --no-project</code></td>
+<td>Update the tools but leave project files untouched</td>
+</tr>
+<tr>
+<td><code>cosmos update --version &lt;VERSION&gt;</code></td>
+<td>Move the CLI, patcher, templates, and project pins to a specific version (system tools always follow the <code>tools-latest</code> bundles)</td>
+</tr>
+</tbody>
+</table>
+<p>Projects pinned to a version newer than the latest release (for example a locally built date-stamped version) are left untouched unless <code>--version</code> is passed explicitly.</p>
+<p>This works on Windows too — existing installations update in place without re-running the installer. <code>cosmos build</code>, <code>cosmos run</code>, and <code>cosmos check</code> also print a one-line notice when a newer release exists (checked at most once per day; set <code>COSMOS_NO_UPDATE_NOTIFIER=1</code> to disable).</p>
+<h2 id="quick-start">Quick Start</h2>
+<p>Once installed, see <a href="startup.html">Kernel Startup</a> to create your first kernel and learn the boot flow.</p>
 
 </article>
 
