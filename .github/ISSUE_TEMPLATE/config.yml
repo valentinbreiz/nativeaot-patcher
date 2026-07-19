@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md
-    about: Check the documentation for guides and tutorials
-  - name: Cosmos OS Discussions
-    url: https://github.com/CosmosOS/Cosmos/discussions
-    about: Ask questions about Cosmos OS integration
+    url: https://valentinbreiz.github.io/nativeaot-patcher/index.html
+    about: User guide (build your own OS) and developer docs (architecture internals)
+  - name: Discord
+    url: https://discord.com/invite/kwtBwv6jhD
+    about: Quickest way to ask questions and get help with setup problems
+  - name: How to collect crash diagnostics
+    url: https://github.com/valentinbreiz/nativeaot-patcher/blob/main/CONTRIBUTING.md#collecting-diagnostics
+    about: Capture the serial log and symbolicate a kernel crash before filing a bug

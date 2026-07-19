@@ -7,9 +7,9 @@ body:
     attributes:
       value: |
         Before asking a question, please check:
-        - [Documentation](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/index.md)
+        - [Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — installation, debugging, and subsystem guides
         - [Existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)
-        - [CLAUDE.md](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/CLAUDE.md) for build commands
+        - [Discord](https://discord.com/invite/kwtBwv6jhD) — often faster for setup questions
         
   - type: textarea
     id: question

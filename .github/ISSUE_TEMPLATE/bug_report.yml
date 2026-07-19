@@ -1,58 +1,54 @@
 name: Bug Report
-description: Report a bug or unexpected behavior
+description: Report a build failure, kernel crash, or unexpected behavior
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please fill out the information below to help us resolve it.
-        
+        Thanks for taking the time to report a bug! The more of this form you fill in, the faster it gets fixed — a report with a serial log and a symbolicated stack trace can often be diagnosed the same day.
+
+        Not sure how to collect logs or symbolicate a crash? See [Collecting diagnostics](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/CONTRIBUTING.md#collecting-diagnostics) — it's two commands.
+
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: A clear and concise description of what the bug is
-      placeholder: When I try to build the kernel with...
+      description: What went wrong, and what did you expect to happen instead?
+      placeholder: The kernel crashes with a General Protection Fault shortly after boot. I expected it to keep running.
     validations:
       required: true
-      
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected Behavior
-      description: What did you expect to happen?
-      placeholder: The kernel should build successfully
-    validations:
-      required: true
-      
-  - type: textarea
-    id: actual
-    attributes:
-      label: Actual Behavior
-      description: What actually happened?
-      placeholder: The build fails with error...
-    validations:
-      required: true
-      
+
   - type: textarea
     id: reproduce
     attributes:
       label: Steps to Reproduce
-      description: Detailed steps to reproduce the issue
+      description: Exact steps, including the exact command you ran (VSCode task, `cosmos build`/`cosmos run`, or the full `dotnet publish` / QEMU command line). If you can share a repository that reproduces the problem, link it here — that is the single most useful thing you can provide.
       placeholder: |
-        1. Clone the repository
-        2. Run `./.devcontainer/postCreateCommand.sh x64`
-        3. Execute `dotnet publish ...`
-        4. See error
+        1. cosmos new MyKernel
+        2. Open in VSCode, start "Debug x64 Kernel"
+        3. dotnet publish fails / the kernel crashes after ...
+        Repro repo: https://github.com/me/mykernel
     validations:
       required: true
-      
+
+  - type: dropdown
+    id: failure-stage
+    attributes:
+      label: Where does it fail?
+      options:
+        - Build / publish (compile, link, ISO creation)
+        - Boot (never reaches kernel Main)
+        - Runtime crash (CPU exception / hang after boot)
+        - Tooling (cosmos CLI, patcher, templates)
+        - Other
+    validations:
+      required: true
+
   - type: dropdown
     id: architecture
     attributes:
       label: Architecture
-      description: Which architecture does this affect?
       options:
         - x64
         - ARM64
@@ -60,57 +56,52 @@ body:
         - Not applicable
     validations:
       required: true
-      
+
   - type: input
     id: os
     attributes:
       label: Operating System
-      description: What OS are you using?
-      placeholder: e.g., Ubuntu 22.04, Windows 11, macOS 13
+      description: Host OS you build/run on
+      placeholder: e.g., Fedora 41 / KDE, Ubuntu 24.04, Windows 11
     validations:
       required: true
-      
+
   - type: input
-    id: dotnet-version
+    id: versions
     attributes:
-      label: .NET Version
-      description: Output of `dotnet --version`
-      placeholder: e.g., 9.0.100
+      label: Cosmos.Sdk and .NET versions
+      description: The `Sdk="Cosmos.Sdk/X.Y.Z"` version from your .csproj, and the output of `dotnet --version`
+      placeholder: e.g., Cosmos.Sdk 3.0.68, .NET 10.0.302
     validations:
       required: true
-      
-  - type: dropdown
-    id: build-config
-    attributes:
-      label: Build Configuration
-      description: Which configuration were you using?
-      options:
-        - Debug
-        - Release
-        - Not applicable
-    validations:
-      required: true
-      
+
   - type: textarea
-    id: error-output
+    id: serial-log
     attributes:
-      label: Error Output
-      description: Full error messages, stack traces, or relevant log excerpts
+      label: Serial log / build output
+      description: |
+        For build failures — the full build output (re-run with `--verbosity normal` if the failing step isn't shown).
+        For kernel crashes — the full serial log from boot to crash, not just the exception block (`cosmos run` prints it; manual QEMU: add `-serial stdio` or `-serial file:serial.log`). Attach as a file if it's long.
       render: shell
-      placeholder: Paste error output here
-      
+      placeholder: Paste the log here, or attach it as a file
+
   - type: textarea
-    id: code-sample
+    id: stack-trace
     attributes:
-      label: Code Sample (if applicable)
-      description: Minimal code that reproduces the issue
-      render: csharp
+      label: Symbolicated stack trace (kernel crashes)
+      description: |
+        A crash dump prints raw return addresses. Turn them into function names with your kernel's ELF:
+        `addr2line -e bin/Debug/net10.0/linux-x64/MyKernel.elf -f -C 0xADDR1 0xADDR2 ...`
+        If you're not sure how, skip this and attach the `.elf` file (zipped) instead — we can symbolicate it for you.
+      render: shell
       placeholder: |
-        // Minimal reproducible code
-        
+        ip:  GarbageCollector__SweepSegment
+        [0]  GarbageCollector__SweepPhase
+        ...
+
   - type: textarea
     id: additional
     attributes:
       label: Additional Context
-      description: Any other relevant information about the problem
-      placeholder: This started happening after...
+      description: Anything else — QEMU flags (attached disks, memory size), when it started happening, whether it reproduces every time, minimal code sample...
+      placeholder: Happens every boot, ~10 seconds in. Started after adding ...
