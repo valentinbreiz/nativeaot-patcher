@@ -78,7 +78,7 @@ public static unsafe partial class GarbageCollector
     private static GCSegment* AllocatePinnedSegment(uint requestedSize)
     {
         uint size = requestedSize < PinnedHeapMinSize ? PinnedHeapMinSize : requestedSize;
-        uint totalSize = size + (uint)sizeof(GCSegment);
+        uint totalSize = size + (uint)sizeof(GCSegment) + ReservedHeaderSlotSize;
         ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
 
         var memory = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, pageCount, true);
@@ -89,7 +89,9 @@ public static unsafe partial class GarbageCollector
 
         var segment = (GCSegment*)memory;
         segment->Next = null;
-        segment->Start = memory + Align((uint)sizeof(GCSegment));
+        // Pad Start so the first object's runtime header write (objRef-4) lands in
+        // zeroed filler instead of the segment struct's last field (UsedSize).
+        segment->Start = memory + Align((uint)sizeof(GCSegment)) + ReservedHeaderSlotSize;
         segment->End = memory + (pageCount * PageAllocator.PageSize);
         segment->Bump = segment->Start;
         segment->TotalSize = (uint)(segment->End - segment->Start);
@@ -208,25 +210,20 @@ public static unsafe partial class GarbageCollector
         {
             var obj = (GCObject*)ptr;
 
-            // Validate MethodTable
+            // Validate MethodTable. Anything that is not a plausible MethodTable —
+            // null (zeroed gap), a value below kernel space (data, e.g. the runtime
+            // object header written at objRef-4 of the following object), or a stale
+            // pointer into the GC heap — is dead filler. Fold it into the free run so
+            // the run stays contiguous and the trailing reset can reach Bump.
             MethodTable* mt = obj->GetMethodTable();
-            if (mt == null)
+            if (mt == null || (ulong)mt < KernelSpaceStart || IsInGCHeap((nint)mt))
             {
-                // Zeroed gap — dead space. Fold it into the free run so the
-                // run stays contiguous and the trailing reset can reach Bump.
                 if (freeRunStart == null)
                 {
                     freeRunStart = ptr;
                 }
 
                 freeRunSize += (uint)sizeof(nint);
-                ptr += sizeof(nint);
-                continue;
-            }
-
-            if (IsInGCHeap((nint)mt))
-            {
-                // Skip invalid objects
                 ptr += sizeof(nint);
                 continue;
             }
@@ -285,17 +282,22 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Converts a contiguous free run in the pinned heap into a <see cref="FreeBlock"/>.
-    /// Unlike regular heap free runs, pinned free blocks are not added to the free list.
+    /// Converts a contiguous free run in the pinned heap into a <see cref="FreeBlock"/>
+    /// and adds it to the free list. Like <see cref="FlushFreeRun"/>, the last
+    /// <see cref="ReservedHeaderSlotSize"/> bytes are excluded so the following object's
+    /// runtime header slot (objRef-4) can never be recycled into another allocation.
     /// </summary>
     /// <param name="start">Start of the free run.</param>
     /// <param name="size">Size of the free run in bytes.</param>
     private static void FlushPinnedFreeRun(byte* start, uint size)
     {
-        if (start == null || size < MinBlockSize)
+        if (start == null || size < MinBlockSize + ReservedHeaderSlotSize)
         {
             return;
         }
+
+        size -= ReservedHeaderSlotSize;
+        SanitizeReservedHeaderSlot(start + size);
 
         var freeBlock = (FreeBlock*)start;
         freeBlock->MethodTable = s_freeMethodTable;
