@@ -504,6 +504,26 @@ public static class SchedulerManager
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
     public static void Sleep(uint cpuId, Thread thread, uint timeoutMs)
     {
+        MarkSleeping(cpuId, thread, timeoutMs);
+
+        // Only park the CPU while still Sleeping: if a wake already landed between
+        // scope-dispose and this point, halting would sleep past it.
+        if (thread.State == ThreadState.Sleeping)
+        {
+            InternalCpu.Halt();
+        }
+    }
+
+    /// <summary>
+    /// Marks a thread Sleeping with a wake deadline without halting — for callers that must
+    /// make the state change atomic with their own IRQ-off section (ConditionVariable.WaitTimeout)
+    /// and park afterwards under a state guard.
+    /// </summary>
+    /// <param name="cpuId">CPU ID of the thread.</param>
+    /// <param name="thread">Thread to sleep.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
+    public static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)
+    {
         using (InternalCpu.DisableInterruptsScope())
         {
             PerCpuState cpuState = _cpuStates[cpuId];
@@ -515,8 +535,6 @@ public static class SchedulerManager
             _currentScheduler.OnThreadBlocked(cpuState, thread);
             thread.State = ThreadState.Sleeping;
         }
-
-        InternalCpu.Halt();
     }
 
     /// <summary>
