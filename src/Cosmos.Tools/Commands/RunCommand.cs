@@ -48,11 +48,11 @@ public class RunSettings : CommandSettings
     public string? Nic { get; set; }
 
     [CommandOption("--keyboard <MODEL>")]
-    [Description("Keyboard device to attach, e.g. virtio-keyboard-device (needed on arm64 virt). 'ps2'/'none' add nothing; x64 PS/2 is built into the chipset.")]
+    [Description("Keyboard device to attach. Default: virtio-keyboard-device on arm64, none on x64 (PS/2 is built into the chipset). 'ps2'/'none' add nothing.")]
     public string? Keyboard { get; set; }
 
     [CommandOption("--mouse <MODEL>")]
-    [Description("Mouse device to attach, e.g. virtio-mouse-device (needed on arm64 virt). 'ps2'/'none' add nothing; x64 PS/2 is built into the chipset.")]
+    [Description("Mouse device to attach. Default: virtio-mouse-device on arm64, none on x64 (PS/2 is built into the chipset). 'ps2'/'none' add nothing.")]
     public string? Mouse { get; set; }
 }
 
@@ -98,8 +98,8 @@ public class RunCommand : AsyncCommand<RunSettings>
                 SerialOutputFile = null, // CLI: serial → stdio
                 Disks = disks,
                 NetworkCard = settings.Nic,
-                KeyboardDevice = settings.Keyboard,
-                MouseDevice = settings.Mouse,
+                KeyboardDevice = ResolveInputDevice(settings.Arch, settings.Keyboard, "virtio-keyboard-device"),
+                MouseDevice = ResolveInputDevice(settings.Arch, settings.Mouse, "virtio-mouse-device"),
                 ExtraArgs = context.Remaining.Raw.ToArray()
             });
         }
@@ -143,6 +143,16 @@ public class RunCommand : AsyncCommand<RunSettings>
             return 1;
         }
     }
+
+    /// <summary>
+    /// Applies the per-arch input-device default: the ARM64 <c>virt</c> machine
+    /// has no built-in PS/2 controller (q35 does), so leaving <c>--keyboard</c>/
+    /// <c>--mouse</c> unset there used to boot a kernel with no input at all
+    /// (#383). Unset now falls back to the virtio-MMIO model the kernel's
+    /// virtio scan finds; <c>none</c>/<c>ps2</c> still opt out explicitly.
+    /// </summary>
+    internal static string? ResolveInputDevice(string arch, string? requested, string arm64Default)
+        => requested ?? (arch == "arm64" ? arm64Default : null);
 
     /// <summary>
     /// Turns <c>--disk</c> specs (<c>path[,kind]</c>) into <see cref="DiskAttachment"/>s.
