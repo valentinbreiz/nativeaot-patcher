@@ -57,12 +57,14 @@ public static partial class VfsManager
             return null;
         }
 
-        string result = path[0] == '/'
+        string result = path[0] == Path.DirectorySeparatorChar
             ? path
-            : (s_currentDirectory == "/" ? $"/{path}" : $"{s_currentDirectory}/{path}");
+            : (s_currentDirectory == s_directorySeparatorString
+                ? Path.Combine(s_directorySeparatorString, path)
+                : Path.Combine(s_currentDirectory, path));
 
         int end = result.Length;
-        while (end > 1 && result[end - 1] == '/')
+        while (end > 1 && result[end - 1] == Path.DirectorySeparatorChar)
         {
             end--;
         }
@@ -77,7 +79,7 @@ public static partial class VfsManager
         int lastSeparator = fullPath.LastIndexOf('/');
         if (lastSeparator <= 0)
         {
-            parentPath = "/";
+            parentPath = s_directorySeparatorString;
             leaf = fullPath.Length > 1 ? fullPath.Substring(1) : string.Empty;
             return;
         }
@@ -89,7 +91,7 @@ public static partial class VfsManager
     /// <summary>True for "/" and for every active mount point.</summary>
     public static bool IsMountPoint(string fullPath)
     {
-        if (fullPath == "/")
+        if (fullPath == s_directorySeparatorString)
         {
             return true;
         }
@@ -115,7 +117,7 @@ public static partial class VfsManager
             return inode.InodeOperations.GetAttr(inode, out stat);
         }
 
-        if (fullPath == "/")
+        if (fullPath == s_directorySeparatorString)
         {
             stat = VirtualRootStat();
             return true;
@@ -133,12 +135,12 @@ public static partial class VfsManager
         for (int i = 0; i < s_mounts.Count; i++)
         {
             string mountPoint = s_mounts[i].MountPoint;
-            if (mountPoint == "/")
+            if (mountPoint == s_directorySeparatorString)
             {
                 continue;
             }
 
-            int nextSeparator = mountPoint.IndexOf('/', 1);
+            int nextSeparator = mountPoint.IndexOf(Path.DirectorySeparatorChar, 1);
             string firstSegment = nextSeparator < 0
                 ? mountPoint.Substring(1)
                 : mountPoint.Substring(1, nextSeparator - 1);
@@ -248,7 +250,7 @@ public static partial class VfsManager
         }
 
         bool oldIsDirectory = (oldStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
-        if (oldIsDirectory && newFullPath.StartsWith($"{oldFullPath}/", StringComparison.Ordinal))
+        if (oldIsDirectory && newFullPath.StartsWith($"{oldFullPath}{s_directorySeparatorString}", StringComparison.Ordinal))
         {
             return false;
         }
@@ -403,7 +405,9 @@ public static partial class VfsManager
             return;
         }
 
-        string backupPath = parentPath == "/" ? $"/{backupLeaf}" : $"{parentPath}/{backupLeaf}";
+        string backupPath = parentPath == s_directorySeparatorString
+            ? Path.Combine(s_directorySeparatorString, backupLeaf)
+            : Path.Combine(parentPath, backupLeaf);
 
         IVfsInode? backupInode = null;
         if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode))
