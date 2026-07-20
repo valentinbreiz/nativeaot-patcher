@@ -1,0 +1,95 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Cosmos.TestRunner.Engine;
+
+namespace Cosmos.Tests.Patcher;
+
+/// <summary>
+/// Validates the real <c>tests/profiles.json</c> against the real suite
+/// csproj files, rather than a synthetic catalog like
+/// <see cref="TestProfileLoaderTests"/> does.
+///
+/// A suite naming a profile that does not exist, or whose profiles are all
+/// pinned to the other architecture, only surfaces today once CI has built a
+/// kernel and booted QEMU — minutes in, for what is a typo. These run in
+/// milliseconds and need no kernel build.
+/// </summary>
+[Collection("PatcherTests")]
+public class ProfileCatalogTests
+{
+    private static readonly string[] Architectures = ["x64", "arm64"];
+
+    /// <summary>Walks up from the test assembly to the repo root (the directory holding tests/profiles.json).</summary>
+    private static string FindRepoRoot()
+    {
+        DirectoryInfo? dir = new(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "tests", "profiles.json")))
+            {
+                return dir.FullName;
+            }
+            dir = dir.Parent;
+        }
+
+        throw new InvalidOperationException("Could not locate the repo root from " + AppContext.BaseDirectory);
+    }
+
+    /// <summary>Every kernel suite directory that opts into at least one profile.</summary>
+    public static TheoryData<string> SuitesDeclaringProfiles()
+    {
+        string kernels = Path.Combine(FindRepoRoot(), "tests", "Kernels");
+        var data = new TheoryData<string>();
+
+        foreach (string dir in Directory.EnumerateDirectories(kernels))
+        {
+            bool declares = Directory.EnumerateFiles(dir, "*.csproj")
+                .Any(p => File.ReadAllText(p).Contains("CosmosTestProfile", StringComparison.Ordinal));
+
+            if (declares)
+            {
+                data.Add(Path.GetFileName(dir));
+            }
+        }
+
+        Assert.NotEmpty(data);
+        return data;
+    }
+
+    // Resolution throws on an unknown profile name and on a suite left with no
+    // applicable cell, so simply loading every suite for every architecture is
+    // the whole assertion. The non-empty check pins the outcome: a suite that
+    // silently resolved to zero cells would report green having tested nothing.
+    [Theory]
+    [MemberData(nameof(SuitesDeclaringProfiles))]
+    public void EverySuiteResolvesOnEveryArchitecture(string suiteName)
+    {
+        string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", suiteName);
+
+        foreach (string architecture in Architectures)
+        {
+            IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, architecture);
+            Assert.NotEmpty(cells);
+        }
+    }
+
+    // The virtio PCI cells take their interrupts through MSI-X, which on arm64
+    // is routed by the GICv3 ITS. The virt machine defaults to GICv2, which has
+    // no ITS at all, so losing this option would not fail loudly — the device
+    // would simply never take an interrupt.
+    [Theory]
+    [InlineData("Virtio", "virtio-pci-arm64")]
+    [InlineData("Network", "virtio-net-pci-arm64")]
+    public void Arm64PciCellsRequestGicV3(string suiteName, string profileName)
+    {
+        string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", "Cosmos.Kernel.Tests." + suiteName);
+
+        IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, "arm64");
+
+        TestProfile cell = Assert.Single(cells, c => c.Name == profileName);
+        Assert.Equal("3", cell.MachineOptions["gic-version"]);
+        Assert.Equal("virtio-net-pci", cell.NetworkCard);
+    }
+}
