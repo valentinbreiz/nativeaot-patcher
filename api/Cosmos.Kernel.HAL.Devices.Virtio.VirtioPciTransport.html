@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class VirtioPciTransport | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class VirtioPciTransport | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Virtio PCI transport (virtio spec section 4.1), modern interface only: the common/notify/ISR/device config regions are located through vendor-specific PCI capabilities pointing into BARs. Interrupts use MSI-X through the arch-neutral /MsiRouting path (LAPIC on x64, GICv3 ITS on ARM64); without MSI-X the device runs in polled mode. Legacy-only virtio-pci devices (I/O BAR interface, no vendor capabilities) are not supported.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport" class="text-break">
+Class VirtioPciTransport  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Virtio PCI transport (virtio spec section 4.1), modern interface only: the
+common/notify/ISR/device config regions are located through vendor-specific
+PCI capabilities pointing into BARs. Interrupts use MSI-X through the
+arch-neutral <a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiX.html">MsiX</a>/MsiRouting path (LAPIC on x64, GICv3 ITS on
+ARM64); without MSI-X the device runs in polled mode. Legacy-only
+virtio-pci devices (I/O BAR interface, no vendor capabilities) are not
+supported.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class VirtioPciTransport : VirtioTransport</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html">VirtioTransport</a></div>
+      <div><span class="xref">VirtioPciTransport</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeNetwork">VirtioTransport.DeviceTypeNetwork</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeBlock">VirtioTransport.DeviceTypeBlock</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeConsole">VirtioTransport.DeviceTypeConsole</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeEntropy">VirtioTransport.DeviceTypeEntropy</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeGpu">VirtioTransport.DeviceTypeGpu</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_DeviceTypeInput">VirtioTransport.DeviceTypeInput</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_StatusAcknowledge">VirtioTransport.StatusAcknowledge</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_StatusDriver">VirtioTransport.StatusDriver</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_StatusDriverOk">VirtioTransport.StatusDriverOk</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_StatusFeaturesOk">VirtioTransport.StatusFeaturesOk</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_StatusFailed">VirtioTransport.StatusFailed</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_IsrQueue">VirtioTransport.IsrQueue</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_IsrConfig">VirtioTransport.IsrConfig</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_Version1Negotiated">VirtioTransport.Version1Negotiated</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_BeginInit">VirtioTransport.BeginInit()</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_NegotiateFeatures_System_UInt32_System_UInt32__">VirtioTransport.NegotiateFeatures(uint, out uint)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_CreateQueue_System_UInt16_System_UInt32_">VirtioTransport.CreateQueue(ushort, uint)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_FinishInit">VirtioTransport.FinishInit()</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_Fail">VirtioTransport.Fail()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_VirtioVendorId" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.VirtioVendorId">
+  VirtioVendorId
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>PCI vendor ID of all virtio devices (Red Hat).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort VirtioVendorId = 6900</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_DeviceType_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.DeviceType*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_DeviceType" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.DeviceType">
+  DeviceType
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Virtio device type this transport was probed as.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override uint DeviceType { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_MsiXActive_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.MsiXActive*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_MsiXActive" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.MsiXActive">
+  MsiXActive
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when MSI-X was enabled and a vector bound. False means the device
+has no usable MSI-X and therefore no interrupt source — drivers that
+need one refuse to start.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool MsiXActive { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_Pci_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.Pci*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_Pci" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.Pci">
+  Pci
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The PCI function this transport drives.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public PciDevice Pci { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_SupportsFeaturesOk_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.SupportsFeaturesOk*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_SupportsFeaturesOk" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.SupportsFeaturesOk">
+  SupportsFeaturesOk
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the transport supports the FEATURES_OK handshake step (virtio 1.x).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool SupportsFeaturesOk { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_TransportName_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.TransportName*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_TransportName" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.TransportName">
+  TransportName
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Short transport name for serial logs (&quot;MMIO&quot; / &quot;PCI&quot;).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string TransportName { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ActivateQueue_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ActivateQueue*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ActivateQueue_System_UInt16_Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ActivateQueue(System.UInt16,Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue)">
+  ActivateQueue(ushort, Virtqueue)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool ActivateQueue(ushort index, Virtqueue queue)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>queue</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.html">Virtqueue</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_AfterReset_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.AfterReset*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_AfterReset" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.AfterReset">
+  AfterReset()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Transport hook run right after device reset (legacy MMIO guest page
+size, PCI MSI-X config vector — reset clears both).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void AfterReset()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_EnableInterrupt_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.EnableInterrupt*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_EnableInterrupt_Cosmos_Kernel_HAL_Devices_Virtio_VirtioInterruptHandler_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.EnableInterrupt(Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler)">
+  EnableInterrupt(VirtioInterruptHandler)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Arranges for <code class="paramref">handler</code> to run (from interrupt context,
+interrupt already acknowledged) when the device signals. Returns false
+if the platform offers no interrupt path for this device (polled mode).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool EnableInterrupt(VirtioInterruptHandler handler)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler.html">VirtioInterruptHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetDeviceType_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetDeviceType*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetDeviceType_Cosmos_Kernel_HAL_Pci_PciDevice_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetDeviceType(Cosmos.Kernel.HAL.Pci.PciDevice)">
+  GetDeviceType(PciDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Resolves the virtio device type of a PCI function, or 0 when the
+function is not a virtio device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint GetDeviceType(PciDevice pci)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>pci</code> <a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetQueueMaxSize_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetQueueMaxSize*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetQueueMaxSize_System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetQueueMaxSize(System.UInt16)">
+  GetQueueMaxSize(ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override uint GetQueueMaxSize(ushort index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetStatus_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetStatus*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_GetStatus" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.GetStatus">
+  GetStatus()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override byte GetStatus()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_IsQueueInUse_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.IsQueueInUse*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_IsQueueInUse_System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.IsQueueInUse(System.UInt16)">
+  IsQueueInUse(ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override bool IsQueueInUse(ushort index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_NotifyQueue_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.NotifyQueue*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_NotifyQueue_System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.NotifyQueue(System.UInt16)">
+  NotifyQueue(ushort)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rings the doorbell for queue <code class="paramref">index</code> (orders ring writes first).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void NotifyQueue(ushort index)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadAndAckIsr_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadAndAckIsr*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadAndAckIsr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadAndAckIsr">
+  ReadAndAckIsr()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads and acknowledges the ISR status. Level-signaled transports
+deassert the interrupt line here; returns 0 when nothing is pending.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override uint ReadAndAckIsr()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceConfig16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceConfig16*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceConfig16_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceConfig16(System.UInt32)">
+  ReadDeviceConfig16(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ushort ReadDeviceConfig16(uint offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceConfig8_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceConfig8*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceConfig8_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceConfig8(System.UInt32)">
+  ReadDeviceConfig8(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override byte ReadDeviceConfig8(uint offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceFeatures_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceFeatures*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_ReadDeviceFeatures" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.ReadDeviceFeatures">
+  ReadDeviceFeatures()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override ulong ReadDeviceFeatures()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_SetStatus_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.SetStatus*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_SetStatus_System_Byte_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.SetStatus(System.Byte)">
+  SetStatus(byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void SetStatus(byte status)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>status</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_TryCreate_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.TryCreate*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_TryCreate_Cosmos_Kernel_HAL_Pci_PciDevice_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.TryCreate(Cosmos.Kernel.HAL.Pci.PciDevice)">
+  TryCreate(PciDevice)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Builds a transport for a virtio PCI function by locating its modern
+capability regions. Returns null when the device only offers the
+legacy interface or a required region is missing.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static VirtioPciTransport? TryCreate(PciDevice pci)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>pci</code> <a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.html">VirtioPciTransport</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_WriteDeviceConfig8_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.WriteDeviceConfig8*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_WriteDeviceConfig8_System_UInt32_System_Byte_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.WriteDeviceConfig8(System.UInt32,System.Byte)">
+  WriteDeviceConfig8(uint, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override void WriteDeviceConfig8(uint offset, byte value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_WriteDriverFeatures_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.WriteDriverFeatures*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioPciTransport_WriteDriverFeatures_System_UInt64_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.WriteDriverFeatures(System.UInt64)">
+  WriteDriverFeatures(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override void WriteDriverFeatures(ulong features)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>features</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

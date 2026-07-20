@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.HAL.Devices.Virtio | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Devices.Virtio | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio">
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio" data-uid="Cosmos.Kernel.HAL.Devices.Virtio" class="text-break">Namespace Cosmos.Kernel.HAL.Devices.Virtio</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.html">VirtioDevice</a></dt>
+      <dd><p>Registry and driver binding for virtio devices, independent of transport.
+The MMIO bus scan is driven by the platform initializer that knows the
+window layout (QEMU virt on ARM64); the PCI scan runs on every architecture
+from the shared HAL initialization after PCI enumeration.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.html">VirtioDma</a></dt>
+      <dd><p>Address translation helpers for virtio DMA and register access.
+Virtio devices perform DMA with guest physical addresses while the kernel
+works with HHDM virtual addresses; register windows are accessed through
+their HHDM alias so the per-arch device-memory attributes apply.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport.html">VirtioMmioTransport</a></dt>
+      <dd><p>Virtio MMIO transport (virtio spec section 4.2): a fixed per-slot register
+window, supporting both legacy (version 1) and modern (version 2) register
+flows. Slot discovery is platform-specific (device tree / QEMU virt
+layout), so the platform initializer supplies the window address, the
+interrupt line, and the line-interrupt wiring callback.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.html">VirtioPciTransport</a></dt>
+      <dd><p>Virtio PCI transport (virtio spec section 4.1), modern interface only: the
+common/notify/ISR/device config regions are located through vendor-specific
+PCI capabilities pointing into BARs. Interrupts use MSI-X through the
+arch-neutral <a class="xref" href="Cosmos.Kernel.HAL.Pci.MsiX.html">MsiX</a>/MsiRouting path (LAPIC on x64, GICv3 ITS on
+ARM64); without MSI-X the device runs in polled mode. Legacy-only
+virtio-pci devices (I/O BAR interface, no vendor capabilities) are not
+supported.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html">VirtioTransport</a></dt>
+      <dd><p>Transport-independent core of a virtio device (virtio spec 1.x): device
+status handshake, feature negotiation, virtqueue setup, notifications,
+interrupts, and device-specific config access. Device drivers (VirtioNet,
+VirtioKeyboard, VirtioMouse) are written against this class only;
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport.html">VirtioMmioTransport</a> and <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.html">VirtioPciTransport</a>
+implement the per-transport register access.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.html">Virtqueue</a></dt>
+      <dd><p>Virtqueue implementation for virtio devices (split ring layout).
+A virtqueue consists of three parts:</p>
+<ul>
+<li>Descriptor table: array of buffer descriptors</li>
+<li>Available ring: buffers offered to device</li>
+<li>Used ring: buffers returned by device
+The layout is transport-independent; the same rings work over MMIO and PCI.</li>
+</ul>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringAvail.html">Virtqueue.VringAvail</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.html">Virtqueue.VringDesc</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsed.html">Virtqueue.VringUsed</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsedElem.html">Virtqueue.VringUsedElem</a></dt>
+      <dd></dd>
+    </dl>
+    <h3 id="delegates">
+Delegates
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler.html">VirtioInterruptHandler</a></dt>
+      <dd><p>Driver callback invoked from interrupt context when the device signals.
+<code class="paramref">isrStatus</code> carries the transport ISR bits
+(<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_IsrQueue">IsrQueue</a> / <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html#Cosmos_Kernel_HAL_Devices_Virtio_VirtioTransport_IsrConfig">IsrConfig</a>);
+the transport has already acknowledged the interrupt.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable.html">VirtioIrqEnable</a></dt>
+      <dd><p>Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch
+handler. Supplied by the platform initializer that owns the bus, so the
+shared transport stays free of per-arch interrupt-controller calls.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

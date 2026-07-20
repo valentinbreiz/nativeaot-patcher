@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct Virtqueue.VringAvail | Cosmos Gen 3 </title>
+      <title>Struct Virtqueue.VringDesc | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct Virtqueue.VringAvail | Cosmos Gen 3 ">
+      <meta name="title" content="Struct Virtqueue.VringDesc | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../favicon.ico">
@@ -84,24 +84,24 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringAvail" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail" class="text-break">
-Struct Virtqueue.VringAvail  
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VringDesc" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc" class="text-break">
+Struct Virtqueue.VringDesc  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
   <div class="markdown summary"></div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct Virtqueue.VringAvail</code></pre>
+    <pre><code class="lang-csharp hljs">public struct Virtqueue.VringDesc</code></pre>
   </div>
 
 
@@ -143,7 +143,37 @@ Struct Virtqueue.VringAvail
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringAvail_Flags" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.Flags">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VringDesc_Addr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.Addr">
+  Addr
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong Addr</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VringDesc_Flags" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.Flags">
   Flags
   
   </h3>
@@ -173,8 +203,8 @@ Struct Virtqueue.VringAvail
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringAvail_Idx" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.Idx">
-  Idx
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VringDesc_Len" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.Len">
+  Len
   
   </h3>
 
@@ -182,7 +212,7 @@ Struct Virtqueue.VringAvail
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Idx</code></pre>
+    <pre><code class="lang-csharp hljs">public uint Len</code></pre>
   </div>
 
 
@@ -190,7 +220,7 @@ Struct Virtqueue.VringAvail
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd></dd>
   </dl>
 
@@ -203,8 +233,8 @@ Struct Virtqueue.VringAvail
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringAvail_Ring" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.Ring">
-  Ring
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VringDesc_Next" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.Next">
+  Next
   
   </h3>
 
@@ -212,7 +242,7 @@ Struct Virtqueue.VringAvail
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort* Ring</code></pre>
+    <pre><code class="lang-csharp hljs">public ushort Next</code></pre>
   </div>
 
 
@@ -220,7 +250,7 @@ Struct Virtqueue.VringAvail
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>*</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 

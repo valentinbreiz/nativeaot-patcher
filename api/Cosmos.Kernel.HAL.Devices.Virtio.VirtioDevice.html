@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class VirtioDevice | Cosmos Gen 3 ">
       
-      <meta name="description" content="Provides initialization and management for virtio MMIO devices. Handles device discovery, initialization handshake, and registration.">
+      <meta name="description" content="Registry and driver binding for virtio devices, independent of transport. The MMIO bus scan is driven by the platform initializer that knows the window layout (QEMU virt on ARM64); the PCI scan runs on every architecture from the shared HAL initialization after PCI enumeration.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,21 +84,23 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice" class="text-break">
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice" class="text-break">
 Class VirtioDevice  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Provides initialization and management for virtio MMIO devices.
-Handles device discovery, initialization handshake, and registration.</p>
+  <div class="markdown summary"><p>Registry and driver binding for virtio devices, independent of transport.
+The MMIO bus scan is driven by the platform initializer that knows the
+window layout (QEMU virt on ARM64); the PCI scan runs on every architecture
+from the shared HAL initialization after PCI enumeration.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -154,60 +156,9 @@ Handles device discovery, initialization handshake, and registration.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDeviceFromIRQ_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetDevice_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetDevice*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDeviceFromIRQ__1_System_UInt64_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDeviceFromIRQ``1(System.UInt64)">
-  GetDeviceFromIRQ&lt;T&gt;(ulong)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Retrieves a registered virtio device by its IRQ number.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static T? GetDeviceFromIRQ&lt;T&gt;(ulong irq) where T : class</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>irq</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd><p>The IRQ number of the device.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><span class="xref">T</span></dt>
-    <dd><p>The device instance if found and of the correct type, null otherwise.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Type Parameters</h4>
-  <dl class="parameters">
-    <dt><code>T</code></dt>
-    <dd><p>The type of device to retrieve.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-  <h4 class="section">Exceptions</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.indexoutofrangeexception">IndexOutOfRangeException</a></dt>
-    <dd><p>Thrown if the IRQ is invalid.</p>
-</dd>
-  </dl>
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDevice_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetDevice__1" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetDevice``1">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetDevice__1" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetDevice``1">
   GetDevice&lt;T&gt;()
   
   </h3>
@@ -244,9 +195,9 @@ Handles device discovery, initialization handshake, and registration.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetKeyboards_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetKeyboards_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetKeyboards*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetKeyboards" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetKeyboards">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetKeyboards" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetKeyboards">
   GetKeyboards()
   
   </h3>
@@ -275,9 +226,9 @@ Handles device discovery, initialization handshake, and registration.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetMice_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetMice_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetMice*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_GetMice" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.GetMice">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_GetMice" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.GetMice">
   GetMice()
   
   </h3>
@@ -286,13 +237,13 @@ Handles device discovery, initialization handshake, and registration.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static VirtioMouse[] GetMice()</code></pre>
+    <pre><code class="lang-csharp hljs">public static IMouseDevice[] GetMice()</code></pre>
   </div>
 
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html">VirtioMouse</a>[]</dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a>[]</dt>
     <dd></dd>
   </dl>
 
@@ -306,22 +257,63 @@ Handles device discovery, initialization handshake, and registration.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_InitializeDevices_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_InitializeMmioBus_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.InitializeMmioBus*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_InitializeDevices" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.InitializeDevices">
-  InitializeDevices()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_InitializeMmioBus_System_UInt64_System_UInt64_System_UInt32_System_UInt32_Cosmos_Kernel_HAL_Devices_Virtio_VirtioIrqEnable_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.InitializeMmioBus(System.UInt64,System.UInt64,System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable)">
+  InitializeMmioBus(ulong, ulong, uint, uint, VirtioIrqEnable)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes all available virtio MMIO devices on the system.
-This method scans for devices, performs the virtio initialization handshake,
-and registers supported device types (currently only input devices).
-Follows the virtio 1.1 specification for MMIO transport.</p>
+  <div class="markdown level1 summary"><p>Scans a virtio MMIO window (a run of fixed-size slots with consecutive
+interrupt lines) and binds drivers to the devices found. The caller
+owns the platform knowledge: window address, slot layout, interrupt
+base, and how a line interrupt is wired (<code class="paramref">irqEnable</code>).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void InitializeDevices()</code></pre>
+    <pre><code class="lang-csharp hljs">public static void InitializeMmioBus(ulong busBase, ulong slotStride, uint slotCount, uint irqBase, VirtioIrqEnable irqEnable)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>busBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>slotStride</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>slotCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>irqBase</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>irqEnable</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable.html">VirtioIrqEnable</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_InitializePciBus_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.InitializePciBus*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDevice_InitializePciBus" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.InitializePciBus">
+  InitializePciBus()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Binds drivers to the virtio PCI functions discovered by
+<a class="xref" href="Cosmos.Kernel.HAL.Pci.PciManager.html#Cosmos_Kernel_HAL_Pci_PciManager_Setup">Setup()</a>. Runs on both architectures.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void InitializePciBus()</code></pre>
   </div>
 
 
@@ -332,10 +324,6 @@ Follows the virtio 1.1 specification for MMIO transport.</p>
 
 
 
-  <h4 class="section" id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_VirtioDevice_InitializeDevices_remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><p>Assumes QEMU virt machine with virtio devices starting at 0x0a000000.
-Only input devices are currently supported for registration.</p>
-</div>
 
 
 

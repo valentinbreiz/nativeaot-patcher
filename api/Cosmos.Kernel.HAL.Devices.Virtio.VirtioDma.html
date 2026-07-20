@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class VirtioMouse | Cosmos Gen 3 </title>
+      <title>Class VirtioDma | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class VirtioMouse | Cosmos Gen 3 ">
+      <meta name="title" content="Class VirtioDma | Cosmos Gen 3 ">
       
-      <meta name="description" content="Virtio-input mouse driver for ARM64. Provides mouse input via virtio-input device on QEMU virt machine.">
+      <meta name="description" content="Address translation helpers for virtio DMA and register access. Virtio devices perform DMA with guest physical addresses while the kernel works with HHDM virtual addresses; register windows are accessed through their HHDM alias so the per-arch device-memory attributes apply.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,28 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse" class="text-break">
-Class VirtioMouse  
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDma" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma" class="text-break">
+Class VirtioDma  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.html">Input</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Virtio-input mouse driver for ARM64.
-Provides mouse input via virtio-input device on QEMU virt machine.</p>
+  <div class="markdown summary"><p>Address translation helpers for virtio DMA and register access.
+Virtio devices perform DMA with guest physical addresses while the kernel
+works with HHDM virtual addresses; register windows are accessed through
+their HHDM alias so the per-arch device-memory attributes apply.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class VirtioMouse : MouseDevice, IMouseDevice</code></pre>
+    <pre><code class="lang-csharp hljs">public static class VirtioDma</code></pre>
   </div>
 
 
@@ -113,44 +115,15 @@ Provides mouse input via virtio-input device on QEMU virt machine.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
-      <div><span class="xref">VirtioMouse</span></div>
+      <div><span class="xref">VirtioDma</span></div>
     </dd>
   </dl>
 
-  <dl class="typelist implements">
-    <dt>Implements</dt>
-    <dd>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></div>
-    </dd>
-  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent">MouseDevice.OnMouseEvent</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X">MouseDevice.X</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y">MouseDevice.Y</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_ScrollDelta">MouseDevice.ScrollDelta</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton">MouseDevice.LeftButton</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton">MouseDevice.RightButton</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton">MouseDevice.MiddleButton</a>
-    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -179,32 +152,37 @@ Provides mouse input via virtio-input device on QEMU virt machine.</p>
 
 
 
-  <h2 class="section" id="properties">Properties
+  <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDma_PhysToVirt_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.PhysToVirt*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_DataAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.DataAvailable">
-  DataAvailable
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDma_PhysToVirt_System_UInt64_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.PhysToVirt(System.UInt64)">
+  PhysToVirt(ulong)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Check if mouse data is available.</p>
+  <div class="markdown level1 summary"><p>Converts a physical MMIO address to its HHDM virtual address. On ARM64,
+DeviceMapper maps MMIO regions as Device memory in TTBR1, so register
+accesses must go through the HHDM alias — the raw physical address hits
+the cacheable identity mapping and writes never reach hardware.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override bool DataAvailable { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static ulong PhysToVirt(ulong phys)</code></pre>
   </div>
 
-
-
-
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dt><code>phys</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
@@ -215,107 +193,35 @@ Provides mouse input via virtio-input device on QEMU virt machine.</p>
 
 
 
-  <h2 class="section" id="methods">Methods
-</h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Disable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Disable">
-  Disable()
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDma_VirtToPhys_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.VirtToPhys*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioDma_VirtToPhys_System_UInt64_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.VirtToPhys(System.UInt64)">
+  VirtToPhys(ulong)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Disable the mouse.</p>
+  <div class="markdown level1 summary"><p>Converts a kernel virtual address (HHDM) to a guest physical address for DMA.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Disable()</code></pre>
+    <pre><code class="lang-csharp hljs">public static ulong VirtToPhys(ulong virtAddr)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>virtAddr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Enable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Enable">
-  Enable()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Enable the mouse.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Enable()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Initialize">
-  Initialize()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the virtio mouse device.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Initialize()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioMouse_Poll" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.Poll">
-  Poll()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Poll for mouse events (default: no-op for interrupt-driven mice).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Poll()</code></pre>
-  </div>
-
-
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

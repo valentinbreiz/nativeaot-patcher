@@ -116,7 +116,7 @@
 <tr>
 <td>NIC drivers</td>
 <td>RTL8168, E1000, PCNET</td>
-<td>Intel E1000E (x64), virtio-net (ARM64)</td>
+<td>Intel E1000E (x64), virtio-net (x64 PCI + ARM64 MMIO)</td>
 </tr>
 </tbody>
 </table>
@@ -127,10 +127,12 @@
   &lt;CosmosEnableNetwork&gt;true&lt;/CosmosEnableNetwork&gt;
 &lt;/PropertyGroup&gt;
 </code></pre>
-<p>At boot the kernel detects the NIC and registers it with <code>NetworkManager</code>. On x64 the driver is <strong>Intel E1000E</strong> — which is exactly what QEMU's default q35 machine provides, so <code>cosmos run</code> needs no extra flags. On ARM64 attach a virtio NIC explicitly:</p>
+<p>At boot the kernel detects the NIC and registers it with <code>NetworkManager</code>. On x64 both <strong>Intel E1000E</strong> (QEMU's default q35 NIC, preferred when present) and <strong>virtio-net-pci</strong> are supported, so <code>cosmos run</code> needs no extra flags. On ARM64 attach a virtio NIC explicitly:</p>
 <pre><code class="lang-console">$ cosmos run                          # x64: default e1000e NIC, user-mode networking
-$ cosmos run --nic virtio-net-pci     # arm64: virtio NIC
+$ cosmos run --nic virtio-net-pci     # x64: virtio NIC over PCI
+$ cosmos run --nic virtio-net-device  # arm64: virtio NIC over MMIO
 </code></pre>
+<p>Virtio-pci devices deliver interrupts via MSI-X, which on ARM64 requires a GICv3 ITS (<code>-M virt,gic-version=3</code>); <code>cosmos run</code> launches ARM64 with QEMU's default GICv2, so use the MMIO variant there.</p>
 <p>With QEMU <em>user-mode networking</em> (the default), your kernel lives in a private <code>10.0.2.0/24</code> network: the host is reachable at <strong>10.0.2.2</strong>, QEMU's built-in DHCP server assigns addresses, and outbound UDP/TCP is NATed to the real network.</p>
 <p>These are the <code>using</code>s the snippets below rely on:</p>
 <pre><code class="lang-csharp">using System.Net;

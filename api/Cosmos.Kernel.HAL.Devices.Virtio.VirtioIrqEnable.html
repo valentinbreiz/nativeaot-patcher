@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Struct Virtqueue.VringDesc | Cosmos Gen 3 </title>
+      <title>Delegate VirtioIrqEnable | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Struct Virtqueue.VringDesc | Cosmos Gen 3 ">
+      <meta name="title" content="Delegate VirtioIrqEnable | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch handler. Supplied by the platform initializer that owns the bus, so the shared transport stays free of per-arch interrupt-controller calls.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,175 +84,39 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringDesc" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc" class="text-break">
-Struct Virtqueue.VringDesc  
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_VirtioIrqEnable" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable" class="text-break">
+Delegate VirtioIrqEnable  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch
+handler. Supplied by the platform initializer that owns the bus, so the
+shared transport stays free of per-arch interrupt-controller calls.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public struct Virtqueue.VringDesc</code></pre>
+    <pre><code class="lang-csharp hljs">public delegate void VirtioIrqEnable(uint intid, InterruptManager.IrqDelegate handler)</code></pre>
   </div>
 
-
-
-
-
-
-
-  <dl class="typelist inheritedMembers">
-    <dt>Inherited Members</dt>
-    <dd>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
-    </div>
-  </dd></dl>
-
-
-
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringDesc_Addr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.Addr">
-  Addr
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ulong Addr</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
+    <dt><code>intid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd>Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch handler. Supplied by the platform initializer that owns the bus, so the shared transport stays free of per-arch interrupt-controller calls.</dd>
+    <dt><code>handler</code> <a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.html">InterruptManager</a>.<a class="xref" href="Cosmos.Kernel.Core.CPU.InterruptManager.IrqDelegate.html">IrqDelegate</a></dt>
+    <dd>Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch handler. Supplied by the platform initializer that owns the bus, so the shared transport stays free of per-arch interrupt-controller calls.</dd>
   </dl>
 
 
 
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringDesc_Flags" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.Flags">
-  Flags
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Flags</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringDesc_Len" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.Len">
-  Len
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Len</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VringDesc_Next" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.Next">
-  Next
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Next</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

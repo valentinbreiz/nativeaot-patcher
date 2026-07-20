@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class Virtqueue | Cosmos Gen 3 ">
       
-      <meta name="description" content="Virtqueue implementation for virtio devices. A virtqueue consists of three parts:  Descriptor table: array of buffer descriptors Available ring: buffers offered to device Used ring: buffers returned by device">
+      <meta name="description" content="Virtqueue implementation for virtio devices (split ring layout). A virtqueue consists of three parts:  Descriptor table: array of buffer descriptors Available ring: buffers offered to device Used ring: buffers returned by device The layout is transport-independent; the same rings work over MMIO and PCI.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue" class="text-break">
+  <h1 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue" class="text-break">
 Class Virtqueue  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html">Virtio</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.html">Virtio</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Virtqueue implementation for virtio devices.
+  <div class="markdown summary"><p>Virtqueue implementation for virtio devices (split ring layout).
 A virtqueue consists of three parts:</p>
 <ul>
 <li>Descriptor table: array of buffer descriptors</li>
 <li>Available ring: buffers offered to device</li>
-<li>Used ring: buffers returned by device</li>
+<li>Used ring: buffers returned by device
+The layout is transport-independent; the same rings work over MMIO and PCI.</li>
 </ul>
 </div>
   <div class="markdown conceptual"></div>
@@ -159,9 +160,9 @@ A virtqueue consists of three parts:</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue__ctor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.#ctor*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue__ctor_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue__ctor_System_UInt32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.#ctor(System.UInt32)">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue__ctor_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.#ctor(System.UInt32)">
   Virtqueue(uint)
   
   </h3>
@@ -197,7 +198,7 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_AVAIL_F_NO_INTERRUPT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_AVAIL_F_NO_INTERRUPT">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VRING_AVAIL_F_NO_INTERRUPT" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VRING_AVAIL_F_NO_INTERRUPT">
   VRING_AVAIL_F_NO_INTERRUPT
   
   </h3>
@@ -227,7 +228,7 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_INDIRECT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_INDIRECT">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VRING_DESC_F_INDIRECT" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VRING_DESC_F_INDIRECT">
   VRING_DESC_F_INDIRECT
   
   </h3>
@@ -257,7 +258,7 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_NEXT" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_NEXT">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VRING_DESC_F_NEXT" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VRING_DESC_F_NEXT">
   VRING_DESC_F_NEXT
   
   </h3>
@@ -287,7 +288,7 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_DESC_F_WRITE" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_DESC_F_WRITE">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VRING_DESC_F_WRITE" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VRING_DESC_F_WRITE">
   VRING_DESC_F_WRITE
   
   </h3>
@@ -317,7 +318,7 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_VRING_USED_F_NO_NOTIFY" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VRING_USED_F_NO_NOTIFY">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_VRING_USED_F_NO_NOTIFY" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VRING_USED_F_NO_NOTIFY">
   VRING_USED_F_NO_NOTIFY
   
   </h3>
@@ -350,9 +351,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AvailableRingAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AvailableRingAddr*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AvailableRingAddr_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AvailableRingAddr*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AvailableRingAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AvailableRingAddr">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AvailableRingAddr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AvailableRingAddr">
   AvailableRingAddr
   
   </h3>
@@ -382,9 +383,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_DescriptorTableAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.DescriptorTableAddr*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_DescriptorTableAddr_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.DescriptorTableAddr*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_DescriptorTableAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.DescriptorTableAddr">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_DescriptorTableAddr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.DescriptorTableAddr">
   DescriptorTableAddr
   
   </h3>
@@ -414,9 +415,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueBaseAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueBaseAddr*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_QueueBaseAddr_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.QueueBaseAddr*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueBaseAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueBaseAddr">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_QueueBaseAddr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.QueueBaseAddr">
   QueueBaseAddr
   
   </h3>
@@ -446,9 +447,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueSize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueSize*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_QueueSize_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.QueueSize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_QueueSize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.QueueSize">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_QueueSize" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.QueueSize">
   QueueSize
   
   </h3>
@@ -478,9 +479,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_UsedRingAddr_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.UsedRingAddr*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_UsedRingAddr_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.UsedRingAddr*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_UsedRingAddr" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.UsedRingAddr">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_UsedRingAddr" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.UsedRingAddr">
   UsedRingAddr
   
   </h3>
@@ -514,9 +515,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AddAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AddAvailable*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AddAvailable_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AddAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AddAvailable_System_UInt16_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AddAvailable(System.UInt16)">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AddAvailable_System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AddAvailable(System.UInt16)">
   AddAvailable(ushort)
   
   </h3>
@@ -546,9 +547,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AllocDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AllocDescriptor*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AllocDescriptor_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AllocDescriptor*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_AllocDescriptor" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.AllocDescriptor">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_AllocDescriptor" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.AllocDescriptor">
   AllocDescriptor()
   
   </h3>
@@ -578,9 +579,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_FreeDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.FreeDescriptor*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_FreeDescriptor_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.FreeDescriptor*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_FreeDescriptor_System_Int32_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.FreeDescriptor(System.Int32)">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_FreeDescriptor_System_Int32_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.FreeDescriptor(System.Int32)">
   FreeDescriptor(int)
   
   </h3>
@@ -610,9 +611,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_GetUsedBuffer_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.GetUsedBuffer*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_GetUsedBuffer_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.GetUsedBuffer*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_GetUsedBuffer_System_UInt32__System_UInt32__" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.GetUsedBuffer(System.UInt32@,System.UInt32@)">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_GetUsedBuffer_System_UInt32__System_UInt32__" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.GetUsedBuffer(System.UInt32@,System.UInt32@)">
   GetUsedBuffer(out uint, out uint)
   
   </h3>
@@ -649,9 +650,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_HasUsedBuffers_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.HasUsedBuffers*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_HasUsedBuffers_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.HasUsedBuffers*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_HasUsedBuffers" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.HasUsedBuffers">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_HasUsedBuffers" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.HasUsedBuffers">
   HasUsedBuffers()
   
   </h3>
@@ -681,9 +682,9 @@ Uses page-aligned allocation for legacy virtio MMIO compatibility.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_SetupDescriptor_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.SetupDescriptor*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_SetupDescriptor_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.SetupDescriptor*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Virtio_Virtqueue_SetupDescriptor_System_Int32_System_UInt64_System_UInt32_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.SetupDescriptor(System.Int32,System.UInt64,System.UInt32,System.UInt16,System.UInt16)">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Virtio_Virtqueue_SetupDescriptor_System_Int32_System_UInt64_System_UInt32_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.SetupDescriptor(System.Int32,System.UInt64,System.UInt32,System.UInt16,System.UInt16)">
   SetupDescriptor(int, ulong, uint, ushort, ushort)
   
   </h3>

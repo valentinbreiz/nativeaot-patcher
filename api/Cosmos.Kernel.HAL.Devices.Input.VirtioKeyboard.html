@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class VirtioKeyboard | Cosmos Gen 3 ">
       
-      <meta name="description" content="Virtio-input keyboard driver for ARM64. Provides keyboard input via virtio-input device on QEMU virt machine.">
+      <meta name="description" content="Virtio-input keyboard driver. Transport-agnostic: works over virtio MMIO (QEMU virt) and virtio PCI (q35 virtio-keyboard-pci) alike.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,21 +84,21 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard">
 
 
 
-  <h1 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard" class="text-break">
+  <h1 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard" class="text-break">
 Class VirtioKeyboard  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.html">ARM64</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.ARM64.Devices.Input.html">Input</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.ARM64.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.html">Input</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Virtio-input keyboard driver for ARM64.
-Provides keyboard input via virtio-input device on QEMU virt machine.</p>
+  <div class="markdown summary"><p>Virtio-input keyboard driver. Transport-agnostic: works over virtio MMIO
+(QEMU virt) and virtio PCI (q35 virtio-keyboard-pci) alike.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -168,9 +168,9 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_IsInitialized_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.IsInitialized*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_IsInitialized_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.IsInitialized*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_IsInitialized" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.IsInitialized">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_IsInitialized" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.IsInitialized">
   IsInitialized
   
   </h3>
@@ -200,9 +200,9 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_KeyAvailable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.KeyAvailable*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_KeyAvailable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.KeyAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_KeyAvailable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.KeyAvailable">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_KeyAvailable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.KeyAvailable">
   KeyAvailable
   
   </h3>
@@ -232,13 +232,45 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 
 
 
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Transport_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Transport*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Transport" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Transport">
+  Transport
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The transport this device was bound over (MMIO or PCI).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VirtioTransport Transport { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html">VirtioTransport</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Disable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Disable*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Disable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Disable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Disable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Disable">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Disable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Disable">
   Disable()
   
   </h3>
@@ -263,14 +295,14 @@ Provides keyboard input via virtio-input device on QEMU virt machine.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Enable_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Enable*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Enable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Enable*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Enable" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Enable">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Enable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Enable">
   Enable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Enable keyboard and register IRQ handler if not already done.
+  <div class="markdown level1 summary"><p>Enable keyboard and register the interrupt handler if not already done.
 Called by KeyboardManager after OnKeyPressed callback is set.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -291,9 +323,9 @@ Called by KeyboardManager after OnKeyPressed callback is set.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Initialize_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Initialize_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Initialize" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Initialize">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Initialize" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Initialize">
   Initialize()
   
   </h3>
@@ -318,9 +350,9 @@ Called by KeyboardManager after OnKeyPressed callback is set.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Poll_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Poll*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Poll_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Poll*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_Poll" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.Poll">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_Poll" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.Poll">
   Poll()
   
   </h3>
@@ -345,9 +377,9 @@ Called by KeyboardManager after OnKeyPressed callback is set.</p>
 
 
 
-  <a id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_UpdateLeds_" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_UpdateLeds_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.UpdateLeds*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_ARM64_Devices_Input_VirtioKeyboard_UpdateLeds" data-uid="Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.UpdateLeds">
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioKeyboard_UpdateLeds" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.UpdateLeds">
   UpdateLeds()
   
   </h3>

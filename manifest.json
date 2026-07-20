@@ -2154,76 +2154,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioKeyboard.yml\" sourcestartlinenumber=\"1\">Virtio-input keyboard driver for ARM64.\nProvides keyboard input via virtio-input device on QEMU virt machine.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Input.VirtioMouse.yml\" sourcestartlinenumber=\"1\">Virtio-input mouse driver for ARM64.\nProvides mouse input via virtio-input device on QEMU virt machine.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Input.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Input",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Network.VirtioNet.yml\" sourcestartlinenumber=\"1\">VirtIO Network Device Driver for ARM64 using MMIO transport.\nWorks with QEMU virt machine virtio-net-device.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Network.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Network",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Timer.GenericTimer.yml",
       "output": {
         ".html": {
@@ -2248,118 +2178,6 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Timer",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioDevice.yml\" sourcestartlinenumber=\"1\">Provides initialization and management for virtio MMIO devices.\nHandles device discovery, initialization handshake, and registration.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.VirtioMMIO.yml\" sourcestartlinenumber=\"1\">Virtio MMIO transport layer for ARM64.\nQEMU virt machine provides virtio devices via MMIO starting at 0x0a000000.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringAvail",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringDesc",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsed",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.VringUsedElem",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"1\">Virtqueue implementation for virtio devices.\nA virtqueue consists of three parts:</p>\n<ul sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">Descriptor table: array of buffer descriptors</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"4\">Available ring: buffers offered to device</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"5\">Used ring: buffers returned by device</li>\n</ul>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.ARM64.Devices.Virtio.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.ARM64.Devices.Virtio",
       "Summary": null
     },
     {
@@ -2588,6 +2406,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.VirtioKeyboard.yml\" sourcestartlinenumber=\"1\">Virtio-input keyboard driver. Transport-agnostic: works over virtio MMIO\n(QEMU virt) and virtio PCI (q35 virtio-keyboard-pci) alike.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Input.VirtioMouse",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.yml\" sourcestartlinenumber=\"1\">Virtio-input mouse driver. Transport-agnostic: works over virtio MMIO\n(QEMU virt) and virtio PCI (q35 virtio-mouse-pci) alike.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Input.yml",
       "output": {
         ".html": {
@@ -2627,6 +2473,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Network.NetworkDevice",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Network.NetworkDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all network devices.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.VirtioNet.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Network.VirtioNet.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Network.VirtioNet",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Network.VirtioNet.yml\" sourcestartlinenumber=\"1\">VirtIO network device driver. Transport-agnostic: works over virtio MMIO\n(QEMU virt virtio-net-device) and virtio PCI (virtio-net-pci) alike.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -3088,6 +2948,188 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Timer",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDevice.yml\" sourcestartlinenumber=\"1\">Registry and driver binding for virtio devices, independent of transport.\nThe MMIO bus scan is driven by the platform initializer that knows the\nwindow layout (QEMU virt on ARM64); the PCI scan runs on every architecture\nfrom the shared HAL initialization after PCI enumeration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioDma.yml\" sourcestartlinenumber=\"1\">Address translation helpers for virtio DMA and register access.\nVirtio devices perform DMA with guest physical addresses while the kernel\nworks with HHDM virtual addresses; register windows are accessed through\ntheir HHDM alias so the per-arch device-memory attributes apply.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioInterruptHandler.yml\" sourcestartlinenumber=\"1\">Driver callback invoked from interrupt context when the device signals.\n<code class=\"paramref\">isrStatus</code> carries the transport ISR bits\n(<xref href=\"Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.IsrQueue\" data-throw-if-not-resolved=\"false\"></xref> / <xref href=\"Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.IsrConfig\" data-throw-if-not-resolved=\"false\"></xref>);\nthe transport has already acknowledged the interrupt.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioIrqEnable.yml\" sourcestartlinenumber=\"1\">Wires a platform line interrupt (e.g. a GIC SPI) to a transport dispatch\nhandler. Supplied by the platform initializer that owns the bus, so the\nshared transport stays free of per-arch interrupt-controller calls.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport.yml\" sourcestartlinenumber=\"1\">Virtio MMIO transport (virtio spec section 4.2): a fixed per-slot register\nwindow, supporting both legacy (version 1) and modern (version 2) register\nflows. Slot discovery is platform-specific (device tree / QEMU virt\nlayout), so the platform initializer supplies the window address, the\ninterrupt line, and the line-interrupt wiring callback.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport.yml\" sourcestartlinenumber=\"1\">Virtio PCI transport (virtio spec section 4.1), modern interface only: the\ncommon/notify/ISR/device config regions are located through vendor-specific\nPCI capabilities pointing into BARs. Interrupts use MSI-X through the\narch-neutral <xref href=\"Cosmos.Kernel.HAL.Pci.MsiX\" data-throw-if-not-resolved=\"false\"></xref>/MsiRouting path (LAPIC on x64, GICv3 ITS on\nARM64); without MSI-X the device runs in polled mode. Legacy-only\nvirtio-pci devices (I/O BAR interface, no vendor capabilities) are not\nsupported.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.yml\" sourcestartlinenumber=\"1\">Transport-independent core of a virtio device (virtio spec 1.x): device\nstatus handshake, feature negotiation, virtqueue setup, notifications,\ninterrupts, and device-specific config access. Device drivers (VirtioNet,\nVirtioKeyboard, VirtioMouse) are written against this class only;\n<xref href=\"Cosmos.Kernel.HAL.Devices.Virtio.VirtioMmioTransport\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Cosmos.Kernel.HAL.Devices.Virtio.VirtioPciTransport\" data-throw-if-not-resolved=\"false\"></xref>\nimplement the per-transport register access.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringAvail.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringAvail.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringAvail",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringDesc",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsed",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsedElem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsedElem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.VringUsedElem",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"1\">Virtqueue implementation for virtio devices (split ring layout).\nA virtqueue consists of three parts:</p>\n<ul sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">\n<li sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"3\">Descriptor table: array of buffer descriptors</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"4\">Available ring: buffers offered to device</li>\n<li sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Virtio.Virtqueue.yml\" sourcestartlinenumber=\"5\">Used ring: buffers returned by device\nThe layout is transport-independent; the same rings work over MMIO and PCI.</li>\n</ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Virtio.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Virtio",
       "Summary": null
     },
     {

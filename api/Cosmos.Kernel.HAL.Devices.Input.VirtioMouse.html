@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class Kernel | Cosmos Gen 3 </title>
+      <title>Class VirtioMouse | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class Kernel | Cosmos Gen 3 ">
+      <meta name="title" content="Class VirtioMouse | Cosmos Gen 3 ">
       
-      <meta name="description" content="Base class for all Cosmos user kernels. Provides the BeforeRun/Run/AfterRun lifecycle pattern.">
+      <meta name="description" content="Virtio-input mouse driver. Transport-agnostic: works over virtio MMIO (QEMU virt) and virtio PCI (q35 virtio-mouse-pci) alike.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,26 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Kernel">
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Kernel" data-uid="Cosmos.Kernel.System.Kernel" class="text-break">
-Class Kernel  
+  <h1 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse" class="text-break">
+Class VirtioMouse  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a></dd></dl>
-  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.html">Input</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Base class for all Cosmos user kernels.
-Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
+  <div class="markdown summary"><p>Virtio-input mouse driver. Transport-agnostic: works over virtio MMIO
+(QEMU virt) and virtio PCI (q35 virtio-mouse-pci) alike.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract class Kernel</code></pre>
+    <pre><code class="lang-csharp hljs">public class VirtioMouse : MouseDevice, IMouseDevice</code></pre>
   </div>
 
 
@@ -113,15 +113,44 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">Kernel</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html">MouseDevice</a></div>
+      <div><span class="xref">VirtioMouse</span></div>
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_OnMouseEvent">MouseDevice.OnMouseEvent</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_X">MouseDevice.X</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_Y">MouseDevice.Y</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_ScrollDelta">MouseDevice.ScrollDelta</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_LeftButton">MouseDevice.LeftButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_RightButton">MouseDevice.RightButton</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Input.MouseDevice.html#Cosmos_Kernel_HAL_Devices_Input_MouseDevice_MiddleButton">MouseDevice.MiddleButton</a>
+    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -150,88 +179,30 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
 
 
-  <h2 class="section" id="constructors">Constructors
+  <h2 class="section" id="properties">Properties
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Kernel__ctor_" data-uid="Cosmos.Kernel.System.Kernel.#ctor*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_DataAvailable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.DataAvailable*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel__ctor" data-uid="Cosmos.Kernel.System.Kernel.#ctor">
-  Kernel()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_DataAvailable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.DataAvailable">
+  DataAvailable
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Constructs a new Kernel instance.</p>
+  <div class="markdown level1 summary"><p>Check if mouse data is available.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Kernel()</code></pre>
+    <pre><code class="lang-csharp hljs">public override bool DataAvailable { get; }</code></pre>
   </div>
 
 
 
 
 
-
-
-
-
-
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Kernel_VersionString" data-uid="Cosmos.Kernel.System.Kernel.VersionString">
-  VersionString
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const string VersionString = &quot;3.0.73&quot;</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Kernel_mStarted" data-uid="Cosmos.Kernel.System.Kernel.mStarted">
-  mStarted
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStarted</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
@@ -244,29 +215,62 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 
 
 
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_IsInitialized_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.IsInitialized*"></a>
 
-
-  <h3 id="Cosmos_Kernel_System_Kernel_mStopped" data-uid="Cosmos.Kernel.System.Kernel.mStopped">
-  mStopped
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_IsInitialized" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.IsInitialized">
+  IsInitialized
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Returns true if the device was successfully initialized.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected bool mStopped</code></pre>
+    <pre><code class="lang-csharp hljs">public bool IsInitialized { get; }</code></pre>
   </div>
 
 
 
 
-  <h4 class="section">Field Value</h4>
+
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
 
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Transport_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Transport*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Transport" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Transport">
+  Transport
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The transport this device was bound over (MMIO or PCI).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VirtioTransport Transport { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Virtio.VirtioTransport.html">VirtioTransport</a></dt>
+    <dd></dd>
+  </dl>
 
 
 
@@ -279,20 +283,19 @@ Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Kernel_AfterRun_" data-uid="Cosmos.Kernel.System.Kernel.AfterRun*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Disable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Disable*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel_AfterRun" data-uid="Cosmos.Kernel.System.Kernel.AfterRun">
-  AfterRun()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Disable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Disable">
+  Disable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called once after the main loop exits.
-Override to perform cleanup.</p>
+  <div class="markdown level1 summary"><p>Disable the mouse.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void AfterRun()</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Disable()</code></pre>
   </div>
 
 
@@ -307,20 +310,19 @@ Override to perform cleanup.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Kernel_BeforeRun_" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Enable_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Enable*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel_BeforeRun" data-uid="Cosmos.Kernel.System.Kernel.BeforeRun">
-  BeforeRun()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Enable" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Enable">
+  Enable()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called once before the main loop starts.
-Override to perform one-time setup.</p>
+  <div class="markdown level1 summary"><p>Enable the mouse.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void BeforeRun()</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Enable()</code></pre>
   </div>
 
 
@@ -335,20 +337,19 @@ Override to perform one-time setup.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Kernel_OnBoot_" data-uid="Cosmos.Kernel.System.Kernel.OnBoot*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Initialize_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Initialize*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel_OnBoot" data-uid="Cosmos.Kernel.System.Kernel.OnBoot">
-  OnBoot()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Initialize" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Initialize">
+  Initialize()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called once during boot, before BeforeRun().
-Override to customize system initialization.</p>
+  <div class="markdown level1 summary"><p>Initializes the virtio mouse device.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void OnBoot()</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Initialize()</code></pre>
   </div>
 
 
@@ -363,75 +364,19 @@ Override to customize system initialization.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Kernel_Run_" data-uid="Cosmos.Kernel.System.Kernel.Run*"></a>
+  <a id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Poll_" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Poll*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Kernel_Run" data-uid="Cosmos.Kernel.System.Kernel.Run">
-  Run()
+  <h3 id="Cosmos_Kernel_HAL_Devices_Input_VirtioMouse_Poll" data-uid="Cosmos.Kernel.HAL.Devices.Input.VirtioMouse.Poll">
+  Poll()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called repeatedly in the main loop.
-Override to implement your kernel's main logic.</p>
+  <div class="markdown level1 summary"><p>Poll for mouse events (default: no-op for interrupt-driven mice).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected abstract void Run()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Start_" data-uid="Cosmos.Kernel.System.Kernel.Start*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Start" data-uid="Cosmos.Kernel.System.Kernel.Start">
-  Start()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Starts the kernel lifecycle.
-Called by the generated entry point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual void Start()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Kernel_Stop_" data-uid="Cosmos.Kernel.System.Kernel.Stop*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Kernel_Stop" data-uid="Cosmos.Kernel.System.Kernel.Stop">
-  Stop()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Signals the kernel to stop the main loop.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Stop()</code></pre>
+    <pre><code class="lang-csharp hljs">public override void Poll()</code></pre>
   </div>
 
 
