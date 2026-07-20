@@ -7,14 +7,12 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-  <!-- Run the whole protocol suite once per NIC driver. x64 covers E1000E and
-       virtio-net-pci; arm64 covers virtio-net over MMIO, which is what it ran
-       with before NICs became a profile axis. This is the data-path coverage
-       for the virtio drivers: DHCP/UDP/TCP/DNS over their rings. -->
+  <!-- One cell per transport: virtio over PCI on x64 (q35 has no virtio-mmio
+       window), virtio over MMIO on the arm64 virt machine. Both attach a NIC
+       plus a keyboard and mouse so network and input binding are covered. -->
   <ItemGroup>
-    <CosmosTestProfile Include="e1000e" />
-    <CosmosTestProfile Include="virtio-net-pci" />
-    <CosmosTestProfile Include="virtio-net-mmio" />
+    <CosmosTestProfile Include="virtio-pci" />
+    <CosmosTestProfile Include="virtio-mmio" />
   </ItemGroup>
 
   <!-- Core kernel packages (using project references for development) -->

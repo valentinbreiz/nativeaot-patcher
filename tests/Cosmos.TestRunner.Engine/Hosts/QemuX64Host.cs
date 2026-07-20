@@ -45,7 +45,7 @@ public class QemuX64Host : IQemuHost
         _memoryMb = memoryMb;
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null, ProfileDevices? devices = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -79,7 +79,10 @@ public class QemuX64Host : IQemuHost
             EnableNetworkTesting = enableNetworkTesting,
             AllowGuestShutdown = true,
             Disks = disks ?? Array.Empty<DiskAttachment>(),
-            MachineOptions = machineOptions ?? new Dictionary<string, string>()
+            MachineOptions = machineOptions ?? new Dictionary<string, string>(),
+            NetworkCard = devices?.NetworkCard,
+            KeyboardDevice = devices?.KeyboardDevice,
+            MouseDevice = devices?.MouseDevice
         });
         var startInfo = QemuLauncher.ToProcessStartInfo(plan);
         if (_qemuBinaryOverride is not null)

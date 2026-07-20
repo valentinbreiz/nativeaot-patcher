@@ -60,6 +60,10 @@ public unsafe class VirtioNet : INetworkDevice
     private byte** _txBuffers;
 
     // --- Properties ---
+
+    /// <summary>The transport this device was bound over (MMIO or PCI).</summary>
+    public VirtioTransport Transport => _transport;
+
     public PacketReceivedHandler? OnPacketReceived { get; set; }
     string INetworkDevice.Name => "VirtioNet";
     public MACAddress MacAddress => _macAddress;

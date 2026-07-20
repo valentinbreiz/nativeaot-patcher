@@ -49,6 +49,9 @@ public unsafe class VirtioMouse : MouseDevice
     /// </summary>
     public bool IsInitialized => _initialized;
 
+    /// <summary>The transport this device was bound over (MMIO or PCI).</summary>
+    public VirtioTransport Transport => _transport;
+
     public override bool DataAvailable => false; // Events are pushed via interrupt
 
     internal VirtioMouse(VirtioTransport transport)

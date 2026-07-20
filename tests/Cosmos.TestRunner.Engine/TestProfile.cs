@@ -25,6 +25,29 @@ public sealed record TestProfile
     /// <summary>Disks to attach for this profile, with any modifier options already merged in.</summary>
     public IReadOnlyList<TestProfileDisk> Disks { get; init; } = Array.Empty<TestProfileDisk>();
 
+    /// <summary>
+    /// NIC model to attach (e.g. <c>e1000e</c>, <c>virtio-net-pci</c>), or null
+    /// to leave the architecture default in place. Lets a suite run its whole
+    /// test list against more than one driver.
+    /// </summary>
+    public string? NetworkCard { get; init; }
+
+    /// <summary>Keyboard model to attach (e.g. <c>virtio-keyboard-pci</c>), or null for none.</summary>
+    public string? KeyboardDevice { get; init; }
+
+    /// <summary>Mouse model to attach (e.g. <c>virtio-mouse-pci</c>), or null for none.</summary>
+    public string? MouseDevice { get; init; }
+
+    /// <summary>
+    /// Architectures this profile applies to; null means any. Mirrors the
+    /// modifier filter, for hardware that only one architecture can present
+    /// (PS/2 on x64, virtio-mmio on the ARM64 virt machine).
+    /// </summary>
+    public IReadOnlyList<string>? Architectures { get; init; }
+
+    public bool AppliesTo(string architecture) =>
+        Architectures == null || Architectures.Contains(architecture, StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Extra <c>-M</c> machine properties (e.g. <c>{"gic-version", "2"}</c>). Merged from base profile + applied modifier.</summary>
     public IReadOnlyDictionary<string, string> MachineOptions { get; init; } = new Dictionary<string, string>();
 
@@ -132,7 +155,9 @@ internal sealed record TestModifier
             mergedMachine[kv.Key] = kv.Value;
         }
 
-        return new TestProfile
+        // `with` rather than a fresh record: everything a modifier does not
+        // touch (NIC, input devices, arch filter) has to survive the overlay.
+        return baseProfile with
         {
             Name = $"{baseProfile.Name}+{Name}",
             Disks = newDisks,
@@ -188,7 +213,26 @@ public static class TestProfileLoader
                     $"Suite at '{kernelProjectPath}' requested profile '{name}' which is not defined in '{catalogPath}'. " +
                     $"Known profiles: {string.Join(", ", catalog.Profiles.Keys)}.");
             }
+
+            // A profile pinned to another architecture drops out silently —
+            // that is how one suite declares per-arch hardware (virtio-mmio on
+            // arm64, virtio-pci on x64) in a single csproj.
+            if (!profile.AppliesTo(architecture))
+            {
+                continue;
+            }
+
             resolvedProfiles.Add(profile);
+        }
+
+        if (resolvedProfiles.Count == 0)
+        {
+            // Running zero cells would report a green suite that tested
+            // nothing, so a suite whose every profile is pinned elsewhere is
+            // a configuration error rather than a silent skip.
+            throw new InvalidOperationException(
+                $"Suite at '{kernelProjectPath}' requested profiles [{string.Join(", ", optIn.Profiles)}], " +
+                $"none of which apply to architecture '{architecture}'. Add a profile that covers it.");
         }
 
         var resolvedModifiers = new List<TestModifier>(optIn.Modifiers.Count);
@@ -382,7 +426,15 @@ public static class TestProfileLoader
                 }
             }
 
-            profiles[entry.Name] = new TestProfile { Name = entry.Name, Disks = disks };
+            profiles[entry.Name] = new TestProfile
+            {
+                Name = entry.Name,
+                Disks = disks,
+                NetworkCard = NullIfBlank(entry.Nic),
+                KeyboardDevice = NullIfBlank(entry.Keyboard),
+                MouseDevice = NullIfBlank(entry.Mouse),
+                Architectures = entry.Architectures
+            };
         }
 
         var modifiers = new Dictionary<string, TestModifier>(StringComparer.Ordinal);
@@ -430,6 +482,9 @@ public static class TestProfileLoader
         return new Catalog(profiles, modifiers);
     }
 
+    private static string? NullIfBlank(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
     private static DiskKind ParseDiskKind(string path, string context, string? type)
     {
         return (type ?? string.Empty).ToLowerInvariant() switch
@@ -449,7 +504,13 @@ public static class TestProfileLoader
     };
 
     private sealed record ProfilesFile(List<ProfileEntry>? Profiles, List<ModifierEntry>? Modifiers);
-    private sealed record ProfileEntry(string? Name, List<DiskEntry>? Disks);
+    private sealed record ProfileEntry(
+        string? Name,
+        List<DiskEntry>? Disks,
+        string? Nic,
+        string? Keyboard,
+        string? Mouse,
+        List<string>? Architectures);
     private sealed record DiskEntry(string? Type, Dictionary<string, string>? Options);
     private sealed record ModifierEntry(
         string? Name,

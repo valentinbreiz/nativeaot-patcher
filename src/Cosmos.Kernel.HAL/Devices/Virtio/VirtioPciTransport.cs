@@ -92,6 +92,16 @@ public sealed class VirtioPciTransport : VirtioTransport
     public override string TransportName => "PCI";
     protected override bool SupportsFeaturesOk => true;
 
+    /// <summary>
+    /// True when MSI-X was enabled and a vector bound. False means the device
+    /// has no usable MSI-X and therefore no interrupt source — drivers that
+    /// need one refuse to start.
+    /// </summary>
+    public bool MsiXActive => _msixActive;
+
+    /// <summary>The PCI function this transport drives.</summary>
+    public PciDevice Pci => _pci;
+
     private VirtioPciTransport(PciDevice pci, uint deviceType, ulong commonCfg, ulong notifyBase,
         uint notifyOffMultiplier, ulong isrStatus, ulong deviceCfg)
     {
