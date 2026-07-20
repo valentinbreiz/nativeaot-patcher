@@ -17,7 +17,6 @@
        the PCI transport meets a non-LAPIC MSI backend (GICv3 ITS). -->
   <ItemGroup>
     <CosmosTestProfile Include="virtio-pci" />
-    <CosmosTestProfile Include="virtio-pci-arm64" />
     <CosmosTestProfile Include="virtio-mmio" />
   </ItemGroup>
 

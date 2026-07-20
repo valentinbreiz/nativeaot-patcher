@@ -20,7 +20,6 @@
     <CosmosTestProfile Include="e1000e" />
     <CosmosTestProfile Include="virtio-net-pci" />
     <CosmosTestProfile Include="virtio-net-mmio" />
-    <CosmosTestProfile Include="virtio-net-pci-arm64" />
   </ItemGroup>
 
   <!-- Core kernel packages (using project references for development) -->

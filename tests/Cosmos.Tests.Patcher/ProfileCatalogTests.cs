@@ -75,21 +75,35 @@ public class ProfileCatalogTests
         }
     }
 
-    // The virtio PCI cells take their interrupts through MSI-X, which on arm64
-    // is routed by the GICv3 ITS. The virt machine defaults to GICv2, which has
-    // no ITS at all, so losing this option would not fail loudly — the device
-    // would simply never take an interrupt.
+    // A virtio PCI profile is one hardware shape covering both arches, so each
+    // must produce a cell on each. Two profiles differing only by architecture
+    // would render as two half-empty rows in the results matrix.
     [Theory]
-    [InlineData("Virtio", "virtio-pci-arm64")]
-    [InlineData("Network", "virtio-net-pci-arm64")]
-    public void Arm64PciCellsRequestGicV3(string suiteName, string profileName)
+    [InlineData("Virtio", "virtio-pci")]
+    [InlineData("Network", "virtio-net-pci")]
+    public void VirtioPciProfilesProduceACellOnBothArchitectures(string suiteName, string profileName)
     {
         string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", "Cosmos.Kernel.Tests." + suiteName);
 
-        IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, "arm64");
+        foreach (string architecture in Architectures)
+        {
+            IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, architecture);
 
-        TestProfile cell = Assert.Single(cells, c => c.Name == profileName);
-        Assert.Equal("3", cell.MachineOptions["gic-version"]);
-        Assert.Equal("virtio-net-pci", cell.NetworkCard);
+            TestProfile cell = Assert.Single(cells, c => c.Name == profileName);
+            Assert.Equal("virtio-net-pci", cell.NetworkCard);
+
+            // MSI-X on arm64 is routed by the GICv3 ITS, and the virt machine
+            // defaults to GICv2, which has none — losing this would not fail
+            // loudly, the device would simply never take an interrupt. q35
+            // rejects the property outright, so x64 must not carry it.
+            if (architecture == "arm64")
+            {
+                Assert.Equal("3", cell.MachineOptions["gic-version"]);
+            }
+            else
+            {
+                Assert.False(cell.MachineOptions.ContainsKey("gic-version"));
+            }
+        }
     }
 }
