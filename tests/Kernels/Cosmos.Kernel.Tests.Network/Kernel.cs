@@ -13,6 +13,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
+using CosmosEndPoint = Cosmos.Kernel.System.Network.IPv4.EndPoint;
 using DotNetTcpClient = System.Net.Sockets.TcpClient;
 using DotNetTcpListener = System.Net.Sockets.TcpListener;
 using DotNetUdpClient = System.Net.Sockets.UdpClient;
@@ -224,7 +225,7 @@ public class Kernel : Sys.Kernel
         icmpClient.Connect(target);
         icmpClient.SendEcho();
 
-        var endpoint = new EndPoint(Address.Zero, 0);
+        CosmosEndPoint endpoint = new CosmosEndPoint(Address.Zero, 0);
         int time = icmpClient.Receive(ref endpoint, 5000);
 
         if (time >= 0)
