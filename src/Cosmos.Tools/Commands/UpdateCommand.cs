@@ -135,11 +135,13 @@ public class UpdateCommand : AsyncCommand<UpdateSettings>
         // bundle against the tools-latest asset versions and skips matches.
         bool toolsOk = await InstallCommand.InstallToolsFromReleaseAsync();
 
-        // Pin the dotnet tools to the requested train when one was named; plain
-        // updates track the latest stable release.
+        // Pin the dotnet tools to the requested train when one was named, and to
+        // the version the availability check found otherwise — an unpinned update
+        // resolves "latest" through NuGet's http cache, which can lag a fresh
+        // release and quietly leave the old version in place.
         string toolVersionArgs = settings.Version != null
             ? $" --version {settings.Version}"
-            : includePrerelease && latestSdk != null ? $" --version {latestSdk}" : "";
+            : latestSdk != null ? $" --version {latestSdk}" : "";
         string? templateVersion = settings.Version ?? (includePrerelease ? latestSdk : null);
 
         AnsiConsole.WriteLine();
@@ -165,7 +167,7 @@ public class UpdateCommand : AsyncCommand<UpdateSettings>
 
         bool pinsOk = ApplyPinPlan(pinPlan, projectRoot);
 
-        bool selfOk = await SelfUpdateAsync(settings, currentCli, latestTools, includePrerelease);
+        bool selfOk = await SelfUpdateAsync(currentCli, latestTools);
 
         UpdateNotifier.RecordUpdated(latestTools);
 
@@ -377,7 +379,7 @@ public class UpdateCommand : AsyncCommand<UpdateSettings>
     //  CLI self-update — always the last step
     // ═══════════════════════════════════════════════════════════════════════
 
-    private static async Task<bool> SelfUpdateAsync(UpdateSettings settings, string current, string? latest, bool includePrerelease)
+    private static async Task<bool> SelfUpdateAsync(string current, string? latest)
     {
         AnsiConsole.WriteLine();
         if (latest == null || !NuGetVersions.IsNewer(latest, current))
@@ -386,11 +388,12 @@ public class UpdateCommand : AsyncCommand<UpdateSettings>
             return true;
         }
 
-        // settings.Version passed IsValidVersionRequest, so interpolating it into
-        // a command line is safe.
-        string versionArgs = settings.Version != null
-            ? $" --version {settings.Version}"
-            : includePrerelease ? " --prerelease" : "";
+        // Pin the exact version the availability check just reported: a freshly
+        // published release can be missing from NuGet's cached "latest"
+        // resolution for a while, and an unpinned update then quietly reports
+        // "already installed" while the old version stays in place. `latest`
+        // passed IsNewer's numeric parse, so interpolating it is safe.
+        string versionArgs = $" --version {latest}";
 
         if (OperatingSystem.IsWindows())
         {
