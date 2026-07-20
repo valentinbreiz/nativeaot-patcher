@@ -1,6 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Vfs;
 
 namespace Cosmos.Kernel.System.Vfs;
@@ -12,13 +12,13 @@ public interface IVfsDirectoryHandle : IVfsNodeHandle
 {
     bool TryReadDir(out IReadOnlyList<IVfsInode> entries);
 
-    bool TryLookup(ReadOnlySpan<char> name, out IVfsNodeHandle? child);
+    bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)]out IVfsNodeHandle? child);
 
-    bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, out IVfsNodeHandle? child);
+    bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsNodeHandle? child);
 
-    bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, out IVfsDirectoryHandle? child);
+    bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsDirectoryHandle? child);
 
-    bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, out IVfsNodeHandle? child);
+    bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, [NotNullWhen(true)]out IVfsNodeHandle? child);
 
     bool TryUnlink(ReadOnlySpan<char> name);
 
@@ -46,25 +46,14 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TryReadDir(out IReadOnlyList<IVfsInode> entries)
     {
-        if (Inode.InodeOperations == null)
-        {
-            entries = Array.Empty<IVfsInode>();
-            return false;
-        }
-
         return Inode.InodeOperations.ReadDir(Inode, out entries);
     }
 
-    public bool TryLookup(ReadOnlySpan<char> name, out IVfsNodeHandle? child)
+    public bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)]out IVfsNodeHandle? child)
     {
-        child = null;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         if (!Inode.InodeOperations.Lookup(Inode, name, out IVfsInode? result) || result == null)
         {
+            child = null;
             return false;
         }
 
@@ -72,16 +61,11 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, out IVfsNodeHandle? child)
+    public bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsNodeHandle? child)
     {
-        child = null;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         if (!Inode.InodeOperations.Create(Inode, name, mode, out IVfsInode? created) || created == null)
         {
+            child = null;
             return false;
         }
 
@@ -89,16 +73,11 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, out IVfsDirectoryHandle? child)
+    public bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsDirectoryHandle? child)
     {
-        child = null;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         if (!Inode.InodeOperations.Mkdir(Inode, name, mode, out IVfsInode? created) || created == null)
         {
+            child = null;
             return false;
         }
 
@@ -108,14 +87,10 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, out IVfsNodeHandle? child)
     {
-        child = null;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
 
         if (!Inode.InodeOperations.Symlink(Inode, name, target, out IVfsInode? created) || created == null)
         {
+            child = null;
             return false;
         }
 
@@ -125,52 +100,26 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TryUnlink(ReadOnlySpan<char> name)
     {
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.Unlink(Inode, name);
     }
 
     public bool TryRemoveDirectory(ReadOnlySpan<char> name)
     {
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.Rmdir(Inode, name);
     }
 
     public bool TryRename(ReadOnlySpan<char> oldName, IVfsDirectoryHandle newParent, ReadOnlySpan<char> newName)
     {
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.Rename(Inode, oldName, newParent.Inode, newName);
     }
 
     public bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)
     {
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.SetAttr(Inode, flags, attributes);
     }
 
     public bool TryStat(out VfsStat stat)
     {
-        stat = default;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.GetAttr(Inode, out stat);
     }
 }

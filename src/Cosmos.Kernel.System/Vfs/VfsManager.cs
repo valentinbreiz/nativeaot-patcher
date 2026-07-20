@@ -1,7 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Vfs;
 
 namespace Cosmos.Kernel.System.Vfs;
@@ -73,23 +72,7 @@ public static partial class VfsManager
     /// <returns><c>true</c> when registration succeeds; <c>false</c> if name is invalid, driver is null, or already registered.</returns>
     public static bool RegisterFilesystem(string name, IVfsFilesystemType filesystemType)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return false;
-        }
-
-        if (filesystemType == null)
-        {
-            return false;
-        }
-
-        if (s_registeredTypes.ContainsKey(name))
-        {
-            return false;
-        }
-
-        s_registeredTypes.Add(name, filesystemType);
-        return true;
+        return !string.IsNullOrWhiteSpace(name) && s_registeredTypes.TryAdd(name, filesystemType);
     }
 
     /// <summary>
@@ -101,7 +84,7 @@ public static partial class VfsManager
     /// <param name="mountPoint">Mount point (normalized to leading /, no trailing /).</param>
     /// <param name="mount">Resulting mount data.</param>
     /// <returns><c>true</c> on success, <c>false</c> if driver is missing or mount fails.</returns>
-    public static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, out VfsMount? mount)
+    public static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, [NotNullWhen(true)]out VfsMount? mount)
     {
         mount = null;
 
@@ -110,7 +93,7 @@ public static partial class VfsManager
             return false;
         }
 
-        if (!filesystemType.TryMount(source, flags, out IVfsSuperblock? superblock) || superblock == null)
+        if (!filesystemType.TryMount(source, flags, out IVfsSuperblock? superblock))
         {
             return false;
         }
@@ -200,7 +183,7 @@ public static partial class VfsManager
     /// <summary>
     /// Retrieve a mount by its mount point.
     /// </summary>
-    public static bool TryGetMount(string mountPoint, out VfsMount? mount)
+    public static bool TryGetMount(string mountPoint, [NotNullWhen(true)]out VfsMount? mount)
     {
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
 
@@ -221,7 +204,7 @@ public static partial class VfsManager
     /// <summary>
     /// Open a file at the given path and return a managed handle wrapper.
     /// </summary>
-    public static bool TryOpenFile(string path, out IVfsFileHandle? file)
+    public static bool TryOpenFile(string path, [NotNullWhen(true)]out IVfsFileHandle? file)
     {
         file = null;
 
@@ -250,16 +233,11 @@ public static partial class VfsManager
     /// <summary>
     /// Open a directory at the given path and return a managed handle wrapper.
     /// </summary>
-    public static bool TryOpenDirectory(string path, out IVfsDirectoryHandle? directory)
+    public static bool TryOpenDirectory(string path, [NotNullWhen(true)]out IVfsDirectoryHandle? directory)
     {
         directory = null;
 
         if (!TryResolve(path, out IVfsInode? inode, out string? leafName))
-        {
-            return false;
-        }
-
-        if (inode.InodeOperations == null)
         {
             return false;
         }
@@ -274,7 +252,7 @@ public static partial class VfsManager
     internal static IVfsNodeHandle? WrapNode(string name, IVfsInode inode)
     {
         VfsStat stat;
-        if (inode.InodeOperations != null && inode.InodeOperations.GetAttr(inode, out stat))
+        if (inode.InodeOperations.GetAttr(inode, out stat))
         {
             ModeEnum type = stat.Mode & ModeEnum.FileTypeMask;
             if (type == ModeEnum.Directory)
@@ -290,15 +268,10 @@ public static partial class VfsManager
             return new VfsFileHandle(name, inode, openFile);
         }
 
-        if (inode.InodeOperations != null)
-        {
-            return new VfsDirectoryHandle(name, inode);
-        }
-
         return null;
     }
 
-    private static bool TryResolve(string path, out IVfsInode? inode, out string? leafName)
+    private static bool TryResolve(string path, [NotNullWhen(true)]out IVfsInode? inode, [NotNullWhen(true)]out string? leafName)
     {
         inode = null;
         leafName = null;
@@ -317,10 +290,10 @@ public static partial class VfsManager
         string relativePath = TrimMountPrefix(mount.MountPoint, path);
         IVfsInode current = mount.Superblock.Root;
 
+        leafName = mount.MountPoint;
         if (relativePath.Length == 0)
         {
             inode = current;
-            leafName = mount.MountPoint;
             return true;
         }
 
