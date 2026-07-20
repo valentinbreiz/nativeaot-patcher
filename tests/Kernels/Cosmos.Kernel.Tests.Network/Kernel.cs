@@ -47,13 +47,16 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 13);
+        TR.Start("Network Tests", expectedTests: 14);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
         TR.Run("Network_DeviceReady", TestNetworkDeviceReady);
         TR.Run("Network_StackInitialize", TestNetworkStackInitialize);
         TR.Run("DHCP_AutoConfigure", TestDHCPConfiguration);
+
+        // ICMP tests
+        TR.Run("ICMP_PingGateway", TestICMPPingGateway);
 
         // UDP tests
         TR.Run("UDP_SendPacket", TestUDPSendPacket);
@@ -190,6 +193,56 @@ public class Kernel : Sys.Kernel
 
         // Verify we got a valid IP (not 0.0.0.0)
         Assert.True(_localIP.Hash != 0, "DHCP should assign a non-zero IP address");
+    }
+
+    // ==================== ICMP Tests ====================
+
+    private static void TestICMPPingGateway()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // QEMU user networking: slirp answers ICMP echo requests to the
+        // gateway address itself, so no host-side helper is needed.
+        var target = new Address(10, 0, 2, 2);
+
+        Serial.WriteString("[Test] Pinging ");
+        Serial.WriteString(target.ToString());
+        Serial.WriteString("...\n");
+
+        var icmpClient = new ICMPClient();
+        icmpClient.Connect(target);
+        icmpClient.SendEcho();
+
+        var endpoint = new EndPoint(Address.Zero, 0);
+        int time = icmpClient.Receive(ref endpoint, 5000);
+
+        if (time >= 0)
+        {
+            Serial.WriteString("[Test] Echo reply from ");
+            Serial.WriteString(endpoint.Address.ToString());
+            Serial.WriteString(" in ");
+            Serial.WriteNumber((ulong)time);
+            Serial.WriteString(" ms\n");
+
+            Assert.True(endpoint.Address.CompareTo(target) == 0, "Echo reply should come from the pinged address");
+        }
+        else
+        {
+            Serial.WriteString("[Test] No echo reply within timeout\n");
+            Assert.True(false, "Should receive ICMP echo reply from gateway");
+        }
+
+        icmpClient.Close();
     }
 
     // ==================== UDP Tests ====================
