@@ -7,11 +7,17 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
-  <!-- One cell per transport: virtio over PCI on x64 (q35 has no virtio-mmio
-       window), virtio over MMIO on the arm64 virt machine. Both attach a NIC
-       plus a keyboard and mouse so network and input binding are covered. -->
+  <!-- Transport is a property of the cell, not of the architecture. x64 has
+       only the PCI cell (q35 has no virtio-mmio window), while arm64 runs
+       both: MMIO through the virt machine's window, and PCI through its PCIe
+       bridge. Every cell attaches a NIC plus a keyboard and mouse so network
+       and input binding are covered on each transport.
+
+       The arm64 PCI cell is the one that earns its keep: it is the only place
+       the PCI transport meets a non-LAPIC MSI backend (GICv3 ITS). -->
   <ItemGroup>
     <CosmosTestProfile Include="virtio-pci" />
+    <CosmosTestProfile Include="virtio-pci-arm64" />
     <CosmosTestProfile Include="virtio-mmio" />
   </ItemGroup>
 

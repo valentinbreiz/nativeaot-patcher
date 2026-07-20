@@ -64,6 +64,12 @@ public class TestProfileLoaderTests : IDisposable
           "mouse": "virtio-mouse-device"
         },
         {
+          "name": "virtio-pci-arm64",
+          "architectures": ["arm64"],
+          "machineOptions": { "gic-version": "3" },
+          "nic": "virtio-net-pci"
+        },
+        {
           "name": "plain"
         }
       ],
@@ -72,6 +78,11 @@ public class TestProfileLoaderTests : IDisposable
           "name": "gicv3",
           "architectures": ["arm64"],
           "machineOptions": { "gic-version": "3" }
+        },
+        {
+          "name": "gicv2",
+          "architectures": ["arm64"],
+          "machineOptions": { "gic-version": "2" }
         }
       ]
     }
@@ -145,6 +156,37 @@ public class TestProfileLoaderTests : IDisposable
             () => TestProfileLoader.LoadFor(_suiteDir, "arm64"));
 
         Assert.Contains("arm64", ex.Message);
+    }
+
+    // A machine property can belong to the hardware shape itself: virtio-pci
+    // on arm64 needs MSI-X, which needs a GICv3 ITS, which only exists with
+    // gic-version=3. Without this the cell would boot on the virt machine's
+    // GICv2 default and the device could never take an interrupt.
+    [Fact]
+    public void LoadFor_ReadsMachineOptionsOffTheProfile()
+    {
+        WriteCatalogAndSuite(DeviceCatalog, "virtio-pci-arm64");
+
+        TestProfile profile = Assert.Single(TestProfileLoader.LoadFor(_suiteDir, "arm64"));
+
+        Assert.Equal("3", profile.MachineOptions["gic-version"]);
+        Assert.Equal("virtio-net-pci", profile.NetworkCard);
+    }
+
+    // An explicit modifier overlay beats the profile's own default, so a
+    // suite can still sweep GIC versions over a profile that pins one.
+    [Fact]
+    public void LoadFor_ModifierMachineOptionOverridesTheProfileDefault()
+    {
+        WriteCatalogAndSuite(DeviceCatalog, "virtio-pci-arm64", "gicv2");
+
+        TestProfile[] cells = TestProfileLoader.LoadFor(_suiteDir, "arm64").ToArray();
+
+        Assert.Equal("3", Assert.Single(cells, c => c.Name == "virtio-pci-arm64").MachineOptions["gic-version"]);
+
+        TestProfile overridden = Assert.Single(cells, c => c.Name == "virtio-pci-arm64+gicv2");
+        Assert.Equal("2", overridden.MachineOptions["gic-version"]);
+        Assert.Equal("virtio-net-pci", overridden.NetworkCard);
     }
 
     [Fact]

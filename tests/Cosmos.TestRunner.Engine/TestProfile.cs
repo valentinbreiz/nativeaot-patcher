@@ -433,7 +433,13 @@ public static class TestProfileLoader
                 NetworkCard = NullIfBlank(entry.Nic),
                 KeyboardDevice = NullIfBlank(entry.Keyboard),
                 MouseDevice = NullIfBlank(entry.Mouse),
-                Architectures = entry.Architectures
+                Architectures = entry.Architectures,
+                // A machine property can be part of the hardware shape itself,
+                // not just an overlay: virtio-pci on arm64 needs MSI-X, which
+                // needs a GICv3 ITS, which only exists with gic-version=3.
+                // Expressing that as a modifier would cross-product it onto
+                // every other profile the suite declares.
+                MachineOptions = entry.MachineOptions ?? new Dictionary<string, string>()
             };
         }
 
@@ -510,7 +516,8 @@ public static class TestProfileLoader
         string? Nic,
         string? Keyboard,
         string? Mouse,
-        List<string>? Architectures);
+        List<string>? Architectures,
+        Dictionary<string, string>? MachineOptions);
     private sealed record DiskEntry(string? Type, Dictionary<string, string>? Options);
     private sealed record ModifierEntry(
         string? Name,

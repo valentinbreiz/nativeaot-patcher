@@ -41,9 +41,9 @@
       "nic": "e1000e"
     },
     {
-      // virtio-net over PCI. x64-only: the driver takes its interrupts
-      // through MSI-X, which on arm64 needs a GICv3 ITS that the virt
-      // machine only has with gic-version=3.
+      // virtio-net over PCI, NIC only — the data-path cell for the network
+      // suite. x64 here; the arm64 equivalent needs gic-version=3 for its
+      // MSI-X path and lives in "virtio-pci-arm64".
       "name": "virtio-net-pci",
       "architectures": ["x64"],
       "nic": "virtio-net-pci"
@@ -74,6 +74,24 @@
       "nic": "virtio-net-device",
       "keyboard": "virtio-keyboard-device",
       "mouse": "virtio-mouse-device"
+    },
+    {
+      // The PCI device set on the arm64 virt machine, which has a PCIe host
+      // bridge just as q35 does. This is the only cell that drives the PCI
+      // transport against a non-LAPIC MSI backend: the driver takes its
+      // interrupts through MSI-X, which on arm64 is routed by the GICv3 ITS
+      // (Arm64MsiBinder), so everything below MsiRouting differs from x64
+      // while the virtio code above it is identical.
+      //
+      // gic-version=3 is required, not cosmetic: the virt machine defaults to
+      // GICv2, which has no ITS, so MsiRouting would never get a binder and
+      // the transport would refuse to bring the device up.
+      "name": "virtio-pci-arm64",
+      "architectures": ["arm64"],
+      "machineOptions": { "gic-version": "3" },
+      "nic": "virtio-net-pci",
+      "keyboard": "virtio-keyboard-pci",
+      "mouse": "virtio-mouse-pci"
     }
   ],
   "modifiers": [

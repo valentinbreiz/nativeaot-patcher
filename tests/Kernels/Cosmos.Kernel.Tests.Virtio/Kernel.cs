@@ -17,28 +17,33 @@ namespace Cosmos.Kernel.Tests.Virtio;
 /// are unconditional: if a device is missing, that is the regression this
 /// suite exists to catch, not an environment condition.
 ///
-/// x64 runs the PCI transport (q35 has no virtio-mmio window) and arm64 the
-/// MMIO transport, which is why the transport-name expectation and the
-/// PCI-only tests are selected at compile time.
+/// Which transport a cell presents is a property of the QEMU profile, not of
+/// the architecture: x64 runs PCI only (q35 has no virtio-mmio window) while
+/// arm64 runs both an MMIO cell and a PCI one. The same kernel binary serves
+/// every cell of an architecture, so the transport is detected at runtime.
 /// </summary>
 public class Kernel : Sys.Kernel
 {
-#if ARCH_X64
-    /// <summary>Transport the profile for this architecture presents.</summary>
-    private const string ExpectedTransport = "PCI";
-
-    /// <summary>True when virtio arrives over PCI, gating the capability/MSI-X tests.</summary>
-    private const bool IsPciTransport = true;
-#else
-    private const string ExpectedTransport = "MMIO";
-    private const bool IsPciTransport = false;
-#endif
-
     /// <summary>Number of tests announced to the runner in TR.Start.</summary>
     private const int ExpectedTestCount = 10;
 
     /// <summary>Reason surfaced for the PCI-transport tests when the cell runs virtio over MMIO.</summary>
-    private const string SkipNotPci = "virtio arrives over MMIO on this architecture";
+    private const string SkipNotPci = "this cell presents virtio over MMIO";
+
+    /// <summary>Transport name the PCI transport reports.</summary>
+    private const string PciTransportName = "PCI";
+
+    /// <summary>Transport name the MMIO transport reports.</summary>
+    private const string MmioTransportName = "MMIO";
+
+    // True when this cell put a virtio function on the PCI bus.
+    //
+    // Deliberately derived from PCI *enumeration*, not from the bound driver:
+    // gating on the driver would mean a device that failed to bind takes its
+    // own PCI tests down with it into a green skip, which is precisely the
+    // regression this suite exists to catch. Keyed off the hardware, a bind
+    // failure leaves the PCI tests running — and failing.
+    private static bool s_isPciCell;
 
     /// <summary>Bytes in a MAC address.</summary>
     private const int MacAddressLength = 6;
@@ -60,10 +65,11 @@ public class Kernel : Sys.Kernel
         s_keyboards = VirtioDevice.GetKeyboards();
         s_mice = VirtioDevice.GetMice();
         s_virtioNetFunction = FindVirtioFunction(VirtioTransport.DeviceTypeNetwork);
+        s_isPciCell = s_virtioNetFunction != null;
 
         // ==================== Binding ====================
         TR.Run("Net_DriverBound", TestNet_DriverBound);
-        TR.Run("Net_TransportMatchesArch", TestNet_TransportMatchesArch);
+        TR.Run("Net_TransportMatchesCell", TestNet_TransportMatchesCell);
         TR.Run("Net_DeviceReady", TestNet_DeviceReady);
         TR.Run("Net_LinkUp", TestNet_LinkUp);
         TR.Run("Net_MacAddressProgrammed", TestNet_MacAddressProgrammed);
@@ -73,9 +79,9 @@ public class Kernel : Sys.Kernel
         TR.Run("Input_MouseBound", TestInput_MouseBound);
 
         // ==================== PCI transport ====================
-        TR.RunIf(IsPciTransport, "Pci_FunctionClaimed",     TestPci_FunctionClaimed,     SkipNotPci);
-        TR.RunIf(IsPciTransport, "Pci_MsiXActive",          TestPci_MsiXActive,          SkipNotPci);
-        TR.RunIf(IsPciTransport, "Pci_Version1Negotiated",  TestPci_Version1Negotiated,  SkipNotPci);
+        TR.RunIf(s_isPciCell, "Pci_FunctionClaimed",     TestPci_FunctionClaimed,     SkipNotPci);
+        TR.RunIf(s_isPciCell, "Pci_MsiXActive",          TestPci_MsiXActive,          SkipNotPci);
+        TR.RunIf(s_isPciCell, "Pci_Version1Negotiated",  TestPci_Version1Negotiated,  SkipNotPci);
 
         TR.Finish();
 
@@ -100,9 +106,12 @@ public class Kernel : Sys.Kernel
         Assert.NotNull(s_net, "virtio-net driver should have bound to the attached NIC");
     }
 
-    // Guards against a silent transport swap: on x64 the driver must have come
-    // up over PCI, which is the path q35 can present at all.
-    private static void TestNet_TransportMatchesArch()
+    // Cross-checks the bus against the driver: if this cell put a virtio
+    // function on the PCI bus, the driver must have come up over the PCI
+    // transport, and otherwise over MMIO. Catches a silent fallback to the
+    // wrong transport, which would otherwise look like a healthy device
+    // while none of the PCI-specific paths were ever exercised.
+    private static void TestNet_TransportMatchesCell()
     {
         if (s_net == null)
         {
@@ -114,7 +123,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString(s_net.Transport.TransportName);
         Serial.WriteString("\n");
 
-        Assert.Equal(ExpectedTransport, s_net.Transport.TransportName);
+        string expected = s_isPciCell ? PciTransportName : MmioTransportName;
+        Assert.Equal(expected, s_net.Transport.TransportName);
     }
 
     // Ready is only set after queues are configured, buffers are posted and an
@@ -199,15 +209,21 @@ public class Kernel : Sys.Kernel
     // device and the driver never saw it.
     private static void TestPci_FunctionClaimed()
     {
-        Assert.NotNull(s_virtioNetFunction, "a virtio-net PCI function should have been enumerated");
-        if (s_virtioNetFunction != null)
-        {
-            Assert.True(s_virtioNetFunction.Claimed, "the virtio-net PCI function should be claimed by the driver");
-        }
+        // Non-null is the gate for this test, so asserting it here would be a
+        // tautology; ownership is the real claim. A function that enumerates
+        // but stays unclaimed still fails Net_DriverBound, so the two together
+        // separate "capability parsing rejected it" from "it was never there".
+        Assert.True(s_virtioNetFunction!.Claimed, "the virtio-net PCI function should be claimed by the driver");
     }
 
-    // MSI-X is the only interrupt path the PCI transport offers, so this
-    // failing means the device would run blind even if everything else bound.
+    // MSI-X is the only interrupt path the PCI transport offers (there is no
+    // INTx fallback — PCI interrupt lines are level-low and shared, which the
+    // available line routing cannot express), so this failing means the device
+    // would run blind even if everything else bound.
+    //
+    // This is the assertion the arm64 PCI cell exists for: the same MsiRouting
+    // call lands on the LAPIC on x64 and on the GICv3 ITS on arm64, and only
+    // this cell covers the latter.
     private static void TestPci_MsiXActive()
     {
         VirtioPciTransport? transport = s_net?.Transport as VirtioPciTransport;
