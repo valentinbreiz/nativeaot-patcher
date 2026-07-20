@@ -14,6 +14,19 @@ public class ICMPPacket : IPPacket
     protected byte icmpCode;
     protected ushort icmpCRC;
 
+    private static int s_echoRequestsReplied;
+    private static byte[]? s_lastEchoRequestData;
+
+    /// <summary>
+    /// Number of echo requests answered with an echo reply.
+    /// </summary>
+    public static int EchoRequestsReplied => s_echoRequestsReplied;
+
+    /// <summary>
+    /// ICMP payload of the most recently answered echo request.
+    /// </summary>
+    public static byte[]? LastEchoRequestData => s_lastEchoRequestData;
+
     /// <summary>
     /// Handles an ICMP packet.
     /// </summary>
@@ -42,6 +55,9 @@ public class ICMPPacket : IPPacket
 
                 OutgoingBuffer.AddPacket(reply);
                 NetworkStack.Update();
+
+                s_lastEchoRequestData = request.GetICMPData();
+                s_echoRequestsReplied++;
                 break;
         }
     }
