@@ -385,9 +385,6 @@ flowchart TD
     SWEEP["SweepPhase()"] --> SEG["Walk each regular segment
     SweepSegment()"]
     SWEEP --> PIN["SweepPinnedHeap()"]
-    SWEEP --> SM["SweepSmallHeap()"]
-    SWEEP --> MED["SweepMediumHeap()"]
-    SWEEP --> LG["SweepLargeHeap()"]
 
     SEG --> WALK["Linear walk from Start to Bump"]
     WALK --> READ{Read object at ptr}
@@ -408,7 +405,7 @@ For each regular segment, the sweep walks linearly from `Start` to `Bump`. It ac
 
 When a free run reaches the end of a segment (trailing dead objects), the sweeper reclaims that space by moving `Bump` back instead of creating a free block.
 
-The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list) and the Small/Medium/Large heaps. For these, the sweeper calls the respective heap's `Free()` method to release dead objects.
+The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list). The unmanaged Small/Medium/Large malloc heaps are not swept: managed allocations never live there, and a live block whose first word happens to hold a GC-heap pointer would be indistinguishable from an unmarked object header.
 
 ### Segment reordering
 
