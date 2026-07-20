@@ -9,10 +9,9 @@ using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
-using Cosmos.Kernel.HAL.ARM64.Devices.Input;
-using Cosmos.Kernel.HAL.ARM64.Devices.Network;
 using Cosmos.Kernel.HAL.ARM64.Devices.Timer;
-using Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
+using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Devices.Virtio;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
@@ -28,6 +27,13 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
     /// <summary>Crude spin iterations (dsb sy + isb barriers) per microsecond used when firmware left CNTFRQ unprogrammed.</summary>
     private const uint FallbackSpinLoopsPerMicrosecond = 100;
+
+    // QEMU virt virtio MMIO window: 32 slots of 0x200 bytes at 0x0a000000,
+    // with consecutive SPIs starting at 16 (INTID 48).
+    private const ulong VirtioMmioBase = 0x0a000000;
+    private const ulong VirtioMmioSlotSize = 0x200;
+    private const uint VirtioMmioSlotCount = 32;
+    private const uint VirtioMmioIrqBase = 48;
 
     private GenericTimer? _timer;
 
@@ -109,12 +115,28 @@ public class ARM64PlatformInitializer : IPlatformInitializer
 
         if (CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled || CosmosFeatures.NetworkEnabled)
         {
-            DeviceMapper.EnsureMapped(VirtioMMIO.VIRTIO_MMIO_BASE);
+            DeviceMapper.EnsureMapped(VirtioMmioBase);
             // Scan for virtio devices
             Serial.WriteString("[ARM64HAL] Scanning for virtio devices...\n");
-            VirtioDevice.InitializeDevices();
+            VirtioDevice.InitializeMmioBus(VirtioMmioBase, VirtioMmioSlotSize, VirtioMmioSlotCount,
+                VirtioMmioIrqBase, EnableVirtioIrq);
         }
 
+    }
+
+    /// <summary>
+    /// Wires a virtio MMIO interrupt line: handler into the dense table, then
+    /// GIC configuration. The handler must be installed BEFORE enabling the
+    /// interrupt — virtio MMIO lines are level-triggered, and the GIC fires
+    /// immediately on enable if the line is already asserted.
+    /// </summary>
+    private static void EnableVirtioIrq(uint intid, InterruptManager.IrqDelegate handler)
+    {
+        InterruptManager.SetHandler((byte)intid, handler);
+
+        GIC.ConfigureInterrupt(intid, false);
+        GIC.SetPriority(intid, 0x80);
+        GIC.EnableInterrupt(intid);
     }
 
     public ITimerDevice CreateTimer()

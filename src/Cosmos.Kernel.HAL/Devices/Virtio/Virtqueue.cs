@@ -4,14 +4,15 @@ using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 
-namespace Cosmos.Kernel.HAL.ARM64.Devices.Virtio;
+namespace Cosmos.Kernel.HAL.Devices.Virtio;
 
 /// <summary>
-/// Virtqueue implementation for virtio devices.
+/// Virtqueue implementation for virtio devices (split ring layout).
 /// A virtqueue consists of three parts:
 /// - Descriptor table: array of buffer descriptors
 /// - Available ring: buffers offered to device
 /// - Used ring: buffers returned by device
+/// The layout is transport-independent; the same rings work over MMIO and PCI.
 /// </summary>
 public unsafe class Virtqueue
 {
@@ -50,22 +51,22 @@ public unsafe class Virtqueue
     /// <summary>
     /// Physical address of descriptor table (for DMA).
     /// </summary>
-    public ulong DescriptorTableAddr => VirtioMMIO.VirtToPhys((ulong)_descriptors);
+    public ulong DescriptorTableAddr => VirtioDma.VirtToPhys((ulong)_descriptors);
 
     /// <summary>
     /// Physical address of available ring (for DMA).
     /// </summary>
-    public ulong AvailableRingAddr => VirtioMMIO.VirtToPhys((ulong)_available);
+    public ulong AvailableRingAddr => VirtioDma.VirtToPhys((ulong)_available);
 
     /// <summary>
     /// Physical address of used ring (for DMA).
     /// </summary>
-    public ulong UsedRingAddr => VirtioMMIO.VirtToPhys((ulong)_used);
+    public ulong UsedRingAddr => VirtioDma.VirtToPhys((ulong)_used);
 
     /// <summary>
     /// Physical base address of the entire queue (for legacy PFN calculation).
     /// </summary>
-    public ulong QueueBaseAddr => VirtioMMIO.VirtToPhys(_baseAddress);
+    public ulong QueueBaseAddr => VirtioDma.VirtToPhys(_baseAddress);
 
     /// <summary>
     /// Creates a new virtqueue with the specified size.
@@ -192,6 +193,11 @@ public unsafe class Virtqueue
             len = 0;
             return false;
         }
+
+        // The device wrote the ring element before publishing Idx; keep the
+        // element read from being speculated ahead of the Idx read (ARM
+        // permits load-load reordering).
+        System.Threading.Thread.MemoryBarrier();
 
         ushort usedIdx = (ushort)(_lastUsedIdx % _queueSize);
 
