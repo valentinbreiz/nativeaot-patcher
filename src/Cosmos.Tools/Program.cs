@@ -1,4 +1,5 @@
 using Cosmos.Tools.Commands;
+using Cosmos.Tools.Update;
 using Spectre.Console.Cli;
 
 namespace Cosmos.Tools;
@@ -12,6 +13,7 @@ class Program
         app.Configure(config =>
         {
             config.SetApplicationName("cosmos");
+            config.SetApplicationVersion(NuGetVersions.CurrentCliVersion());
 
             config.AddCommand<CheckCommand>("check")
                 .WithDescription("Check if required development tools are installed");
