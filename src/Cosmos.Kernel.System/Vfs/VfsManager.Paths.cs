@@ -59,7 +59,7 @@ public static partial class VfsManager
 
         string result = path[0] == '/'
             ? path
-            : (s_currentDirectory == "/" ? "/" + path : s_currentDirectory + "/" + path);
+            : (s_currentDirectory == "/" ? $"/{path}" : $"{s_currentDirectory}/{path}");
 
         int end = result.Length;
         while (end > 1 && result[end - 1] == '/')
@@ -110,11 +110,9 @@ public static partial class VfsManager
     /// root exists even on a system with nothing mounted.</summary>
     public static bool TryStat(string fullPath, out VfsStat stat)
     {
-        stat = default;
-
-        if (TryResolve(fullPath, out IVfsInode? inode, out _) && inode != null)
+        if (TryResolve(fullPath, out IVfsInode? inode, out _))
         {
-            return inode.InodeOperations != null && inode.InodeOperations.GetAttr(inode, out stat);
+            return inode.InodeOperations.GetAttr(inode, out stat);
         }
 
         if (fullPath == "/")
@@ -123,6 +121,7 @@ public static partial class VfsManager
             return true;
         }
 
+        stat = default;
         return false;
     }
 
@@ -130,7 +129,7 @@ public static partial class VfsManager
     /// listing of the virtual root shows while no filesystem is mounted at "/".</summary>
     public static string[] GetVirtualRootEntries()
     {
-        List<string> collected = new List<string>(s_mounts.Count);
+        var collected = new List<string>(s_mounts.Count);
         for (int i = 0; i < s_mounts.Count; i++)
         {
             string mountPoint = s_mounts[i].MountPoint;
@@ -150,7 +149,7 @@ public static partial class VfsManager
             }
         }
 
-        return collected.ToArray();
+        return [.. collected];
     }
 
     /// <summary>Creates a regular file at <paramref name="fullPath"/>; the parent
@@ -163,7 +162,7 @@ public static partial class VfsManager
             return false;
         }
 
-        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
+        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent))
         {
             return false;
         }
@@ -182,7 +181,7 @@ public static partial class VfsManager
             return false;
         }
 
-        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
+        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent))
         {
             return false;
         }
@@ -203,7 +202,7 @@ public static partial class VfsManager
         }
 
         SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
+        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent))
         {
             return false;
         }
@@ -215,7 +214,7 @@ public static partial class VfsManager
     public static bool TryRemoveDirectory(string fullPath)
     {
         SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) || parent == null)
+        if (!TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent))
         {
             return false;
         }
@@ -249,7 +248,7 @@ public static partial class VfsManager
         }
 
         bool oldIsDirectory = (oldStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
-        if (oldIsDirectory && newFullPath.StartsWith(oldFullPath + "/", StringComparison.Ordinal))
+        if (oldIsDirectory && newFullPath.StartsWith($"{oldFullPath}/", StringComparison.Ordinal))
         {
             return false;
         }
@@ -264,8 +263,8 @@ public static partial class VfsManager
         SplitParentLeaf(oldFullPath, out string oldParentPath, out string oldLeaf);
         SplitParentLeaf(newFullPath, out string newParentPath, out string newLeaf);
 
-        if (!TryOpenDirectory(oldParentPath, out IVfsDirectoryHandle? oldParent) || oldParent == null
-            || !TryOpenDirectory(newParentPath, out IVfsDirectoryHandle? newParent) || newParent == null)
+        if (!TryOpenDirectory(oldParentPath, out IVfsDirectoryHandle? oldParent)
+            || !TryOpenDirectory(newParentPath, out IVfsDirectoryHandle? newParent))
         {
             return false;
         }
@@ -290,7 +289,7 @@ public static partial class VfsManager
             }
 
             if (newIsDirectory
-                && TryOpenDirectory(newFullPath, out IVfsDirectoryHandle? target) && target != null
+                && TryOpenDirectory(newFullPath, out IVfsDirectoryHandle? target)
                 && target.TryReadDir(out IReadOnlyList<IVfsInode> entries) && entries.Count > 0)
             {
                 return false;
@@ -299,7 +298,7 @@ public static partial class VfsManager
             // The FAT driver refuses existing destinations, so move the
             // destination aside first and only discard it once the real
             // rename has succeeded.
-            string backupLeaf = newLeaf + ReplaceBackupSuffix;
+            string backupLeaf = $"{newLeaf}{ReplaceBackupSuffix}";
             if (!newParent.TryRename(newLeaf, newParent, backupLeaf))
             {
                 return false;
@@ -385,7 +384,7 @@ public static partial class VfsManager
     private static void RemoveEntryDirect(string fullPath)
     {
         SplitParentLeaf(fullPath, out string parentPath, out string leaf);
-        if (TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent) && parent != null)
+        if (TryOpenDirectory(parentPath, out IVfsDirectoryHandle? parent))
         {
             parent.TryUnlink(leaf);
         }
@@ -404,10 +403,10 @@ public static partial class VfsManager
             return;
         }
 
-        string backupPath = parentPath == "/" ? "/" + backupLeaf : parentPath + "/" + backupLeaf;
+        string backupPath = parentPath == "/" ? $"/{backupLeaf}" : $"{parentPath}/{backupLeaf}";
 
         IVfsInode? backupInode = null;
-        if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode) && backupNode != null)
+        if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode))
         {
             backupInode = backupNode.Inode;
         }
