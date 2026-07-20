@@ -509,9 +509,6 @@
     SWEEP[&quot;SweepPhase()&quot;] --&gt; SEG[&quot;Walk each regular segment
     SweepSegment()&quot;]
     SWEEP --&gt; PIN[&quot;SweepPinnedHeap()&quot;]
-    SWEEP --&gt; SM[&quot;SweepSmallHeap()&quot;]
-    SWEEP --&gt; MED[&quot;SweepMediumHeap()&quot;]
-    SWEEP --&gt; LG[&quot;SweepLargeHeap()&quot;]
 
     SEG --&gt; WALK[&quot;Linear walk from Start to Bump&quot;]
     WALK --&gt; READ{Read object at ptr}
@@ -529,7 +526,7 @@
 </code></pre>
 <p>For each regular segment, the sweep walks linearly from <code>Start</code> to <code>Bump</code>. It accumulates consecutive dead objects and free blocks into a <strong>free run</strong>. When a live (marked) object is encountered, the accumulated free run is flushed as a <code>FreeBlock</code> onto the free list, and the object is unmarked for the next cycle.</p>
 <p>When a free run reaches the end of a segment (trailing dead objects), the sweeper reclaims that space by moving <code>Bump</code> back instead of creating a free block.</p>
-<p>The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list) and the Small/Medium/Large heaps. For these, the sweeper calls the respective heap's <code>Free()</code> method to release dead objects.</p>
+<p>The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list). The unmanaged Small/Medium/Large malloc heaps are not swept: managed allocations never live there, and a live block whose first word happens to hold a GC-heap pointer would be indistinguishable from an unmarked object header.</p>
 <h3 id="segment-reordering">Segment reordering</h3>
 <p>After sweeping, segments are reordered into three groups:</p>
 <pre><code> FULL segments → SEMIFULL segments → FREE segments
