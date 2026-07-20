@@ -9,7 +9,7 @@ The main differences if you come from Gen2:
 | TCP | Standard `System.Net.Sockets` (plugged) | Standard `System.Net.Sockets` (plugged) |
 | UDP | Cosmos-specific `UdpClient` class | Standard `System.Net.Sockets.UdpClient` (plugged) |
 | DHCP / DNS | Cosmos client classes | Cosmos client classes (`Cosmos.Kernel.System.Network`) |
-| NIC drivers | RTL8168, E1000, PCNET | Intel E1000E (x64), virtio-net (ARM64) |
+| NIC drivers | RTL8168, E1000, PCNET | Intel E1000E (x64), virtio-net (x64 PCI + ARM64 MMIO) |
 
 None of these protocols implements every feature of its RFC. If you find bugs or something abnormal, please [submit an issue](https://github.com/valentinbreiz/nativeaot-patcher/issues/new) on our repository.
 
@@ -23,12 +23,15 @@ Network support is behind a feature switch. Make sure your kernel's `.csproj` do
 </PropertyGroup>
 ```
 
-At boot the kernel detects the NIC and registers it with `NetworkManager`. On x64 the driver is **Intel E1000E** — which is exactly what QEMU's default q35 machine provides, so `cosmos run` needs no extra flags. On ARM64 attach a virtio NIC explicitly:
+At boot the kernel detects the NIC and registers it with `NetworkManager`. On x64 both **Intel E1000E** (QEMU's default q35 NIC, preferred when present) and **virtio-net-pci** are supported, so `cosmos run` needs no extra flags. On ARM64 attach a virtio NIC explicitly:
 
 ```console
 $ cosmos run                          # x64: default e1000e NIC, user-mode networking
-$ cosmos run --nic virtio-net-pci     # arm64: virtio NIC
+$ cosmos run --nic virtio-net-pci     # x64: virtio NIC over PCI
+$ cosmos run --nic virtio-net-device  # arm64: virtio NIC over MMIO
 ```
+
+Virtio-pci devices deliver interrupts via MSI-X, which on ARM64 requires a GICv3 ITS (`-M virt,gic-version=3`); `cosmos run` launches ARM64 with QEMU's default GICv2, so use the MMIO variant there.
 
 With QEMU *user-mode networking* (the default), your kernel lives in a private `10.0.2.0/24` network: the host is reachable at **10.0.2.2**, QEMU's built-in DHCP server assigns addresses, and outbound UDP/TCP is NATed to the real network.
 

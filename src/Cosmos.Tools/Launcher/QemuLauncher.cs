@@ -25,8 +25,9 @@ public sealed class QemuLaunchOptions
     /// place (the historical behaviour); <c>"none"</c> emits <c>-nic none</c> so
     /// the guest gets no card at all; any other value emits a user-mode
     /// <c>-netdev</c> + <c>-device &lt;model&gt;</c> pair (e.g. <c>e1000e</c>,
-    /// <c>virtio-net-device</c>). Ignored when <see cref="EnableNetworkTesting"/>
-    /// is set, which owns the NIC in that path.
+    /// <c>virtio-net-device</c>). When <see cref="EnableNetworkTesting"/> is
+    /// set this still selects the model, but that path always adds its port
+    /// forwards and rejects <c>"none"</c>.
     /// </summary>
     public string? NetworkCard { get; init; }
 
@@ -187,7 +188,7 @@ public static class QemuLauncher
 
         if (options.EnableNetworkTesting)
         {
-            string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
+            string nic = ResolveNetworkTestNic(options.Architecture, options.NetworkCard);
             args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
         }
         else if (options.NetworkCard is not null)
@@ -391,6 +392,30 @@ public static class QemuLauncher
 
         ValidateOptionToken(model, "input device model");
         args.Append($" -device {model}");
+    }
+
+    /// <summary>
+    /// Picks the NIC model for a network-testing run. A test profile selects
+    /// the model when it has an opinion (e.g. driving the suite over
+    /// virtio-net-pci rather than the architecture default); the port forwards
+    /// are added either way, since the runner reaches the guest through them
+    /// whatever the card is. <c>"none"</c> is rejected rather than silently
+    /// producing a run with no way to reach the guest.
+    /// </summary>
+    internal static string ResolveNetworkTestNic(string architecture, string? requested)
+    {
+        if (requested is not null && requested.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Network testing needs a NIC, but the network card is set to \"none\".", nameof(requested));
+        }
+
+        string nic = string.IsNullOrWhiteSpace(requested)
+            ? architecture == "x64" ? "e1000e" : "virtio-net-device"
+            : requested.Trim();
+
+        ValidateOptionToken(nic, "network card model");
+        return nic;
     }
 
     internal static void AppendDeviceOptions(StringBuilder args, string extra)

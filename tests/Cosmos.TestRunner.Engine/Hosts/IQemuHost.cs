@@ -7,6 +7,15 @@ using Cosmos.Tools.Launcher;
 namespace Cosmos.TestRunner.Engine;
 
 /// <summary>
+/// Device models a profile attaches beyond its disks. A null member leaves
+/// the architecture default alone (no input device; the arch's default NIC).
+/// </summary>
+/// <param name="NetworkCard">NIC model, e.g. <c>e1000e</c> or <c>virtio-net-pci</c>.</param>
+/// <param name="KeyboardDevice">Keyboard model, e.g. <c>virtio-keyboard-pci</c>.</param>
+/// <param name="MouseDevice">Mouse model, e.g. <c>virtio-mouse-pci</c>.</param>
+public sealed record ProfileDevices(string? NetworkCard, string? KeyboardDevice, string? MouseDevice);
+
+/// <summary>
 /// Interface for QEMU virtual machine hosts that can run test kernels
 /// </summary>
 public interface IQemuHost
@@ -26,8 +35,9 @@ public interface IQemuHost
     /// <param name="enableNetworkTesting">Enable UDP test server for network tests (default false)</param>
     /// <param name="disks">Per-profile disk attachments. AHCI entries share one <c>ich9-ahci</c> controller; NVMe entries each get their own <c>nvme</c> controller. Per-disk extra device options (e.g. <c>msix=off</c>) flow through.</param>
     /// <param name="machineOptions">Extra <c>-M</c> properties (e.g. <c>{"gic-version", "2"}</c> on ARM64). Caller is responsible for passing arch-appropriate keys.</param>
+    /// <param name="devices">Per-profile NIC and input device models; null leaves the architecture defaults in place.</param>
     /// <returns>Exit code and UART log content</returns>
-    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null);
+    Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null, ProfileDevices? devices = null);
 }
 
 /// <summary>

@@ -9,6 +9,7 @@ using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Storage;
+using Cosmos.Kernel.HAL.Devices.Virtio;
 using Cosmos.Kernel.HAL.Pci;
 
 namespace Internal.Runtime.CompilerHelpers
@@ -60,6 +61,16 @@ namespace Internal.Runtime.CompilerHelpers
                 // Initialize platform-specific hardware (ACPI, APIC, GIC, timers, etc.)
                 Serial.WriteString("[KERNEL]   - Initializing platform hardware...\n");
                 initializer.InitializeHardware();
+
+                // Bind drivers to virtio PCI devices on any architecture.
+                // Must run after InitializeHardware: MSI-X routing needs the
+                // platform MSI binder (LAPIC on x64, GICv3 ITS on ARM64).
+                if (CosmosFeatures.PCIEnabled &&
+                    (CosmosFeatures.NetworkEnabled || CosmosFeatures.KeyboardEnabled || CosmosFeatures.MouseEnabled))
+                {
+                    Serial.WriteString("[KERNEL]   - Scanning for virtio PCI devices...\n");
+                    VirtioDevice.InitializePciBus();
+                }
 
                 // Initialize storage controllers (AHCI for SATA, NVMe for PCIe).
                 // Both drivers are architecture-independent and live in HAL.
