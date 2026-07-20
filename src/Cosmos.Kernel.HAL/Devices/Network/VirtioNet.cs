@@ -5,6 +5,7 @@ using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Devices.Virtio;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 
 namespace Cosmos.Kernel.HAL.Devices.Network;
 
@@ -46,7 +47,7 @@ public unsafe class VirtioNet : INetworkDevice
     // touched from both thread context (Send) and interrupt context
     // (OnDeviceInterrupt). Never held across OnPacketReceived — the network
     // stack sends replies from that callback, which would self-deadlock.
-    private SpinLock _queueLock;
+    private SchedSpinLock _queueLock;
 
     private MACAddress _macAddress;
     private bool _networkInitialized;

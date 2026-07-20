@@ -40,9 +40,6 @@ public class Kernel : Sys.Kernel
     /// <summary>Reason surfaced for the PCI-transport tests when the cell runs virtio over MMIO.</summary>
     private const string SkipNotPci = "virtio arrives over MMIO on this architecture";
 
-    /// <summary>PCI vendor ID assigned to virtio devices (Red Hat).</summary>
-    private const ushort VirtioVendorId = 0x1AF4;
-
     /// <summary>Bytes in a MAC address.</summary>
     private const int MacAddressLength = 6;
 
@@ -251,7 +248,7 @@ public class Kernel : Sys.Kernel
         for (uint i = 0; i < PciManager.Count; i++)
         {
             PciDevice device = PciManager.Devices[i];
-            if (device.VendorId == VirtioVendorId && VirtioPciTransport.GetDeviceType(device) == deviceType)
+            if (device.VendorId == VirtioPciTransport.VirtioVendorId && VirtioPciTransport.GetDeviceType(device) == deviceType)
             {
                 return device;
             }
