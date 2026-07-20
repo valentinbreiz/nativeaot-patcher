@@ -121,6 +121,13 @@ public static class QemuLauncher
     /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
     private const int NetworkTestTcpPort = 5558;
 
+    /// <summary>
+    /// TCP port of the test runner's raw-Ethernet listener (IcmpTestServer). Slirp's
+    /// hostfwd only forwards TCP/UDP, so host-sourced ICMP rides a stream netdev
+    /// hubbed with slirp: frames are 4-byte big-endian-length-prefixed Ethernet.
+    /// </summary>
+    private const int NetworkTestRawSocketPort = 5560;
+
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
         CommandToolDefinition tool = options.Architecture switch
@@ -189,7 +196,16 @@ public static class QemuLauncher
         if (options.EnableNetworkTesting)
         {
             string nic = ResolveNetworkTestNic(options.Architecture, options.NetworkCard);
-            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
+            // One hub joins three ports: slirp (DHCP/NAT + the UDP/TCP hostfwds),
+            // a raw-Ethernet stream socket to the runner's IcmpTestServer, and the
+            // guest NIC. The stream port exists because slirp cannot forward
+            // host-sourced ICMP; the runner must be listening before QEMU starts.
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort}");
+            args.Append($" -netdev stream,id=rawnet0,addr.type=inet,addr.host=127.0.0.1,addr.port={NetworkTestRawSocketPort}");
+            args.Append(" -netdev hubport,id=hubport0,hubid=0,netdev=net0");
+            args.Append(" -netdev hubport,id=hubport1,hubid=0,netdev=rawnet0");
+            args.Append(" -netdev hubport,id=hubport2,hubid=0");
+            args.Append($" -device {nic},netdev=hubport2");
         }
         else if (options.NetworkCard is not null)
         {

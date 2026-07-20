@@ -108,19 +108,24 @@ public class QemuARM64Host : IQemuHost
         // Only create test servers for network tests
         UdpTestServer? udpServer = null;
         TcpTestServer? tcpServer = null;
+        IcmpTestServer? icmpServer = null;
         if (enableNetworkTesting)
         {
             udpServer = new UdpTestServer();
             tcpServer = new TcpTestServer();
+            icmpServer = new IcmpTestServer();
         }
 
         bool testSuiteCompleted = false;
 
         try
         {
-            // Start test servers for network tests
+            // Start test servers for network tests. The ICMP server must be
+            // listening before QEMU starts: the stream netdev connects at
+            // startup and aborts the VM if the connection is refused.
             udpServer?.Start();
             tcpServer?.Start();
+            icmpServer?.Start();
 
             process.Start();
 
@@ -163,6 +168,11 @@ public class QemuARM64Host : IQemuHost
             if (tcpServer != null)
             {
                 await tcpServer.StopAsync();
+            }
+
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
             }
 
             // Log stderr for diagnostics
@@ -210,6 +220,11 @@ public class QemuARM64Host : IQemuHost
                 await tcpServer.StopAsync();
             }
 
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
+            }
+
             // Read whatever UART output we got
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -236,6 +251,11 @@ public class QemuARM64Host : IQemuHost
             if (tcpServer != null)
             {
                 await tcpServer.StopAsync();
+            }
+
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
             }
 
             return new QemuRunResult

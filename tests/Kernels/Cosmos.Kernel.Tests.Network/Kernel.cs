@@ -13,6 +13,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
+using CosmosEndPoint = Cosmos.Kernel.System.Network.IPv4.EndPoint;
 using DotNetTcpClient = System.Net.Sockets.TcpClient;
 using DotNetTcpListener = System.Net.Sockets.TcpListener;
 using DotNetUdpClient = System.Net.Sockets.UdpClient;
@@ -47,13 +48,17 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 13);
+        TR.Start("Network Tests", expectedTests: 15);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
         TR.Run("Network_DeviceReady", TestNetworkDeviceReady);
         TR.Run("Network_StackInitialize", TestNetworkStackInitialize);
         TR.Run("DHCP_AutoConfigure", TestDHCPConfiguration);
+
+        // ICMP tests
+        TR.Run("ICMP_PingGateway", TestICMPPingGateway);
+        TR.Run("ICMP_HostPing", TestICMPHostPing);
 
         // UDP tests
         TR.Run("UDP_SendPacket", TestUDPSendPacket);
@@ -190,6 +195,130 @@ public class Kernel : Sys.Kernel
 
         // Verify we got a valid IP (not 0.0.0.0)
         Assert.True(_localIP.Hash != 0, "DHCP should assign a non-zero IP address");
+    }
+
+    // ==================== ICMP Tests ====================
+
+    private static void TestICMPPingGateway()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // QEMU user networking: slirp answers ICMP echo requests to the
+        // gateway address itself, so no host-side helper is needed.
+        var target = new Address(10, 0, 2, 2);
+
+        Serial.WriteString("[Test] Pinging ");
+        Serial.WriteString(target.ToString());
+        Serial.WriteString("...\n");
+
+        var icmpClient = new ICMPClient();
+        icmpClient.Connect(target);
+        icmpClient.SendEcho();
+
+        CosmosEndPoint endpoint = new CosmosEndPoint(Address.Zero, 0);
+        int time = icmpClient.Receive(ref endpoint, 5000);
+
+        if (time >= 0)
+        {
+            Serial.WriteString("[Test] Echo reply from ");
+            Serial.WriteString(endpoint.Address.ToString());
+            Serial.WriteString(" in ");
+            Serial.WriteNumber((ulong)time);
+            Serial.WriteString(" ms\n");
+
+            Assert.True(endpoint.Address.CompareTo(target) == 0, "Echo reply should come from the pinged address");
+        }
+        else
+        {
+            Serial.WriteString("[Test] No echo reply within timeout\n");
+            Assert.True(false, "Should receive ICMP echo reply from gateway");
+        }
+
+        icmpClient.Close();
+    }
+
+    private static void TestICMPHostPing()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // The test runner's IcmpTestServer pings our IP every 500 ms through
+        // the raw-Ethernet hub port (slirp cannot forward host-sourced ICMP).
+        // Phase 1: wait until the echo responder answered at least one request.
+        Serial.WriteString("[Test] Waiting for ICMP echo request from host...\n");
+
+        int waited = 0;
+        while (ICMPPacket.EchoRequestsReplied < 1 && waited < 10000)
+        {
+            TimerManager.Wait(100);
+            waited += 100;
+        }
+
+        if (ICMPPacket.EchoRequestsReplied < 1)
+        {
+            Serial.WriteString("[Test] No echo request received from host within timeout\n");
+            Assert.True(false, "Host echo request should reach the kernel and be answered");
+            return;
+        }
+
+        Serial.WriteString("[Test] Answered ");
+        Serial.WriteNumber((ulong)ICMPPacket.EchoRequestsReplied);
+        Serial.WriteString(" echo request(s) from host\n");
+        Assert.True(true, "Host echo request received and answered");
+
+        // Phase 2: the host validates our echo reply (checksum + payload) and
+        // only then switches its request payload from COSMOS_PING to HOST_OK —
+        // seeing it proves the full host->guest->host round trip.
+        Serial.WriteString("[Test] Waiting for HOST_OK acknowledgment payload...\n");
+
+        bool hostAck = false;
+        waited = 0;
+        while (!hostAck && waited < 10000)
+        {
+            byte[]? data = ICMPPacket.LastEchoRequestData;
+            if (data != null && data.Length >= 7 &&
+                data[0] == (byte)'H' && data[1] == (byte)'O' && data[2] == (byte)'S' &&
+                data[3] == (byte)'T' && data[4] == (byte)'_' && data[5] == (byte)'O' &&
+                data[6] == (byte)'K')
+            {
+                hostAck = true;
+            }
+            else
+            {
+                TimerManager.Wait(100);
+                waited += 100;
+            }
+        }
+
+        if (hostAck)
+        {
+            Serial.WriteString("[Test] Host acknowledged a valid echo reply\n");
+        }
+        else
+        {
+            Serial.WriteString("[Test] No HOST_OK payload within timeout\n");
+        }
+
+        Assert.True(hostAck, "Host should confirm it received a valid echo reply");
     }
 
     // ==================== UDP Tests ====================
