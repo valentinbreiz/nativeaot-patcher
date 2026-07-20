@@ -149,7 +149,7 @@ public static partial class VfsManager
             }
         }
 
-        return [..collected];
+        return [.. collected];
     }
 
     /// <summary>Creates a regular file at <paramref name="fullPath"/>; the parent
@@ -406,7 +406,7 @@ public static partial class VfsManager
         string backupPath = parentPath == "/" ? $"/{backupLeaf}" : $"{parentPath}/{backupLeaf}";
 
         IVfsInode? backupInode = null;
-        if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode) )
+        if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode))
         {
             backupInode = backupNode.Inode;
         }

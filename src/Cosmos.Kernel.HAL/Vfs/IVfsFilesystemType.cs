@@ -12,7 +12,7 @@ public interface IVfsFilesystemType
     /// <param name="source">Optional backing store identifier (device path, image id, etc.).</param>
     /// <param name="flags">Mount flags (<see cref="MountFlags"/>).</param>
     /// <param name="superblock">Populated superblock on success.</param>
-    bool TryMount(ReadOnlySpan<char> source, MountFlags flags, [NotNullWhen(true)]out IVfsSuperblock? superblock);
+    bool TryMount(ReadOnlySpan<char> source, MountFlags flags, [NotNullWhen(true)] out IVfsSuperblock? superblock);
 
     /// <summary>
     /// Lay down a fresh on-disk filesystem on the backing store identified by
@@ -23,7 +23,7 @@ public interface IVfsFilesystemType
     /// live mount, since rewriting the volume underneath a superblock's
     /// cached geometry corrupts it.
     /// </summary>
-    bool TryFormat(ReadOnlySpan<char> source, [NotNullWhen(true)]IVfsFormatOptions? options);
+    bool TryFormat(ReadOnlySpan<char> source, [NotNullWhen(true)] IVfsFormatOptions? options);
 
     /// <summary>
     /// Wipe the filesystem signature on the backing store so it no longer

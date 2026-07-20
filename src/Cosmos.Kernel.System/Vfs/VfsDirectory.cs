@@ -12,13 +12,13 @@ public interface IVfsDirectoryHandle : IVfsNodeHandle
 {
     bool TryReadDir(out IReadOnlyList<IVfsInode> entries);
 
-    bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)]out IVfsNodeHandle? child);
+    bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)] out IVfsNodeHandle? child);
 
-    bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsNodeHandle? child);
+    bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsNodeHandle? child);
 
-    bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsDirectoryHandle? child);
+    bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child);
 
-    bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, [NotNullWhen(true)]out IVfsNodeHandle? child);
+    bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, [NotNullWhen(true)] out IVfsNodeHandle? child);
 
     bool TryUnlink(ReadOnlySpan<char> name);
 
@@ -49,7 +49,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return Inode.InodeOperations.ReadDir(Inode, out entries);
     }
 
-    public bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)]out IVfsNodeHandle? child)
+    public bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
         if (!Inode.InodeOperations.Lookup(Inode, name, out IVfsInode? result) || result == null)
         {
@@ -61,7 +61,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsNodeHandle? child)
+    public bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
         if (!Inode.InodeOperations.Create(Inode, name, mode, out IVfsInode? created) || created == null)
         {
@@ -73,7 +73,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)]out IVfsDirectoryHandle? child)
+    public bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child)
     {
         if (!Inode.InodeOperations.Mkdir(Inode, name, mode, out IVfsInode? created) || created == null)
         {

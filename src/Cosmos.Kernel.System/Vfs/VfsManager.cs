@@ -84,7 +84,7 @@ public static partial class VfsManager
     /// <param name="mountPoint">Mount point (normalized to leading /, no trailing /).</param>
     /// <param name="mount">Resulting mount data.</param>
     /// <returns><c>true</c> on success, <c>false</c> if driver is missing or mount fails.</returns>
-    public static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, [NotNullWhen(true)]out VfsMount? mount)
+    public static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, [NotNullWhen(true)] out VfsMount? mount)
     {
         mount = null;
 
@@ -183,7 +183,7 @@ public static partial class VfsManager
     /// <summary>
     /// Retrieve a mount by its mount point.
     /// </summary>
-    public static bool TryGetMount(string mountPoint, [NotNullWhen(true)]out VfsMount? mount)
+    public static bool TryGetMount(string mountPoint, [NotNullWhen(true)] out VfsMount? mount)
     {
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
 
@@ -204,7 +204,7 @@ public static partial class VfsManager
     /// <summary>
     /// Open a file at the given path and return a managed handle wrapper.
     /// </summary>
-    public static bool TryOpenFile(string path, [NotNullWhen(true)]out IVfsFileHandle? file)
+    public static bool TryOpenFile(string path, [NotNullWhen(true)] out IVfsFileHandle? file)
     {
         file = null;
 
@@ -233,7 +233,7 @@ public static partial class VfsManager
     /// <summary>
     /// Open a directory at the given path and return a managed handle wrapper.
     /// </summary>
-    public static bool TryOpenDirectory(string path, [NotNullWhen(true)]out IVfsDirectoryHandle? directory)
+    public static bool TryOpenDirectory(string path, [NotNullWhen(true)] out IVfsDirectoryHandle? directory)
     {
         directory = null;
 
@@ -271,7 +271,7 @@ public static partial class VfsManager
         return null;
     }
 
-    private static bool TryResolve(string path, [NotNullWhen(true)]out IVfsInode? inode, [NotNullWhen(true)]out string? leafName)
+    private static bool TryResolve(string path, [NotNullWhen(true)] out IVfsInode? inode, [NotNullWhen(true)] out string? leafName)
     {
         inode = null;
         leafName = null;
