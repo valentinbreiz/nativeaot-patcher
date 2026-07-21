@@ -12,8 +12,11 @@ Code copied into this repository (with local adaptations noted in a `README.md` 
 | [SharpZipLib](https://github.com/icsharpcode/SharpZipLib) | MIT | Managed DEFLATE/zlib decompression for the PNG decoder | `src/Cosmos.Kernel.System/IO/Compression/SharpZipLib/` |
 | [LunarFonts](https://github.com/Relfos/LunarFonts) | MIT | TrueType loading and rasterization (`TrueTypeFont`) | `src/Cosmos.Kernel.System/Graphics/Fonts/TrueType/LunarFonts/` |
 | [Spleen](https://github.com/fcambus/spleen) | BSD-2-Clause | The default 16x32 console and canvas font | `src/Cosmos.Kernel.System/Graphics/Fonts/` |
+| [Cosm3D](https://github.com/Samma2009/Cosm3D) | MIT | VMWareSVGAII Canvas driver (`Cosmos.Kernel.HAL.Devices.Graphic.SVGAII`) |
 
 The PNG integration follows [CosmosPNG](https://github.com/Szymekk44/CosmosPNG) (Unlicense), which first brought BigGustave to Cosmos Gen2, and the TrueType integration follows [CosmosTTF](https://github.com/GoldenretriverYT/CosmosTTF) (MIT), which first brought LunarFonts there.
+
+The SvgaII integration originates from a gen3 port of [Cosm3D](https://github.com/Samma2009/Cosm3D) (an implementation of the [3D SvgaII spec by VMware](https://sourceforge.net/projects/vmware-svga)), with the port itself based on the gen2 SvgaII driver.
 
 ## Shipped binaries and dependencies
 

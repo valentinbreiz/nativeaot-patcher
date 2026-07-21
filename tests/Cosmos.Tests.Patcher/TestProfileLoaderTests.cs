@@ -60,14 +60,16 @@ public class TestProfileLoaderTests : IDisposable
           "machineOptions": { "arm64": { "gic-version": "3" } },
           "nic": "virtio-net-pci",
           "keyboard": "virtio-keyboard-pci",
-          "mouse": "virtio-mouse-pci"
+          "mouse": "virtio-mouse-pci",
+          "vga": "virtio"
         },
         {
           "name": "virtio-mmio",
           "architectures": ["arm64"],
           "nic": "virtio-net-device",
           "keyboard": "virtio-keyboard-device",
-          "mouse": "virtio-mouse-device"
+          "mouse": "virtio-mouse-device",
+          "vga": "virtio"
         },
         {
           "name": "plain"
@@ -99,6 +101,7 @@ public class TestProfileLoaderTests : IDisposable
         Assert.Equal("virtio-net-pci", profile.NetworkCard);
         Assert.Equal("virtio-keyboard-pci", profile.KeyboardDevice);
         Assert.Equal("virtio-mouse-pci", profile.MouseDevice);
+        Assert.Equal("virtio", profile.VgaAdapter);
     }
 
     // One suite, two architectures, one csproj: each arch keeps only the
@@ -128,6 +131,7 @@ public class TestProfileLoaderTests : IDisposable
         Assert.Null(profile.NetworkCard);
         Assert.Null(profile.KeyboardDevice);
         Assert.Null(profile.MouseDevice);
+        Assert.Null(profile.VgaAdapter);
     }
 
     // A modifier overlays machine/device options; everything it does not touch
@@ -144,6 +148,7 @@ public class TestProfileLoaderTests : IDisposable
         Assert.Equal("virtio-net-device", withModifier.NetworkCard);
         Assert.Equal("virtio-keyboard-device", withModifier.KeyboardDevice);
         Assert.Equal("virtio-mouse-device", withModifier.MouseDevice);
+        Assert.Equal("virtio", withModifier.VgaAdapter);
         Assert.Equal("3", withModifier.MachineOptions["gic-version"]);
     }
 
