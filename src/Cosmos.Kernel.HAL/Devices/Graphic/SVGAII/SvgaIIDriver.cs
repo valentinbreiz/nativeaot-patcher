@@ -466,7 +466,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
             WriteToFifo(newY);
             WriteToFifo(width);
             WriteToFifo(height);
-            WaitForFifo();
         }
         else
         {
@@ -492,7 +491,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
             WriteToFifo(y);
             WriteToFifo(width);
             WriteToFifo(height);
-            WaitForFifo();
         }
         else
         {
@@ -517,12 +515,11 @@ public unsafe class SvgaIIDriver : GraphicDevice
             {
                 uint xTarget = x + width;
                 uint yTarget = y + height;
-                for (uint xTmp = x; xTmp < xTarget; xTmp++)
+                uint dwordsPerRow = (width * _depth) / 4;
+
+                for (uint yTmp = y; yTmp < yTarget; yTmp++)
                 {
-                    for (uint yTmp = y; yTmp < yTarget; yTmp++)
-                    {
-                        DrawPixel(color, (int)xTmp, (int)yTmp);
-                    }
+                    VideoMemory.Fill(FrameSize + GetPointByteOffset((int)x, (int)yTmp), dwordsPerRow, color);
                 }
                 Update(x, y, width, height);
             }
@@ -534,7 +531,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     public void DefineCursor()
     {
-        WaitForFifo();
         WriteToFifo((uint)FIFOCommand.DEFINE_CURSOR);
         WriteToFifo(0); // ID
         WriteToFifo(0); // Hotspot X
@@ -553,8 +549,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
         {
             WriteToFifo(0xFFFFFF);
         }
-
-        WaitForFifo();
     }
 
     /// <summary>
@@ -562,7 +556,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     public void DefineAlphaCursor(uint width, uint height, int[] data)
     {
-        WaitForFifo();
         WriteToFifo((uint)FIFOCommand.DEFINE_ALPHA_CURSOR);
         WriteToFifo(0); // ID
         WriteToFifo(0); // Hotspot X
@@ -574,8 +567,6 @@ public unsafe class SvgaIIDriver : GraphicDevice
         {
             WriteToFifo((uint)data[i]);
         }
-
-        WaitForFifo();
     }
 
     /// <summary>

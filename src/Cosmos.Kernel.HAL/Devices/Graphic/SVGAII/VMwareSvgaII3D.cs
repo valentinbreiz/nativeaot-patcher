@@ -34,6 +34,8 @@ public unsafe class VMWareSVGAII3D
     private bool _fifoFenceSupported;
     private uint _guestFenceCounter = 1;
 
+    private int[] _imagebuffer = [];
+
     private void SyncToFence(uint fence)
     {
         if (_fifoFenceSupported)
@@ -111,8 +113,6 @@ public unsafe class VMWareSVGAII3D
         mipSizes[0].height = height;
         mipSizes[0].depth = 1;
 
-        _driver.WaitForFifo();
-
         return new() { sid = sid, face = 0, mipmap = 0 };
     }
 
@@ -123,7 +123,6 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->type = type;
         cmd->target = target;
-        _driver.WaitForFifo();
     }
 
     public void SetViewport(uint cid, SVGA3dRect rect)
@@ -132,7 +131,6 @@ public unsafe class VMWareSVGAII3D
         cmd = (SVGA3dCmdSetViewport*)ReserveFIFO3D((uint)FIFOCommand.SET_VIEWPORT, (uint)sizeof(SVGA3dCmdSetViewport));
         cmd->cid = cid;
         cmd->rect = rect;
-        _driver.WaitForFifo();
     }
 
     public void SetDepthRange(uint cid, float min, float max)
@@ -142,7 +140,6 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->range.min = min;
         cmd->range.max = max;
-        _driver.WaitForFifo();
     }
 
     private void BeginClear3D(
@@ -174,7 +171,6 @@ public unsafe class VMWareSVGAII3D
         rect->y = ClearRect.y;
         rect->w = ClearRect.w;
         rect->h = ClearRect.h;
-        _driver.WaitForFifo();
     }
 
     private void BeginPresent(uint sid, SVGA3dCopyRect** rects, uint numRects)
@@ -199,7 +195,6 @@ public unsafe class VMWareSVGAII3D
         rect->y = PresentRect.y;
         rect->w = PresentRect.w;
         rect->h = PresentRect.h;
-        _driver.WaitForFifo();
 
         _lastFence = InsertFence();
     }
@@ -234,20 +229,21 @@ public unsafe class VMWareSVGAII3D
         boxes[0].h = height;
         boxes[0].d = 1;
 
-        _driver.WaitForFifo();
-
         uint fence = InsertFence();
         SyncToFence(fence);
 
         int pixelCount = (int)(width * height);
-        int[] pixels = new int[pixelCount];
+        if (_imagebuffer.Length != pixelCount)
+        {
+            _imagebuffer = new int[pixelCount];
+        }
 
-        fixed (int* pDest = &pixels[0])
+        fixed (int* pDest = &_imagebuffer[0])
         {
             MemoryOp.MemCopy((byte*)pDest, (byte*)buffer, (int)size);
         }
 
-        return pixels;
+        return _imagebuffer;
     }
 
 
@@ -289,7 +285,6 @@ public unsafe class VMWareSVGAII3D
         boxes[0].w = width;
         boxes[0].h = height;
         boxes[0].d = 1;
-        _driver.WaitForFifo();
     }
 
     public uint CreateStaticArrayBuffer<T>(T[] data) where T : unmanaged
@@ -364,8 +359,6 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)rs, (byte*)statesPtr, sizeof(SVGA3dRenderState) * states.Length);
         }
-
-        _driver.WaitForFifo();
     }
 
     private void BeginSetTextureState(uint cid, SVGA3dTextureState** states, uint numStates)
@@ -386,8 +379,6 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)ts, (byte*)statesPtr, sizeof(SVGA3dTextureState) * states.Length);
         }
-
-        _driver.WaitForFifo();
     }
 
     private void BeginDrawPrimitives(
@@ -436,8 +427,6 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)pranges, (byte*)statesPtr, sizeof(SVGA3dPrimitiveRange) * ranges.Length);
         }
-
-        _driver.WaitForFifo();
     }
 
     private void InternalSetTransform(uint cid, SVGA3dTransformType type, float* matrix)
@@ -448,7 +437,6 @@ public unsafe class VMWareSVGAII3D
         cmd->type = type;
 
         MemoryOp.MemCopy((byte*)&cmd->matrix[0], (byte*)matrix, sizeof(float) * 16);
-        _driver.WaitForFifo();
     }
 
     public void SetTransform<T>(uint cid, SVGA3dTransformType type, T matrix4x4)
@@ -494,8 +482,6 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)&cmd[1], bytecodePtr, bytecode.Length);
         }
 
-        _driver.WaitForFifo();
-
         return shid;
     }
 
@@ -507,7 +493,6 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->type = type;
         cmd->shid = shid;
-        _driver.WaitForFifo();
     }
 
     public void SetShaderUniform<T>(uint cid, uint reg, SVGA3dShaderType type, SVGA3dShaderConstType ctype, T value) where T : unmanaged
@@ -537,8 +522,6 @@ public unsafe class VMWareSVGAII3D
         {
             dst[i] = src[i];
         }
-
-        _driver.WaitForFifo();
     }
 
 
@@ -550,7 +533,6 @@ public unsafe class VMWareSVGAII3D
         cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D((uint)FIFOCommand.DEFINE_CONTEXT, (uint)sizeof(SVGA3dCmdDefineContext));
         cmd->cid = cid;
 
-        _driver.WaitForFifo();
         return cid;
     }
 
