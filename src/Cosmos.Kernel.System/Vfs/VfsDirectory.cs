@@ -85,7 +85,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return true;
     }
 
-    public bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, out IVfsNodeHandle? child)
+    public bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
 
         if (!Inode.InodeOperations.Symlink(Inode, name, target, out IVfsInode? created) || created == null)

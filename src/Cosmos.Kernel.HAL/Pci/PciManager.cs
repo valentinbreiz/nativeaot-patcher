@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
@@ -109,23 +110,34 @@ public class PciManager
         }
     }
 
-    private static void CheckFunction(PciDevice xPCIDevice)
+    private static void CheckFunction(PciDevice xPciDevice)
     {
         Serial.WriteString("[PciManager] CheckFunction - ");
-        Serial.WriteString(xPCIDevice.GetDeviceString());
+        Serial.WriteString(xPciDevice.GetDeviceString());
         Serial.WriteString(" --- ");
-        Serial.WriteString(xPCIDevice.GetTypeString());
+        Serial.WriteString(xPciDevice.GetTypeString());
         Serial.WriteString(" \n");
-        Add(xPCIDevice);
+        Add(xPciDevice);
         Serial.WriteString("[PciManager] Cached\n");
-        if (xPCIDevice.ClassCode == BridgeClassCode && xPCIDevice.Subclass == PciToPciBridgeSubclass)
+        if (xPciDevice.ClassCode == BridgeClassCode && xPciDevice.Subclass == PciToPciBridgeSubclass)
         {
-            CheckBus(xPCIDevice.SecondaryBusNumber);
+            CheckBus(xPciDevice.SecondaryBusNumber);
+        }
+    }
+
+    [MemberNotNull(nameof(Devices))]
+    private static void ThrowIfNotSetup()
+    {
+        if (Devices is null)
+        {
+            throw new Exception($"{nameof(PciManager)} requires call to Setup() before using it");
         }
     }
 
     private static void Add(PciDevice xPciDevice)
     {
+        ThrowIfNotSetup();
+
         if (Count >= Devices.Length)
         {
             Serial.WriteString("[PciManager] Device array full, cannot add more devices\n");
@@ -148,6 +160,8 @@ public class PciManager
     /// <returns></returns>
     public static PciDevice? GetDevice(VendorId aVendorID, DeviceId aDeviceID)
     {
+        ThrowIfNotSetup();
+
         for (uint i = 0; i < Count; i++)
         {
             PciDevice xDevice = Devices[i];
@@ -170,6 +184,8 @@ public class PciManager
     /// <returns></returns>
     public static PciDevice? GetDevice(uint bus, uint slot, uint function)
     {
+        ThrowIfNotSetup();
+
         for (uint i = 0; i < Count; i++)
         {
             PciDevice xDevice = Devices[i];
@@ -184,13 +200,15 @@ public class PciManager
         return null;
     }
 
-    public static PciDevice? GetDeviceClass(ClassId Class, SubclassId SubClass)
+    public static PciDevice? GetDeviceClass(ClassId classId, SubclassId subClass)
     {
+        ThrowIfNotSetup();
+
         for (uint i = 0; i < Count; i++)
         {
             PciDevice xDevice = Devices[i];
-            if ((ClassId)xDevice.ClassCode == Class &&
-                (SubclassId)xDevice.Subclass == SubClass)
+            if ((ClassId)xDevice.ClassCode == classId &&
+                (SubclassId)xDevice.Subclass == subClass)
             {
                 return xDevice;
             }
@@ -201,6 +219,8 @@ public class PciManager
 
     public static PciDevice? GetDeviceClass(ClassId aClass, SubclassId aSubClass, ProgramIf aProgIF)
     {
+        ThrowIfNotSetup();
+
         for (uint i = 0; i < Count; i++)
         {
             PciDevice xDevice = Devices[i];
@@ -222,6 +242,8 @@ public class PciManager
     /// </summary>
     public static List<PciDevice> GetAllDevicesClass(ClassId aClass, SubclassId aSubClass)
     {
+        ThrowIfNotSetup();
+
         List<PciDevice> matches = new();
         for (uint i = 0; i < Count; i++)
         {

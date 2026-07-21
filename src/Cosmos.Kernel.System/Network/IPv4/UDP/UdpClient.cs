@@ -42,7 +42,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// The destination address.
     /// </summary>
-    internal Address destination;
+    internal Address? destination;
 
     /// <summary>
     /// The RX buffer queue.
@@ -150,7 +150,7 @@ public class UdpClient : IDisposable
         Serial.WriteNumber((ulong)localPort);
         Serial.WriteString("\n");
 
-        Address source = IPConfig.FindNetwork(dest);
+        Address? source = IPConfig.FindNetwork(dest);
         if (source == null)
         {
             Serial.WriteString("[UdpClient] ERROR: IPConfig.FindNetwork returned null!\n");

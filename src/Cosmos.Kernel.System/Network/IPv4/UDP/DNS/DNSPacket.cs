@@ -71,16 +71,16 @@ public class DNSPacket : UDPPacket
     internal static void DNSHandler(byte[] packetData)
     {
         var dnsPacket = new DNSPacket(packetData);
-        var receiver = (DnsClient)UdpClient.GetClient(dnsPacket.DestinationPort);
+        var receiver = (DnsClient?)UdpClient.GetClient(dnsPacket.DestinationPort);
         receiver?.ReceiveData(dnsPacket);
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacket"/> class.
-    /// </summary>
-    internal DNSPacket()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="DNSPacket"/> class.
+    // /// </summary>
+    // internal DNSPacket()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DNSPacket"/> class.
@@ -252,12 +252,12 @@ public class DNSPacket : UDPPacket
     /// <summary>
     /// The DNS queries.
     /// </summary>
-    internal List<DNSQuery> Queries { get; set; }
+    internal List<DNSQuery>? Queries { get; set; }
 
     /// <summary>
     /// The DNS answers (responses).
     /// </summary>
-    internal List<DNSAnswer> Answers { get; set; }
+    internal List<DNSAnswer>? Answers { get; set; }
 
     public override string ToString()
     {
@@ -270,12 +270,12 @@ public class DNSPacket : UDPPacket
 /// </summary>
 public class DNSPacketAsk : DNSPacket
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
-    /// </summary>
-    internal DNSPacketAsk()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
+    // /// </summary>
+    // internal DNSPacketAsk()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
@@ -322,13 +322,6 @@ public class DNSPacketAsk : DNSPacket
 /// </summary>
 public class DNSPacketAnswer : DNSPacket
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacketAnswer"/> class.
-    /// </summary>
-    internal DNSPacketAnswer()
-        : base()
-    { }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DNSPacketAnswer"/> class.
     /// </summary>

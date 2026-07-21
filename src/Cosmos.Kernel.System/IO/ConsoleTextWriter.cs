@@ -9,6 +9,8 @@ public sealed class ConsoleTextWriter : TextWriter
     public override Encoding Encoding => Encoding.Default;
     public override void Write(char value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.Write(value);
         if (KernelConsole.Default.IsAvailable)
         {
@@ -22,6 +24,8 @@ public sealed class ConsoleTextWriter : TextWriter
             return;
         }
 
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.Write(value);
         if (KernelConsole.Default.IsAvailable)
         {
@@ -31,6 +35,8 @@ public sealed class ConsoleTextWriter : TextWriter
 
     public override void Write(ReadOnlySpan<char> buffer)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.Write(buffer);
         if (KernelConsole.Default.IsAvailable)
         {

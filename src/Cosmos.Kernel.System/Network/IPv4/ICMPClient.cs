@@ -75,12 +75,7 @@ public class ICMPClient : IDisposable
             throw new InvalidOperationException("Must establish a destination by calling Connect() before using SendEcho()");
         }
 
-        Address source = IPConfig.FindNetwork(destination);
-        if (source == null)
-        {
-            throw new InvalidOperationException("No network route to destination");
-        }
-
+        Address source = IPConfig.FindNetwork(destination) ?? throw new InvalidOperationException("No network route to destination");
         var request = new ICMPEchoRequest(source, destination, id, sequence);
         OutgoingBuffer.AddPacket(request);
         NetworkStack.Update();

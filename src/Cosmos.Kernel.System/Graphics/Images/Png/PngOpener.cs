@@ -31,7 +31,7 @@ namespace BigGustave
 
             bool hasEncounteredImageEnd = false;
 
-            Palette palette = null;
+            Palette? palette = null;
 
             using (MemoryStream output = new MemoryStream())
             {
@@ -90,10 +90,7 @@ namespace BigGustave
                             {
                                 case "tRNS":
                                     // Add transparency to palette, if the PLTE chunk has been read.
-                                    if (palette != null)
-                                    {
-                                        palette.SetAlphaValues(bytes);
-                                    }
+                                    palette?.SetAlphaValues(bytes);
                                     break;
                             }
                         }

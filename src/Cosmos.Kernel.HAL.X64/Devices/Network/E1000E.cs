@@ -108,7 +108,7 @@ public class E1000E : PciDevice, INetworkDevice
     public static E1000E? Instance { get; private set; }
 
     private readonly ulong _mmioBase;
-    private MACAddress _macAddress;
+    private MACAddress? _macAddress;
     private bool _networkInitialized;
     private bool _linkUp;
 
@@ -130,7 +130,7 @@ public class E1000E : PciDevice, INetworkDevice
     private ulong _msixTableBase;
 
     string INetworkDevice.Name => "Intel E1000E";
-    public MACAddress MacAddress => _macAddress;
+    public MACAddress MacAddress => _macAddress ?? throw new Exception($"{nameof(_macAddress)} is null)");
     public bool LinkUp => _linkUp;
     public bool Ready => _networkInitialized;
 
@@ -172,7 +172,7 @@ public class E1000E : PciDevice, INetworkDevice
     public E1000E(uint bus, uint slot, uint function) : base(bus, slot, function)
     {
         // Get MMIO base address from BAR0
-        if (BaseAddressBar != null && BaseAddressBar.Length > 0)
+        if (BaseAddressBar is { Length: > 0 })
         {
             _mmioBase = BaseAddressBar[0].BaseAddress;
         }
@@ -267,7 +267,7 @@ public class E1000E : PciDevice, INetworkDevice
         // Read MAC address
         ReadMacAddress();
         Serial.Write("[E1000E] MAC Address: ");
-        Serial.WriteString(_macAddress.ToString());
+        Serial.WriteString(_macAddress?.ToString() ?? "No address");
         Serial.Write("\n");
 
         // Detect MSI-X capability

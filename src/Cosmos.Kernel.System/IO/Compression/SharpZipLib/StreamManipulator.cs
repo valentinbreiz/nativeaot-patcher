@@ -213,7 +213,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression.Streams
             {
                 length = avail;
             }
-            System.Array.Copy(window_, windowStart_, output, offset, length);
+            Array.Copy(window_, windowStart_, output, offset, length);
             windowStart_ += length;
 
             if (((windowStart_ - windowEnd_) & 1) != 0)
@@ -243,11 +243,6 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression.Streams
         /// <param name="count">number of bytes of input to add.</param>
         public void SetInput(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
             if (offset < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), "Cannot be negative");
@@ -286,7 +281,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression.Streams
 
         #region Instance Fields
 
-        private byte[]? window_;
+        private byte[] window_ = [];
         private int windowStart_;
         private int windowEnd_;
 

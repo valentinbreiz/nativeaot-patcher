@@ -115,7 +115,7 @@ public class PciDevice : Device
     // ECAM Base Address (discovered from ACPI MCFG table at runtime)
     private static ulong s_pciEcamBase;
 
-    public readonly PciBaseAddressBar[] BaseAddressBar;
+    public readonly PciBaseAddressBar[]? BaseAddressBar;
 
     public byte InterruptLine { get; private set; }
 
