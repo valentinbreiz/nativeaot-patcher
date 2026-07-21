@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Cosmos.Kernel.HAL.Devices.Graphic
+{
+    public enum SVGA3dDeclUsage
+    {
+        SVGA3D_DECLUSAGE_POSITION = 0,
+        SVGA3D_DECLUSAGE_BLENDWEIGHT,
+        SVGA3D_DECLUSAGE_BLENDINDICES,
+        SVGA3D_DECLUSAGE_NORMAL,
+        SVGA3D_DECLUSAGE_PSIZE,
+        SVGA3D_DECLUSAGE_TEXCOORD,
+        SVGA3D_DECLUSAGE_TANGENT,
+        SVGA3D_DECLUSAGE_BINORMAL,
+        SVGA3D_DECLUSAGE_TESSFACTOR,
+        SVGA3D_DECLUSAGE_POSITIONT,
+        SVGA3D_DECLUSAGE_COLOR,
+        SVGA3D_DECLUSAGE_FOG,
+        SVGA3D_DECLUSAGE_DEPTH,
+        SVGA3D_DECLUSAGE_SAMPLE,
+        SVGA3D_DECLUSAGE_MAX
+    }
+}
