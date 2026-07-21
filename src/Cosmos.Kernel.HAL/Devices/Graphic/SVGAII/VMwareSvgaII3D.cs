@@ -1,4 +1,6 @@
 ﻿using System;
+using Cosmos.Kernel.Boot.Limine;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
 
@@ -18,16 +20,28 @@ public unsafe class VMWareSVGAII3D
         }
 
         _device.EnableMemory(true);
-        uint basePort = _device.BaseAddressBar[0].BaseAddress;
+        _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
 
         WriteRegister(Register.ID, (uint)ID.V2);
         if (ReadRegister(Register.ID) != (uint)ID.V2)
         {
-            return;
+            throw new Exception("VMware SVGA II device did not accept the version 2 protocol");
         }
 
-        VideoMemory = new MemoryBlock(ReadRegister(Register.FrameBufferStart), ReadRegister(Register.VRamSize));
+        // FrameBufferStart is the physical VRAM BAR; Limine base revision >= 1
+        // has no lower-half identity map, so CPU access goes through the HHDM.
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        uint fbPhys = ReadRegister(Register.FrameBufferStart);
+        VideoMemory = new MemoryBlock(hhdmOffset + fbPhys, ReadRegister(Register.VRamSize));
         Capabilities = ReadRegister(Register.Capabilities);
+
+        Serial.WriteString("[SVGAII] Init: ports 0x");
+        Serial.WriteHex(_basePort);
+        Serial.WriteString(", fb 0x");
+        Serial.WriteHex(fbPhys);
+        Serial.WriteString(", caps 0x");
+        Serial.WriteHex(Capabilities);
+        Serial.WriteString("\n");
 
         InitializeFIFO();
     }
@@ -605,7 +619,9 @@ public unsafe class VMWareSVGAII3D
     /// </summary>
     public void InitializeFIFO()
     {
-        _fifoMemory = new MemoryBlock(ReadRegister(Register.MemStart), ReadRegister(Register.MemSize));
+        // MemStart is the physical FIFO BAR — same HHDM story as the VRAM BAR.
+        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+        _fifoMemory = new MemoryBlock(hhdmOffset + ReadRegister(Register.MemStart), ReadRegister(Register.MemSize));
         _fifoMemory[(uint)FIFO.Min] = (uint)Register.FifoNumRegisters * sizeof(uint);
         _fifoMemory[(uint)FIFO.Max] = _fifoMemory.Size;
         _fifoMemory[(uint)FIFO.NextCmd] = _fifoMemory[(uint)FIFO.Min];
@@ -639,7 +655,11 @@ public unsafe class VMWareSVGAII3D
         }
 
 
-        WriteRegister((Register)1, 1);
+        // No Register.Enable write here: the constructor runs InitializeFIFO
+        // before any mode is set, and enabling the device with Width/Height
+        // still unprogrammed wedges QEMU's display-refresh loop (main thread
+        // at 100% holding the BQL — guest, monitor and gdbstub all freeze).
+        // SetMode enables the device once the mode registers are valid.
         WriteRegister(Register.ConfigDone, 1);
     }
 
@@ -675,7 +695,12 @@ public unsafe class VMWareSVGAII3D
         Enable();
         InitializeFIFO();
 
-        FrameSize = ReadRegister(Register.FrameBufferSize);
+        // One frame, computed from the mode — NOT Register.FrameBufferSize.
+        // QEMU reports the whole VRAM there (16 MiB), and FrameSize doubles as
+        // the back-buffer offset: trusting the register sends every Clear/blit
+        // 16 MiB past the VRAM BAR, straight over the FIFO BAR and into
+        // unmapped space.
+        FrameSize = width * height * _depth;
         FrameOffset = ReadRegister(Register.FrameBufferOffset);
     }
 
@@ -686,8 +711,8 @@ public unsafe class VMWareSVGAII3D
     /// <param name="value">A value.</param>
     public void WriteRegister(Register register, uint value)
     {
-        _device.WriteRegister32((byte)IOPortOffset.Index, (uint)register);
-        _device.WriteRegister32((byte)IOPortOffset.Value, value);
+        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Index), (uint)register);
+        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Value), value);
     }
 
     /// <summary>
@@ -697,8 +722,8 @@ public unsafe class VMWareSVGAII3D
     /// <returns>uint value.</returns>
     public uint ReadRegister(Register register)
     {
-        _device.WriteRegister32((byte)IOPortOffset.Index, (uint)register);
-        return _device.ReadRegister32((byte)IOPortOffset.Value);
+        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Index), (uint)register);
+        return PlatformHAL.PortIO.ReadDWord((ushort)(_basePort + (byte)IOPortOffset.Value));
     }
 
     /// <summary>
@@ -1040,6 +1065,12 @@ public unsafe class VMWareSVGAII3D
     /// PCI _device.
     /// </summary>
     private readonly PciDevice _device;
+
+    /// <summary>
+    /// Base of the SVGA register I/O ports (BAR0): index at +0, value at +1.
+    /// Both are 32-bit ports despite the 1-byte spacing.
+    /// </summary>
+    private readonly ushort _basePort;
 
     /// <summary>
     /// Height.

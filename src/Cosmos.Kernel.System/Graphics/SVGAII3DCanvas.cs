@@ -114,7 +114,7 @@ public class SVGAII3DCanvas : Canvas
 
         for (int row = 0; row < height; row++)
         {
-            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width, width);
+            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width, width * _bytesPerPixel);
         }
     }
 
@@ -124,7 +124,7 @@ public class SVGAII3DCanvas : Canvas
 
         for (int row = 0; row < height; row++)
         {
-            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width + startIndex, width);
+            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width + startIndex, width * _bytesPerPixel);
         }
     }
 
@@ -271,7 +271,7 @@ public class SVGAII3DCanvas : Canvas
 
         for (int row = 0; row < height; row++)
         {
-            Driver.VideoMemory.Get(GetPointOffset(x, y + row) + frameSize, buffer, 0, width);
+            Driver.VideoMemory.Get(GetPointOffset(x, y + row) + frameSize, buffer, 0, width * _bytesPerPixel);
             buffer.CopyTo(all, width * row);
         }
 
@@ -341,14 +341,14 @@ public class SVGAII3DCanvas : Canvas
             for (int row = 0; row < maxHeight; row++)
             {
                 int sourceIndex = (sourceY + row) * width + sourceX;
-                Driver.VideoMemory.Copy(GetPointOffset(startX, startY + row) + frameSize, data, sourceIndex, maxWidth);
+                Driver.VideoMemory.Copy(GetPointOffset(startX, startY + row) + frameSize, data, sourceIndex, maxWidth * _bytesPerPixel);
             }
         }
         else
         {
             for (int row = 0; row < height; row++)
             {
-                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width);
+                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width * _bytesPerPixel);
             }
         }
     }
@@ -373,14 +373,14 @@ public class SVGAII3DCanvas : Canvas
             {
                 int destY = y + startY + row;
                 int destOffset = GetPointOffset(x + startX, destY) + frameSize;
-                Driver.VideoMemory.Copy(destOffset, data, (startY + row) * width + startX, sourceWidth);
+                Driver.VideoMemory.Copy(destOffset, data, (startY + row) * width + startX, sourceWidth * _bytesPerPixel);
             }
         }
         else
         {
             for (int row = 0; row < height; row++)
             {
-                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width);
+                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width * _bytesPerPixel);
             }
         }
     }
