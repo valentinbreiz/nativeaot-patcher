@@ -65,13 +65,6 @@ public class ICMPPacket : IPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="ICMPPacket"/> class.
     /// </summary>
-    internal ICMPPacket()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPPacket"/> class.
-    /// </summary>
     /// <param name="rawData">Raw data.</param>
     internal ICMPPacket(byte[] rawData)
         : base(rawData)
@@ -180,13 +173,6 @@ internal class ICMPEchoRequest : ICMPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="ICMPEchoRequest"/> class.
     /// </summary>
-    internal ICMPEchoRequest()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoRequest"/> class.
-    /// </summary>
     /// <param name="rawData">Raw data.</param>
     internal ICMPEchoRequest(byte[] rawData)
         : base(rawData)
@@ -249,13 +235,6 @@ internal class ICMPEchoReply : ICMPPacket
 {
     protected ushort icmpID;
     protected ushort icmpSequence;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoReply"/> class.
-    /// </summary>
-    internal ICMPEchoReply()
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ICMPEchoReply"/> class.

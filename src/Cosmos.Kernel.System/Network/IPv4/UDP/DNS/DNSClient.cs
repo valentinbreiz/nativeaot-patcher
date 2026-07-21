@@ -39,7 +39,7 @@ public class DnsClient : UdpClient
     /// <param name="url">The domain name string to query the DNS for.</param>
     public void SendAsk(string url)
     {
-        Address? source = destination is not null ? IPConfig.FindNetwork(destination): null;
+        Address? source = destination is not null ? IPConfig.FindNetwork(destination) : null;
         if (source == null)
         {
             throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");

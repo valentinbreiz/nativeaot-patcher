@@ -214,7 +214,7 @@ public static class KeyboardManager
     /// <summary>
     /// If available, reads the next key from the pending key-press buffer.
     /// </summary>
-    public static bool TryReadKey([NotNullWhen(true)]out KeyEvent? key)
+    public static bool TryReadKey([NotNullWhen(true)] out KeyEvent? key)
     {
         ThrowIfDisabled();
 

@@ -142,7 +142,7 @@ public static class IPAddressPlug
     }
 
     [PlugMember]
-    public static bool TryParse(string ipString,[NotNullWhen(true)]out IPAddress? address)
+    public static bool TryParse(string ipString, [NotNullWhen(true)] out IPAddress? address)
     {
         address = Parse(ipString);
         return address != null;

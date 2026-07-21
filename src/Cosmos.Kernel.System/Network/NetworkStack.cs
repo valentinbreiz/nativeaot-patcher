@@ -14,7 +14,7 @@ public static class NetworkStack
     /// <summary>
     /// Maps IP (Internet Protocol) addresses to network devices.
     /// </summary>
-    internal static  Dictionary<uint, INetworkDevice> AddressMap { get; private set; } = new();
+    internal static Dictionary<uint, INetworkDevice> AddressMap { get; private set; } = new();
 
     /// <summary>
     /// Maps MAC addresses to network devices.

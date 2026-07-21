@@ -144,7 +144,8 @@ public class DHCPPacket : UDPPacket
             {
                 var option = new DHCPOption
                 {
-                    Type = RawData[282 + i], Data = new byte[RawData[282 + i + 1]]
+                    Type = RawData[282 + i],
+                    Data = new byte[RawData[282 + i + 1]]
                 };
                 for (int j = 0; j < option.Length; j++)
                 {
