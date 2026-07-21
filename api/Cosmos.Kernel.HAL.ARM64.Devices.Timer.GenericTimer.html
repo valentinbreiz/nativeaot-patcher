@@ -132,7 +132,19 @@ Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/GenericTimerNative
     <dt>Inherited Members</dt>
     <dd>
     <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_NanosecondsPerMillisecond">TimerDevice.NanosecondsPerMillisecond</a>
+    </div>
+    <div>
       <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_OnTick">TimerDevice.OnTick</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_">TimerDevice.RegisterTimer(SoftwareTimer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_">TimerDevice.UnregisterTimer(SoftwareTimer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_System_UInt64_">TimerDevice.HandleTick(ulong)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -609,7 +621,8 @@ Should be called after GIC is initialized.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds.</p>
+  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds by waiting for a
+one-shot software timer to fire. Requires the device tick to be running.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 

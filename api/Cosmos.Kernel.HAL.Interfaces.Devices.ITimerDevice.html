@@ -216,6 +216,39 @@ Interface ITimerDevice
 
 
 
+  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_RegisterTimer_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  RegisterTimer(SoftwareTimer)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers a software timer driven by this device's periodic tick.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void RegisterTimer(SoftwareTimer timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to register.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_SetFrequency_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.SetFrequency*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_SetFrequency_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.SetFrequency(System.UInt32)">
@@ -235,6 +268,39 @@ Interface ITimerDevice
   <dl class="parameters">
     <dt><code>frequency</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd><p>Frequency in Hz.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_UnregisterTimer_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  UnregisterTimer(SoftwareTimer)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Unregisters a previously registered software timer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void UnregisterTimer(SoftwareTimer timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to unregister.</p>
 </dd>
   </dl>
 

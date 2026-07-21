@@ -1748,6 +1748,48 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.yml\" sourcestartlinenumber=\"1\">A pending alarm entry.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.yml\" sourcestartlinenumber=\"1\">The method invoked when an alarm fires.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Scheduler.AlarmSystem",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.yml\" sourcestartlinenumber=\"1\">Runs callbacks after a delay on a dedicated kernel thread. Unlike\ninterrupt-context software timers (TimerManager.Schedule), alarm callbacks\nrun in thread context and may block, allocate, and use scheduler\nprimitives. Requires the scheduler; resolution is bounded by the scheduler\ntick.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.yml",
       "output": {
         ".html": {
@@ -3704,7 +3746,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Timer.TimerDevice",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all timer devices.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.yml\" sourcestartlinenumber=\"1\">Abstract base class for all timer devices. Maintains the software timer\nregistry that is advanced on each hardware tick of the device.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -4027,6 +4069,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.yml\" sourcestartlinenumber=\"1\">Delegate for handling packet received events.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.yml\" sourcestartlinenumber=\"1\">A software timer that invokes a callback after a delay, driven by the\nperiodic tick of the timer device it is registered with. Callbacks run\nin interrupt context and must not block.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -4744,34 +4800,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.yml\" sourcestartlinenumber=\"1\">Represents the trigger handler for a <xref href=\"Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.yml\" sourcestartlinenumber=\"1\">Represents a virtual timer that can be handled using the\nProgrammable Interrupt Timer (PIT).</p>\n"
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.yml",
       "output": {
         ".html": {
@@ -4782,7 +4810,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.X64.Devices.Timer.PIT",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.yml\" sourcestartlinenumber=\"1\">Handles the Programmable Interval Timer (PIT).</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.yml\" sourcestartlinenumber=\"1\">Handles the Programmable Interval Timer (PIT). Software timers registered\nvia <xref href=\"Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)\" data-throw-if-not-resolved=\"false\"></xref> are driven by the channel 0 IRQ.</p>\n"
     },
     {
       "type": "ManagedReference",

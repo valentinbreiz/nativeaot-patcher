@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class TimerDevice | Cosmos Gen 3 ">
       
-      <meta name="description" content="Abstract base class for all timer devices.">
+      <meta name="description" content="Abstract base class for all timer devices. Maintains the software timer registry that is advanced on each hardware tick of the device.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,8 @@ Class TimerDevice
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Abstract base class for all timer devices.</p>
+  <div class="markdown summary"><p>Abstract base class for all timer devices. Maintains the software timer
+registry that is advanced on each hardware tick of the device.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -157,6 +158,41 @@ Class TimerDevice
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
     </div>
   </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_NanosecondsPerMillisecond" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.NanosecondsPerMillisecond">
+  NanosecondsPerMillisecond
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Nanoseconds in one millisecond.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected const ulong NanosecondsPerMillisecond = 1000000</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
 
 
 
@@ -235,6 +271,40 @@ Class TimerDevice
 </h2>
 
 
+  <a id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_System_UInt64_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick(System.UInt64)">
+  HandleTick(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Advances all registered software timers and raises <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_OnTick">OnTick</a>.
+Called by the driver's tick interrupt handler with the elapsed tick duration.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void HandleTick(ulong elapsedNs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>elapsedNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Nanoseconds elapsed since the previous tick.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Initialize_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Initialize*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Initialize" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Initialize">
@@ -250,6 +320,40 @@ Class TimerDevice
     <pre><code class="lang-csharp hljs">public abstract void Initialize()</code></pre>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  RegisterTimer(SoftwareTimer)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Registers a software timer driven by this device's periodic tick.
+The timer's callback runs in interrupt context and must not block.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void RegisterTimer(SoftwareTimer timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to register.</p>
+</dd>
+  </dl>
 
 
 
@@ -295,6 +399,39 @@ Class TimerDevice
 
 
 
+  <a id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  UnregisterTimer(SoftwareTimer)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Unregisters a previously registered software timer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void UnregisterTimer(SoftwareTimer timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to unregister.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Wait_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Wait*"></a>
 
   <h3 id="Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Wait_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Wait(System.UInt32)">
@@ -302,12 +439,13 @@ Class TimerDevice
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds.</p>
+  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds by waiting for a
+one-shot software timer to fire. Requires the device tick to be running.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public abstract void Wait(uint ms)</code></pre>
+    <pre><code class="lang-csharp hljs">public virtual void Wait(uint ms)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>

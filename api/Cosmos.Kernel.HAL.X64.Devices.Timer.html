@@ -96,21 +96,8 @@ Classes
 </h3>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html">PIT</a></dt>
-      <dd><p>Handles the Programmable Interval Timer (PIT).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html">PIT.PITTimer</a></dt>
-      <dd><p>Represents a virtual timer that can be handled using the
-Programmable Interrupt Timer (PIT).</p>
-</dd>
-    </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.html">PIT.PITTimer.OnTrigger</a></dt>
-      <dd><p>Represents the trigger handler for a <a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html">PIT.PITTimer</a>.</p>
+      <dd><p>Handles the Programmable Interval Timer (PIT). Software timers registered
+via <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_">RegisterTimer(SoftwareTimer)</a> are driven by the channel 0 IRQ.</p>
 </dd>
     </dl>
 

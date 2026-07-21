@@ -7393,6 +7393,118 @@ references:
   commentId: N:Cosmos.Kernel.Core.Scheduler
   fullName: Cosmos.Kernel.Core.Scheduler
   nameWithType: Cosmos.Kernel.Core.Scheduler
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem
+  name: AlarmSystem
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.AlarmSystem
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem
+  nameWithType: AlarmSystem
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add(System.TimeSpan,Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  name: Add(TimeSpan, AlarmDelegate)
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Add_System_TimeSpan_Cosmos_Kernel_Core_Scheduler_AlarmSystem_AlarmDelegate_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add(System.TimeSpan,Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add(System.TimeSpan, Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  nameWithType: AlarmSystem.Add(TimeSpan, AlarmSystem.AlarmDelegate)
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add*
+  name: Add
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Add_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Add
+  nameWithType: AlarmSystem.Add
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring(System.TimeSpan,Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  name: AddRecurring(TimeSpan, AlarmDelegate)
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_AddRecurring_System_TimeSpan_Cosmos_Kernel_Core_Scheduler_AlarmSystem_AlarmDelegate_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring(System.TimeSpan,Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring(System.TimeSpan, Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate)
+  nameWithType: AlarmSystem.AddRecurring(TimeSpan, AlarmSystem.AlarmDelegate)
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring*
+  name: AddRecurring
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_AddRecurring_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AddRecurring
+  nameWithType: AlarmSystem.AddRecurring
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm
+  name: AlarmSystem.Alarm
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm
+  nameWithType: AlarmSystem.Alarm
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate
+  name: Delegate
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Delegate
+  commentId: P:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate
+  nameWithType: AlarmSystem.Alarm.Delegate
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate*
+  name: Delegate
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Delegate_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Delegate
+  nameWithType: AlarmSystem.Alarm.Delegate
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due
+  name: Due
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Due
+  commentId: P:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due
+  nameWithType: AlarmSystem.Alarm.Due
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due*
+  name: Due
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Due_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Due
+  nameWithType: AlarmSystem.Alarm.Due
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id
+  name: Id
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Id
+  commentId: P:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id
+  nameWithType: AlarmSystem.Alarm.Id
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id*
+  name: Id
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_Id_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.Id
+  nameWithType: AlarmSystem.Alarm.Id
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks
+  name: PeriodTicks
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_PeriodTicks
+  commentId: P:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks
+  nameWithType: AlarmSystem.Alarm.PeriodTicks
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks*
+  name: PeriodTicks
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Alarm_PeriodTicks_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.PeriodTicks
+  nameWithType: AlarmSystem.Alarm.PeriodTicks
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate
+  name: AlarmSystem.AlarmDelegate
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.html
+  commentId: T:Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate
+  nameWithType: AlarmSystem.AlarmDelegate
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove(System.UInt64)
+  name: Remove(ulong)
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Remove_System_UInt64_
+  commentId: M:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove(System.UInt64)
+  name.vb: Remove(ULong)
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove(ulong)
+  fullName.vb: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove(ULong)
+  nameWithType: AlarmSystem.Remove(ulong)
+  nameWithType.vb: AlarmSystem.Remove(ULong)
+- uid: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove*
+  name: Remove
+  href: api/Cosmos.Kernel.Core.Scheduler.AlarmSystem.html#Cosmos_Kernel_Core_Scheduler_AlarmSystem_Remove_
+  commentId: Overload:Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Scheduler.AlarmSystem.Remove
+  nameWithType: AlarmSystem.Remove
 - uid: Cosmos.Kernel.Core.Scheduler.ConditionVariable
   name: ConditionVariable
   href: api/Cosmos.Kernel.Core.Scheduler.ConditionVariable.html
@@ -19400,6 +19512,22 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Frequency
   nameWithType: TimerDevice.Frequency
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick(System.UInt64)
+  name: HandleTick(ulong)
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick(System.UInt64)
+  name.vb: HandleTick(ULong)
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick(ULong)
+  nameWithType: TimerDevice.HandleTick(ulong)
+  nameWithType.vb: TimerDevice.HandleTick(ULong)
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick*
+  name: HandleTick
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.HandleTick
+  nameWithType: TimerDevice.HandleTick
 - uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Initialize
   name: Initialize()
   href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Initialize
@@ -19413,6 +19541,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Initialize
   nameWithType: TimerDevice.Initialize
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.NanosecondsPerMillisecond
+  name: NanosecondsPerMillisecond
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_NanosecondsPerMillisecond
+  commentId: F:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.NanosecondsPerMillisecond
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.NanosecondsPerMillisecond
+  nameWithType: TimerDevice.NanosecondsPerMillisecond
 - uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.OnTick
   name: OnTick
   href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_OnTick
@@ -19426,6 +19560,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.OnTick
   nameWithType: TimerDevice.OnTick
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: RegisterTimer(SoftwareTimer)
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: TimerDevice.RegisterTimer(SoftwareTimer)
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer*
+  name: RegisterTimer
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.RegisterTimer
+  nameWithType: TimerDevice.RegisterTimer
 - uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.SetFrequency(System.UInt32)
   name: SetFrequency(uint)
   href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_SetFrequency_System_UInt32_
@@ -19442,6 +19589,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.SetFrequency
   nameWithType: TimerDevice.SetFrequency
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: UnregisterTimer(SoftwareTimer)
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: TimerDevice.UnregisterTimer(SoftwareTimer)
+- uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer*
+  name: UnregisterTimer
+  href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.UnregisterTimer
+  nameWithType: TimerDevice.UnregisterTimer
 - uid: Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.Wait(System.UInt32)
   name: Wait(uint)
   href: api/Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Wait_System_UInt32_
@@ -21557,6 +21717,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.OnTick
   nameWithType: ITimerDevice.OnTick
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: RegisterTimer(SoftwareTimer)
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: ITimerDevice.RegisterTimer(SoftwareTimer)
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer*
+  name: RegisterTimer
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_RegisterTimer_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer
+  nameWithType: ITimerDevice.RegisterTimer
 - uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.SetFrequency(System.UInt32)
   name: SetFrequency(uint)
   href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_SetFrequency_System_UInt32_
@@ -21573,6 +21746,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.SetFrequency
   nameWithType: ITimerDevice.SetFrequency
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: UnregisterTimer(SoftwareTimer)
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: ITimerDevice.UnregisterTimer(SoftwareTimer)
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer*
+  name: UnregisterTimer
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_UnregisterTimer_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer
+  nameWithType: ITimerDevice.UnregisterTimer
 - uid: Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.Wait(System.UInt32)
   name: Wait(uint)
   href: api/Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_ITimerDevice_Wait_System_UInt32_
@@ -21601,6 +21787,115 @@ references:
   commentId: T:Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler
   fullName: Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler
   nameWithType: PacketReceivedHandler
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
+  name: SoftwareTimer
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html
+  commentId: T:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
+  nameWithType: SoftwareTimer
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor(System.Action,System.UInt64,System.Boolean)
+  name: SoftwareTimer(Action, ulong, bool)
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer__ctor_System_Action_System_UInt64_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor(System.Action,System.UInt64,System.Boolean)
+  name.vb: New(Action, ULong, Boolean)
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SoftwareTimer(System.Action, ulong, bool)
+  fullName.vb: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.New(System.Action, ULong, Boolean)
+  nameWithType: SoftwareTimer.SoftwareTimer(Action, ulong, bool)
+  nameWithType.vb: SoftwareTimer.New(Action, ULong, Boolean)
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor*
+  name: SoftwareTimer
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer__ctor_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SoftwareTimer
+  fullName.vb: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.New
+  nameWithType: SoftwareTimer.SoftwareTimer
+  nameWithType.vb: SoftwareTimer.New
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke
+  name: Invoke()
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Invoke
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke()
+  nameWithType: SoftwareTimer.Invoke()
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke*
+  name: Invoke
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Invoke_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke
+  nameWithType: SoftwareTimer.Invoke
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive
+  name: IsActive
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_IsActive
+  commentId: P:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive
+  nameWithType: SoftwareTimer.IsActive
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive*
+  name: IsActive
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_IsActive_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive
+  nameWithType: SoftwareTimer.IsActive
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring
+  name: Recurring
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Recurring
+  commentId: P:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring
+  nameWithType: SoftwareTimer.Recurring
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring*
+  name: Recurring
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Recurring_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring
+  nameWithType: SoftwareTimer.Recurring
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(System.Boolean)
+  name: SetActive(bool)
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_SetActive_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(System.Boolean)
+  name.vb: SetActive(Boolean)
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(bool)
+  fullName.vb: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(Boolean)
+  nameWithType: SoftwareTimer.SetActive(bool)
+  nameWithType.vb: SoftwareTimer.SetActive(Boolean)
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive*
+  name: SetActive
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_SetActive_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive
+  nameWithType: SoftwareTimer.SetActive
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(System.UInt64)
+  name: Tick(ulong)
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Tick_System_UInt64_
+  commentId: M:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(System.UInt64)
+  name.vb: Tick(ULong)
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(ulong)
+  fullName.vb: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(ULong)
+  nameWithType: SoftwareTimer.Tick(ulong)
+  nameWithType.vb: SoftwareTimer.Tick(ULong)
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick*
+  name: Tick
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Tick_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick
+  nameWithType: SoftwareTimer.Tick
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs
+  name: TimeoutNs
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_TimeoutNs
+  commentId: P:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs
+  nameWithType: SoftwareTimer.TimeoutNs
+- uid: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs*
+  name: TimeoutNs
+  href: api/Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html#Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_TimeoutNs_
+  commentId: Overload:Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs
+  nameWithType: SoftwareTimer.TimeoutNs
 - uid: Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler
   name: TimerTickHandler
   href: api/Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.html
@@ -25970,124 +26265,6 @@ references:
   commentId: F:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITFrequency
   fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITFrequency
   nameWithType: PIT.PITFrequency
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer
-  name: PIT.PITTimer
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html
-  commentId: T:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer
-  nameWithType: PIT.PITTimer
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger,System.UInt64,System.Boolean)
-  name: PITTimer(OnTrigger, ulong, bool)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer__ctor_Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_OnTrigger_System_UInt64_System_Boolean_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger,System.UInt64,System.Boolean)
-  name.vb: New(OnTrigger, ULong, Boolean)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.PITTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger, ulong, bool)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.New(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger, ULong, Boolean)
-  nameWithType: PIT.PITTimer.PITTimer(PIT.PITTimer.OnTrigger, ulong, bool)
-  nameWithType.vb: PIT.PITTimer.New(PIT.PITTimer.OnTrigger, ULong, Boolean)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger,System.UInt64,System.UInt64)
-  name: PITTimer(OnTrigger, ulong, ulong)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer__ctor_Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_OnTrigger_System_UInt64_System_UInt64_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger,System.UInt64,System.UInt64)
-  name.vb: New(OnTrigger, ULong, ULong)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.PITTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger, ulong, ulong)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.New(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger, ULong, ULong)
-  nameWithType: PIT.PITTimer.PITTimer(PIT.PITTimer.OnTrigger, ulong, ulong)
-  nameWithType.vb: PIT.PITTimer.New(PIT.PITTimer.OnTrigger, ULong, ULong)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(System.Action,System.UInt64,System.Boolean)
-  name: PITTimer(Action, ulong, bool)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer__ctor_System_Action_System_UInt64_System_Boolean_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(System.Action,System.UInt64,System.Boolean)
-  name.vb: New(Action, ULong, Boolean)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.PITTimer(System.Action, ulong, bool)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.New(System.Action, ULong, Boolean)
-  nameWithType: PIT.PITTimer.PITTimer(Action, ulong, bool)
-  nameWithType.vb: PIT.PITTimer.New(Action, ULong, Boolean)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(System.Action,System.UInt64,System.UInt64)
-  name: PITTimer(Action, ulong, ulong)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer__ctor_System_Action_System_UInt64_System_UInt64_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor(System.Action,System.UInt64,System.UInt64)
-  name.vb: New(Action, ULong, ULong)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.PITTimer(System.Action, ulong, ulong)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.New(System.Action, ULong, ULong)
-  nameWithType: PIT.PITTimer.PITTimer(Action, ulong, ulong)
-  nameWithType.vb: PIT.PITTimer.New(Action, ULong, ULong)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor*
-  name: PITTimer
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer__ctor_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.#ctor
-  isSpec: "True"
-  name.vb: New
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.PITTimer
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.New
-  nameWithType: PIT.PITTimer.PITTimer
-  nameWithType.vb: PIT.PITTimer.New
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose
-  name: Dispose()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_Dispose
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose()
-  nameWithType: PIT.PITTimer.Dispose()
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose*
-  name: Dispose
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_Dispose_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Dispose
-  nameWithType: PIT.PITTimer.Dispose
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Finalize
-  name: ~PITTimer()
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_Finalize
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Finalize
-  name.vb: ''
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.~PITTimer()
-  fullName.vb: ''
-  nameWithType: PIT.PITTimer.~PITTimer()
-  nameWithType.vb: ''
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Finalize*
-  name: ~PITTimer
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_Finalize_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Finalize
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.~PITTimer
-  nameWithType: PIT.PITTimer.~PITTimer
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.HandleTrigger
-  name: HandleTrigger
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_HandleTrigger
-  commentId: F:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.HandleTrigger
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.HandleTrigger
-  nameWithType: PIT.PITTimer.HandleTrigger
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.NanosecondsTimeout
-  name: NanosecondsTimeout
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_NanosecondsTimeout
-  commentId: F:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.NanosecondsTimeout
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.NanosecondsTimeout
-  nameWithType: PIT.PITTimer.NanosecondsTimeout
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger
-  name: PIT.PITTimer.OnTrigger
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger.html
-  commentId: T:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.OnTrigger
-  nameWithType: PIT.PITTimer.OnTrigger
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Recurring
-  name: Recurring
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_Recurring
-  commentId: F:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Recurring
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.Recurring
-  nameWithType: PIT.PITTimer.Recurring
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID
-  name: TimerID
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_TimerID
-  commentId: P:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID
-  nameWithType: PIT.PITTimer.TimerID
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID*
-  name: TimerID
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_TimerID_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.TimerID
-  nameWithType: PIT.PITTimer.TimerID
 - uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterIRQHandler
   name: RegisterIRQHandler()
   href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterIRQHandler
@@ -26101,12 +26278,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterIRQHandler
   nameWithType: PIT.RegisterIRQHandler
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer)
-  name: RegisterTimer(PITTimer)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer)
-  nameWithType: PIT.RegisterTimer(PIT.PITTimer)
+- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: RegisterTimer(SoftwareTimer)
+  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: PIT.RegisterTimer(SoftwareTimer)
 - uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer*
   name: RegisterTimer
   href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_
@@ -26214,54 +26391,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.T2Frequency
   nameWithType: PIT.T2Frequency
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer(System.Int32)
-  name: UnregisterTimer(int)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_UnregisterTimer_System_Int32_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer(System.Int32)
-  name.vb: UnregisterTimer(Integer)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer(int)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer(Integer)
-  nameWithType: PIT.UnregisterTimer(int)
-  nameWithType.vb: PIT.UnregisterTimer(Integer)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer*
-  name: UnregisterTimer
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_UnregisterTimer_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer
-  nameWithType: PIT.UnregisterTimer
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait(System.UInt32)
-  name: Wait(uint)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_Wait_System_UInt32_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait(System.UInt32)
-  name.vb: Wait(UInteger)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait(uint)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait(UInteger)
-  nameWithType: PIT.Wait(uint)
-  nameWithType.vb: PIT.Wait(UInteger)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait*
-  name: Wait
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_Wait_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait
-  nameWithType: PIT.Wait
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS(System.UInt64)
-  name: WaitNS(ulong)
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_WaitNS_System_UInt64_
-  commentId: M:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS(System.UInt64)
-  name.vb: WaitNS(ULong)
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS(ulong)
-  fullName.vb: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS(ULong)
-  nameWithType: PIT.WaitNS(ulong)
-  nameWithType.vb: PIT.WaitNS(ULong)
-- uid: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS*
-  name: WaitNS
-  href: api/Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html#Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_WaitNS_
-  commentId: Overload:Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS
-  isSpec: "True"
-  fullName: Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS
-  nameWithType: PIT.WaitNS
 - uid: Cosmos.Kernel.HAL.X64.X64PlatformInitializer
   name: X64PlatformInitializer
   href: api/Cosmos.Kernel.HAL.X64.X64PlatformInitializer.html
@@ -36875,6 +37004,22 @@ references:
   commentId: T:Cosmos.Kernel.System.Timer.TimerManager
   fullName: Cosmos.Kernel.System.Timer.TimerManager
   nameWithType: TimerManager
+- uid: Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name: Cancel(SoftwareTimer?)
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Cancel_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_
+  commentId: M:Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  name.vb: Cancel(SoftwareTimer)
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?)
+  fullName.vb: Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)
+  nameWithType: TimerManager.Cancel(SoftwareTimer?)
+  nameWithType.vb: TimerManager.Cancel(SoftwareTimer)
+- uid: Cosmos.Kernel.System.Timer.TimerManager.Cancel*
+  name: Cancel
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Cancel_
+  commentId: Overload:Cosmos.Kernel.System.Timer.TimerManager.Cancel
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.Cancel
+  nameWithType: TimerManager.Cancel
 - uid: Cosmos.Kernel.System.Timer.TimerManager.Frequency
   name: Frequency
   href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Frequency
@@ -36927,6 +37072,38 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Timer.TimerManager.RegisterTimer
   nameWithType: TimerManager.RegisterTimer
+- uid: Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action,System.UInt32)
+  name: Schedule(Action, uint)
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_UInt32_
+  commentId: M:Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action,System.UInt32)
+  name.vb: Schedule(Action, UInteger)
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action, uint)
+  fullName.vb: Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action, UInteger)
+  nameWithType: TimerManager.Schedule(Action, uint)
+  nameWithType.vb: TimerManager.Schedule(Action, UInteger)
+- uid: Cosmos.Kernel.System.Timer.TimerManager.Schedule*
+  name: Schedule
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_
+  commentId: Overload:Cosmos.Kernel.System.Timer.TimerManager.Schedule
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.Schedule
+  nameWithType: TimerManager.Schedule
+- uid: Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action,System.UInt32)
+  name: ScheduleRecurring(Action, uint)
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_System_Action_System_UInt32_
+  commentId: M:Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action,System.UInt32)
+  name.vb: ScheduleRecurring(Action, UInteger)
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action, uint)
+  fullName.vb: Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action, UInteger)
+  nameWithType: TimerManager.ScheduleRecurring(Action, uint)
+  nameWithType.vb: TimerManager.ScheduleRecurring(Action, UInteger)
+- uid: Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring*
+  name: ScheduleRecurring
+  href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_
+  commentId: Overload:Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring
+  nameWithType: TimerManager.ScheduleRecurring
 - uid: Cosmos.Kernel.System.Timer.TimerManager.SetFrequency(System.UInt32)
   name: SetFrequency(uint)
   href: api/Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_SetFrequency_System_UInt32_

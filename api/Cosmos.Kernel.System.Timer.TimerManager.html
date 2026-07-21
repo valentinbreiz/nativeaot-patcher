@@ -253,6 +253,39 @@ Class TimerManager
 </h2>
 
 
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Cancel_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Cancel*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Cancel_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  Cancel(SoftwareTimer?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Cancels a timer returned by <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_UInt32_">Schedule(Action, uint)</a> or <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_System_Action_System_UInt32_">ScheduleRecurring(Action, uint)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Cancel(SoftwareTimer? timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to cancel.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_System_Timer_TimerManager_Initialize_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Initialize*"></a>
 
   <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Initialize" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Initialize">
@@ -301,6 +334,94 @@ Class TimerManager
     <dd></dd>
   </dl>
 
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Schedule_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Schedule*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_UInt32_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action,System.UInt32)">
+  Schedule(Action, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Schedules a callback to run once after the specified delay. The callback
+runs in interrupt context and must not block; use
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.html">AlarmSystem</a> for callbacks that need thread context.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static SoftwareTimer? Schedule(Action callback, uint delayMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>callback</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd><p>Method to invoke when the delay expires.</p>
+</dd>
+    <dt><code>delayMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Delay in milliseconds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>The scheduled timer, or null if no timer device is registered.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_System_Action_System_UInt32_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action,System.UInt32)">
+  ScheduleRecurring(Action, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Schedules a callback to run repeatedly with the specified period. The
+callback runs in interrupt context and must not block; use
+AlarmSystem for callbacks that need thread context.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static SoftwareTimer? ScheduleRecurring(Action callback, uint periodMs)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>callback</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd><p>Method to invoke each period.</p>
+</dd>
+    <dt><code>periodMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Period in milliseconds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>The scheduled timer, or null if no timer device is registered.</p>
+</dd>
+  </dl>
 
 
 

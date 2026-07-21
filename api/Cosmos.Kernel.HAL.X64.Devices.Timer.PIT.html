@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class PIT | Cosmos Gen 3 ">
       
-      <meta name="description" content="Handles the Programmable Interval Timer (PIT).">
+      <meta name="description" content="Handles the Programmable Interval Timer (PIT). Software timers registered via  are driven by the channel 0 IRQ.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,8 @@ Class PIT
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.X64.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Handles the Programmable Interval Timer (PIT).</p>
+  <div class="markdown summary"><p>Handles the Programmable Interval Timer (PIT). Software timers registered
+via <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_">RegisterTimer(SoftwareTimer)</a> are driven by the channel 0 IRQ.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -130,7 +131,19 @@ Class PIT
     <dt>Inherited Members</dt>
     <dd>
     <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_NanosecondsPerMillisecond">TimerDevice.NanosecondsPerMillisecond</a>
+    </div>
+    <div>
       <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_OnTick">TimerDevice.OnTick</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_UnregisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_">TimerDevice.UnregisterTimer(SoftwareTimer)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_HandleTick_System_UInt64_">TimerDevice.HandleTick(ulong)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Timer.TimerDevice.html#Cosmos_Kernel_HAL_Devices_Timer_TimerDevice_Wait_System_UInt32_">TimerDevice.Wait(uint)</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
@@ -723,32 +736,26 @@ Should be called after interrupt system is ready.</p>
 
   <a id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_PITTimer_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer)">
-  RegisterTimer(PITTimer)
+  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_RegisterTimer_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  RegisterTimer(SoftwareTimer)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Registers a timer to this <a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html">PIT</a> object.</p>
+  <div class="markdown level1 summary"><p>Registers a software timer and reprograms channel 0 to ensure the tick is running.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public int RegisterTimer(PIT.PITTimer timer)</code></pre>
+    <pre><code class="lang-csharp hljs">public override void RegisterTimer(SoftwareTimer timer)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html">PIT</a>.<a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.PITTimer.html">PITTimer</a></dt>
-    <dd><p>The target timer.</p>
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to register.</p>
 </dd>
   </dl>
 
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The newly assigned ID to the timer.</p>
-</dd>
-  </dl>
 
 
 
@@ -779,106 +786,6 @@ Should be called after interrupt system is ready.</p>
   <dl class="parameters">
     <dt><code>frequency</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
     <dd><p>Frequency in Hz.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_UnregisterTimer_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_UnregisterTimer_System_Int32_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.UnregisterTimer(System.Int32)">
-  UnregisterTimer(int)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Unregisters a timer that has been previously registered to this
-<a class="xref" href="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.html">PIT</a> object.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void UnregisterTimer(int timerId)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>timerId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The ID of the timer to unregister.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_Wait_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_Wait_System_UInt32_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.Wait(System.UInt32)">
-  Wait(uint)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Halts the CPU for the specified amount of milliseconds.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Wait(uint timeoutMs)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd><p>The amount of milliseconds to halt the CPU for.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_WaitNS_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_X64_Devices_Timer_PIT_WaitNS_System_UInt64_" data-uid="Cosmos.Kernel.HAL.X64.Devices.Timer.PIT.WaitNS(System.UInt64)">
-  WaitNS(ulong)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Halts the CPU for the specified amount of nanoseconds.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void WaitNS(ulong timeoutNs)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>timeoutNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd><p>The amount of nanoseconds to halt the CPU for.</p>
 </dd>
   </dl>
 

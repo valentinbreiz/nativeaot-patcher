@@ -724,6 +724,42 @@ public int Priority
     set =&gt; field = value &gt;= 0 ? value : throw new ArgumentOutOfRangeException();
 }
 </code></pre>
+<h3 id="nullable-reference-types">Nullable Reference Types</h3>
+<p>Nullable reference types are enabled solution-wide (<code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in <code>Directory.Build.props</code>). New and modified code must not introduce nullable warnings — annotate honestly instead of silencing:</p>
+<pre><code class="lang-csharp">// Declare what can actually be null — callers are forced to handle it
+public static IScheduler? Current =&gt; _currentScheduler;
+public static PerCpuState? GetCpuState(uint cpuId) =&gt; _cpuStates?[cpuId];
+
+// Late-initialized manager state: guard with a [MemberNotNull] helper.
+// One call at the top of an entry point proves the field non-null for the
+// rest of the method — no ! and no per-line checks needed.
+[MemberNotNull(nameof(_cpuStates))]
+private static void ThrowIfCpuStateNotInitialized()
+{
+    if (_cpuStates is null)
+    {
+        throw new InvalidOperationException($&quot;{nameof(SchedulerManager)} not initialized&quot;);
+    }
+}
+
+public static void CreateThread(uint cpuId, Thread thread)
+{
+    ThrowIfCpuStateNotInitialized();
+
+    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
+    // ...
+}
+
+// Prefer a sentinel over a nullable field when null and empty mean the same thing
+private byte[] _window = [];                 // not: private byte[]? _window;
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>A member that can return <code>null</code> is declared with <code>?</code> — never hide it behind <code>!</code> to preserve an old signature.</li>
+<li>Managers with deferred initialization expose <code>ThrowIf*NotInitialized()</code> guards annotated with <code>[MemberNotNull(...)]</code> and call them at the top of public entry points (see <a href="#4-class--type-design">Managers</a>).</li>
+<li>Do not add runtime null checks for values the annotations already guarantee: no <code>if (buffer == null) throw</code> on a non-nullable parameter, no <code>?? &quot;fallback&quot;</code> on a non-nullable return.</li>
+<li>The null-forgiving operator <code>!</code> is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is <code>true</code>). If the invariant can be expressed with <code>[MemberNotNull]</code> or <code>[NotNullWhen]</code>, use the attribute instead.</li>
+</ul>
 <h3 id="avoid-1">Avoid</h3>
 <pre><code class="lang-csharp">// Don't use var when type isn't obvious
 var x = GetValue();           // Bad: what type is x?

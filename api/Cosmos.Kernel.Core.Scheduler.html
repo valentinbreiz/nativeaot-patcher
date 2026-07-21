@@ -102,6 +102,15 @@ Namespaces
 Classes
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.html">AlarmSystem</a></dt>
+      <dd><p>Runs callbacks after a delay on a dedicated kernel thread. Unlike
+interrupt-context software timers (TimerManager.Schedule), alarm callbacks
+run in thread context and may block, allocate, and use scheduler
+primitives. Requires the scheduler; resolution is bounded by the scheduler
+tick.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ConditionVariable.html">ConditionVariable</a></dt>
       <dd><p>A condition variable primitive for coordinating scheduler threads around state changes.</p>
 </dd>
@@ -163,6 +172,11 @@ waits are consumed one per subsequent <a class="xref" href="Cosmos.Kernel.Core.S
 Structs
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html">AlarmSystem.Alarm</a></dt>
+      <dd><p>A pending alarm entry.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IrqLockScope.html">IrqLockScope</a></dt>
       <dd><p>RAII scope returned by <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>. Disables
 interrupts and acquires the lock on creation; on dispose, releases the
@@ -209,6 +223,14 @@ Enums
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ThreadState.html">ThreadState</a></dt>
       <dd><p>Thread execution state.</p>
+</dd>
+    </dl>
+    <h3 id="delegates">
+Delegates
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.html">AlarmSystem.AlarmDelegate</a></dt>
+      <dd><p>The method invoked when an alarm fires.</p>
 </dd>
     </dl>
 
