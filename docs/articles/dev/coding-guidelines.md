@@ -647,6 +647,46 @@ public int Priority
 }
 ```
 
+### Nullable Reference Types
+
+Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>` in `Directory.Build.props`). New and modified code must not introduce nullable warnings — annotate honestly instead of silencing:
+
+```csharp
+// Declare what can actually be null — callers are forced to handle it
+public static IScheduler? Current => _currentScheduler;
+public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
+
+// Late-initialized manager state: guard with a [MemberNotNull] helper.
+// One call at the top of an entry point proves the field non-null for the
+// rest of the method — no ! and no per-line checks needed.
+[MemberNotNull(nameof(_cpuStates))]
+private static void ThrowIfCpuStateNotInitialized()
+{
+    if (_cpuStates is null)
+    {
+        throw new InvalidOperationException($"{nameof(SchedulerManager)} not initialized");
+    }
+}
+
+public static void CreateThread(uint cpuId, Thread thread)
+{
+    ThrowIfCpuStateNotInitialized();
+
+    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
+    // ...
+}
+
+// Prefer a sentinel over a nullable field when null and empty mean the same thing
+private byte[] _window = [];                 // not: private byte[]? _window;
+```
+
+**Rules:**
+
+- A member that can return `null` is declared with `?` — never hide it behind `!` to preserve an old signature.
+- Managers with deferred initialization expose `ThrowIf*NotInitialized()` guards annotated with `[MemberNotNull(...)]` and call them at the top of public entry points (see [Managers](#4-class--type-design)).
+- Do not add runtime null checks for values the annotations already guarantee: no `if (buffer == null) throw` on a non-nullable parameter, no `?? "fallback"` on a non-nullable return.
+- The null-forgiving operator `!` is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is `true`). If the invariant can be expressed with `[MemberNotNull]` or `[NotNullWhen]`, use the attribute instead.
+
 ### Avoid
 
 ```csharp
