@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class VMWareSVGAII3D | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class VMWareSVGAII3D | Cosmos Gen 3 ">
+      
+      <meta name="description" content="SVGA3D command layer on top of : surfaces, contexts, shaders, render state and DMA transfers, all submitted through the driver&#39;s command FIFO. Only meaningful when the device negotiated 3D support () — QEMU&#39;s vmware-svga exposes no 3D capability, so this layer is only exercised on real VMware.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D" class="text-break">
+Class VMWareSVGAII3D  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.html">Devices</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.html">Graphic</a>.<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.html">SVGAII</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>SVGA3D command layer on top of <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html">SvgaIIDriver</a>: surfaces,
+contexts, shaders, render state and DMA transfers, all submitted through
+the driver's command FIFO. Only meaningful when the device negotiated 3D
+support (<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SvgaIIDriver_Is3DEnabled">Is3DEnabled</a>) — QEMU's vmware-svga
+exposes no 3D capability, so this layer is only exercised on real VMware.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class VMWareSVGAII3D</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">VMWareSVGAII3D</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D__ctor_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D__ctor_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SvgaIIDriver_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.#ctor(Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver)">
+  VMWareSVGAII3D(SvgaIIDriver)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VMWareSVGAII3D(SvgaIIDriver driver)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>driver</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html">SvgaIIDriver</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_HW3DVer_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.HW3DVer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_HW3DVer" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.HW3DVer">
+  HW3DVer
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint HW3DVer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Is3DEnabled_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Is3DEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Is3DEnabled" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Is3DEnabled">
+  Is3DEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Is3DEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Clear3D_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Clear3D*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Clear3D_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_ClearFlags_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRect_System_UInt32_System_Single_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Clear3D(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ClearFlags,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect,System.UInt32,System.Single,System.UInt32)">
+  Clear3D(uint, ClearFlags, SVGA3dRect, uint, float, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear3D(uint cid, ClearFlags flags, SVGA3dRect ClearRect, uint color = 0, float depth = 1, uint stencil = 0)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ClearFlags.html">ClearFlags</a></dt>
+    <dd></dd>
+    <dt><code>ClearRect</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect.html">SVGA3dRect</a></dt>
+    <dd></dd>
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>depth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+    <dt><code>stencil</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_CreateStaticArrayBuffer_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.CreateStaticArrayBuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_CreateStaticArrayBuffer__1___0___" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.CreateStaticArrayBuffer``1(``0[])">
+  CreateStaticArrayBuffer&lt;T&gt;(T[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint CreateStaticArrayBuffer&lt;T&gt;(T[] data) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>data</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineContext_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineContext*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineContext" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineContext">
+  DefineContext()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint DefineContext()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineShader_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineShader*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineShader_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dShaderType_System_Byte___" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineShader(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType,System.Byte[])">
+  DefineShader(uint, SVGA3dShaderType, byte[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint DefineShader(uint cid, SVGA3dShaderType type, byte[] bytecode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType.html">SVGA3dShaderType</a></dt>
+    <dd></dd>
+    <dt><code>bytecode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineSurface_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineSurface*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineSurface_System_UInt32_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dSurfaceFormat_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineSurface(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceFormat)">
+  DefineSurface(uint, uint, SVGA3dSurfaceFormat)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SVGA3dSurfaceImageId DefineSurface(uint width, uint height, SVGA3dSurfaceFormat format)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>format</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceFormat.html">SVGA3dSurfaceFormat</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineSurfaceFromImage_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineSurfaceFromImage*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DefineSurfaceFromImage_System_Int32___System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineSurfaceFromImage(System.Int32[],System.UInt32,System.UInt32)">
+  DefineSurfaceFromImage(int[], uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public SVGA3dSurfaceImageId DefineSurfaceFromImage(int[] image, uint width, uint height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DrawPrimitives_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DrawPrimitives*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DrawPrimitives_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dVertexDecl___Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dPrimitiveRange___" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DrawPrimitives(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dVertexDecl[],Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange[])">
+  DrawPrimitives(uint, SVGA3dVertexDecl[], SVGA3dPrimitiveRange[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DrawPrimitives(uint cid, SVGA3dVertexDecl[] decls, SVGA3dPrimitiveRange[] ranges)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>decls</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dVertexDecl.html">SVGA3dVertexDecl</a>[]</dt>
+    <dd></dd>
+    <dt><code>ranges</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange.html">SVGA3dPrimitiveRange</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Present_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Present*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Present_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dSurfaceImageId_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRect_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Present(Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect)">
+  Present(SVGA3dSurfaceImageId, SVGA3dRect)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Present(SVGA3dSurfaceImageId image, SVGA3dRect PresentRect)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+    <dd></dd>
+    <dt><code>PresentRect</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect.html">SVGA3dRect</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_PresentToImage_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PresentToImage*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_PresentToImage_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dSurfaceImageId_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRect_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PresentToImage(Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect)">
+  PresentToImage(SVGA3dSurfaceImageId, SVGA3dRect)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int[]? PresentToImage(SVGA3dSurfaceImageId image, SVGA3dRect rect)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+    <dd></dd>
+    <dt><code>rect</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect.html">SVGA3dRect</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_ReserveFIFO3D_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.ReserveFIFO3D*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_ReserveFIFO3D_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.ReserveFIFO3D(System.UInt32,System.UInt32)">
+  ReserveFIFO3D(uint, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void* ReserveFIFO3D(uint cmd, uint cmdSize)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cmd</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>cmdSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SVGA3DUtil_AllocDMABuffer_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SVGA3DUtil_AllocDMABuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SVGA3DUtil_AllocDMABuffer_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGAGuestPtr__" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SVGA3DUtil_AllocDMABuffer(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGAGuestPtr@)">
+  SVGA3DUtil_AllocDMABuffer(uint, out SVGAGuestPtr)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void* SVGA3DUtil_AllocDMABuffer(uint size, out SVGAGuestPtr ptr)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>size</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>ptr</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGAGuestPtr.html">SVGAGuestPtr</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.void">void</a>*</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetDepthRange_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetDepthRange*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetDepthRange_System_UInt32_System_Single_System_Single_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetDepthRange(System.UInt32,System.Single,System.Single)">
+  SetDepthRange(uint, float, float)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetDepthRange(uint cid, float min, float max)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>min</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+    <dt><code>max</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetRenderState_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetRenderState*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetRenderState_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRenderState___" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetRenderState(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderState[])">
+  SetRenderState(uint, SVGA3dRenderState[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetRenderState(uint cid, SVGA3dRenderState[] states)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>states</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderState.html">SVGA3dRenderState</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetRenderTarget_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetRenderTarget*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetRenderTarget_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRenderTargetType_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dSurfaceImageId_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetRenderTarget(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderTargetType,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId)">
+  SetRenderTarget(uint, SVGA3dRenderTargetType, SVGA3dSurfaceImageId)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetRenderTarget(uint cid, SVGA3dRenderTargetType type, SVGA3dSurfaceImageId target)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderTargetType.html">SVGA3dRenderTargetType</a></dt>
+    <dd></dd>
+    <dt><code>target</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetShader_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetShader*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetShader_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dShaderType_System_UInt32_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetShader(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType,System.UInt32)">
+  SetShader(uint, SVGA3dShaderType, uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetShader(uint cid, SVGA3dShaderType type, uint shid)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType.html">SVGA3dShaderType</a></dt>
+    <dd></dd>
+    <dt><code>shid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetShaderUniform_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetShaderUniform*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetShaderUniform__1_System_UInt32_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dShaderType_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dShaderConstType___0_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetShaderUniform``1(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderConstType,``0)">
+  SetShaderUniform&lt;T&gt;(uint, uint, SVGA3dShaderType, SVGA3dShaderConstType, T)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetShaderUniform&lt;T&gt;(uint cid, uint reg, SVGA3dShaderType type, SVGA3dShaderConstType ctype, T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>reg</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType.html">SVGA3dShaderType</a></dt>
+    <dd></dd>
+    <dt><code>ctype</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderConstType.html">SVGA3dShaderConstType</a></dt>
+    <dd></dd>
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetTextureState_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetTextureState*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetTextureState_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dTextureState___" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetTextureState(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTextureState[])">
+  SetTextureState(uint, SVGA3dTextureState[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetTextureState(uint cid, SVGA3dTextureState[] states)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>states</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTextureState.html">SVGA3dTextureState</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetTransform_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetTransform*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetTransform__1_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dTransformType___0_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetTransform``1(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTransformType,``0)">
+  SetTransform&lt;T&gt;(uint, SVGA3dTransformType, T)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetTransform&lt;T&gt;(uint cid, SVGA3dTransformType type, T matrix4x4)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>type</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTransformType.html">SVGA3dTransformType</a></dt>
+    <dd></dd>
+    <dt><code>matrix4x4</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetViewport_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetViewport*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetViewport_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRect_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetViewport(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect)">
+  SetViewport(uint, SVGA3dRect)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SetViewport(uint cid, SVGA3dRect rect)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cid</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+    <dt><code>rect</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect.html">SVGA3dRect</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_TestDebugBuffer_" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.TestDebugBuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_TestDebugBuffer" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.TestDebugBuffer">
+  TestDebugBuffer()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint TestDebugBuffer()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

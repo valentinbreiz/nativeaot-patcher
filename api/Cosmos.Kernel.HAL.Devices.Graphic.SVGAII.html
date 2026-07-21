@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII">
+
+  <h1 id="Cosmos_Kernel_HAL_Devices_Graphic_SVGAII" data-uid="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII" class="text-break">Namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html">SvgaIIDriver</a></dt>
+      <dd><p>VMware SVGA II display driver. Binds to one <a class="xref" href="Cosmos.Kernel.HAL.Pci.PciDevice.html">PciDevice</a> and owns
+its register ports (BAR0), VRAM (BAR1) and command FIFO (BAR2). Implements
+the <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.GraphicDevice.html">GraphicDevice</a> contract over a double-buffered framebuffer:
+drawing lands in the back buffer at <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SvgaIIDriver_FrameSize">FrameSize</a>, and
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SvgaIIDriver_Swap">Swap()</a> copies it to the visible frame before submitting an
+Update through the FIFO. The SVGA3D command layer is
+<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html">VMWareSVGAII3D</a>, built on top of this driver.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html">VMWareSVGAII3D</a></dt>
+      <dd><p>SVGA3D command layer on top of <a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html">SvgaIIDriver</a>: surfaces,
+contexts, shaders, render state and DMA transfers, all submitted through
+the driver's command FIFO. Only meaningful when the device negotiated 3D
+support (<a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SvgaIIDriver_Is3DEnabled">Is3DEnabled</a>) — QEMU's vmware-svga
+exposes no 3D capability, so this layer is only exercised on real VMware.</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dArray.html">SVGA3dArray</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dArrayRangeHint.html">SVGA3dArrayRangeHint</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdClear.html">SVGA3dCmdClear</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDefineContext.html">SVGA3dCmdDefineContext</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDefineShader.html">SVGA3dCmdDefineShader</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDefineSurface.html">SVGA3dCmdDefineSurface</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDrawPrimitives.html">SVGA3dCmdDrawPrimitives</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdHeader.html">SVGA3dCmdHeader</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdPresent.html">SVGA3dCmdPresent</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetRenderState.html">SVGA3dCmdSetRenderState</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetRenderTarget.html">SVGA3dCmdSetRenderTarget</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetShader.html">SVGA3dCmdSetShader</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetShaderConst.html">SVGA3dCmdSetShaderConst</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetTextureState.html">SVGA3dCmdSetTextureState</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetTransform.html">SVGA3dCmdSetTransform</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetViewport.html">SVGA3dCmdSetViewport</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetZRange.html">SVGA3dCmdSetZRange</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSurfaceDMA.html">SVGA3dCmdSurfaceDMA</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCopyBox.html">SVGA3dCopyBox</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCopyRect.html">SVGA3dCopyRect</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dGuestImage.html">SVGA3dGuestImage</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange.html">SVGA3dPrimitiveRange</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect.html">SVGA3dRect</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderState.html">SVGA3dRenderState</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSize.html">SVGA3dSize</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId.html">SVGA3dSurfaceImageId</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTextureState.html">SVGA3dTextureState</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dVertexArrayIdentity.html">SVGA3dVertexArrayIdentity</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dVertexDecl.html">SVGA3dVertexDecl</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dZRange.html">SVGA3dZRange</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGAGuestPtr.html">SVGAGuestPtr</a></dt>
+      <dd></dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Capability.html">Capability</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ClearFlags.html">ClearFlags</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFO.html">FIFO</a></dt>
+      <dd><p>FIFO values.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html">FIFOCommand</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ID.html">ID</a></dt>
+      <dd><p>ID values.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.IOPortOffset.html">IOPortOffset</a></dt>
+      <dd><p>IO port offset.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Register.html">Register</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Register3D.html">Register3D</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dDeclMethod.html">SVGA3dDeclMethod</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dDeclType.html">SVGA3dDeclType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dDeclUsage.html">SVGA3dDeclUsage</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveType.html">SVGA3dPrimitiveType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderStateName.html">SVGA3dRenderStateName</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderTargetType.html">SVGA3dRenderTargetType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderConstType.html">SVGA3dShaderConstType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType.html">SVGA3dShaderType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceFlags.html">SVGA3dSurfaceFlags</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceFormat.html">SVGA3dSurfaceFormat</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTextureStateName.html">SVGA3dTextureStateName</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTransferType.html">SVGA3dTransferType</a></dt>
+      <dd></dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dTransformType.html">SVGA3dTransformType</a></dt>
+      <dd></dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
