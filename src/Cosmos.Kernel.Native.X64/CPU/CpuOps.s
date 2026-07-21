@@ -8,6 +8,7 @@
 .global _native_cpu_restore_irq
 .global _native_cpu_read_cr3
 .global _native_cpu_invlpg
+.global RhCpuIdEx
 
 .text
 
@@ -56,4 +57,21 @@ _native_cpu_read_cr3:
 // Invalidate the TLB entry covering the virtual address in RDI.
 _native_cpu_invlpg:
     invlpg  [rdi]
+    ret
+
+// NativeAOT runtime helper backing System.Runtime.Intrinsics.X86.X86Base.CpuId.
+// void RhCpuIdEx(int* cpuInfo /*RDI*/, int functionId /*ESI*/, int subFunctionId /*EDX*/)
+// Mirrors dotnet/runtime nativeaot amd64 MiscStubs; RBX is callee-saved and
+// clobbered by CPUID, so preserve it.
+RhCpuIdEx:
+    push    rbx
+    mov     r8, rdi         // cpuInfo out pointer (CPUID clobbers all four regs)
+    mov     eax, esi        // leaf
+    mov     ecx, edx        // subleaf
+    cpuid
+    mov     dword ptr [r8], eax
+    mov     dword ptr [r8+4], ebx
+    mov     dword ptr [r8+8], ecx
+    mov     dword ptr [r8+12], edx
+    pop     rbx
     ret

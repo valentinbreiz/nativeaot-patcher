@@ -5,12 +5,14 @@
         <Project Path="tests\Cosmos.Tests.NativeWrapper\Cosmos.Tests.NativeWrapper.csproj"/>
         <Project Path="tests\Cosmos.Tests.Patcher\Cosmos.Tests.Patcher.csproj"/>
         <Project Path="tests\Cosmos.Tests.Scanner\Cosmos.Tests.Scanner.csproj"/>
+        <Project Path="tests\Cosmos.Tests.Tools\Cosmos.Tests.Tools.csproj"/>
         <Project Path="tests\Cosmos.Tests.BuildCache\Cosmos.Tests.BuildCache.csproj"/>
         <Project Path="tests\Cosmos.TestRunner.Engine\Cosmos.TestRunner.Engine.csproj"/>
         <Project Path="tests\Cosmos.TestRunner.Framework\Cosmos.TestRunner.Framework.csproj"/>
         <Project Path="tests\Cosmos.TestRunner.Protocol\Cosmos.TestRunner.Protocol.csproj"/>
     </Folder>
     <Folder Name="/tests/Kernels/">
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.File/Cosmos.Kernel.Tests.File.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Graphic/Cosmos.Kernel.Tests.Graphic.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj"/>
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Memory/Cosmos.Kernel.Tests.Memory.csproj"/>

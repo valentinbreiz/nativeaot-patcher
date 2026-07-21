@@ -40,7 +40,9 @@
     <CosmosEnableFat Condition="'$(CosmosEnableFat)' == ''">true</CosmosEnableFat>
     <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
-    <CosmosDefaultFont Condition="'$(CosmosDefaultFont)' == ''">Cosmos.Kernel.System.Graphics.Fonts.CustomFont.psf</CosmosDefaultFont>
+    <!-- CosmosDefaultFont has no default: when unset, PCScreenFont falls back to its
+         embedded Fonts.DefaultFont.psf. Set it to the manifest resource name of a PSF
+         embedded in the kernel project to override the default console font. -->
   </PropertyGroup>
 
   <!-- Default kernel class name - inferred from RootNamespace or AssemblyName -->
@@ -69,7 +71,9 @@
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Filesystems.Fat.Enabled" Value="$(CosmosEnableFat)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
-    <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.CustomFont" Value="$(CosmosDefaultFont)" />
+    <!-- Key must match PCScreenFont.Default.DefaultFontKey ("...Fonts.DefaultFont");
+         it was previously written as "...Fonts.CustomFont", which nothing reads. -->
+    <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
     <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.HAL.ARM64"/>
@@ -133,6 +137,21 @@
     <PackageReference Include="Cosmos.Build.Patcher" />
     <PackageReference Include="Cosmos.Build.CC" />
   </ItemGroup>
+
+  <!-- Derive CosmosArch from RuntimeIdentifier here, in the Sdk itself.
+       The same derivation exists in Cosmos.ArchitecturePicker.props, but that file
+       ships inside the Cosmos.Build.Common NuGet package, and NuGet restore excludes
+       package-provided props/targets from evaluation (ExcludeRestorePackageImports).
+       Without this copy, CosmosArch is empty during restore, the conditional
+       PackageReferences below drop out of the restore graph, and the build later
+       fails at link time with undefined _native_*/Rhp* symbols because
+       Cosmos.Kernel.Native.<arch> was never restored (issue #382). -->
+  <PropertyGroup>
+    <CosmosArch Condition="'$(RuntimeIdentifier)' != '' AND '$(CosmosArch)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == ''">x64</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == 'x86_64'">x64</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == 'aarch64'">arm64</CosmosArch>
+  </PropertyGroup>
 
   <!-- Architecture-specific kernel packages -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">

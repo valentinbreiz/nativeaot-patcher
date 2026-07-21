@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
+using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
+using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using CoreGC = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
 using Sys = Cosmos.Kernel.System;
@@ -21,7 +24,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[GarbageCollector] BeforeRun() reached!\n");
         Serial.WriteString("[GarbageCollector] Starting tests...\n");
 
-        TR.Start("GarbageCollector Tests", expectedTests: 41);
+        TR.Start("GarbageCollector Tests", expectedTests: 44);
 
         // Garbage Collection Tests
         TR.Run("GC_IsEnabled", TestGCIsEnabled);
@@ -52,6 +55,12 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_FuncletNoFalseRoot", TestGCFuncletNoFalseRoot);
         TR.Run("GC_FuncletNoCrashOnAllocInCatch", TestGCFuncletNoCrashOnAllocInCatch);
         TR.Run("GC_ThrowThroughDeepChain", TestGCThrowThroughDeepChain);
+
+        // GC Soundness Tests. The interior-pointer test (byref-only root across a collect)
+        // is parked in #384 until interior-pointer support (#376) lands — it fails today.
+        TR.Run("GC_StaticOnlyReachability", TestGCStaticOnlyReachability);
+        TR.Run("GC_MultithreadChurnUnderCollect", TestGCMultithreadChurnUnderCollect);
+        TR.Run("GC_MallocHeapNotSwept", TestGCMallocHeapNotSwept);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -882,6 +891,201 @@ public class Kernel : Sys.Kernel
         string caught = CatchAtopDeepChain();
         Assert.True(caught == "deep-throw",
             "EH: a throw must propagate through 5 intermediate frames that may omit RBP/X29 — got '" + caught + "'");
+    }
+
+    // ==================== GC Soundness Tests ====================
+
+    /// <summary>Holds the only reference to the statics-reachability test array.</summary>
+    private static int[]? s_staticOnlyArray;
+
+    /// <summary>
+    /// Stores a fresh array into a static field. NoInlining so the array reference dies with
+    /// this frame — after return, the static field is the only root.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void AllocateStaticOnlyArray()
+    {
+        int[] arr = new int[2100];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = 0x0BAD0000 + i;
+        }
+
+        s_staticOnlyArray = arr;
+    }
+
+    private static void TestGCStaticOnlyReachability()
+    {
+        AllocateStaticOnlyArray();
+
+        CoreGC.Collect();
+
+        for (int i = 0; i < 512; i++)
+        {
+            int[] junk = new int[32];
+            junk[0] = i;
+        }
+
+        int[]? arr = s_staticOnlyArray;
+        Assert.True(arr != null && arr.Length == 2100 && arr[8] == 0x0BAD0008 && arr[2099] == 0x0BAD0000 + 2099,
+            "GC: an object whose only root is a static field must survive collection");
+
+        s_staticOnlyArray = null;
+    }
+
+    private static volatile bool s_churnStop;
+    private static int s_churnStartedCount;
+    private static int s_churnDoneCount;
+    private static int s_churnErrorCount;
+    private static int s_churnIterations;
+
+    /// <summary>
+    /// Worker: allocates patterned arrays in a ring while the main thread forces collections.
+    /// While this thread is parked, the GC scans its stack and saved registers; if the scan
+    /// misses a live survivor, the recycled memory loses the 0x7C pattern and the worker
+    /// records an error.
+    /// </summary>
+    private static void GCChurnWorker()
+    {
+        Interlocked.Increment(ref s_churnStartedCount);
+
+        int[][] keep = new int[8][];
+        int iteration = 0;
+        while (!s_churnStop)
+        {
+            int[] fresh = new int[64];
+            for (int i = 0; i < fresh.Length; i++)
+            {
+                fresh[i] = 0x7C000000 + i;
+            }
+
+            keep[iteration & 7] = fresh;
+
+            int[] survivor = keep[(iteration >> 2) & 7];
+            if (survivor != null && (survivor[0] != 0x7C000000 || survivor[63] != 0x7C00003F))
+            {
+                Interlocked.Increment(ref s_churnErrorCount);
+            }
+
+            Interlocked.Increment(ref s_churnIterations);
+            iteration++;
+        }
+
+        Interlocked.Increment(ref s_churnDoneCount);
+    }
+
+    private static void TestGCMultithreadChurnUnderCollect()
+    {
+        s_churnStop = false;
+        s_churnStartedCount = 0;
+        s_churnDoneCount = 0;
+        s_churnErrorCount = 0;
+        s_churnIterations = 0;
+
+        Thread worker1 = new Thread(GCChurnWorker);
+        Thread worker2 = new Thread(GCChurnWorker);
+        worker1.Start();
+        worker2.Start();
+
+        for (int i = 0; i < 200 && s_churnStartedCount < 2; i++)
+        {
+            TimerManager.Wait(10);
+        }
+
+        Assert.Equal(2, s_churnStartedCount, "GC: both churn workers must start");
+
+        // Force collections while the workers allocate. The workers are parked during each
+        // Collect, so their survivors are only reachable through the parked-thread stack scan.
+        for (int c = 0; c < 10; c++)
+        {
+            for (int i = 0; i < 64; i++)
+            {
+                int[] garbage = new int[48];
+                garbage[0] = i;
+            }
+
+            CoreGC.Collect();
+            TimerManager.Wait(5);
+        }
+
+        s_churnStop = true;
+        for (int i = 0; i < 400 && s_churnDoneCount < 2; i++)
+        {
+            TimerManager.Wait(10);
+        }
+
+        Serial.WriteString("[Test] churn iterations: ");
+        Serial.WriteNumber((uint)s_churnIterations);
+        Serial.WriteString(", errors: ");
+        Serial.WriteNumber((uint)s_churnErrorCount);
+        Serial.WriteString("\n");
+
+        Assert.Equal(2, s_churnDoneCount, "GC: both churn workers must finish after stop is signaled");
+        Assert.True(s_churnIterations > 0, "GC: churn workers must have completed at least one iteration");
+        Assert.Equal(0, s_churnErrorCount,
+            "GC: parked-thread survivors must never be corrupted by collections (" + s_churnErrorCount + " errors)");
+    }
+
+    /// <summary>
+    /// A live <see cref="Heap"/> allocation whose first word happens to hold a pointer into
+    /// the GC heap (a native struct caching a managed buffer address). The GC must never free
+    /// it: managed objects cannot live in the malloc heaps, so the sweep has no business there.
+    /// Issue #386 — the malloc-heap sweepers' inverted MethodTable check treated exactly this
+    /// shape as an unmarked managed object and freed it while live.
+    /// </summary>
+    private static unsafe void TestGCMallocHeapNotSwept()
+    {
+        byte[] managedBuffer = new byte[128];
+
+        byte* small = Heap.Alloc(64);     // SmallHeap (SMT slot)
+        byte* medium = Heap.Alloc(3000);  // MediumHeap (page + header)
+        byte* large = Heap.Alloc(8192);   // LargeHeap (multi-page + header)
+
+        // First word: a real GC-heap pointer with the LSB clear — reads as an
+        // "unmarked object whose MethodTable is inside the GC heap" to the sweeper.
+        fixed (byte* bp = managedBuffer)
+        {
+            *(byte**)small = bp;
+            *(byte**)medium = bp;
+            *(byte**)large = bp;
+        }
+
+        small[8] = 0xC5;
+
+        CoreGC.Collect();
+
+        // SmallHeap.Free zeroes the slot header's size and the data;
+        // Medium/LargeHeap.Free return the pages to the page allocator (RAT -> Empty).
+        bool smallAlive = SmallHeap.GetHeader(small)->Size != 0;
+        bool mediumAlive = PageAllocator.GetPageType(medium) == PageType.HeapMedium;
+        bool largeAlive = PageAllocator.GetPageType(large) == PageType.HeapLarge;
+
+        Assert.True(smallAlive,
+            "GC: live small-heap block must remain allocated across a collect (issue #386)");
+        Assert.True(smallAlive && small[8] == 0xC5,
+            "GC: live small-heap block data must be intact after a collect (issue #386)");
+        Assert.True(mediumAlive,
+            "GC: live medium-heap block must remain allocated across a collect (issue #386)");
+        Assert.True(largeAlive,
+            "GC: live large-heap block must remain allocated across a collect (issue #386)");
+
+        GC.KeepAlive(managedBuffer);
+
+        // Free only what survived — Heap.Free on an already-freed block panics the kernel.
+        if (smallAlive)
+        {
+            Heap.Free(small);
+        }
+
+        if (mediumAlive)
+        {
+            Heap.Free(medium);
+        }
+
+        if (largeAlive)
+        {
+            Heap.Free(large);
+        }
     }
 
     // ==================== GC Info & Configuration Tests ====================

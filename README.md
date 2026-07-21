@@ -34,34 +34,56 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - NativeAOT compilation
 - x64 and ARM64
 - [Limine](https://github.com/Limine-Bootloader/Limine) boot protocol
-- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/plugs.html)
+- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/plugs.html)
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
-- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/garbage-collector.html)
-- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/scheduler.html)
+- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/garbage-collector.html)
+- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/scheduler.html)
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
 - ACPI (via [LAI](https://github.com/managarm/lai))
 - PCI and MMIO drivers
 - UART serial
-- UEFI GOP framebuffer graphics
+- [Cosmos Graphics Subsystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
 - Keyboard and Mouse input
-- Network stack (no HTTPS *yet*)
+- [Network stack](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
+- Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
+- [FAT12/16/32 filesystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
 - Timer / Clock
 
 ## Documentation
 
-- [Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html)
-- [Installation Guide](docs/articles/install.md)
-- [Dev Container Setup](docs/articles/install-dev.md)
-- [Kernel Compilation Steps](docs/articles/build/kernel-compilation-steps.md)
-- [Debugging with VS Code and QEMU](docs/articles/debugging.md)
-- [Kernel Project Layout](docs/articles/kernel-project-layout.md)
-- [Coding Guidelines](docs/articles/coding-guidelines.md)
-- [Plugs](docs/articles/plugs.md)
-- [Garbage Collector](docs/articles/garbage-collector.md)
-- [Testing](docs/articles/testing.md)
-- [Cosmos.Build.Asm](docs/articles/build/asm-build.md), [.CC](docs/articles/build/cc-build.md), [.Patcher](docs/articles/build/patcher-build.md), [.Ilc](docs/articles/build/ilc-build.md)
+[Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
+
+**User Guide**
+
+- [Installation Guide](docs/articles/user/install.md)
+- [Kernel Startup](docs/articles/user/startup.md)
+- [File System](docs/articles/user/filesystem.md)
+- [Network](docs/articles/user/network.md)
+- [Graphics](docs/articles/user/graphics.md)
+- [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
+
+**Developer Docs**
+
+- [Dev Container Setup](docs/articles/dev/install-dev.md)
+- [Kernel Project Layout](docs/articles/dev/kernel-project-layout.md)
+- [Coding Guidelines](docs/articles/dev/coding-guidelines.md)
+- [Plugs](docs/articles/dev/plugs.md)
+- [Testing](docs/articles/dev/testing.md)
+- [Garbage Collector](docs/articles/dev/garbage-collector.md), [Precise Stack Scan (GCInfo)](docs/articles/dev/garbage-collector-gcinfo.md)
+- [Scheduler](docs/articles/dev/scheduler.md)
+- [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
+- [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
+
+## Getting Help
+
+1. **Check the [documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html)** — installation, debugging, and subsystem guides
+2. **Search [existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)** — your problem may already be known
+3. **Ask on [Discord](https://discord.com/invite/kwtBwv6jhD)** — quickest way to get unblocked or sanity-check a setup problem
+4. **File a [new issue](https://github.com/valentinbreiz/nativeaot-patcher/issues/new/choose)** — the bug report template walks you through the details we need (versions, exact command, serial log, symbolicated stack trace)
+
+Reporting a kernel crash? [CONTRIBUTING.md](CONTRIBUTING.md#collecting-diagnostics) shows how to capture the serial log and turn the raw crash addresses into function names — with those two things most crashes can be diagnosed directly.
 
 ## Related resources
 

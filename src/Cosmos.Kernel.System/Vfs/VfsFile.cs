@@ -1,6 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
 using Cosmos.Kernel.HAL.Vfs;
 
 namespace Cosmos.Kernel.System.Vfs;
@@ -53,6 +52,18 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public IVfsInode Inode { get; }
 
+    /// <summary>Full path this handle was opened with; only set (and the handle only
+    /// registered with <see cref="VfsManager"/>) on the <see cref="VfsManager.TryOpenFile"/>
+    /// path — lookup-produced handles are metadata accessors and stay untracked.</summary>
+    internal string? OpenedPath { get; set; }
+
+    /// <summary>Full path of a directory entry to remove once the last open handle on
+    /// this node closes — delete-pending, because FAT-style drivers free the
+    /// data clusters immediately on unlink while handles still reference them.</summary>
+    internal string? PendingUnlinkPath { get; set; }
+
+    internal bool Tracked { get; set; }
+
     public long Position => _openFile.Position;
 
     public long Read(Span<byte> buffer)
@@ -91,12 +102,6 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public bool TryStat(out VfsStat stat)
     {
-        stat = default;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.GetAttr(Inode, out stat);
     }
 
@@ -109,6 +114,12 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
         _openFile.Operations.Release(_openFile);
         _disposed = true;
+
+        if (Tracked)
+        {
+            Tracked = false;
+            VfsManager.OnOpenFileClosed(this);
+        }
     }
 
     private void EnsureNotDisposed()

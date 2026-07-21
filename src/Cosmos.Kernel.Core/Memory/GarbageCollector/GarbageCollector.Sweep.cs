@@ -2,19 +2,21 @@
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory.Heap;
 using Internal.Runtime;
 
 namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 /// <summary>
-/// Sweep phase: segment sweeping, heap sweepers, and heap range helpers.
+/// Sweep phase: segment sweeping and heap range helpers.
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
     /// <summary>
-    /// Executes the sweep phase across all heap types: GC segments, pinned heap,
-    /// small heap, medium heap, and large heap.
+    /// Executes the sweep phase across the GC-managed heaps: GC segments and the
+    /// pinned heap. The unmanaged malloc heaps (Small/Medium/Large) must never be
+    /// swept: managed allocations cannot live there, and a live block whose first
+    /// word coincidentally holds a GC-heap pointer is indistinguishable from an
+    /// unmarked object header (issue #386).
     /// </summary>
     /// <returns>Total number of objects freed.</returns>
     private static int SweepPhase()
@@ -29,9 +31,6 @@ public static unsafe partial class GarbageCollector
         }
 
         totalFreed += SweepPinnedHeap();
-        totalFreed += SweepSmallHeap();
-        totalFreed += SweepMediumHeap();
-        totalFreed += SweepLargeHeap();
 
         return totalFreed;
     }
@@ -56,12 +55,6 @@ public static unsafe partial class GarbageCollector
             // Get MethodTable (mask off mark bit)
             MethodTable* mt = obj->GetMethodTable();
 
-            if (mt == null)
-            {
-                // End of valid objects
-                break;
-            }
-
             // Check if this is a free block from previous GC
             if (mt == s_freeMethodTable)
             {
@@ -84,10 +77,24 @@ public static unsafe partial class GarbageCollector
                 continue;
             }
 
-            // Check if this is a managed object (MT points outside heap to kernel code)
-            if (IsInGCHeap((nint)mt))
+            // Anything that is not a plausible MethodTable is dead filler:
+            //  - null: zeroed TLAB gap (< MinBlockSize, zeroed by StampUnusedTlab);
+            //  - below AddressSpace.KernelSpaceStart: data, most commonly the runtime object header
+            //    (identity hash / thin lock) written at objRef-4 of an object that
+            //    directly follows a gap — the word then reads as header << 32;
+            //  - inside the GC heap: a stale interior pointer.
+            // Fold it into the free run and keep walking: breaking here would strand
+            // everything up to Bump, so the trailing reset never fires and the segment
+            // can never be returned to the page allocator. Dereferencing it (the old
+            // behavior for non-null values) faulted on non-canonical addresses (#382 GP).
+            if (mt == null || (ulong)mt < AddressSpace.KernelSpaceStart || IsInGCHeap((nint)mt))
             {
-                // Not a managed object - skip pointer-sized chunk
+                if (freeRunStart == null)
+                {
+                    freeRunStart = ptr;
+                }
+
+                freeRunSize += (uint)sizeof(nint);
                 ptr += sizeof(nint);
                 continue;
             }
@@ -143,21 +150,45 @@ public static unsafe partial class GarbageCollector
 
     /// <summary>
     /// Converts a contiguous free run into a <see cref="FreeBlock"/> and adds it to the free list.
+    /// The last <see cref="ReservedHeaderSlotSize"/> bytes of the run are excluded from the block:
+    /// they may hold the runtime object header (objRef-4) of the object that follows the run,
+    /// which must survive block recycling (<see cref="AllocFromFreeList"/> zeroes what it hands out).
     /// </summary>
     /// <param name="start">Start of the free run.</param>
-    /// <param name="size">Size of the free run in bytes. Must be at least <see cref="MinBlockSize"/>.</param>
+    /// <param name="size">Size of the free run in bytes.</param>
     private static void FlushFreeRun(byte* start, uint size)
     {
-        if (start == null || size < MinBlockSize)
+        if (start == null || size < MinBlockSize + ReservedHeaderSlotSize)
         {
             return;
         }
+
+        size -= ReservedHeaderSlotSize;
+        SanitizeReservedHeaderSlot(start + size);
 
         var freeBlock = (FreeBlock*)start;
         freeBlock->MethodTable = s_freeMethodTable;
         freeBlock->Size = (int)size;
         freeBlock->Next = null;
-        AddToFreeList(freeBlock);
+        AddToFreeList(freeBlock, 's');
+    }
+
+    /// <summary>
+    /// Prepares the 8-byte tail slot excluded from a free block. The high 4 bytes are the
+    /// following object's runtime header (identity hash / thin lock) and must survive; the
+    /// low 4 bytes are dead. Clears any leftover value that could still read as a kernel
+    /// pointer (a stale reference in a dead object's tail) so the sweep walk can never
+    /// misparse the slot as an object — real header words always stay below
+    /// <see cref="AddressSpace.KernelSpaceStart"/>.
+    /// </summary>
+    /// <param name="slot">Address of the 8-byte reserved slot.</param>
+    private static void SanitizeReservedHeaderSlot(byte* slot)
+    {
+        *(uint*)slot = 0;
+        if (*(ulong*)slot >= AddressSpace.KernelSpaceStart)
+        {
+            *(ulong*)slot = 0;
+        }
     }
 
     /// <summary>
@@ -241,190 +272,6 @@ public static unsafe partial class GarbageCollector
         s_currentSegment = s_lastSegment;
 
         s_heapRangeDirty = true;
-    }
-
-    /// <summary>
-    /// Sweeps the small heap (SMT pages) for unmarked objects.
-    /// </summary>
-    /// <returns>The number of objects freed from the small heap.</returns>
-    private static int SweepSmallHeap()
-    {
-        int freed = 0;
-        SMTPage* page = SmallHeap.SMT;
-
-        while (page != null)
-        {
-            RootSMTBlock* root = page->First;
-            while (root != null && root->Size > 0)
-            {
-                SMTBlock* block = root->First;
-                while (block != null)
-                {
-                    freed += SweepSMTBlock(block, root->Size);
-                    block = block->NextBlock;
-                }
-
-                root = root->LargerSize;
-            }
-
-            page = page->Next;
-        }
-
-        return freed;
-    }
-
-    /// <summary>
-    /// Sweeps a single SMT block, freeing unmarked objects and clearing marks on live ones.
-    /// </summary>
-    /// <param name="block">The SMT block to sweep.</param>
-    /// <param name="itemSize">The allocation item size for this block's size class.</param>
-    /// <returns>The number of objects freed in this block.</returns>
-    private static int SweepSMTBlock(SMTBlock* block, uint itemSize)
-    {
-        int freed = 0;
-        ulong elementSize = itemSize + SmallHeap.PrefixBytes;
-        ulong positions = PageAllocator.PageSize / elementSize;
-
-        for (ulong i = 0; i < positions; i++)
-        {
-            byte* slotPtr = block->PagePtr + i * elementSize;
-            ushort* header = (ushort*)slotPtr;
-
-            ushort size = header[0];
-            if (size == 0)
-            {
-                continue; // Not allocated
-            }
-
-            // Get object pointer
-            byte* objPtr = slotPtr + SmallHeap.PrefixBytes;
-            var obj = (GCObject*)objPtr;
-
-            // Validate MethodTable - must point outside heap (to kernel code)
-            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
-            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
-            {
-                continue;
-            }
-
-            if (!obj->IsMarked)
-            {
-                // Unmarked - free the object
-                SmallHeap.Free(objPtr);
-                freed++;
-            }
-            else
-            {
-                // Marked - clear the mark for next cycle
-                obj->Unmark();
-            }
-        }
-
-        return freed;
-    }
-
-    /// <summary>
-    /// Sweeps the medium heap by scanning all HeapMedium pages in the RAT.
-    /// </summary>
-    /// <returns>The number of objects freed from the medium heap.</returns>
-    private static int SweepMediumHeap()
-    {
-        int freed = 0;
-
-        // Iterate through RAT looking for HeapMedium pages
-        byte* ramStart = PageAllocator.RamStart;
-        for (ulong pageIdx = 0; pageIdx < PageAllocator.TotalPageCount; pageIdx++)
-        {
-            PageType type = PageAllocator.GetPageType(ramStart + pageIdx * PageAllocator.PageSize);
-            if (type != PageType.HeapMedium)
-            {
-                continue;
-            }
-
-            byte* pagePtr = ramStart + pageIdx * PageAllocator.PageSize;
-            var header = (MediumHeapHeader*)pagePtr;
-
-            if (header->Size == 0)
-            {
-                continue; // Not allocated
-            }
-
-            byte* objPtr = pagePtr + MediumHeap.PrefixBytes;
-            var obj = (GCObject*)objPtr;
-
-            // Validate MethodTable - must point outside heap (to kernel code)
-            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
-            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
-            {
-                continue;
-            }
-
-            if (!obj->IsMarked)
-            {
-                // Unmarked - free the object
-                MediumHeap.Free(objPtr);
-                freed++;
-            }
-            else
-            {
-                // Marked - clear the mark for next cycle
-                obj->Unmark();
-            }
-        }
-
-        return freed;
-    }
-
-    /// <summary>
-    /// Sweeps the large heap by scanning all HeapLarge pages in the RAT.
-    /// </summary>
-    /// <returns>The number of objects freed from the large heap.</returns>
-    private static int SweepLargeHeap()
-    {
-        int freed = 0;
-
-        // Iterate through RAT looking for HeapLarge pages
-        byte* ramStart = PageAllocator.RamStart;
-        for (ulong pageIdx = 0; pageIdx < PageAllocator.TotalPageCount; pageIdx++)
-        {
-            PageType type = PageAllocator.GetPageType(ramStart + pageIdx * PageAllocator.PageSize);
-            if (type != PageType.HeapLarge)
-            {
-                continue;
-            }
-
-            byte* pagePtr = ramStart + pageIdx * PageAllocator.PageSize;
-            var header = (LargeHeapHeader*)pagePtr;
-
-            if (header->Size == 0)
-            {
-                continue; // Not allocated
-            }
-
-            byte* objPtr = pagePtr + LargeHeap.PrefixBytes;
-            var obj = (GCObject*)objPtr;
-
-            // Validate MethodTable - must point outside heap (to kernel code)
-            nuint mtPtr = (nuint)obj->MethodTable & ~(nuint)1;
-            if (mtPtr == 0 || !IsInGCHeap((nint)mtPtr))
-            {
-                continue;
-            }
-
-            if (!obj->IsMarked)
-            {
-                // Unmarked - free the object
-                LargeHeap.Free(objPtr);
-                freed++;
-            }
-            else
-            {
-                // Marked - clear the mark for next cycle
-                obj->Unmark();
-            }
-        }
-
-        return freed;
     }
 
     // --- Helpers ---

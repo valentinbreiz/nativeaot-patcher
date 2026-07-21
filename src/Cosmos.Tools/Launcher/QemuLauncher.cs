@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Cosmos.Tools.Platform;
 
@@ -18,6 +19,33 @@ public sealed class QemuLaunchOptions
     public string? SerialOutputFile { get; init; }
     /// <summary>Adds the test-runner port forwards (UDP 5556, TCP 5558) needed by network tests.</summary>
     public bool EnableNetworkTesting { get; init; }
+
+    /// <summary>
+    /// NIC model exposed to the guest. <c>null</c> leaves QEMU's default NIC in
+    /// place (the historical behaviour); <c>"none"</c> emits <c>-nic none</c> so
+    /// the guest gets no card at all; any other value emits a user-mode
+    /// <c>-netdev</c> + <c>-device &lt;model&gt;</c> pair (e.g. <c>e1000e</c>,
+    /// <c>virtio-net-device</c>). When <see cref="EnableNetworkTesting"/> is
+    /// set this still selects the model, but that path always adds its port
+    /// forwards and rejects <c>"none"</c>.
+    /// </summary>
+    public string? NetworkCard { get; init; }
+
+    /// <summary>
+    /// Keyboard device attached to the guest, or <c>null</c> to add none.
+    /// <c>"ps2"</c>/<c>"none"</c> add nothing (x64's PS/2 keyboard is built into
+    /// the q35 chipset); any other value (e.g. <c>virtio-keyboard-device</c>,
+    /// required on the ARM64 <c>virt</c> machine which has no PS/2 controller) is
+    /// emitted as a <c>-device</c> line.
+    /// </summary>
+    public string? KeyboardDevice { get; init; }
+
+    /// <summary>
+    /// Mouse device attached to the guest, or <c>null</c> to add none. Same
+    /// <c>"ps2"</c>/<c>"none"</c> handling as <see cref="KeyboardDevice"/>;
+    /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
+    /// </summary>
+    public string? MouseDevice { get; init; }
     /// <summary>
     /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
     /// path, the controller type (ahci or nvme), and an optional comma-prefixed
@@ -45,6 +73,16 @@ public sealed class QemuLaunchOptions
     /// runner can observe a clean process exit.
     /// </summary>
     public bool AllowGuestShutdown { get; init; }
+
+    /// <summary>
+    /// QEMU CPU model (<c>-cpu</c>), e.g. <c>host</c>, <c>max</c>, <c>qemu64</c>,
+    /// <c>cortex-a72</c>. Null/empty = auto: on x64 that is <c>host</c> when KVM
+    /// is available and <c>max</c> under TCG; on ARM64 it is <c>cortex-a72</c>.
+    /// <c>host</c> is KVM-only, so it degrades to <c>max</c> when KVM is absent
+    /// rather than aborting QEMU at startup.
+    /// </summary>
+    public string? CpuModel { get; init; }
+
     public IReadOnlyList<string> ExtraArgs { get; init; } = Array.Empty<string>();
 }
 
@@ -82,6 +120,13 @@ public static class QemuLauncher
 
     /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
     private const int NetworkTestTcpPort = 5558;
+
+    /// <summary>
+    /// TCP port of the test runner's raw-Ethernet listener (IcmpTestServer). Slirp's
+    /// hostfwd only forwards TCP/UDP, so host-sourced ICMP rides a stream netdev
+    /// hubbed with slirp: frames are 4-byte big-endian-length-prefixed Ethernet.
+    /// </summary>
+    private const int NetworkTestRawSocketPort = 5560;
 
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
@@ -150,9 +195,25 @@ public static class QemuLauncher
 
         if (options.EnableNetworkTesting)
         {
-            string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
-            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
+            string nic = ResolveNetworkTestNic(options.Architecture, options.NetworkCard);
+            // One hub joins three ports: slirp (DHCP/NAT + the UDP/TCP hostfwds),
+            // a raw-Ethernet stream socket to the runner's IcmpTestServer, and the
+            // guest NIC. The stream port exists because slirp cannot forward
+            // host-sourced ICMP; the runner must be listening before QEMU starts.
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort}");
+            args.Append($" -netdev stream,id=rawnet0,addr.type=inet,addr.host=127.0.0.1,addr.port={NetworkTestRawSocketPort}");
+            args.Append(" -netdev hubport,id=hubport0,hubid=0,netdev=net0");
+            args.Append(" -netdev hubport,id=hubport1,hubid=0,netdev=rawnet0");
+            args.Append(" -netdev hubport,id=hubport2,hubid=0");
+            args.Append($" -device {nic},netdev=hubport2");
         }
+        else if (options.NetworkCard is not null)
+        {
+            AppendNetworkCardArgs(args, options.NetworkCard);
+        }
+
+        AppendInputDevice(args, options.KeyboardDevice);
+        AppendInputDevice(args, options.MouseDevice);
 
         if (options.Debug)
         {
@@ -172,7 +233,24 @@ public static class QemuLauncher
     {
         args.Append("-M q35");
         AppendMachineOptions(args, options.MachineOptions);
-        args.Append($" -cpu max -m {options.MemoryMb}M");
+        // KVM when the host offers it: TCG software emulation is roughly an
+        // order of magnitude slower and tanks guest-side rendering (every
+        // pixel blend and framebuffer memmove is binary-translated).
+        bool kvm = KvmAvailable();
+        string cpu = string.IsNullOrWhiteSpace(options.CpuModel)
+            ? (kvm ? "host" : "max")
+            : options.CpuModel.Trim();
+        if (!kvm && cpu.Equals("host", StringComparison.OrdinalIgnoreCase))
+        {
+            // -cpu host is KVM-only; QEMU aborts at startup under TCG.
+            cpu = "max";
+        }
+        ValidateOptionToken(cpu, "cpu model");
+        if (kvm)
+        {
+            args.Append(" -enable-kvm");
+        }
+        args.Append($" -cpu {cpu} -m {options.MemoryMb}M");
         // Explicit CD drive with bootindex=0 so SeaBIOS picks the ISO over
         // any attached HDDs whose 0xAA55 MBR signature would otherwise
         // satisfy the BIOS and hang when their boot code is empty (the case
@@ -199,7 +277,11 @@ public static class QemuLauncher
         // edk2-aarch64-code.fd. No separate firmware-lookup logic needed.
         args.Append("-M virt,highmem=off");
         AppendMachineOptions(args, options.MachineOptions);
-        args.Append($" -cpu cortex-a72 -m {options.MemoryMb}M");
+        string cpu = string.IsNullOrWhiteSpace(options.CpuModel)
+            ? "cortex-a72"
+            : options.CpuModel.Trim();
+        ValidateOptionToken(cpu, "cpu model");
+        args.Append($" -cpu {cpu} -m {options.MemoryMb}M");
         args.Append(" -bios edk2-aarch64-code.fd");
         // -cdrom takes its filename verbatim (no option parsing), so commas
         // must NOT be doubled here — only the quote rejection in BuildAsync
@@ -209,6 +291,33 @@ public static class QemuLauncher
         // ramfb is required for Limine framebuffer support even when headless.
         args.Append(" -device ramfb");
         AppendStorageArgs(args, options);
+    }
+
+    /// <summary>
+    /// True when the x64 guest can run under KVM: Linux x64 host with an
+    /// openable /dev/kvm (the open is the canonical access check — it also
+    /// catches "exists but not in the kvm group"). Set COSMOS_NO_KVM=1 to
+    /// force TCG, e.g. to reproduce a TCG-only bug.
+    /// </summary>
+    private static bool KvmAvailable()
+    {
+        if (Environment.GetEnvironmentVariable("COSMOS_NO_KVM") == "1")
+        {
+            return false;
+        }
+        if (!OperatingSystem.IsLinux() || RuntimeInformation.OSArchitecture != Architecture.X64)
+        {
+            return false;
+        }
+        try
+        {
+            using FileStream fs = File.Open("/dev/kvm", FileMode.Open, FileAccess.ReadWrite);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void AppendMachineOptions(StringBuilder args, IReadOnlyDictionary<string, string> opts)
@@ -262,6 +371,67 @@ public static class QemuLauncher
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Emits the NIC selection: <c>"none"</c> disables QEMU's default card with
+    /// <c>-nic none</c>; any other value attaches a user-mode NIC of that model.
+    /// The model is validated as an option token so it can't splice extra
+    /// arguments into the command line.
+    /// </summary>
+    internal static void AppendNetworkCardArgs(StringBuilder args, string card)
+    {
+        if (card.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Append(" -nic none");
+            return;
+        }
+
+        ValidateOptionToken(card, "network card model");
+        args.Append($" -netdev user,id=net0 -device {card},netdev=net0");
+    }
+
+    /// <summary>
+    /// Attaches an input device (keyboard/mouse) as a <c>-device</c> line.
+    /// <c>null</c>/empty and the sentinels <c>"none"</c>/<c>"ps2"</c> add
+    /// nothing — PS/2 is part of the x64 chipset, not a device you attach — so
+    /// only real QEMU models (e.g. <c>virtio-keyboard-device</c>) are emitted.
+    /// </summary>
+    internal static void AppendInputDevice(StringBuilder args, string? model)
+    {
+        if (string.IsNullOrWhiteSpace(model)
+            || model.Equals("none", StringComparison.OrdinalIgnoreCase)
+            || model.Equals("ps2", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        ValidateOptionToken(model, "input device model");
+        args.Append($" -device {model}");
+    }
+
+    /// <summary>
+    /// Picks the NIC model for a network-testing run. A test profile selects
+    /// the model when it has an opinion (e.g. driving the suite over
+    /// virtio-net-pci rather than the architecture default); the port forwards
+    /// are added either way, since the runner reaches the guest through them
+    /// whatever the card is. <c>"none"</c> is rejected rather than silently
+    /// producing a run with no way to reach the guest.
+    /// </summary>
+    internal static string ResolveNetworkTestNic(string architecture, string? requested)
+    {
+        if (requested is not null && requested.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Network testing needs a NIC, but the network card is set to \"none\".", nameof(requested));
+        }
+
+        string nic = string.IsNullOrWhiteSpace(requested)
+            ? architecture == "x64" ? "e1000e" : "virtio-net-device"
+            : requested.Trim();
+
+        ValidateOptionToken(nic, "network card model");
+        return nic;
     }
 
     internal static void AppendDeviceOptions(StringBuilder args, string extra)

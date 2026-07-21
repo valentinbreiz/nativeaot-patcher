@@ -18,7 +18,7 @@ public static unsafe partial class GarbageCollector
     private static GCSegment* AllocateSegment(uint requestedSize)
     {
         uint size = requestedSize < s_maxSegmentSize ? s_maxSegmentSize : requestedSize;
-        uint totalSize = size + (uint)sizeof(GCSegment);
+        uint totalSize = size + (uint)sizeof(GCSegment) + ReservedHeaderSlotSize;
         ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
 
         var memory = (byte*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
@@ -29,7 +29,9 @@ public static unsafe partial class GarbageCollector
 
         var segment = (GCSegment*)memory;
         segment->Next = null;
-        segment->Start = memory + Align((uint)sizeof(GCSegment));
+        // Pad Start so the first object's runtime header write (objRef-4) lands in
+        // zeroed filler instead of the segment struct's last field (UsedSize).
+        segment->Start = memory + Align((uint)sizeof(GCSegment)) + ReservedHeaderSlotSize;
         segment->End = memory + (pageCount * PageAllocator.PageSize);
         segment->Bump = segment->Start;
         segment->TotalSize = (uint)(segment->End - segment->Start);
@@ -120,7 +122,7 @@ public static unsafe partial class GarbageCollector
                         split->MethodTable = s_freeMethodTable;
                         split->Size = (int)remainder;
                         split->Next = null;
-                        AddToFreeList(split);
+                        AddToFreeList(split, 'a');
                     }
 
                     // Clear and return
@@ -310,7 +312,7 @@ public static unsafe partial class GarbageCollector
                         split->MethodTable = s_freeMethodTable;
                         split->Size = (int)remainder;
                         split->Next = null;
-                        AddToFreeList(split);
+                        AddToFreeList(split, 'r');
                     }
 
                     MemoryOp.MemSet((byte*)block, 0, (int)size);
@@ -319,6 +321,58 @@ public static unsafe partial class GarbageCollector
 
                 prev = block;
                 block = block->Next;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Removes and returns the largest free-list block of at least
+    /// <paramref name="minSize"/> bytes, taken whole (no split) and zeroed.
+    /// TLAB-refill fallback: lets refills reuse the sub-TlabSize blocks that
+    /// sweep leaves in partially live segments instead of growing the heap
+    /// with a new segment. The unused tail is stamped back to the free list
+    /// by the next <see cref="StampUnusedTlab"/> like any other TLAB gap.
+    /// </summary>
+    private static void* AllocLargestFromFreeListRaw(uint minSize, out uint blockSize)
+    {
+        blockSize = 0;
+        if (!s_freeListsInitialized)
+        {
+            return null;
+        }
+
+        for (int i = NumSizeClasses - 1; i >= 0; i--)
+        {
+            FreeBlock* prev = null;
+            FreeBlock* best = null;
+            FreeBlock* bestPrev = null;
+            for (FreeBlock* block = s_freeLists[i]; block != null; block = block->Next)
+            {
+                if ((uint)block->Size >= minSize && (best == null || block->Size > best->Size))
+                {
+                    best = block;
+                    bestPrev = prev;
+                }
+
+                prev = block;
+            }
+
+            if (best != null)
+            {
+                if (bestPrev != null)
+                {
+                    bestPrev->Next = best->Next;
+                }
+                else
+                {
+                    s_freeLists[i] = best->Next;
+                }
+
+                blockSize = (uint)best->Size;
+                MemoryOp.MemSet((byte*)best, 0, (int)blockSize);
+                return best;
             }
         }
 
@@ -403,7 +457,9 @@ public static unsafe partial class GarbageCollector
     /// Inserts a free block into the appropriate size-class free list.
     /// </summary>
     /// <param name="block">The free block to add.</param>
-    private static void AddToFreeList(FreeBlock* block)
+    /// <param name="source">Call-site tag for diagnostics: 'a'=AllocFromFreeList split,
+    /// 'r'=AllocFromFreeListRaw split, 't'=TLAB gap stamp, 's'=sweep, 'p'=pinned heap.</param>
+    private static void AddToFreeList(FreeBlock* block, char source)
     {
         if (!s_freeListsInitialized || block == null || block->Size < MinBlockSize)
         {
@@ -427,6 +483,22 @@ public static unsafe partial class GarbageCollector
         if (sizeClass < 0)
         {
             sizeClass = NumSizeClasses - 1;
+        }
+
+        // Cheap last-line guard against re-inserting the current head: a second
+        // head-insert of the same block would set block->Next = block, and the
+        // next free-list walk would spin forever inside DisableInterrupts (this
+        // is how the double TLAB-stamp bug hung Collect(); see StampUnusedTlab).
+        // Deeper duplicates/overlaps need the O(list) debug tripwire this check
+        // replaced — reintroduce it locally when hunting free-list corruption.
+        if (s_freeLists[sizeClass] == block)
+        {
+            Serial.WriteString("[GC] BUG: duplicate free-list head insert src=");
+            Serial.WriteString(source == 'a' ? "a" : source == 'r' ? "r" : source == 't' ? "t" : source == 's' ? "s" : "p");
+            Serial.WriteString(" blk=0x");
+            Serial.WriteHex((ulong)block);
+            Serial.WriteString("\n");
+            return;
         }
 
         block->Next = s_freeLists[sizeClass];

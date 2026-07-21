@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using Cosmos.Tools.Platform;
+using Cosmos.Tools.Update;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -77,6 +78,19 @@ public class UninstallCommand : AsyncCommand<UninstallSettings>
                 bool pathOk = InstallCommand.RemoveToolsFromWindowsPath(toolsPath);
                 AnsiConsole.MarkupLine(pathOk ? "[green]OK[/]" : "[dim]nothing to remove[/]");
             }
+
+            AnsiConsole.Markup("  Update-check state -> remove ... ");
+            bool stateOk = false;
+            try
+            {
+                if (File.Exists(UpdateNotifier.StateFilePath))
+                {
+                    File.Delete(UpdateNotifier.StateFilePath);
+                    stateOk = true;
+                }
+            }
+            catch { }
+            AnsiConsole.MarkupLine(stateOk ? "[green]OK[/]" : "[dim]not found[/]");
         }
 
         if (removePackages)

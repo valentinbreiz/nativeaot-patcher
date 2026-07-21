@@ -136,6 +136,13 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private const uint MinBlockSize = 24;
 
+    /// <summary>
+    /// Bytes excluded from the tail of every <see cref="FreeBlock"/> so the runtime object
+    /// header slot (objRef-4) of whatever object follows the block can never be handed to
+    /// another allocation (which would zero or overwrite a stored hash / lock word).
+    /// </summary>
+    private const uint ReservedHeaderSlotSize = 8;
+
     // --- Static fields ---
 
     /// <summary>
@@ -175,8 +182,6 @@ public static unsafe partial class GarbageCollector
 
     /// <summary>
     /// Default segment size. Grows as needed.
-    /// Note: increasing this (e.g. 64KB) requires enabling ScanStaticRoots in MarkPhase
-    /// to prevent GC from collecting objects only reachable through static fields.
     /// </summary>
     private static uint s_maxSegmentSize = (uint)PageAllocator.PageSize;
 
@@ -332,9 +337,13 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        // Allocate mark stack
-        s_markStackCapacity = 4096;
-        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, 1, true);
+        // Allocate mark stack. Capacity MUST match the backing allocation:
+        // one 4K page holds 512 nint entries, and PushMarkStack bounds-checks
+        // against s_markStackCapacity before growing — a larger capacity here
+        // means the mark phase writes past the page and corrupts adjacent
+        // allocations as soon as more than 512 objects are pending.
+        s_markStack = (nint*)PageAllocator.AllocPages(PageType.Unmanaged, s_markStackPageCount, true);
+        s_markStackCapacity = (int)(s_markStackPageCount * PageAllocator.PageSize / (ulong)sizeof(nint));
         if (s_markStack == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate mark stack\n");
@@ -436,6 +445,21 @@ public static unsafe partial class GarbageCollector
             Initialize();
         }
 
+        // The whole allocation must be atomic with respect to interrupts: IRQ
+        // handlers (scheduler tick, input) allocate too, and an interleaved
+        // refill or bump on the same AllocContext leaves AllocPtr/AllocLimit
+        // from different TLABs — overlapping objects and AllocPtr past
+        // AllocLimit (seen as delta=104 in #382 debugging). RefillAllocContext
+        // and Collect already disable interrupts internally; the scope nests
+        // via saved flags.
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            return AllocObjectCore(size, flags);
+        }
+    }
+
+    private static GCObject* AllocObjectCore(nint size, GC_ALLOC_FLAGS flags)
+    {
         // Pinned objects bypass TLABs
         if ((flags & GC_ALLOC_FLAGS.GC_ALLOC_PINNED_OBJECT_HEAP) != 0)
         {

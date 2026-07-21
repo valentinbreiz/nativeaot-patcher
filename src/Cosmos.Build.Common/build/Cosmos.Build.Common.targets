@@ -207,9 +207,18 @@
   </Target>
 
   <Target Name="PublishISO" AfterTargets="Publish">
-    <!-- Copy the ISO File to the Publish -->
-    <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)"/>
+    <!-- Recompute the ELF path: $(ElfBinary) is scoped to CheckLinkCache and
+         not visible here when publish runs with a warm build. -->
+    <PropertyGroup>
+      <_PublishElfBinary>$([MSBuild]::NormalizePath('$(OutputPath)', '$(AssemblyName).elf'))</_PublishElfBinary>
+    </PropertyGroup>
 
-    <Message Text="✅ ISO Copied to Publish Foder: $(PublishDir)" Importance="High"/>
+    <!-- Copy the ISO and the ELF to the publish folder: the ELF carries the
+         debug symbols the VSCode launch configs (and addr2line workflows)
+         load from output-<arch>/ next to the ISO. -->
+    <Copy SourceFiles="$(IsoOutput)" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="$(_PublishElfBinary)" DestinationFolder="$(PublishDir)" Condition="Exists('$(_PublishElfBinary)')"/>
+
+    <Message Text="✅ ISO and ELF copied to publish folder: $(PublishDir)" Importance="High"/>
   </Target>
 </Project>

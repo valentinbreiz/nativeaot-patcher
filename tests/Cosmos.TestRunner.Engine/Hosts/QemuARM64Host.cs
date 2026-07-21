@@ -49,7 +49,7 @@ public class QemuARM64Host : IQemuHost
         // uefiFirmwarePath ignored — QemuLauncher.ResolveArm64Firmware() handles it.
     }
 
-    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null)
+    public async Task<QemuRunResult> RunKernelAsync(string isoPath, string uartLogPath, int timeoutSeconds = QemuHostDefaults.DefaultTimeoutSeconds, bool showDisplay = false, bool enableNetworkTesting = false, IReadOnlyList<DiskAttachment>? disks = null, IReadOnlyDictionary<string, string>? machineOptions = null, ProfileDevices? devices = null)
     {
         if (!File.Exists(isoPath))
         {
@@ -86,6 +86,9 @@ public class QemuARM64Host : IQemuHost
                 EnableNetworkTesting = enableNetworkTesting,
                 Disks = disks ?? Array.Empty<DiskAttachment>(),
                 MachineOptions = machineOptions ?? new Dictionary<string, string>(),
+                NetworkCard = devices?.NetworkCard,
+                KeyboardDevice = devices?.KeyboardDevice,
+                MouseDevice = devices?.MouseDevice,
                 AllowGuestShutdown = true
             });
         }
@@ -105,19 +108,24 @@ public class QemuARM64Host : IQemuHost
         // Only create test servers for network tests
         UdpTestServer? udpServer = null;
         TcpTestServer? tcpServer = null;
+        IcmpTestServer? icmpServer = null;
         if (enableNetworkTesting)
         {
             udpServer = new UdpTestServer();
             tcpServer = new TcpTestServer();
+            icmpServer = new IcmpTestServer();
         }
 
         bool testSuiteCompleted = false;
 
         try
         {
-            // Start test servers for network tests
+            // Start test servers for network tests. The ICMP server must be
+            // listening before QEMU starts: the stream netdev connects at
+            // startup and aborts the VM if the connection is refused.
             udpServer?.Start();
             tcpServer?.Start();
+            icmpServer?.Start();
 
             process.Start();
 
@@ -160,6 +168,11 @@ public class QemuARM64Host : IQemuHost
             if (tcpServer != null)
             {
                 await tcpServer.StopAsync();
+            }
+
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
             }
 
             // Log stderr for diagnostics
@@ -207,6 +220,11 @@ public class QemuARM64Host : IQemuHost
                 await tcpServer.StopAsync();
             }
 
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
+            }
+
             // Read whatever UART output we got
             string uartLog = string.Empty;
             if (File.Exists(uartLogPath))
@@ -233,6 +251,11 @@ public class QemuARM64Host : IQemuHost
             if (tcpServer != null)
             {
                 await tcpServer.StopAsync();
+            }
+
+            if (icmpServer != null)
+            {
+                await icmpServer.StopAsync();
             }
 
             return new QemuRunResult

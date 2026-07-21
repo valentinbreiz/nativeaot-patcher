@@ -47,7 +47,6 @@ public static unsafe class GICv3Lpi
     //   [11:10] Shareability (1 = Inner Shareable)
     //   [51:12] Physical address (4 KiB aligned)
     private const ulong PROPBASER_IDBITS_MASK = 0x1FUL;
-    private const ulong PROPBASER_ADDR_MASK = 0x000FFFFFFFFFF000UL;
     private const ulong PROPBASER_INNER_WB = 5UL << 7;
     private const ulong PROPBASER_INNER_SHAREABLE = 1UL << 10;
 
@@ -172,7 +171,7 @@ public static unsafe class GICv3Lpi
         ulong propbaser = ((ulong)LpiIdBits & PROPBASER_IDBITS_MASK)
                         | PROPBASER_INNER_WB
                         | PROPBASER_INNER_SHAREABLE
-                        | (_propTablePhys & PROPBASER_ADDR_MASK);
+                        | (_propTablePhys & GICv3.BASER_PHYS_ADDR_MASK);
         Native.MMIO.Write64(_rdBase + GICR_PROPBASER, propbaser);
 
         ulong pendbaser = PENDBASER_INNER_WB

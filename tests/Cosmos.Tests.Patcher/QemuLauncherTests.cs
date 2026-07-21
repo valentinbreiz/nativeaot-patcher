@@ -64,4 +64,105 @@ public class QemuLauncherTests
     {
         Assert.Equal("/tmp/plain.img", QemuLauncher.EscapeDriveFileValue("/tmp/plain.img"));
     }
+
+    [Fact]
+    public void AppendNetworkCardArgs_NoneDisablesTheDefaultNic()
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendNetworkCardArgs(args, "none");
+        Assert.Equal(" -nic none", args.ToString());
+    }
+
+    [Theory]
+    [InlineData("e1000e")]
+    [InlineData("virtio-net-device")]
+    public void AppendNetworkCardArgs_AttachesUserModeNicForAModel(string model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendNetworkCardArgs(args, model);
+        Assert.Equal($" -netdev user,id=net0 -device {model},netdev=net0", args.ToString());
+    }
+
+    [Theory]
+    [InlineData("e1000e -device rm")] // whitespace injects new argv tokens
+    [InlineData("e1000e,netdev=x;rm")]
+    public void AppendNetworkCardArgs_RejectsCharactersOutsideOptionAlphabet(string model)
+    {
+        StringBuilder args = new();
+
+        Assert.Throws<ArgumentException>(() => QemuLauncher.AppendNetworkCardArgs(args, model));
+    }
+
+    [Theory]
+    [InlineData("virtio-keyboard-device")]
+    [InlineData("virtio-mouse-device")]
+    public void AppendInputDevice_EmitsDeviceForRealModels(string model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendInputDevice(args, model);
+        Assert.Equal($" -device {model}", args.ToString());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("none")]
+    [InlineData("ps2")]
+    [InlineData("PS2")]
+    public void AppendInputDevice_AddsNothingForSentinels(string? model)
+    {
+        StringBuilder args = new();
+        QemuLauncher.AppendInputDevice(args, model);
+        Assert.Equal(string.Empty, args.ToString());
+    }
+
+    [Fact]
+    public void AppendInputDevice_RejectsCharactersOutsideOptionAlphabet()
+    {
+        StringBuilder args = new();
+        Assert.Throws<ArgumentException>(() => QemuLauncher.AppendInputDevice(args, "virtio-keyboard-device -device rm"));
+    }
+
+    [Theory]
+    [InlineData("x64", "e1000e")]
+    [InlineData("arm64", "virtio-net-device")]
+    public void ResolveNetworkTestNic_FallsBackToTheArchitectureDefault(string architecture, string expected)
+    {
+        Assert.Equal(expected, QemuLauncher.ResolveNetworkTestNic(architecture, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ResolveNetworkTestNic_TreatsBlankAsUnset(string requested)
+    {
+        Assert.Equal("e1000e", QemuLauncher.ResolveNetworkTestNic("x64", requested));
+    }
+
+    // A profile naming a NIC has to win over the architecture default, which
+    // is what lets the network suite run its protocol tests over virtio-net-pci
+    // on x64 instead of only E1000E.
+    [Theory]
+    [InlineData("x64", "virtio-net-pci")]
+    [InlineData("arm64", "virtio-net-device")]
+    public void ResolveNetworkTestNic_PrefersTheProfileModel(string architecture, string model)
+    {
+        Assert.Equal(model, QemuLauncher.ResolveNetworkTestNic(architecture, model));
+    }
+
+    // "none" is legal for a plain `cosmos run`, but a network-testing run with
+    // no card would boot and then fail every test on an unreachable guest.
+    [Fact]
+    public void ResolveNetworkTestNic_RejectsNone()
+    {
+        Assert.Throws<ArgumentException>(() => QemuLauncher.ResolveNetworkTestNic("x64", "none"));
+    }
+
+    [Theory]
+    [InlineData("virtio-net-pci -device rm")]
+    [InlineData("virtio-net-pci,netdev=x;rm")]
+    public void ResolveNetworkTestNic_RejectsCharactersOutsideOptionAlphabet(string model)
+    {
+        Assert.Throws<ArgumentException>(() => QemuLauncher.ResolveNetworkTestNic("x64", model));
+    }
 }

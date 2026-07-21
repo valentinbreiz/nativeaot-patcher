@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Cosmos.Tools.Launcher;
 using Cosmos.Tools.Platform;
+using Cosmos.Tools.Update;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -27,6 +28,10 @@ public class RunSettings : CommandSettings
     [DefaultValue(512)]
     public int MemoryMb { get; set; } = 512;
 
+    [CommandOption("--cpu <MODEL>")]
+    [Description("QEMU CPU model, e.g. host, max, qemu64, cortex-a72. Omit for auto: on x64, 'host' when KVM is available, else 'max'. 'host' needs KVM and falls back to 'max' without it.")]
+    public string? Cpu { get; set; }
+
     [CommandOption("--headless")]
     [Description("Run without a display window (serial-only).")]
     public bool Headless { get; set; }
@@ -34,6 +39,22 @@ public class RunSettings : CommandSettings
     [CommandOption("--debug")]
     [Description("Wait for a GDB connection on port 1234 (-s -S).")]
     public bool Debug { get; set; }
+
+    [CommandOption("--disk <SPEC>")]
+    [Description("Attach a disk image the kernel can use at boot. Format: 'path' or 'path,kind' where kind is ahci (default) or nvme. Repeatable.")]
+    public string[] Disks { get; set; } = Array.Empty<string>();
+
+    [CommandOption("--nic <MODEL>")]
+    [Description("Network card exposed to the guest: 'none' for no card, or a QEMU model like e1000e or virtio-net-device. Omit to keep QEMU's default NIC.")]
+    public string? Nic { get; set; }
+
+    [CommandOption("--keyboard <MODEL>")]
+    [Description("Keyboard device to attach. Default: virtio-keyboard-device on arm64, none on x64 (PS/2 is built into the chipset). 'ps2'/'none' add nothing.")]
+    public string? Keyboard { get; set; }
+
+    [CommandOption("--mouse <MODEL>")]
+    [Description("Mouse device to attach. Default: virtio-mouse-device on arm64, none on x64 (PS/2 is built into the chipset). 'ps2'/'none' add nothing.")]
+    public string? Mouse { get; set; }
 }
 
 public class RunCommand : AsyncCommand<RunSettings>
@@ -53,6 +74,17 @@ public class RunCommand : AsyncCommand<RunSettings>
             return 1;
         }
 
+        List<DiskAttachment> disks;
+        try
+        {
+            disks = ParseDisks(settings.Disks);
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"  [red]{Markup.Escape(ex.Message)}[/]");
+            return 1;
+        }
+
         QemuLaunchPlan plan;
         try
         {
@@ -61,9 +93,14 @@ public class RunCommand : AsyncCommand<RunSettings>
                 Architecture = settings.Arch,
                 IsoPath = isoPath,
                 MemoryMb = settings.MemoryMb,
+                CpuModel = settings.Cpu,
                 Headless = settings.Headless,
                 Debug = settings.Debug,
                 SerialOutputFile = null, // CLI: serial → stdio
+                Disks = disks,
+                NetworkCard = settings.Nic,
+                KeyboardDevice = ResolveInputDevice(settings.Arch, settings.Keyboard, "virtio-keyboard-device"),
+                MouseDevice = ResolveInputDevice(settings.Arch, settings.Mouse, "virtio-mouse-device"),
                 ExtraArgs = context.Remaining.Raw.ToArray()
             });
         }
@@ -72,6 +109,9 @@ public class RunCommand : AsyncCommand<RunSettings>
             AnsiConsole.MarkupLine($"  [red]{Markup.Escape(ex.Message)}[/]");
             return 1;
         }
+
+        // Notify before QEMU starts — stdio is handed to the guest serial console after this.
+        await UpdateNotifier.MaybeNotifyAsync();
 
         AnsiConsole.MarkupLine($"  Running [blue]{Path.GetFileName(isoPath)}[/] ([blue]{settings.Arch}[/]) via QEMU [dim]({plan.Source.ToString().ToLowerInvariant()}: {plan.BinaryPath})[/]");
         if (plan.Source == ToolSource.Bundle)
@@ -106,6 +146,64 @@ public class RunCommand : AsyncCommand<RunSettings>
             AnsiConsole.MarkupLine($"  [red]Failed to start QEMU: {Markup.Escape(ex.Message)}[/]");
             return 1;
         }
+    }
+
+    /// <summary>
+    /// Applies the per-arch input-device default: the ARM64 <c>virt</c> machine
+    /// has no built-in PS/2 controller (q35 does), so leaving <c>--keyboard</c>/
+    /// <c>--mouse</c> unset there used to boot a kernel with no input at all
+    /// (#383). Unset now falls back to the virtio-MMIO model the kernel's
+    /// virtio scan finds; <c>none</c>/<c>ps2</c> still opt out explicitly.
+    /// </summary>
+    internal static string? ResolveInputDevice(string arch, string? requested, string arm64Default)
+        => requested ?? (arch == "arm64" ? arm64Default : null);
+
+    /// <summary>
+    /// Turns <c>--disk</c> specs (<c>path[,kind]</c>) into <see cref="DiskAttachment"/>s.
+    /// The kind suffix is optional and defaults to AHCI; the split is on the last
+    /// comma so a bare path (the common case) is never mistaken for a kind. The
+    /// image must already exist — the launcher would otherwise fail deep inside
+    /// QEMU with a less obvious message.
+    /// </summary>
+    internal static List<DiskAttachment> ParseDisks(string[] specs)
+    {
+        var disks = new List<DiskAttachment>(specs.Length);
+        foreach (string spec in specs)
+        {
+            string path = spec;
+            DiskKind kind = DiskKind.Ahci;
+
+            int comma = spec.LastIndexOf(',');
+            if (comma >= 0)
+            {
+                string suffix = spec[(comma + 1)..].Trim();
+                if (suffix.Equals("ahci", StringComparison.OrdinalIgnoreCase))
+                {
+                    kind = DiskKind.Ahci;
+                    path = spec[..comma];
+                }
+                else if (suffix.Equals("nvme", StringComparison.OrdinalIgnoreCase))
+                {
+                    kind = DiskKind.Nvme;
+                    path = spec[..comma];
+                }
+                // Any other suffix is treated as part of the path (a filename that
+                // legitimately contains a comma), leaving the default AHCI kind.
+            }
+
+            path = path.Trim();
+            if (path.Length == 0)
+            {
+                throw new ArgumentException($"Empty disk path in --disk spec: '{spec}'");
+            }
+            if (!File.Exists(path))
+            {
+                throw new ArgumentException($"Disk image not found: '{path}'");
+            }
+
+            disks.Add(new DiskAttachment { Path = Path.GetFullPath(path), Kind = kind });
+        }
+        return disks;
     }
 
     private static string? FindIso(string? projectPath, string arch)

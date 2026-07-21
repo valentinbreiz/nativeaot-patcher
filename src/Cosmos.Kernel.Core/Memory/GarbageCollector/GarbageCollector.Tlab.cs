@@ -72,6 +72,19 @@ public static unsafe partial class GarbageCollector
                 return SetupTlab(ref ac, buffer, requestSize);
             }
 
+            // Fall back to the largest free-list block before growing the heap.
+            // Post-sweep blocks are always smaller than TlabSize (gap stamps and
+            // surviving objects cap them below 8192), so requiring a full-size
+            // TLAB would leave every partially live segment's free space
+            // unusable and burn a fresh segment per refill: one long-lived
+            // 26-byte string then pins 3 pages forever.
+            uint minSize = size > MinBlockSize ? size : MinBlockSize;
+            buffer = AllocLargestFromFreeListRaw(minSize, out uint blockSize);
+            if (buffer != null)
+            {
+                return SetupTlab(ref ac, buffer, blockSize);
+            }
+
             // Try slow path: walk segments, allocate new segment if needed
             buffer = AllocateObjectSlowRaw(requestSize);
             if (buffer != null)
@@ -120,8 +133,6 @@ public static unsafe partial class GarbageCollector
     public static void ReturnAllocContext(ref AllocContext ac)
     {
         StampUnusedTlab(ref ac);
-        ac.AllocPtr = null;
-        ac.AllocLimit = null;
     }
 
     /// <summary>
@@ -162,14 +173,38 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        uint gap = (uint)(ac.AllocLimit - ac.AllocPtr);
-        if (gap >= MinBlockSize)
+        // Canary for the alloc-path atomicity invariant (#382): an IRQ-interleaved
+        // allocation used to leave AllocPtr past AllocLimit, which underflowed the
+        // gap below into a ~4GB stamp. AllocObject now runs with interrupts
+        // disabled, so this should never fire — if it does, drop the context
+        // instead of stamping garbage and report it loudly.
+        if (ac.AllocPtr > ac.AllocLimit)
         {
+            Serial.WriteString("[TLAB] BUG Ptr>Limit ptr=");
+            Serial.WriteHex((ulong)ac.AllocPtr);
+            Serial.WriteString(" limit=");
+            Serial.WriteHex((ulong)ac.AllocLimit);
+            Serial.WriteString("\n");
+            ac.AllocPtr = null;
+            ac.AllocLimit = null;
+            return;
+        }
+
+        uint gap = (uint)(ac.AllocLimit - ac.AllocPtr);
+        if (gap >= MinBlockSize + ReservedHeaderSlotSize)
+        {
+            // Exclude the trailing header slot: for a TLAB carved from segment bump
+            // space, the next bump allocation starts exactly at AllocLimit and its
+            // runtime header (objRef-4) lands in the gap's last 4 bytes — a free
+            // block must never own them (recycling would zero the stored value).
+            gap -= ReservedHeaderSlotSize;
+            SanitizeReservedHeaderSlot(ac.AllocPtr + gap);
+
             FreeBlock* freeBlock = (FreeBlock*)ac.AllocPtr;
             freeBlock->MethodTable = s_freeMethodTable;
             freeBlock->Size = (int)gap;
             freeBlock->Next = null;
-            AddToFreeList(freeBlock);
+            AddToFreeList(freeBlock, 't');
         }
         else if (gap > 0)
         {
@@ -177,5 +212,16 @@ public static unsafe partial class GarbageCollector
             // stale MethodTable pointers and break early.
             MemoryOp.MemSet(ac.AllocPtr, 0, (int)gap);
         }
+
+        // The gap now belongs to the free list (or is dead space) — the context
+        // MUST forget it. RefillAllocContext stamps before trying to acquire a
+        // new buffer; if every attempt fails it returns with the context intact,
+        // and the subsequent Collect() → ReturnAllAllocContexts() would stamp
+        // the SAME gap again. That second head-insert makes the free block point
+        // at itself (block->Next = head = block), and the next free-list walk —
+        // GetCurrentFragmentation at the top of Collect() — spins forever with
+        // interrupts disabled: the "hang at [GC] Collection #1" bug.
+        ac.AllocPtr = null;
+        ac.AllocLimit = null;
     }
 }

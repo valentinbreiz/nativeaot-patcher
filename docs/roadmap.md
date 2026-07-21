@@ -1,6 +1,6 @@
 ## Gen2/Gen3 Feature Comparison
 
-![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-90%25-yellow?style=for-the-badge)
+![Gen3 Release Progress](https://img.shields.io/badge/Gen3_First_Release-92%25-yellow?style=for-the-badge)
 
 | Feature | Gen2 | Gen3 | Notes |
 |---------|------|-------------|-------|
@@ -10,8 +10,8 @@
 | Memory Management | ✅ | ✅ ||
 | Driver support | ✅ | ✅ | PCI and MMIO |
 | Garbage Collection | ✅ | ✅ | Mark-and-sweep GC |
-| Filesystem | ✅ | 🟡 In progress |  |
-| .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Math, Console, DateTime, Random, BitOperations plugged. Missing: `System.IO.File`. |
+| Filesystem | ✅ | ✅ | FAT12/16/32 on a Unix-style VFS (mount, superblocks, inodes) with formatting; MBR/GPT/EBR partitioning. Exposed through `System.IO.File`/`FileStream`. |
+| .NET core library features | 🟡 | 🟡 Partial | Core types work (String, Collections, List, Dictionary). Math, Console, DateTime, Random, BitOperations, `System.IO.File` plugged. |
 | Plug system | ✅ | ✅  |  |
 | Test Framework | ✅ | ✅  |  |
 | Debugger| ✅ | 🟡 Partial | Source link + variables bugs in vscode |

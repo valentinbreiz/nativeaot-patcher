@@ -222,6 +222,217 @@ internal static class Math
         return x - intPart;
     }
 
+    // --------------- fmod (fdlibm e_fmod.c) ---------------
+    // Bit-exact remainder; NativeAOT emits calls to this for the C# `%`
+    // operator on double (and fmodf for float).
+
+    [RuntimeExport("fmod")]
+    internal static double fmod(double x, double y)
+    {
+        int n, hx, hy, hz, ix, iy, sx, i;
+        uint lx, ly, lz;
+
+        hx = HighWord(x);
+        lx = (uint)LowWord(x);
+        hy = HighWord(y);
+        ly = (uint)LowWord(y);
+        sx = hx & unchecked((int)0x80000000); /* sign of x */
+        hx ^= sx;                             /* |x| */
+        hy &= 0x7fffffff;                     /* |y| */
+
+        /* purge off exception values: y=0, x not finite, or y NaN */
+        if ((hy | (int)ly) == 0 || hx >= 0x7ff00000 ||
+            (hy | (ly != 0 ? 1 : 0)) > 0x7ff00000)
+        {
+            return (x * y) / (x * y);
+        }
+
+        if (hx <= hy)
+        {
+            if (hx < hy || lx < ly)
+            {
+                return x; /* |x| < |y| */
+            }
+
+            if (lx == ly)
+            {
+                return sx != 0 ? -0.0 : 0.0; /* |x| == |y| */
+            }
+        }
+
+        /* determine ix = ilogb(x) */
+        if (hx < 0x00100000)
+        {
+            if (hx == 0)
+            {
+                for (ix = -1043, i = (int)lx; i > 0; i <<= 1)
+                {
+                    ix -= 1;
+                }
+            }
+            else
+            {
+                for (ix = -1022, i = hx << 11; i > 0; i <<= 1)
+                {
+                    ix -= 1;
+                }
+            }
+        }
+        else
+        {
+            ix = (hx >> 20) - 1023;
+        }
+
+        /* determine iy = ilogb(y) */
+        if (hy < 0x00100000)
+        {
+            if (hy == 0)
+            {
+                for (iy = -1043, i = (int)ly; i > 0; i <<= 1)
+                {
+                    iy -= 1;
+                }
+            }
+            else
+            {
+                for (iy = -1022, i = hy << 11; i > 0; i <<= 1)
+                {
+                    iy -= 1;
+                }
+            }
+        }
+        else
+        {
+            iy = (hy >> 20) - 1023;
+        }
+
+        /* set up {hx,lx}, {hy,ly} and align y to x */
+        if (ix >= -1022)
+        {
+            hx = 0x00100000 | (0x000fffff & hx);
+        }
+        else
+        {
+            /* subnormal x, shift x to normal */
+            n = -1022 - ix;
+            if (n <= 31)
+            {
+                hx = (hx << n) | (int)(lx >> (32 - n));
+                lx <<= n;
+            }
+            else
+            {
+                hx = (int)(lx << (n - 32));
+                lx = 0;
+            }
+        }
+
+        if (iy >= -1022)
+        {
+            hy = 0x00100000 | (0x000fffff & hy);
+        }
+        else
+        {
+            /* subnormal y, shift y to normal */
+            n = -1022 - iy;
+            if (n <= 31)
+            {
+                hy = (hy << n) | (int)(ly >> (32 - n));
+                ly <<= n;
+            }
+            else
+            {
+                hy = (int)(ly << (n - 32));
+                ly = 0;
+            }
+        }
+
+        /* fixed-point fmod */
+        n = ix - iy;
+        while (n-- != 0)
+        {
+            hz = hx - hy;
+            lz = lx - ly;
+            if (lx < ly)
+            {
+                hz -= 1;
+            }
+
+            if (hz < 0)
+            {
+                hx = hx + hx + (int)(lx >> 31);
+                lx += lx;
+            }
+            else
+            {
+                if ((hz | (int)lz) == 0)
+                {
+                    return sx != 0 ? -0.0 : 0.0;
+                }
+
+                hx = hz + hz + (int)(lz >> 31);
+                lx = lz + lz;
+            }
+        }
+
+        hz = hx - hy;
+        lz = lx - ly;
+        if (lx < ly)
+        {
+            hz -= 1;
+        }
+
+        if (hz >= 0)
+        {
+            hx = hz;
+            lx = lz;
+        }
+
+        /* convert back to floating value and restore the sign */
+        if ((hx | (int)lx) == 0)
+        {
+            return sx != 0 ? -0.0 : 0.0;
+        }
+
+        while (hx < 0x00100000)
+        {
+            /* normalize x */
+            hx = hx + hx + (int)(lx >> 31);
+            lx += lx;
+            iy -= 1;
+        }
+
+        if (iy >= -1022)
+        {
+            /* normalize output */
+            hx = (hx - 0x00100000) | ((iy + 1023) << 20);
+            return BitsToDouble(((long)(hx | sx) << 32) | lx);
+        }
+
+        /* subnormal output */
+        n = -1022 - iy;
+        if (n <= 20)
+        {
+            lx = (lx >> n) | ((uint)hx << (32 - n));
+            hx >>= n;
+        }
+        else if (n <= 31)
+        {
+            lx = (uint)((hx << (32 - n)) | (int)(lx >> n));
+            hx = sx;
+        }
+        else
+        {
+            lx = (uint)(hx >> (n - 32));
+            hx = sx;
+        }
+
+        return BitsToDouble(((long)(hx | sx) << 32) | lx) * 1.0;
+    }
+
+    [RuntimeExport("fmodf")]
+    internal static float fmodf(float x, float y) => (float)fmod(x, y);
+
     [RuntimeExport("fma")]
     internal static double fma(double x, double y, double z)
     {
@@ -1102,4 +1313,147 @@ internal static class Math
 
     [RuntimeExport("powf")]
     internal static float powf(float x, float y) => (float)pow(x, y);
+
+    // --------------- hyperbolics (after fdlibm e_cosh.c / e_sinh.c / s_tanh.c) ---------------
+    // Structured like fdlibm but with exp(x)-1 standing in for expm1 (not ported),
+    // so tiny-argument cases early-return before the precision of exp-1 matters.
+
+    [RuntimeExport("cosh")]
+    internal static double cosh(double x)
+    {
+        if (double.IsNaN(x))
+        {
+            return double.NaN;
+        }
+
+        if (double.IsInfinity(x))
+        {
+            return double.PositiveInfinity;
+        }
+
+        double ax = Abs(x);
+
+        /* |x| tiny: cosh(x) = 1 to double precision */
+        if (ax < 7.45e-9) /* 2^-27 */
+        {
+            return 1.0;
+        }
+
+        if (ax < 22.0)
+        {
+            double t = FdlibmExp(ax);
+            return 0.5 * t + 0.5 / t;
+        }
+
+        /* |x| in [22, log(maxdouble)]: cosh(x) = exp(|x|)/2 */
+        if (ax < 7.09782712893383973096e+02)
+        {
+            return 0.5 * FdlibmExp(ax);
+        }
+
+        /* |x| in [log(maxdouble), overflowthreshold] */
+        if (ax <= 7.10475860073943863426e+02)
+        {
+            double w = FdlibmExp(0.5 * ax);
+            return 0.5 * w * w;
+        }
+
+        return double.PositiveInfinity;
+    }
+
+    [RuntimeExport("coshf")]
+    internal static float coshf(float x) => (float)cosh(x);
+
+    [RuntimeExport("sinh")]
+    internal static double sinh(double x)
+    {
+        if (double.IsNaN(x) || double.IsInfinity(x))
+        {
+            return x + x; /* preserves NaN and signed infinity */
+        }
+
+        double ax = Abs(x);
+        double h = x < 0 ? -0.5 : 0.5;
+
+        if (ax < 22.0)
+        {
+            /* |x| tiny: sinh(x) = x to double precision */
+            if (ax < 3.73e-9) /* 2^-28 */
+            {
+                return x;
+            }
+
+            double t = FdlibmExp(ax) - 1.0;
+            if (ax < 1.0)
+            {
+                return h * (2.0 * t - t * t / (t + 1.0));
+            }
+
+            return h * (t + t / (t + 1.0));
+        }
+
+        /* |x| in [22, log(maxdouble)]: sinh(x) = sign(x)*exp(|x|)/2 */
+        if (ax < 7.09782712893383973096e+02)
+        {
+            return h * FdlibmExp(ax);
+        }
+
+        /* |x| in [log(maxdouble), overflowthreshold] */
+        if (ax <= 7.10475860073943863426e+02)
+        {
+            double w = FdlibmExp(0.5 * ax);
+            return h * w * w;
+        }
+
+        return x > 0 ? double.PositiveInfinity : double.NegativeInfinity;
+    }
+
+    [RuntimeExport("sinhf")]
+    internal static float sinhf(float x) => (float)sinh(x);
+
+    [RuntimeExport("tanh")]
+    internal static double tanh(double x)
+    {
+        if (double.IsNaN(x))
+        {
+            return double.NaN;
+        }
+
+        if (double.IsInfinity(x))
+        {
+            return x > 0 ? 1.0 : -1.0;
+        }
+
+        double ax = Abs(x);
+        double z;
+
+        if (ax < 22.0)
+        {
+            /* |x| tiny: tanh(x) = x to double precision */
+            if (ax < 2.78e-17) /* 2^-55 */
+            {
+                return x * (1.0 + x);
+            }
+
+            if (ax >= 1.0)
+            {
+                double t = FdlibmExp(2.0 * ax) - 1.0;
+                z = 1.0 - 2.0 / (t + 2.0);
+            }
+            else
+            {
+                double t = FdlibmExp(-2.0 * ax) - 1.0;
+                z = -t / (t + 2.0);
+            }
+        }
+        else
+        {
+            z = 1.0; /* |x| >= 22: tanh saturates */
+        }
+
+        return x >= 0 ? z : -z;
+    }
+
+    [RuntimeExport("tanhf")]
+    internal static float tanhf(float x) => (float)tanh(x);
 }

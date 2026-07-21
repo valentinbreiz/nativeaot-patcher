@@ -18,14 +18,16 @@ public static unsafe partial class GarbageCollector
 {
     /// <summary>
     /// Executes the mark phase: scans roots (stack, GC handles) and marks all reachable objects.
+    /// Static roots need no separate pass: <c>ManagedModule.InitializeStatics</c> holds every
+    /// module's GC-statics base objects in a spine array behind a strong GC handle, so the
+    /// handle scan reaches all objects referenced by static fields transitively (proven by the
+    /// GC_StaticOnlyReachability kernel test).
     /// </summary>
     private static void MarkPhase()
     {
         s_markStackCount = 0;
         ScanStackRoots();
         ScanGCHandles();
-        // TODO: scan static roots — objects reachable only through static fields aren't rooted
-        //       yet (see the s_maxSegmentSize note in GarbageCollector.cs).
     }
 
     /// <summary>
@@ -81,7 +83,7 @@ public static unsafe partial class GarbageCollector
     /// GCInfo — it is parked at a call-site safepoint, so the scan is sound — while every other
     /// registered thread (preempted at an arbitrary IP, where its GCInfo lookup may be meaningless)
     /// still gets a conservative word-by-word scan of its saved registers and stack until
-    /// return-address hijacking lands. See issue #346.
+    /// return-address hijacking lands. See issue #385.
     /// <para>
     /// <see cref="GarbageCollector.Collect"/> runs this inside <c>InternalCpu.DisableInterruptsScope()</c>,
     /// so the other registered threads are quiescent for the duration.
@@ -293,7 +295,7 @@ public static unsafe partial class GarbageCollector
 
             // MethodTable must be in kernel address space (higher-half).
             // Reject pointers in userspace range — they're garbage from conservative scanning.
-            if (mtPtr < 0xFFFF800000000000)
+            if (mtPtr < AddressSpace.KernelSpaceStart)
             {
                 continue;
             }
