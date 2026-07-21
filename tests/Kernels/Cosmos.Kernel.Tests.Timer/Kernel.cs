@@ -5,6 +5,7 @@ using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using AlarmSystem = Cosmos.Kernel.Core.Scheduler.AlarmSystem;
+using BclTimer = System.Threading.Timer;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 #if ARCH_X64
@@ -24,8 +25,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Timer Tests] Starting test suite\n");
 
 #if ARCH_X64
-        // x64: Stopwatch (2) + PIT (3) + TimerManager (5) + LAPIC (3) + DateTime (4) + AlarmSystem (3) = 20
-        TR.Start("Timer Tests", expectedTests: 20);
+        // x64: Stopwatch (2) + PIT (3) + TimerManager (5) + LAPIC (3) + DateTime (4) + AlarmSystem (3) + BCL Timer (4) = 24
+        TR.Start("Timer Tests", expectedTests: 24);
 
         // PIT Tests (using Stopwatch for verification)
         TR.Run("PIT_Initialized", TestPITInitialized);
@@ -39,8 +40,8 @@ public class Kernel : Sys.Kernel
 
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        // Stopwatch (2) + TimerManager (5) + DateTime (4) + AlarmSystem (3) = 14
-        TR.Start("Timer Tests", expectedTests: 14);
+        // Stopwatch (2) + TimerManager (5) + DateTime (4) + AlarmSystem (3) + BCL Timer (4) = 18
+        TR.Start("Timer Tests", expectedTests: 18);
 #endif
 
         // Stopwatch/TSC Tests - must run first to verify timing source
@@ -64,6 +65,14 @@ public class Kernel : Sys.Kernel
         TR.Run("DateTime_Now_Valid", TestDateTimeNowValid);
         TR.Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
         TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
+
+        // System.Threading.Timer / Task.Delay Tests (BCL TimerQueue on the
+        // portable timer thread) — kept last so a TimerQueue failure cannot
+        // mask the other results
+        TR.Run("BclTimer_OneShot_Fires", TestBclTimerOneShot);
+        TR.Run("BclTimer_Periodic_Fires", TestBclTimerPeriodic);
+        TR.Run("BclTimer_Dispose_Stops", TestBclTimerDisposeStops);
+        TR.Run("Task_Delay_Completes", TestTaskDelayCompletes);
 
         Serial.WriteString("[Timer Tests] All tests completed\n");
         TR.Finish();
@@ -330,6 +339,79 @@ public class Kernel : Sys.Kernel
 
         Assert.True(s_alarmRemovedCount == 0, "AlarmSystem: removed alarm should not fire");
         Assert.True(!AlarmSystem.Remove(id), "AlarmSystem: Remove should return false for unknown ID");
+    }
+
+    // ==================== System.Threading.Timer Tests ====================
+
+    private static volatile int s_bclOneShotCount;
+    private static volatile int s_bclPeriodicCount;
+    private static volatile int s_bclDisposedCount;
+
+    private static void TestBclTimerOneShot()
+    {
+        s_bclOneShotCount = 0;
+        using (BclTimer timer = new(static _ => s_bclOneShotCount++, null, 50, Timeout.Infinite))
+        {
+            TimerManager.Wait(500);
+        }
+
+        Serial.WriteString("[Timer Tests] BCL one-shot fire count: ");
+        Serial.WriteNumber((ulong)s_bclOneShotCount);
+        Serial.WriteString("\n");
+
+        Assert.True(s_bclOneShotCount == 1, "System.Threading.Timer: one-shot should fire exactly once");
+    }
+
+    private static void TestBclTimerPeriodic()
+    {
+        s_bclPeriodicCount = 0;
+        int count;
+        using (BclTimer timer = new(static _ => s_bclPeriodicCount++, null, 50, 50))
+        {
+            TimerManager.Wait(500);
+            count = s_bclPeriodicCount;
+        }
+
+        Serial.WriteString("[Timer Tests] BCL periodic fire count after 500ms: ");
+        Serial.WriteNumber((ulong)count);
+        Serial.WriteString("\n");
+
+        Assert.True(count >= 3, "System.Threading.Timer: periodic should fire repeatedly (>= 3 in 500ms)");
+    }
+
+    private static void TestBclTimerDisposeStops()
+    {
+        s_bclDisposedCount = 0;
+        BclTimer timer = new(static _ => s_bclDisposedCount++, null, 200, Timeout.Infinite);
+        timer.Dispose();
+
+        TimerManager.Wait(400);
+
+        Assert.True(s_bclDisposedCount == 0, "System.Threading.Timer: disposed timer should not fire");
+    }
+
+    private static void TestTaskDelayCompletes()
+    {
+        long tsStart = Stopwatch.GetTimestamp();
+        Task delay = Task.Delay(100);
+
+        // Bounded poll so a broken TimerQueue fails the assertion instead of
+        // hanging the suite
+        long elapsedMs = 0;
+        while (!delay.IsCompleted && elapsedMs < 2000)
+        {
+            TimerManager.Wait(10);
+            elapsedMs = (Stopwatch.GetTimestamp() - tsStart) * 1000 / Stopwatch.Frequency;
+        }
+
+        Serial.WriteString("[Timer Tests] Task.Delay(100) completed=");
+        Serial.WriteNumber((ulong)(delay.IsCompleted ? 1 : 0));
+        Serial.WriteString(" after ms: ");
+        Serial.WriteNumber((ulong)elapsedMs);
+        Serial.WriteString("\n");
+
+        Assert.True(delay.IsCompleted, "Task.Delay(100) should complete");
+        Assert.True(elapsedMs >= 50, "Task.Delay(100) should take at least ~100ms");
     }
 
 #if ARCH_X64
