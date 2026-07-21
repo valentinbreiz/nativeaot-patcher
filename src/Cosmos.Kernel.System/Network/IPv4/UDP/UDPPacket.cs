@@ -50,19 +50,13 @@ public class UDPPacket : IPPacket
             DNSPacket.DNSHandler(packetData);
             // Also route to UdpClient (DnsClient) if listening on the destination port
             var client = UdpClient.GetClient(udpPacket.DestinationPort);
-            if (client != null)
-            {
-                client.ReceiveData(udpPacket);
-            }
+            client?.ReceiveData(udpPacket);
         }
         else
         {
             // Route to UdpClient if available
             var client = UdpClient.GetClient(udpPacket.DestinationPort);
-            if (client != null)
-            {
-                client.ReceiveData(udpPacket);
-            }
+            client?.ReceiveData(udpPacket);
         }
 
         // Call the registered callback if any

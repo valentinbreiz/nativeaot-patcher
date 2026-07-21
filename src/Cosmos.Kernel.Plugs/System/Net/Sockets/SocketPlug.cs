@@ -539,8 +539,7 @@ public static class SocketPlug
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
-        var ipep = remoteEP as IPEndPoint;
-        if (ipep == null)
+        if (remoteEP is not IPEndPoint ipep)
         {
             throw new NotSupportedException("Only IPEndPoint supported");
         }

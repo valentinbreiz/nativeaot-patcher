@@ -72,10 +72,7 @@ public class TCPPacket : IPPacket
         {
             var connection = Tcp.GetConnection(packet.DestinationPort, packet.SourcePort, packet.DestinationIP, packet.SourceIP);
 
-            if (connection != null)
-            {
-                connection.ReceiveData(packet);
-            }
+            connection?.ReceiveData(packet);
         }
         else
         {

@@ -178,9 +178,9 @@ public static class TcpClientPlug
         {
             stream.Dispose();
         }
-        else if (socket != null)
+        else
         {
-            socket.Close();
+            socket?.Close();
         }
     }
 }

@@ -949,10 +949,7 @@ namespace LunarLabs.Fonts
             }
             else
             {
-                if (points != null)
-                {
-                    points.Add(new Point(x2, y2));
-                }
+                points?.Add(new Point(x2, y2));
                 numPoints++;
             }
         }
@@ -1013,10 +1010,7 @@ namespace LunarLabs.Fonts
 
                             x = vertices[i].x;
                             y = vertices[i].y;
-                            if (windings != null)
-                            {
-                                windings.Add(new Point(x, y));
-                            }
+                            windings?.Add(new Point(x, y));
                             numPoints++;
                             break;
                         }
@@ -1026,10 +1020,7 @@ namespace LunarLabs.Fonts
                             x = vertices[i].x;
                             y = vertices[i].y;
 
-                            if (windings != null)
-                            {
-                                windings.Add(new Point(x, y));
-                            }
+                            windings?.Add(new Point(x, y));
 
                             numPoints++;
                             break;

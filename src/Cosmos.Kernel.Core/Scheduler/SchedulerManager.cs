@@ -898,10 +898,7 @@ public static class SchedulerManager
             return;
         }
 
-        if (prev != null)
-        {
-            prev.State = ThreadState.Ready;
-        }
+        prev?.State = ThreadState.Ready;
 
         next.State = ThreadState.Running;
         ContextSwitchNative.SetContextSwitchSp(next.StackPointer);

@@ -39,12 +39,13 @@ public class DnsClient : UdpClient
     /// <param name="url">The domain name string to query the DNS for.</param>
     public void SendAsk(string url)
     {
-        Address? source = destination is not null ? IPConfig.FindNetwork(destination) : null;
-        if (source == null)
+        if (destination is null)
         {
             throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         }
 
+        Address source = IPConfig.FindNetwork(destination)
+            ?? throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         _queryUrl = url;
         var askpacket = new DNSPacketAsk(source, destination!, url);
 
