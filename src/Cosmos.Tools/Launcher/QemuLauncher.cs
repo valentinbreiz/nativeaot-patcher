@@ -46,6 +46,16 @@ public sealed class QemuLaunchOptions
     /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
     /// </summary>
     public string? MouseDevice { get; init; }
+
+    /// <summary>
+    /// VGA adapter exposed to the guest, as a <c>-vga</c> backend name (e.g.
+    /// <c>vmware</c>, <c>virtio</c>, <c>none</c>). <c>null</c> keeps the
+    /// architecture default (stdvga on q35, nothing beyond ramfb on virt).
+    /// Unlike <see cref="KeyboardDevice"/> this is not a <c>-device</c> model:
+    /// <c>-vga</c> replaces the machine's default adapter instead of adding a
+    /// second one alongside it.
+    /// </summary>
+    public string? VgaAdapter { get; init; }
     /// <summary>
     /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
     /// path, the controller type (ahci or nvme), and an optional comma-prefixed
@@ -121,6 +131,13 @@ public static class QemuLauncher
     /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
     private const int NetworkTestTcpPort = 5558;
 
+    /// <summary>
+    /// TCP port of the test runner's raw-Ethernet listener (IcmpTestServer). Slirp's
+    /// hostfwd only forwards TCP/UDP, so host-sourced ICMP rides a stream netdev
+    /// hubbed with slirp: frames are 4-byte big-endian-length-prefixed Ethernet.
+    /// </summary>
+    private const int NetworkTestRawSocketPort = 5560;
+
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
         CommandToolDefinition tool = options.Architecture switch
@@ -189,7 +206,16 @@ public static class QemuLauncher
         if (options.EnableNetworkTesting)
         {
             string nic = ResolveNetworkTestNic(options.Architecture, options.NetworkCard);
-            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
+            // One hub joins three ports: slirp (DHCP/NAT + the UDP/TCP hostfwds),
+            // a raw-Ethernet stream socket to the runner's IcmpTestServer, and the
+            // guest NIC. The stream port exists because slirp cannot forward
+            // host-sourced ICMP; the runner must be listening before QEMU starts.
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort}");
+            args.Append($" -netdev stream,id=rawnet0,addr.type=inet,addr.host=127.0.0.1,addr.port={NetworkTestRawSocketPort}");
+            args.Append(" -netdev hubport,id=hubport0,hubid=0,netdev=net0");
+            args.Append(" -netdev hubport,id=hubport1,hubid=0,netdev=rawnet0");
+            args.Append(" -netdev hubport,id=hubport2,hubid=0");
+            args.Append($" -device {nic},netdev=hubport2");
         }
         else if (options.NetworkCard is not null)
         {
@@ -198,6 +224,7 @@ public static class QemuLauncher
 
         AppendInputDevice(args, options.KeyboardDevice);
         AppendInputDevice(args, options.MouseDevice);
+        AppendVgaAdapter(args, options.VgaAdapter);
 
         if (options.Debug)
         {
@@ -246,7 +273,9 @@ public static class QemuLauncher
         {
             args.Append(" -no-shutdown");
         }
-        if (!options.Headless)
+        // A profile-selected adapter is emitted later (shared path) and -vga
+        // may only appear once, so the windowed default steps aside for it.
+        if (!options.Headless && options.VgaAdapter is null)
         {
             args.Append(" -vga std");
         }
@@ -392,6 +421,24 @@ public static class QemuLauncher
 
         ValidateOptionToken(model, "input device model");
         args.Append($" -device {model}");
+    }
+
+    /// <summary>
+    /// Selects the guest's VGA adapter as a <c>-vga</c> backend. <c>null</c>/empty
+    /// keeps the architecture default; any other value — including QEMU's own
+    /// <c>none</c> — is passed through. Emitted for both arches: the profile
+    /// catalog's architecture filter is what keeps an adapter off a machine
+    /// that cannot present it.
+    /// </summary>
+    internal static void AppendVgaAdapter(StringBuilder args, string? adapter)
+    {
+        if (string.IsNullOrWhiteSpace(adapter))
+        {
+            return;
+        }
+
+        ValidateOptionToken(adapter, "vga adapter");
+        args.Append($" -vga {adapter}");
     }
 
     /// <summary>

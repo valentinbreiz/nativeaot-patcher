@@ -46,6 +46,9 @@ public class IPPacket : EthernetPacket
         {
             switch (ipPacket.Protocol)
             {
+                case 1: // ICMP
+                    ICMPPacket.ICMPHandler(packetData);
+                    break;
                 case 6: // TCP
                     TCPPacket.TCPHandler(packetData);
                     break;

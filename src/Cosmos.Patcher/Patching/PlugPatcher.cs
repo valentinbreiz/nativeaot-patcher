@@ -2,11 +2,10 @@ using Cosmos.Build.API.Enum;
 using Cosmos.Patcher.Debug;
 using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.Logging;
-using Cosmos.Patcher.Patching;
 using Cosmos.Patcher.Resolution;
 using Mono.Cecil;
 
-namespace Cosmos.Patcher;
+namespace Cosmos.Patcher.Patching;
 
 /// <summary>
 /// Records a mapping from a plug method to its patched target method.
@@ -23,14 +22,11 @@ public record PlugMapping(
 /// The PlugPatcher class is responsible for applying plugs to methods, types, and assemblies.
 /// Orchestrates the patching process using specialized components.
 /// </summary>
-public sealed class PlugPatcher
+public sealed partial class PlugPatcher
 {
     private readonly PlugScanner _scanner;
     private readonly IBuildLogger _log;
     private readonly MethodResolver _methodResolver;
-    private readonly MethodPatcher _methodPatcher;
-    private readonly PropertyPatcher _propertyPatcher;
-    private readonly FieldPatcher _fieldPatcher;
 
     /// <summary>
     /// All successful plug → target method mappings recorded during patching.
@@ -52,9 +48,6 @@ public sealed class PlugPatcher
 
         // Initialize components
         _methodResolver = new MethodResolver(_log);
-        _methodPatcher = new MethodPatcher(_log);
-        _fieldPatcher = new FieldPatcher(_log);
-        _propertyPatcher = new PropertyPatcher(_log, _methodPatcher, _fieldPatcher);
 
         _log.Debug($"PlugPatcher initialized with scanner: {scanner.GetType().FullName}");
         MonoCecilExtensions.Logger = _log;
@@ -133,29 +126,6 @@ public sealed class PlugPatcher
         _log.Info($"Completed processing type: {targetType.FullName}");
     }
 
-    /// <summary>
-    /// Patches a method with the implementation from a plug method.
-    /// </summary>
-    public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool instance = false)
-    {
-        _methodPatcher.PatchMethod(targetMethod, plugMethod, instance);
-    }
-
-    /// <summary>
-    /// Patches a property with the implementation from a plug property.
-    /// </summary>
-    public void PatchProperty(TypeDefinition targetType, PropertyDefinition plugProperty, string? targetPropertyName = null)
-    {
-        _propertyPatcher.PatchProperty(targetType, plugProperty, targetPropertyName);
-    }
-
-    /// <summary>
-    /// Patches a field with the definition from a plug field.
-    /// </summary>
-    public void PatchField(TypeDefinition targetType, FieldDefinition plugField, string? targetFieldName = null)
-    {
-        _fieldPatcher.PatchField(targetType, plugField, targetFieldName);
-    }
 
     #endregion
 
@@ -295,6 +265,8 @@ public sealed class PlugPatcher
         CustomAttribute? platformSpecAttr = member.GetCustomAttribute(PlugScanner.PlatformSpecificAttributeFullName);
         PlatformArchitecture? memberArchitecture = platformSpecAttr?.GetArgument<PlatformArchitecture>(named: "Architecture");
 
+
+
         if (platformSpecAttr != null && platformArchitecture != null && memberArchitecture != null &&
             !memberArchitecture.Value.HasFlag(platformArchitecture.Value))
         {
@@ -324,10 +296,10 @@ public sealed class PlugPatcher
                 ResolveAndPatchMethod(targetType, plugMethod, targetMemberName);
                 break;
             case PropertyDefinition plugProperty:
-                _propertyPatcher.PatchProperty(targetType, plugProperty, targetMemberName);
+                PatchProperty(targetType, plugProperty, targetMemberName);
                 break;
             case FieldDefinition plugField:
-                _fieldPatcher.PatchField(targetType, plugField, targetMemberName);
+                PatchField(targetType, plugField, targetMemberName);
                 break;
             default:
                 _log.Warn($"Unsupported member type: {member.Name}");
@@ -347,9 +319,9 @@ public sealed class PlugPatcher
             MethodDefinition? ctor = _methodResolver.ResolveConstructor(targetType, plugMethod);
             if (ctor != null)
             {
-                _log.Debug($"Target prototype: {MethodResolver.FormatMethodSignature(ctor)}");
-                _log.Debug($"Plug prototype: {MethodResolver.FormatMethodSignature(plugMethod)}");
-                _methodPatcher.PatchMethod(ctor, plugMethod);
+                _log.Debug($"Target prototype: {DebugHelpers.FormatMethodSignature(ctor)}");
+                _log.Debug($"Plug prototype: {DebugHelpers.FormatMethodSignature(plugMethod)}");
+                PatchMethod(ctor, plugMethod);
                 RecordPlugMapping(plugMethod, ctor);
             }
             return;
@@ -358,8 +330,8 @@ public sealed class PlugPatcher
         MethodDefinition? targetMethod = _methodResolver.ResolveMethod(targetType, plugMethod, targetMethodName ?? plugMethod.Name);
         if (targetMethod != null)
         {
-            _log.Debug($"Target prototype: {MethodResolver.FormatMethodSignature(targetMethod)}");
-            _methodPatcher.PatchMethod(targetMethod, plugMethod);
+            _log.Debug($"Target prototype: {DebugHelpers.FormatMethodSignature(targetMethod)}");
+            PatchMethod(targetMethod, plugMethod);
             RecordPlugMapping(plugMethod, targetMethod);
         }
         else
@@ -378,20 +350,13 @@ public sealed class PlugPatcher
             return;
         }
 
-        string FormatSig(MethodDefinition m)
-        {
-            var parameters = string.Join(", ", m.Parameters.Select(p => p.ParameterType.Name));
-            string name = m.IsConstructor ? (m.IsStatic ? ".cctor" : ".ctor") : m.Name;
-            return $"{name}({parameters})";
-        }
-
         PlugMappings.Add(new PlugMapping(
             PlugAssembly: plugMethod.DeclaringType.Module.Assembly.Name.Name,
             PlugType: plugMethod.DeclaringType.FullName,
-            PlugMethod: FormatSig(plugMethod),
+            PlugMethod: DebugHelpers.FormatMethodSignature(plugMethod),
             TargetAssembly: targetMethod.DeclaringType.Module.Assembly.Name.Name,
             TargetType: targetMethod.DeclaringType.FullName,
-            TargetMethod: FormatSig(targetMethod)
+            TargetMethod: DebugHelpers.FormatMethodSignature(targetMethod)
         ));
     }
 
@@ -426,42 +391,6 @@ public sealed class PlugPatcher
         }
     }
 
-    private void RemoveMethod(TypeDefinition targetType, MethodDefinition method)
-    {
-        method.Body?.Clear();
-        method.CustomAttributes.Clear();
-        method.Body = null;
-        targetType.Methods.Remove(method);
-    }
-
-    private void RemoveProperty(TypeDefinition targetType, PropertyDefinition property)
-    {
-        FieldDefinition? backingField = null;
-
-        if (property.GetMethod != null)
-        {
-            var fieldInfo = _propertyPatcher.FindBackingField(property.GetMethod);
-            if (fieldInfo.Instruction != null)
-            {
-                backingField = ((FieldReference)fieldInfo.Instruction.Operand).Resolve();
-            }
-
-            RemoveMethod(targetType, property.GetMethod);
-        }
-
-        if (property.SetMethod != null)
-        {
-            RemoveMethod(targetType, property.SetMethod);
-        }
-
-        if (backingField != null)
-        {
-            targetType.Fields.Remove(backingField);
-        }
-
-        targetType.Properties.Remove(property);
-        _log.Debug($"Removed property: {property.Name}");
-    }
 
     /// <summary>
     /// Dumps debug information when an error occurs.
@@ -474,6 +403,7 @@ public sealed class PlugPatcher
             _log.Debug($"PlugMember.TargetName = {targetName}");
             if (member is MethodDefinition plugMethod)
             {
+
                 _methodResolver.DumpOverloads(targetType, targetName ?? member.Name, plugMethod);
             }
         }

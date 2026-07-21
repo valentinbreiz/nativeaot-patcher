@@ -464,6 +464,12 @@ public static class SchedulerManager
             thread.State = ThreadState.Blocked;
             _currentScheduler.OnThreadBlocked(state, thread);
 
+            // Ask the next IRQ exit to switch away (same as ReadyThread): a
+            // blocked current thread otherwise keeps re-entering its halt
+            // loop until the quantum tick preempts it — or forever when the
+            // periodic tick is not running.
+            state.NeedReschedule = true;
+
             Serial.WriteString("[SCHED] BlockThread id=");
             Serial.WriteNumber(thread.Id);
             Serial.WriteString("\n");
@@ -569,8 +575,12 @@ public static class SchedulerManager
             PerCpuState cpuState = _cpuStates[cpuId];
 
             ulong timestamp = GetTimestamp();
-            ulong num = timeoutMs * NanosecondsPerMillisecond;
-            thread.WakeupTime = timestamp + num;
+            // WakeupTime is compared against GetTimestamp() — Stopwatch ticks —
+            // so the offset must be in ticks too. Adding nanoseconds stretched
+            // timeouts 16x on ARM64 (62.5 MHz generic timer) and shrank them
+            // on multi-GHz x64 TSCs.
+            ulong ticksPerMs = (ulong)Stopwatch.Frequency / 1000;
+            thread.WakeupTime = timestamp + timeoutMs * ticksPerMs;
 
             _currentScheduler.OnThreadBlocked(cpuState, thread);
             thread.State = ThreadState.Sleeping;

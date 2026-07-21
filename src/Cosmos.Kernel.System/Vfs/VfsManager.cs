@@ -60,6 +60,7 @@ public static partial class VfsManager
 
     private static readonly Dictionary<string, IVfsFilesystemType> s_registeredTypes = new(StringComparer.Ordinal);
     private static readonly List<VfsMount> s_mounts = new();
+    private static readonly string s_directorySeparatorString = Path.DirectorySeparatorChar.ToString();
 
     /// <summary>
     /// All currently active mounts in registration order.
@@ -297,7 +298,7 @@ public static partial class VfsManager
             return true;
         }
 
-        string[] parts = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string[] parts = relativePath.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
         for (int i = 0; i < parts.Length; i++)
         {
             string segment = parts[i];
@@ -332,7 +333,7 @@ public static partial class VfsManager
     /// </summary>
     public static bool MountCovers(string mountPoint, string path)
     {
-        if (mountPoint == "/")
+        if (mountPoint == s_directorySeparatorString)
         {
             return true;
         }
@@ -342,7 +343,7 @@ public static partial class VfsManager
             return false;
         }
 
-        return path.Length == mountPoint.Length || path[mountPoint.Length] == '/';
+        return path.Length == mountPoint.Length || path[mountPoint.Length] == Path.DirectorySeparatorChar;
     }
 
     private static VfsMount? FindMount(string path)
@@ -370,18 +371,18 @@ public static partial class VfsManager
     {
         if (string.IsNullOrWhiteSpace(mountPoint))
         {
-            return "/";
+            return s_directorySeparatorString;
         }
 
         string normalized = mountPoint;
-        if (!normalized.StartsWith("/", StringComparison.Ordinal))
+        if (!normalized.StartsWith(s_directorySeparatorString, StringComparison.Ordinal))
         {
-            normalized = "/" + normalized;
+            normalized = Path.Combine(s_directorySeparatorString, normalized);
         }
 
-        if (normalized.Length > 1 && normalized.EndsWith("/", StringComparison.Ordinal))
+        if (normalized.Length > 1 && normalized.EndsWith(s_directorySeparatorString, StringComparison.Ordinal))
         {
-            normalized = normalized.TrimEnd('/');
+            normalized = normalized.TrimEnd(Path.DirectorySeparatorChar);
         }
 
         return normalized;
@@ -389,15 +390,15 @@ public static partial class VfsManager
 
     private static string TrimMountPrefix(string mountPoint, string path)
     {
-        if (mountPoint == "/")
+        if (mountPoint == s_directorySeparatorString)
         {
-            return path.TrimStart('/');
+            return path.TrimStart(Path.DirectorySeparatorChar);
         }
 
         string trimmed = path.StartsWith(mountPoint, StringComparison.Ordinal)
             ? path.Substring(mountPoint.Length)
             : path;
 
-        return trimmed.TrimStart('/');
+        return trimmed.TrimStart(Path.DirectorySeparatorChar);
     }
 }

@@ -1,8 +1,11 @@
 using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
+using AlarmSystem = Cosmos.Kernel.Core.Scheduler.AlarmSystem;
+using BclTimer = System.Threading.Timer;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 #if ARCH_X64
@@ -22,8 +25,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Timer Tests] Starting test suite\n");
 
 #if ARCH_X64
-        // x64: Stopwatch (2) + PIT (3) + TimerManager (2) + LAPIC (3) + DateTime (4) = 14
-        TR.Start("Timer Tests", expectedTests: 14);
+        // x64: Stopwatch (2) + PIT (3) + TimerManager (5) + LAPIC (3) + DateTime (4) + AlarmSystem (3) + BCL Timer (4) = 24
+        TR.Start("Timer Tests", expectedTests: 24);
 
         // PIT Tests (using Stopwatch for verification)
         TR.Run("PIT_Initialized", TestPITInitialized);
@@ -37,7 +40,8 @@ public class Kernel : Sys.Kernel
 
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        TR.Start("Timer Tests", expectedTests: 8);
+        // Stopwatch (2) + TimerManager (5) + DateTime (4) + AlarmSystem (3) + BCL Timer (4) = 18
+        TR.Start("Timer Tests", expectedTests: 18);
 #endif
 
         // Stopwatch/TSC Tests - must run first to verify timing source
@@ -47,12 +51,28 @@ public class Kernel : Sys.Kernel
         // TimerManager Tests
         TR.Run("TimerManager_Initialized", TestTimerManagerInitialized);
         TR.Run("TimerManager_Wait_500ms", TestTimerManagerWait500ms);
+        TR.Run("TimerManager_Schedule_OneShot", TestScheduleOneShot);
+        TR.Run("TimerManager_Schedule_Recurring", TestScheduleRecurring);
+        TR.Run("TimerManager_Schedule_Cancel", TestScheduleCancel);
+
+        // AlarmSystem Tests
+        TR.Run("AlarmSystem_Add_Fires", TestAlarmFires);
+        TR.Run("AlarmSystem_AddRecurring", TestAlarmRecurring);
+        TR.Run("AlarmSystem_Remove", TestAlarmRemove);
 
         // DateTime/RTC Tests
         TR.Run("RTC_Initialized", TestRTCInitialized);
         TR.Run("DateTime_Now_Valid", TestDateTimeNowValid);
         TR.Run("DateTime_Now_Incrementing", TestDateTimeNowIncrementing);
         TR.Run("DateTime_UtcNow", TestDateTimeUtcNow);
+
+        // System.Threading.Timer / Task.Delay Tests (BCL TimerQueue on the
+        // portable timer thread) — kept last so a TimerQueue failure cannot
+        // mask the other results
+        TR.Run("BclTimer_OneShot_Fires", TestBclTimerOneShot);
+        TR.Run("BclTimer_Periodic_Fires", TestBclTimerPeriodic);
+        TR.Run("BclTimer_Dispose_Stops", TestBclTimerDisposeStops);
+        TR.Run("Task_Delay_Completes", TestTaskDelayCompletes);
 
         Serial.WriteString("[Timer Tests] All tests completed\n");
         TR.Finish();
@@ -210,6 +230,188 @@ public class Kernel : Sys.Kernel
         // Check if within tolerance (250-1000ms for 500ms wait)
         bool inRange = elapsedMs >= 250 && elapsedMs <= 1000;
         Assert.True(inRange, "TimerManager: Wait(500ms) should complete in roughly 500ms");
+    }
+
+    private static volatile int s_oneShotFireCount;
+    private static volatile int s_recurringFireCount;
+    private static volatile int s_cancelledFireCount;
+
+    private static void TestScheduleOneShot()
+    {
+        s_oneShotFireCount = 0;
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_oneShotFireCount++, 50);
+
+        Assert.True(timer != null, "Schedule: should return a timer");
+        Assert.True(timer!.IsActive, "Schedule: timer should be active before firing");
+
+        TimerManager.Wait(300);
+
+        Serial.WriteString("[Timer Tests] One-shot fire count: ");
+        Serial.WriteNumber((ulong)s_oneShotFireCount);
+        Serial.WriteString("\n");
+
+        Assert.True(s_oneShotFireCount == 1, "Schedule: one-shot timer should fire exactly once");
+        Assert.True(!timer.IsActive, "Schedule: one-shot timer should be inactive after firing");
+    }
+
+    private static void TestScheduleRecurring()
+    {
+        s_recurringFireCount = 0;
+        SoftwareTimer? timer = TimerManager.ScheduleRecurring(static () => s_recurringFireCount++, 50);
+
+        Assert.True(timer != null, "ScheduleRecurring: should return a timer");
+
+        TimerManager.Wait(500);
+
+        int count = s_recurringFireCount;
+        Serial.WriteString("[Timer Tests] Recurring fire count after 500ms: ");
+        Serial.WriteNumber((ulong)count);
+        Serial.WriteString("\n");
+
+        TimerManager.Cancel(timer);
+
+        Assert.True(count >= 3, "ScheduleRecurring: timer should fire repeatedly (>= 3 in 500ms)");
+        Assert.True(!timer!.IsActive, "ScheduleRecurring: cancelled timer should be inactive");
+    }
+
+    private static void TestScheduleCancel()
+    {
+        s_cancelledFireCount = 0;
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_cancelledFireCount++, 200);
+
+        TimerManager.Cancel(timer);
+
+        TimerManager.Wait(400);
+
+        Assert.True(s_cancelledFireCount == 0, "Cancel: cancelled timer should not fire");
+        Assert.True(timer != null && !timer.IsActive, "Cancel: cancelled timer should be inactive");
+    }
+
+    // ==================== AlarmSystem Tests ====================
+
+    private static volatile int s_alarmFireCount;
+    private static volatile int s_alarmRecurringCount;
+    private static volatile int s_alarmRemovedCount;
+
+    private static void TestAlarmFires()
+    {
+        s_alarmFireCount = 0;
+        ulong id = AlarmSystem.Add(TimeSpan.FromMilliseconds(50), static () => s_alarmFireCount++);
+
+        Assert.True(id != 0, "AlarmSystem: Add should return a valid ID");
+
+        TimerManager.Wait(500);
+
+        Serial.WriteString("[Timer Tests] Alarm fire count: ");
+        Serial.WriteNumber((ulong)s_alarmFireCount);
+        Serial.WriteString("\n");
+
+        Assert.True(s_alarmFireCount == 1, "AlarmSystem: one-shot alarm should fire exactly once");
+        Assert.True(!AlarmSystem.Remove(id), "AlarmSystem: fired alarm should no longer be pending");
+    }
+
+    private static void TestAlarmRecurring()
+    {
+        s_alarmRecurringCount = 0;
+        ulong id = AlarmSystem.AddRecurring(TimeSpan.FromMilliseconds(50), static () => s_alarmRecurringCount++);
+
+        Assert.True(id != 0, "AlarmSystem: AddRecurring should return a valid ID");
+
+        TimerManager.Wait(500);
+
+        int count = s_alarmRecurringCount;
+        Serial.WriteString("[Timer Tests] Recurring alarm count after 500ms: ");
+        Serial.WriteNumber((ulong)count);
+        Serial.WriteString("\n");
+
+        Assert.True(AlarmSystem.Remove(id), "AlarmSystem: recurring alarm should be removable");
+        Assert.True(count >= 3, "AlarmSystem: recurring alarm should fire repeatedly (>= 3 in 500ms)");
+    }
+
+    private static void TestAlarmRemove()
+    {
+        s_alarmRemovedCount = 0;
+        ulong id = AlarmSystem.Add(TimeSpan.FromMilliseconds(200), static () => s_alarmRemovedCount++);
+
+        Assert.True(AlarmSystem.Remove(id), "AlarmSystem: pending alarm should be removable");
+
+        TimerManager.Wait(400);
+
+        Assert.True(s_alarmRemovedCount == 0, "AlarmSystem: removed alarm should not fire");
+        Assert.True(!AlarmSystem.Remove(id), "AlarmSystem: Remove should return false for unknown ID");
+    }
+
+    // ==================== System.Threading.Timer Tests ====================
+
+    private static volatile int s_bclOneShotCount;
+    private static volatile int s_bclPeriodicCount;
+    private static volatile int s_bclDisposedCount;
+
+    private static void TestBclTimerOneShot()
+    {
+        s_bclOneShotCount = 0;
+        using (BclTimer timer = new(static _ => s_bclOneShotCount++, null, 50, Timeout.Infinite))
+        {
+            TimerManager.Wait(500);
+        }
+
+        Serial.WriteString("[Timer Tests] BCL one-shot fire count: ");
+        Serial.WriteNumber((ulong)s_bclOneShotCount);
+        Serial.WriteString("\n");
+
+        Assert.True(s_bclOneShotCount == 1, "System.Threading.Timer: one-shot should fire exactly once");
+    }
+
+    private static void TestBclTimerPeriodic()
+    {
+        s_bclPeriodicCount = 0;
+        int count;
+        using (BclTimer timer = new(static _ => s_bclPeriodicCount++, null, 50, 50))
+        {
+            TimerManager.Wait(500);
+            count = s_bclPeriodicCount;
+        }
+
+        Serial.WriteString("[Timer Tests] BCL periodic fire count after 500ms: ");
+        Serial.WriteNumber((ulong)count);
+        Serial.WriteString("\n");
+
+        Assert.True(count >= 3, "System.Threading.Timer: periodic should fire repeatedly (>= 3 in 500ms)");
+    }
+
+    private static void TestBclTimerDisposeStops()
+    {
+        s_bclDisposedCount = 0;
+        BclTimer timer = new(static _ => s_bclDisposedCount++, null, 200, Timeout.Infinite);
+        timer.Dispose();
+
+        TimerManager.Wait(400);
+
+        Assert.True(s_bclDisposedCount == 0, "System.Threading.Timer: disposed timer should not fire");
+    }
+
+    private static void TestTaskDelayCompletes()
+    {
+        long tsStart = Stopwatch.GetTimestamp();
+        Task delay = Task.Delay(100);
+
+        // Bounded poll so a broken TimerQueue fails the assertion instead of
+        // hanging the suite
+        long elapsedMs = 0;
+        while (!delay.IsCompleted && elapsedMs < 2000)
+        {
+            TimerManager.Wait(10);
+            elapsedMs = (Stopwatch.GetTimestamp() - tsStart) * 1000 / Stopwatch.Frequency;
+        }
+
+        Serial.WriteString("[Timer Tests] Task.Delay(100) completed=");
+        Serial.WriteNumber((ulong)(delay.IsCompleted ? 1 : 0));
+        Serial.WriteString(" after ms: ");
+        Serial.WriteNumber((ulong)elapsedMs);
+        Serial.WriteString("\n");
+
+        Assert.True(delay.IsCompleted, "Task.Delay(100) should complete");
+        Assert.True(elapsedMs >= 50, "Task.Delay(100) should take at least ~100ms");
     }
 
 #if ARCH_X64

@@ -196,7 +196,9 @@ public class Address : IComparable
     {
         if (obj is Address other)
         {
-            if (other.hash != hash)
+            // Compare through the property: the backing field is lazily
+            // computed and stays 0 until Hash is first read.
+            if (other.Hash != Hash)
             {
                 return -1;
             }

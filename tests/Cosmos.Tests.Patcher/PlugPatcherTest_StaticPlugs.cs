@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Cosmos.Patcher;
+using Cosmos.Patcher.Patching;
 using Cosmos.Tests.NativeWrapper;
 using Mono.Cecil;
 
