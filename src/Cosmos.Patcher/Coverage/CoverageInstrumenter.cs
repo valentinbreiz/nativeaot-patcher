@@ -53,7 +53,7 @@ public class CoverageInstrumenter
     public int Instrument()
     {
         // Find the tracker assembly to import CoverageTracker.Hit method reference
-        var trackerAssemblyPath = FindTrackerAssembly();
+        string? trackerAssemblyPath = FindTrackerAssembly();
         if (trackerAssemblyPath == null)
         {
             Console.WriteLine("[Coverage] Warning: Cosmos.TestRunner.Framework.dll not found, skipping instrumentation.");
@@ -75,7 +75,7 @@ public class CoverageInstrumenter
 
         // Process eligible assemblies in cosmos/ root and cosmos/ref/
         var dllFiles = new List<string>(Directory.GetFiles(_assemblyDir, "*.dll"));
-        var refDir = Path.Combine(_assemblyDir, "ref");
+        string refDir = Path.Combine(_assemblyDir, "ref");
         if (Directory.Exists(refDir))
         {
             dllFiles.AddRange(Directory.GetFiles(refDir, "*.dll"));
@@ -83,9 +83,9 @@ public class CoverageInstrumenter
 
         int instrumentedAssemblies = 0;
 
-        foreach (var dllPath in dllFiles)
+        foreach (string dllPath in dllFiles)
         {
-            var assemblyName = Path.GetFileNameWithoutExtension(dllPath);
+            string assemblyName = Path.GetFileNameWithoutExtension(dllPath);
 
             if (ShouldInstrumentAssembly(assemblyName))
             {
@@ -153,17 +153,17 @@ public class CoverageInstrumenter
         }
 
         var result = new List<PlugMapEntry>();
-        foreach (var plugMapPath in plugMapFiles)
+        foreach (string plugMapPath in plugMapFiles)
         {
             Console.WriteLine($"[Coverage] Reading plug map: {plugMapPath}");
-            foreach (var line in File.ReadAllLines(plugMapPath))
+            foreach (string line in File.ReadAllLines(plugMapPath))
             {
                 if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
                 {
                     continue;
                 }
 
-                var parts = line.Split('\t');
+                string[] parts = line.Split('\t');
                 if (parts.Length < 6)
                 {
                     continue;
@@ -333,7 +333,7 @@ public class CoverageInstrumenter
                             continue;
                         }
 
-                        var sig = FormatMethodSignature(method);
+                        string sig = FormatMethodSignature(method);
                         if (!forcedMethods.Contains((type.FullName, sig)))
                         {
                             continue;
@@ -439,7 +439,7 @@ public class CoverageInstrumenter
         }
 
         // Skip excluded assembly name prefixes
-        foreach (var exclude in ExcludeAssemblies)
+        foreach (string exclude in ExcludeAssemblies)
         {
             if (assemblyName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
             {
@@ -464,7 +464,7 @@ public class CoverageInstrumenter
         }
 
         // Skip explicitly excluded types
-        foreach (var exclude in ExcludeTypes)
+        foreach (string exclude in ExcludeTypes)
         {
             if (type.FullName == exclude)
             {
@@ -529,7 +529,7 @@ public class CoverageInstrumenter
         const string trackerDll = "Cosmos.TestRunner.Framework.dll";
 
         // Check assembly dir root
-        var path = Path.Combine(_assemblyDir, trackerDll);
+        string path = Path.Combine(_assemblyDir, trackerDll);
         if (File.Exists(path))
         {
             return path;
@@ -543,7 +543,7 @@ public class CoverageInstrumenter
         }
 
         // Check parent dir as fallback
-        var parentDir = Path.GetDirectoryName(_assemblyDir);
+        string? parentDir = Path.GetDirectoryName(_assemblyDir);
         if (parentDir != null)
         {
             path = Path.Combine(parentDir, trackerDll);
@@ -576,7 +576,7 @@ public class CoverageInstrumenter
 
     private static string FormatMethodSignature(MethodDefinition method)
     {
-        var parameters = string.Join(", ", method.Parameters.Select(p => p.ParameterType.Name));
+        string parameters = string.Join(", ", method.Parameters.Select(p => p.ParameterType.Name));
         return $"{method.Name}({parameters})";
     }
 

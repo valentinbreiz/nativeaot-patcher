@@ -1,6 +1,6 @@
 using Cosmos.Patcher.Debug;
+using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.IL;
-using Cosmos.Patcher.Logging;
 using Cosmos.Patcher.Resolution;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -8,19 +8,10 @@ using Mono.Cecil.Cil;
 namespace Cosmos.Patcher.Patching;
 
 /// <summary>
-/// Handles patching of method bodies with plug implementations.
+/// PlugPatcher.Method -> Handles patching of method bodies with plug implementations.
 /// </summary>
-public class MethodPatcher
+public partial class PlugPatcher
 {
-    private readonly IBuildLogger _log;
-    private readonly ILCloner _ilCloner;
-
-    public MethodPatcher(IBuildLogger log)
-    {
-        _log = log;
-        _ilCloner = new ILCloner(log);
-    }
-
     /// <summary>
     /// Patches a target method with the implementation from a plug method.
     /// </summary>
@@ -52,6 +43,15 @@ public class MethodPatcher
         _log.Debug($"Final instruction count: {targetMethod.Body.Instructions.Count}");
         _log.Info($"Successfully patched method: {targetMethod.FullName}");
     }
+
+    private void RemoveMethod(TypeDefinition targetType, MethodDefinition method)
+    {
+        method.Body?.Clear();
+        method.CustomAttributes.Clear();
+        method.Body = null;
+        targetType.Methods.Remove(method);
+    }
+
 
     /// <summary>
     /// Prepares the target method body for patching.
@@ -110,11 +110,10 @@ public class MethodPatcher
 
         // Copy variables
         ILCloner.CopyVariables(plugMethod, targetMethod);
-
         _log.Debug($"Cloning {plugMethod.Body.Instructions.Count} instructions");
 
         // Clone instructions
-        var instructionMap = _ilCloner.CloneInstructions(plugMethod, targetMethod, processor, isInstance);
+        Dictionary<Instruction, Instruction> instructionMap = ILCloner.CloneInstructions(plugMethod, targetMethod, processor, isInstance);
 
         // Fix branch targets
         ILCloner.FixBranchTargets(instructionMap);
