@@ -15,10 +15,11 @@ This document establishes the coding style and architecture patterns for Cosmos 
 - [9. Architecture-Specific Code](#9-architecture-specific-code)
 - [10. Memory & Safety](#10-memory--safety)
 - [11. Error Handling](#11-error-handling)
-- [12. Modern C# / .NET 10 Idioms](#12-modern-c--net-10-idioms)
-- [13. AOT Constraints](#13-aot-constraints)
-- [14. Documentation](#14-documentation)
-- [15. Testing](#15-testing)
+- [12. Nullable Reference Types](#12-nullable-reference-types)
+- [13. Modern C# / .NET 10 Idioms](#13-modern-c--net-10-idioms)
+- [14. AOT Constraints](#14-aot-constraints)
+- [15. Documentation](#15-documentation)
+- [16. Testing](#16-testing)
 
 ---
 
@@ -560,8 +561,7 @@ Exceptions work, but use them judiciously:
 // Good: validate at API boundaries
 public static void ConfigIP(INetworkDevice device, Address ip)
 {
-    if (device == null)
-        throw new ArgumentNullException(nameof(device));
+    ArgumentNullException.ThrowIfNull(device);
     // ...
 }
 
@@ -588,7 +588,95 @@ private static void ThrowIfKeyboardDisabled()
 
 ---
 
-## 12. Modern C# / .NET 10 Idioms
+## 12. Nullable Reference Types
+
+Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>` in `Directory.Build.props`). Annotations are part of the API contract: a reference type without `?` is a promise that it is never null. New and modified code must not introduce nullable warnings — annotate honestly instead of silencing.
+
+### Rules
+
+| Pattern | Use for |
+|---------|---------|
+| `T?` on fields, parameters, returns | Any value that can legitimately be null |
+| `?? throw` | Converting a nullable into a required value |
+| `ArgumentNullException.ThrowIfNull(arg)` | Argument validation at API boundaries |
+| `[MemberNotNull(...)]` guard helpers | Initialization checks the compiler can follow |
+| `is null` / `is not null` | All null tests (not `== null` / `!= null`) |
+| Sentinel initialization (`= []`) | Fields where null and empty mean the same thing |
+
+### Honest Annotations
+
+A member that can return `null` is declared with `?` — never hide it behind `!` to preserve an old signature. Conversely, do not add runtime null checks for values the annotations already guarantee: no `if (buffer == null) throw` on a non-nullable parameter, no `?? "fallback"` on a non-nullable return.
+
+```csharp
+// Declare what can actually be null — callers are forced to handle it
+public static IScheduler? Current => _currentScheduler;
+public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
+
+// Prefer a sentinel over a nullable field when null and empty mean the same thing
+private byte[] _window = [];                 // not: private byte[]? _window;
+```
+
+### Guard Helpers
+
+Managers with deferred initialization expose `ThrowIf*NotInitialized()` guards annotated with `[MemberNotNull(...)]` and call them at the top of public entry points (see [Managers](#4-class--type-design)). One call proves the field non-null for the rest of the method — no `!` and no per-line checks:
+
+```csharp
+private static PerCpuState[]? _cpuStates;
+
+[MemberNotNull(nameof(_cpuStates))]
+private static void ThrowIfCpuStateNotInitialized()
+{
+    if (_cpuStates is null)
+    {
+        throw new InvalidOperationException($"{nameof(SchedulerManager)} not initialized");
+    }
+}
+
+public static void CreateThread(uint cpuId, Thread thread)
+{
+    ThrowIfCpuStateNotInitialized();
+
+    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
+    // ...
+}
+```
+
+### Required Values
+
+Use `?? throw` where a null result is a programming error:
+
+```csharp
+Address source = IPConfig.FindNetwork(destination)
+    ?? throw new InvalidOperationException("No network route to destination");
+
+public MACAddress MacAddress => _macAddress
+    ?? throw new InvalidOperationException($"{nameof(_macAddress)} is null");
+```
+
+### Constructors
+
+Every constructor must leave all non-nullable members initialized. Delete unused parameterless constructors instead of letting them poison the type:
+
+```csharp
+// Bad: leaves RawData null and forces nullable noise on every user of the class
+internal ICMPPacket()
+{
+}
+```
+
+### The `!` Operator
+
+Null-forgiving `!` is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is `true`). If the invariant can be expressed with `[MemberNotNull]` or `[NotNullWhen]`, use the attribute instead.
+
+### Enforcement
+
+The format CI (`dotnet format --severity error`) enforces the null-handling style rules in `.editorconfig`: `csharp_style_throw_expression`, `dotnet_style_coalesce_expression`, `dotnet_style_null_propagation`, `csharp_style_prefer_null_check_over_type_check`, `csharp_style_pattern_matching_over_as_with_null_check`, `dotnet_style_prefer_is_null_check_over_reference_equality_method`, and `csharp_style_conditional_delegate_call`.
+
+Nullable warnings (`CS86xx`) are not errors yet — do not introduce new ones.
+
+---
+
+## 13. Modern C# / .NET 10 Idioms
 
 The project targets `<LangVersion>latest</LangVersion>` and .NET 10. Use modern language features throughout.
 
@@ -647,46 +735,6 @@ public int Priority
 }
 ```
 
-### Nullable Reference Types
-
-Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>` in `Directory.Build.props`). New and modified code must not introduce nullable warnings — annotate honestly instead of silencing:
-
-```csharp
-// Declare what can actually be null — callers are forced to handle it
-public static IScheduler? Current => _currentScheduler;
-public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
-
-// Late-initialized manager state: guard with a [MemberNotNull] helper.
-// One call at the top of an entry point proves the field non-null for the
-// rest of the method — no ! and no per-line checks needed.
-[MemberNotNull(nameof(_cpuStates))]
-private static void ThrowIfCpuStateNotInitialized()
-{
-    if (_cpuStates is null)
-    {
-        throw new InvalidOperationException($"{nameof(SchedulerManager)} not initialized");
-    }
-}
-
-public static void CreateThread(uint cpuId, Thread thread)
-{
-    ThrowIfCpuStateNotInitialized();
-
-    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
-    // ...
-}
-
-// Prefer a sentinel over a nullable field when null and empty mean the same thing
-private byte[] _window = [];                 // not: private byte[]? _window;
-```
-
-**Rules:**
-
-- A member that can return `null` is declared with `?` — never hide it behind `!` to preserve an old signature.
-- Managers with deferred initialization expose `ThrowIf*NotInitialized()` guards annotated with `[MemberNotNull(...)]` and call them at the top of public entry points (see [Managers](#4-class--type-design)).
-- Do not add runtime null checks for values the annotations already guarantee: no `if (buffer == null) throw` on a non-nullable parameter, no `?? "fallback"` on a non-nullable return.
-- The null-forgiving operator `!` is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is `true`). If the invariant can be expressed with `[MemberNotNull]` or `[NotNullWhen]`, use the attribute instead.
-
 ### Avoid
 
 ```csharp
@@ -739,7 +787,7 @@ if (CosmosFeatures.KeyboardEnabled)
 
 ---
 
-## 13. AOT Constraints
+## 14. AOT Constraints
 
 NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.**
 
@@ -760,7 +808,7 @@ NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.*
 
 ---
 
-## 14. Documentation
+## 15. Documentation
 
 ### License Header
 
@@ -805,7 +853,7 @@ Use sparingly — only when the code isn't self-explanatory:
 contextAddr = (contextAddr + 0xF) & ~(nuint)0xF;
 ```
 
-## 15. Testing
+## 16. Testing
 
 For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see [Testing](testing.md).
 
