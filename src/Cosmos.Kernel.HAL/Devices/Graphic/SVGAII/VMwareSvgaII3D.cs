@@ -1,54 +1,25 @@
-﻿using System;
-using Cosmos.Kernel.Boot.Limine;
-using Cosmos.Kernel.Core.IO;
+using System;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.HAL.Pci;
 
 namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
+/// <summary>
+/// SVGA3D command layer on top of <see cref="SvgaIIDriver"/>: surfaces,
+/// contexts, shaders, render state and DMA transfers, all submitted through
+/// the driver's command FIFO. Only meaningful when the device negotiated 3D
+/// support (<see cref="SvgaIIDriver.Is3DEnabled"/>) — QEMU's vmware-svga
+/// exposes no 3D capability, so this layer is only exercised on real VMware.
+/// </summary>
 public unsafe class VMWareSVGAII3D
 {
-    public bool Is3DEnabled { get; private set; }
-    public uint HW3DVer { get; private set; }
+    private readonly SvgaIIDriver _driver;
 
-    public VMWareSVGAII3D()
+    public bool Is3DEnabled => _driver.Is3DEnabled;
+    public uint HW3DVer => _driver.HW3DVer;
+
+    public VMWareSVGAII3D(SvgaIIDriver driver)
     {
-        _device = PciManager.GetDevice(Pci.Enums.VendorId.VmWare, Pci.Enums.DeviceId.SvgaiiAdapter)!;
-        if (_device is null)
-        {
-            throw new Exception("Could not find VmWareSvgaII driver");
-        }
-
-        _device.EnableMemory(true);
-        _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
-
-        WriteRegister(Register.ID, (uint)ID.V2);
-        if (ReadRegister(Register.ID) != (uint)ID.V2)
-        {
-            throw new Exception("VMware SVGA II device did not accept the version 2 protocol");
-        }
-
-        // FrameBufferStart is the physical VRAM BAR; Limine base revision >= 1
-        // has no lower-half identity map, so CPU access goes through the HHDM.
-        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        uint fbPhys = ReadRegister(Register.FrameBufferStart);
-        VideoMemory = new MemoryBlock(hhdmOffset + fbPhys, ReadRegister(Register.VRamSize));
-        Capabilities = ReadRegister(Register.Capabilities);
-
-        Serial.WriteString("[SVGAII] Init: ports 0x");
-        Serial.WriteHex(_basePort);
-        Serial.WriteString(", fb 0x");
-        Serial.WriteHex(fbPhys);
-        Serial.WriteString(", caps 0x");
-        Serial.WriteHex(Capabilities);
-        Serial.WriteString("\n");
-
-        InitializeFIFO();
-    }
-
-    public static bool HasSvgaII()
-    {
-        return PciManager.GetDevice(Pci.Enums.VendorId.VmWare, Pci.Enums.DeviceId.SvgaiiAdapter) is not null;
+        _driver = driver;
     }
 
     private uint _contextId;
@@ -65,14 +36,14 @@ public unsafe class VMWareSVGAII3D
 
     private void SyncToFence(uint fence)
     {
-        if (_fifoFenceSupported && _fifoMemory != null)
+        if (_fifoFenceSupported)
         {
-            while (ReadFifo3D(Register3D.SVGA_FIFO_FENCE) < fence) { }
+            while (_driver.ReadFifo3D(Register3D.SVGA_FIFO_FENCE) < fence) { }
         }
         else
         {
-            WriteRegister(Register.Sync, 1);
-            while (ReadRegister(Register.Busy) != 0) { }
+            _driver.WriteRegister(Register.Sync, 1);
+            while (_driver.ReadRegister(Register.Busy) != 0) { }
         }
     }
 
@@ -80,13 +51,13 @@ public unsafe class VMWareSVGAII3D
     {
         uint fence = ++_guestFenceCounter;
 
-        if (_fifoFenceSupported && _fifoMemory != null)
+        if (_fifoFenceSupported)
         {
-            WriteFifo3D(Register3D.SVGA_FIFO_FENCE, fence);
+            _driver.WriteFifo3D(Register3D.SVGA_FIFO_FENCE, fence);
         }
         else
         {
-            WriteRegister(Register.Sync, fence);
+            _driver.WriteRegister(Register.Sync, fence);
         }
 
         return fence;
@@ -96,7 +67,7 @@ public unsafe class VMWareSVGAII3D
     {
         SVGA3dCmdHeader* header;
 
-        header = (SVGA3dCmdHeader*)ReserveFIFO((uint)sizeof(SVGA3dCmdHeader) + cmdSize);
+        header = (SVGA3dCmdHeader*)_driver.ReserveFIFO((uint)sizeof(SVGA3dCmdHeader) + cmdSize);
         header->id = cmd;
         header->size = cmdSize;
 
@@ -140,7 +111,7 @@ public unsafe class VMWareSVGAII3D
         mipSizes[0].height = height;
         mipSizes[0].depth = 1;
 
-        WaitForFifo();
+        _driver.WaitForFifo();
 
         return new() { sid = sid, face = 0, mipmap = 0 };
     }
@@ -152,7 +123,7 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->type = type;
         cmd->target = target;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     public void SetViewport(uint cid, SVGA3dRect rect)
@@ -161,7 +132,7 @@ public unsafe class VMWareSVGAII3D
         cmd = (SVGA3dCmdSetViewport*)ReserveFIFO3D((uint)FIFOCommand.SET_VIEWPORT, (uint)sizeof(SVGA3dCmdSetViewport));
         cmd->cid = cid;
         cmd->rect = rect;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     public void SetDepthRange(uint cid, float min, float max)
@@ -171,7 +142,7 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->range.min = min;
         cmd->range.max = max;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     private void BeginClear3D(
@@ -203,7 +174,7 @@ public unsafe class VMWareSVGAII3D
         rect->y = ClearRect.y;
         rect->w = ClearRect.w;
         rect->h = ClearRect.h;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     private void BeginPresent(uint sid, SVGA3dCopyRect** rects, uint numRects)
@@ -228,7 +199,7 @@ public unsafe class VMWareSVGAII3D
         rect->y = PresentRect.y;
         rect->w = PresentRect.w;
         rect->h = PresentRect.h;
-        WaitForFifo();
+        _driver.WaitForFifo();
 
         _lastFence = InsertFence();
     }
@@ -263,7 +234,7 @@ public unsafe class VMWareSVGAII3D
         boxes[0].h = height;
         boxes[0].d = 1;
 
-        WaitForFifo();
+        _driver.WaitForFifo();
 
         uint fence = InsertFence();
         SyncToFence(fence);
@@ -318,7 +289,7 @@ public unsafe class VMWareSVGAII3D
         boxes[0].w = width;
         boxes[0].h = height;
         boxes[0].d = 1;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     public uint CreateStaticArrayBuffer<T>(T[] data) where T : unmanaged
@@ -394,7 +365,7 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)rs, (byte*)statesPtr, sizeof(SVGA3dRenderState) * states.Length);
         }
 
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     private void BeginSetTextureState(uint cid, SVGA3dTextureState** states, uint numStates)
@@ -416,7 +387,7 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)ts, (byte*)statesPtr, sizeof(SVGA3dTextureState) * states.Length);
         }
 
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     private void BeginDrawPrimitives(
@@ -466,7 +437,7 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)pranges, (byte*)statesPtr, sizeof(SVGA3dPrimitiveRange) * ranges.Length);
         }
 
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     private void InternalSetTransform(uint cid, SVGA3dTransformType type, float* matrix)
@@ -477,7 +448,7 @@ public unsafe class VMWareSVGAII3D
         cmd->type = type;
 
         MemoryOp.MemCopy((byte*)&cmd->matrix[0], (byte*)matrix, sizeof(float) * 16);
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     public void SetTransform<T>(uint cid, SVGA3dTransformType type, T matrix4x4)
@@ -523,7 +494,7 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)&cmd[1], bytecodePtr, bytecode.Length);
         }
 
-        WaitForFifo();
+        _driver.WaitForFifo();
 
         return shid;
     }
@@ -536,7 +507,7 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = cid;
         cmd->type = type;
         cmd->shid = shid;
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
     public void SetShaderUniform<T>(uint cid, uint reg, SVGA3dShaderType type, SVGA3dShaderConstType ctype, T value) where T : unmanaged
@@ -567,7 +538,7 @@ public unsafe class VMWareSVGAII3D
             dst[i] = src[i];
         }
 
-        WaitForFifo();
+        _driver.WaitForFifo();
     }
 
 
@@ -579,7 +550,7 @@ public unsafe class VMWareSVGAII3D
         cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D((uint)FIFOCommand.DEFINE_CONTEXT, (uint)sizeof(SVGA3dCmdDefineContext));
         cmd->cid = cid;
 
-        WaitForFifo();
+        _driver.WaitForFifo();
         return cid;
     }
 
@@ -590,12 +561,12 @@ public unsafe class VMWareSVGAII3D
     public unsafe void* SVGA3DUtil_AllocDMABuffer(uint size, out SVGAGuestPtr ptr)
     {
         uint alignedSize = (size + 3u) & ~3u;
-        if ((Capabilities & (uint)Capability.Gmr) == 0)
+        if ((_driver.Capabilities & (uint)Capability.Gmr) == 0)
         {
-            throw new InvalidOperationException("SVGA device does not support GMR â€” cannot allocate framebuffer-backed guest pointer.");
+            throw new InvalidOperationException("SVGA device does not support GMR — cannot allocate framebuffer-backed guest pointer.");
         }
 
-        if (s_nextPtr.offset + alignedSize > VideoMemory.Size)
+        if (s_nextPtr.offset + alignedSize > _driver.VideoMemory.Size)
         {
             throw new OutOfMemoryException("Not enough VRAM for framebuffer-backed buffer");
         }
@@ -606,494 +577,10 @@ public unsafe class VMWareSVGAII3D
             offset = s_nextPtr.offset
         };
 
-        void* buffer = (void*)(VideoMemory.Base + s_nextPtr.offset);
+        void* buffer = (void*)(_driver.VideoMemory.Base + s_nextPtr.offset);
 
         s_nextPtr.offset += alignedSize;
 
         return buffer;
     }
-
-
-    /// <summary>
-    /// Initialize FIFO.
-    /// </summary>
-    public void InitializeFIFO()
-    {
-        // MemStart is the physical FIFO BAR — same HHDM story as the VRAM BAR.
-        ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        _fifoMemory = new MemoryBlock(hhdmOffset + ReadRegister(Register.MemStart), ReadRegister(Register.MemSize));
-        _fifoMemory[(uint)FIFO.Min] = (uint)Register.FifoNumRegisters * sizeof(uint);
-        _fifoMemory[(uint)FIFO.Max] = _fifoMemory.Size;
-        _fifoMemory[(uint)FIFO.NextCmd] = _fifoMemory[(uint)FIFO.Min];
-        _fifoMemory[(uint)FIFO.Stop] = _fifoMemory[(uint)FIFO.Min];
-
-        if (((Capabilities & 0x00008000) != 0) &&
-            ((Capabilities & (uint)Capability.Cap3D) != 0) &&
-            (_fifoMemory[(uint)FIFO.Min] > ((uint)Register3D.SVGA_FIFO_3D_HWVERSION << 2)))
-        {
-            WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, ((2u) << 16) | (1u & 0xFFu));
-
-            Is3DEnabled = true;
-
-            if ((Capabilities & (1 << 8)) != 0)
-            {
-                HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
-
-                if (HW3DVer < (((2u) << 16) | (0u & 0xFFu)))
-                {
-                    Is3DEnabled = false;
-                }
-            }
-            else
-            {
-                Is3DEnabled = false;
-            }
-        }
-        else
-        {
-            Is3DEnabled = false;
-        }
-
-
-        // No Register.Enable write here: the constructor runs InitializeFIFO
-        // before any mode is set, and enabling the device with Width/Height
-        // still unprogrammed wedges QEMU's display-refresh loop (main thread
-        // at 100% holding the BQL — guest, monitor and gdbstub all freeze).
-        // SetMode enables the device once the mode registers are valid.
-        WriteRegister(Register.ConfigDone, 1);
-    }
-
-    private uint ReadFifo3D(Register3D reg)
-    {
-        return _fifoMemory[(uint)reg << 2];
-    }
-
-    private void WriteFifo3D(Register3D reg, uint value)
-    {
-        _fifoMemory[(uint)reg << 2] = value;
-    }
-
-
-    /// <summary>
-    /// Set video mode.
-    /// </summary>
-    /// <param name="width">Width.</param>
-    /// <param name="height">Height.</param>
-    /// <param name="depth">Depth.</param>
-    public void SetMode(uint width, uint height, uint depth = 32)
-    {
-        //Disable the Driver before writing new values and initiating it again to avoid a memory exception
-        //Disable();
-
-        // Depth is color depth in bytes.
-        _depth = depth / 8;
-        _width = width;
-        _height = height;
-        WriteRegister(Register.Width, width);
-        WriteRegister(Register.Height, height);
-        WriteRegister(Register.BitsPerPixel, depth);
-        Enable();
-        InitializeFIFO();
-
-        // One frame, computed from the mode — NOT Register.FrameBufferSize.
-        // QEMU reports the whole VRAM there (16 MiB), and FrameSize doubles as
-        // the back-buffer offset: trusting the register sends every Clear/blit
-        // 16 MiB past the VRAM BAR, straight over the FIFO BAR and into
-        // unmapped space.
-        FrameSize = width * height * _depth;
-        FrameOffset = ReadRegister(Register.FrameBufferOffset);
-    }
-
-    /// <summary>
-    /// Write register.
-    /// </summary>
-    /// <param name="register">A register.</param>
-    /// <param name="value">A value.</param>
-    public void WriteRegister(Register register, uint value)
-    {
-        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Index), (uint)register);
-        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Value), value);
-    }
-
-    /// <summary>
-    /// Read register.
-    /// </summary>
-    /// <param name="register">A register.</param>
-    /// <returns>uint value.</returns>
-    public uint ReadRegister(Register register)
-    {
-        PlatformHAL.PortIO.WriteDWord((ushort)(_basePort + (byte)IOPortOffset.Index), (uint)register);
-        return PlatformHAL.PortIO.ReadDWord((ushort)(_basePort + (byte)IOPortOffset.Value));
-    }
-
-    /// <summary>
-    /// Get FIFO.
-    /// </summary>
-    /// <param name="cmd">FIFO command.</param>
-    /// <returns>uint value.</returns>
-    public uint GetFIFO(FIFO cmd) => _fifoMemory[(uint)cmd];
-
-    /// <summary>
-    /// Set FIFO.
-    /// </summary>
-    /// <param name="cmd">Command.</param>
-    /// <param name="value">Value.</param>
-    /// <returns></returns>
-    public uint SetFIFO(FIFO cmd, uint value) => _fifoMemory[(uint)cmd] = value;
-
-    /// <summary>
-    /// Wait for FIFO.
-    /// </summary>
-    public void WaitForFifo()
-    {
-        WriteRegister(Register.Sync, 1);
-        while (ReadRegister(Register.Busy) != 0) { }
-    }
-
-    /// <summary>
-    /// Write to FIFO.
-    /// </summary>
-    /// <param name="value">Value to write.</param>
-    public void WriteToFifo(uint value)
-    {
-        if (GetFIFO(FIFO.NextCmd) == GetFIFO(FIFO.Max) - 4 && GetFIFO(FIFO.Stop) == GetFIFO(FIFO.Min) ||
-            GetFIFO(FIFO.NextCmd) + 4 == GetFIFO(FIFO.Stop))
-        {
-            WaitForFifo();
-        }
-
-        SetFIFO((FIFO)GetFIFO(FIFO.NextCmd), value);
-        SetFIFO(FIFO.NextCmd, GetFIFO(FIFO.NextCmd) + 4);
-
-        if (GetFIFO(FIFO.NextCmd) == GetFIFO(FIFO.Max))
-        {
-            SetFIFO(FIFO.NextCmd, GetFIFO(FIFO.Min));
-        }
-    }
-
-    public void* ReserveFIFO(uint bytes)
-    {
-        uint next = GetFIFO(FIFO.NextCmd);
-        uint stop = GetFIFO(FIFO.Stop);
-        uint min = GetFIFO(FIFO.Min);
-        uint max = GetFIFO(FIFO.Max);
-
-        uint space;
-        if (next >= stop)
-        {
-            space = (max - next) + (stop - min);
-        }
-        else
-        {
-            space = stop - next;
-        }
-
-        // Wait if not enough contiguous space
-        while (space < bytes)
-        {
-            WaitForFifo(); // give the SVGA _device time to consume FIFO
-            next = GetFIFO(FIFO.NextCmd);
-            stop = GetFIFO(FIFO.Stop);
-            if (next >= stop)
-            {
-                space = (max - next) + (stop - min);
-            }
-            else
-            {
-                space = stop - next;
-            }
-        }
-
-        // Make sure contiguous region fits before end of buffer
-        if (next + bytes > max)
-        {
-            // wrap to beginning of buffer
-            SetFIFO(FIFO.NextCmd, min);
-            next = min;
-        }
-
-        // Compute pointer into memory block
-        void* ptr = (void*)(_fifoMemory.Base + next); // hypothetical: Address property gives base address
-
-        // Advance NEXT_CMD
-        uint newNext = next + bytes;
-        SetFIFO(FIFO.NextCmd, (newNext == max ? min : newNext));
-
-        return ptr;
-    }
-
-
-    /// <summary>
-    /// Update FIFO.
-    /// </summary>
-    /// <param name="x">X coordinate.</param>
-    /// <param name="y">Y coordinate.</param>
-    /// <param name="width">Width.</param>
-    /// <param name="height">Height.</param>
-    public void Update(uint x, uint y, uint width, uint height)
-    {
-        WriteToFifo((uint)FIFOCommand.Update);
-        WriteToFifo(x);
-        WriteToFifo(y);
-        WriteToFifo(width);
-        WriteToFifo(height);
-        WaitForFifo();
-    }
-
-    /// <summary>
-    /// Update video memory.
-    /// </summary>
-    public void DoubleBufferUpdate()
-    {
-        VideoMemory.MoveDown(FrameOffset, FrameSize, FrameSize);
-        Update(0, 0, _width, _height);
-    }
-
-    /// <summary>
-    /// Set pixel.
-    /// </summary>
-    /// <param name="x">X coordinate.</param>
-    /// <param name="y">Y coordinate.</param>
-    /// <param name="color">Color.</param>
-    /// <exception cref="Exception">Thrown on memory access violation.</exception>
-    public void SetPixel(uint x, uint y, uint color)
-    {
-        VideoMemory[(y * _width + x) * _depth + FrameSize] = color;
-    }
-
-    /// <summary>
-    /// Get pixel.
-    /// </summary>
-    /// <param name="x">X coordinate.</param>
-    /// <param name="y">Y coordinate.</param>
-    /// <returns>uint value.</returns>
-    /// <exception cref="Exception">Thrown on memory access violation.</exception>
-    public uint GetPixel(uint x, uint y)
-    {
-        return VideoMemory[(y * _width + x) * _depth + FrameSize];
-    }
-
-    /// <summary>
-    /// Clear screen to specified color.
-    /// </summary>
-    /// <param name="color">Color.</param>
-    /// <exception cref="Exception">Thrown on memory access violation.</exception>
-    /// <exception cref="NotImplementedException">Thrown if VMWare SVGA 2 has no rectangle copy capability</exception>
-    public void Clear(uint color)
-    {
-        VideoMemory.Fill(FrameSize, FrameSize, color);
-    }
-
-    /// <summary>
-    /// Copy rectangle.
-    /// </summary>
-    /// <param name="x">Source X coordinate.</param>
-    /// <param name="y">Source Y coordinate.</param>
-    /// <param name="newX">Destination X coordinate.</param>
-    /// <param name="newY">Destination Y coordinate.</param>
-    /// <param name="width">Width.</param>
-    /// <param name="height">Height.</param>
-    /// <exception cref="NotImplementedException">Thrown if VMWare SVGA 2 has no rectangle copy capability</exception>
-    public void Copy(uint x, uint y, uint newX, uint newY, uint width, uint height)
-    {
-        if ((Capabilities & (uint)Capability.RectCopy) != 0)
-        {
-            WriteToFifo((uint)FIFOCommand.RECT_COPY);
-            WriteToFifo(x);
-            WriteToFifo(y);
-            WriteToFifo(newX);
-            WriteToFifo(newY);
-            WriteToFifo(width);
-            WriteToFifo(height);
-            WaitForFifo();
-        }
-        else
-        {
-            throw new NotImplementedException("VMWareSVGAII Copy()");
-        }
-    }
-
-    /// <summary>
-    /// Fill rectangle.
-    /// </summary>
-    /// <param name="x">X coordinate.</param>
-    /// <param name="y">Y coordinate.</param>
-    /// <param name="width">Width.</param>
-    /// <param name="height">Height.</param>
-    /// <param name="color">Color.</param>
-    /// <exception cref="Exception">Thrown on memory access violation.</exception>
-    /// <exception cref="NotImplementedException">Thrown if VMWare SVGA 2 has no rectangle copy capability</exception>
-    public void Fill(uint x, uint y, uint width, uint height, uint color)
-    {
-        if ((Capabilities & (uint)Capability.RectFill) != 0)
-        {
-            WriteToFifo((uint)FIFOCommand.RECT_FILL);
-            WriteToFifo(color);
-            WriteToFifo(x);
-            WriteToFifo(y);
-            WriteToFifo(width);
-            WriteToFifo(height);
-            WaitForFifo();
-        }
-        else
-        {
-            if ((Capabilities & (uint)Capability.RectCopy) != 0)
-            {
-                // fill first line and copy it to all other
-                uint xTarget = x + width;
-                uint yTarget = y + height;
-
-                for (uint xTmp = x; xTmp < xTarget; xTmp++)
-                {
-                    SetPixel(xTmp, y, color);
-                }
-                // refresh first line for copy process
-                Update(x, y, width, 1);
-                for (uint yTmp = y + 1; yTmp < yTarget; yTmp++)
-                {
-                    Copy(x, y, x, yTmp, width, 1);
-                }
-            }
-            else
-            {
-                uint xTarget = x + width;
-                uint yTarget = y + height;
-                for (uint xTmp = x; xTmp < xTarget; xTmp++)
-                {
-                    for (uint yTmp = y; yTmp < yTarget; yTmp++)
-                    {
-                        SetPixel(xTmp, yTmp, color);
-                    }
-                }
-                Update(x, y, width, height);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Define cursor.
-    /// </summary>
-    public void DefineCursor()
-    {
-        WaitForFifo();
-        WriteToFifo((uint)FIFOCommand.DEFINE_CURSOR);
-        WriteToFifo(0); // ID
-        WriteToFifo(0); // Hotspot X
-        WriteToFifo(0); // Hotspot Y
-        WriteToFifo(2);
-        WriteToFifo(2);
-        WriteToFifo(1);
-        WriteToFifo(1);
-
-        for (int i = 0; i < 4; i++)
-        {
-            WriteToFifo(0);
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            WriteToFifo(0xFFFFFF);
-        }
-
-        WaitForFifo();
-    }
-
-    /// <summary>
-    /// Define alpha cursor.
-    /// </summary>
-    public void DefineAlphaCursor(uint width, uint height, int[] data)
-    {
-        WaitForFifo();
-        WriteToFifo((uint)FIFOCommand.DEFINE_ALPHA_CURSOR);
-        WriteToFifo(0); // ID
-        WriteToFifo(0); // Hotspot X
-        WriteToFifo(0); // Hotspot Y
-        WriteToFifo(width); // Width
-        WriteToFifo(height); // Height
-
-        for (int i = 0; i < data.Length; i++)
-        {
-            WriteToFifo((uint)data[i]);
-        }
-
-        WaitForFifo();
-    }
-
-    /// <summary>
-    /// Enable the SVGA Driver, only needed after Disable() has been called.
-    /// </summary>
-    public void Enable()
-    {
-        WriteRegister(Register.Enable, 1);
-    }
-
-    /// <summary>
-    /// Disable the SVGA Driver, returns to text mode.
-    /// </summary>
-    public void Disable()
-    {
-        WriteRegister(Register.Enable, 0);
-    }
-
-    /// <summary>
-    /// Sets the cursor position and draws it.
-    /// </summary>
-    /// <param name="visible">Visible.</param>
-    /// <param name="x">X coordinate.</param>
-    /// <param name="y">Y coordinate.</param>
-    public void SetCursor(bool visible, uint x, uint y)
-    {
-        WriteRegister(Register.CursorOn, (uint)(visible ? 1 : 0));
-        WriteRegister(Register.CursorX, x);
-        WriteRegister(Register.CursorY, y);
-        WriteRegister(Register.CursorCount, ReadRegister(Register.CursorCount) + 1);
-    }
-
-
-
-    /// <summary>
-    /// Video memory block.
-    /// </summary>
-    public MemoryBlock VideoMemory { get; } = null!;
-
-    /// <summary>
-    /// FIFO memory block.
-    /// </summary>
-    private MemoryBlock _fifoMemory = null!;
-
-    /// <summary>
-    /// PCI _device.
-    /// </summary>
-    private readonly PciDevice _device;
-
-    /// <summary>
-    /// Base of the SVGA register I/O ports (BAR0): index at +0, value at +1.
-    /// Both are 32-bit ports despite the 1-byte spacing.
-    /// </summary>
-    private readonly ushort _basePort;
-
-    /// <summary>
-    /// Height.
-    /// </summary>
-    private uint _height;
-
-    /// <summary>
-    /// Width.
-    /// </summary>
-    private uint _width;
-
-    /// <summary>
-    /// Depth.
-    /// </summary>
-    private uint _depth;
-
-    /// <summary>
-    /// Capabilities.
-    /// </summary>
-    public uint Capabilities { get; }
-
-    public uint FrameSize { get; private set; }
-    public uint FrameOffset { get; private set; }
-
 }
-

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Cosmos.Kernel.HAL.Devices.Graphic;
 using Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
+using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Graphics.Fonts;
 
 namespace Cosmos.Kernel.System.Graphics;
@@ -22,20 +22,30 @@ public class SVGAII3DCanvas : Canvas
     private int _stride;
     private Mode _mode;
 
-    public VMWareSVGAII3D Driver { get; }
+    /// <summary>
+    /// The 2D display driver, bound to the SVGA II PCI device.
+    /// </summary>
+    public SvgaIIDriver Driver { get; }
 
-    public SVGAII3DCanvas()
-        : this(s_defaultMode)
+    /// <summary>
+    /// The SVGA3D command layer, or <see langword="null"/> when the device did
+    /// not negotiate 3D support (QEMU's vmware-svga never does).
+    /// </summary>
+    public VMWareSVGAII3D? Driver3D { get; }
+
+    public SVGAII3DCanvas(PciDevice device)
+        : this(device, s_defaultMode)
     {
     }
 
-    public SVGAII3DCanvas(Mode aMode)
+    public SVGAII3DCanvas(PciDevice device, Mode aMode)
         : base(aMode)
     {
         ThrowIfModeIsNotValid(aMode);
 
-        Driver = new VMWareSVGAII3D();
+        Driver = new SvgaIIDriver(device);
         Mode = aMode;
+        Driver3D = Driver.Is3DEnabled ? new VMWareSVGAII3D(Driver) : null;
     }
 
     public override string Name() => "VMWareSVGAII";
@@ -76,17 +86,17 @@ public class SVGAII3DCanvas : Canvas
             color = AlphaBlend(color, GetPointColor(x, y), color.A);
         }
 
-        Driver.SetPixel((uint)x, (uint)y, (uint)color.ToArgb());
+        Driver.DrawPixel((uint)color.ToArgb(), x, y);
     }
 
     public override void DrawPoint(uint color, int x, int y)
     {
-        Driver.SetPixel((uint)x, (uint)y, color);
+        Driver.DrawPixel(color, x, y);
     }
 
     public override void DrawPoint(int color, int x, int y)
     {
-        Driver.SetPixel((uint)x, (uint)y, (uint)color);
+        Driver.DrawPixel((uint)color, x, y);
     }
 
     public override void DrawArray(Color[] colors, int x, int y, int width, int height)
@@ -110,28 +120,17 @@ public class SVGAII3DCanvas : Canvas
 
     public override void DrawArray(int[] colors, int x, int y, int width, int height)
     {
-        int frameSize = (int)Driver.FrameSize;
-
-        for (int row = 0; row < height; row++)
-        {
-            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width, width * _bytesPerPixel);
-        }
+        Driver.CopyBuffer(colors.AsMemory(), x, y, width, height);
     }
 
     public override void DrawArray(int[] colors, int x, int y, int width, int height, int startIndex)
     {
-        int frameSize = (int)Driver.FrameSize;
-
-        for (int row = 0; row < height; row++)
-        {
-            Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, colors, row * width + startIndex, width * _bytesPerPixel);
-        }
+        Driver.CopyBuffer(colors.AsMemory(startIndex), x, y, width, height);
     }
 
     public override void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true)
     {
         int argb = color.ToArgb();
-        int frameSize = (int)Driver.FrameSize;
 
         if (preventOffBoundPixels)
         {
@@ -141,7 +140,7 @@ public class SVGAII3DCanvas : Canvas
 
         for (int row = yStart; row < yStart + height; row++)
         {
-            Driver.VideoMemory.Fill(GetPointOffset(xStart, row) + frameSize, width, argb);
+            Driver.ClearVRAM(GetPointOffset(xStart, row), width, argb);
         }
     }
 
@@ -218,17 +217,17 @@ public class SVGAII3DCanvas : Canvas
 
     public override void Clear(int color)
     {
-        Driver.Clear((uint)color);
+        Driver.ClearScreen((uint)color);
     }
 
     public override void Clear(Color color)
     {
-        Driver.Clear((uint)color.ToArgb());
+        Driver.ClearScreen((uint)color.ToArgb());
     }
 
     public Color GetPixel(int x, int y)
     {
-        uint argb = Driver.GetPixel((uint)x, (uint)y);
+        uint argb = Driver.GetPixel(x, y);
         return Color.FromArgb((int)argb);
     }
 
@@ -250,29 +249,26 @@ public class SVGAII3DCanvas : Canvas
     public void MovePixel(int x, int y, int newX, int newY)
     {
         Driver.Copy((uint)x, (uint)y, (uint)newX, (uint)newY, 1, 1);
-        Driver.SetPixel((uint)x, (uint)y, 0);
+        Driver.DrawPixel(0, x, y);
     }
 
     public override Color GetPointColor(int x, int y)
     {
-        return Color.FromArgb((int)Driver.GetPixel((uint)x, (uint)y));
+        return Color.FromArgb((int)Driver.GetPixel(x, y));
     }
 
     public override int GetRawPointColor(int x, int y)
     {
-        return (int)Driver.GetPixel((uint)x, (uint)y);
+        return (int)Driver.GetPixel(x, y);
     }
 
     public override Bitmap GetImage(int x, int y, int width, int height)
     {
-        int frameSize = (int)Driver.FrameSize;
-        int[] buffer = new int[width];
         int[] all = new int[width * height];
 
         for (int row = 0; row < height; row++)
         {
-            Driver.VideoMemory.Get(GetPointOffset(x, y + row) + frameSize, buffer, 0, width * _bytesPerPixel);
-            buffer.CopyTo(all, width * row);
+            Driver.GetVRAM(GetPointOffset(x, y + row), all, width * row, width);
         }
 
         Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32)
@@ -285,7 +281,7 @@ public class SVGAII3DCanvas : Canvas
 
     public override void Display()
     {
-        Driver.DoubleBufferUpdate();
+        Driver.Swap();
     }
 
     public override void DrawString(string str, Font font, Color color, int x, int y)
@@ -323,7 +319,6 @@ public class SVGAII3DCanvas : Canvas
     {
         int width = (int)image.Width;
         int height = (int)image.Height;
-        int frameSize = (int)Driver.FrameSize;
         int[] data = image.RawData;
 
         if (preventOffBoundPixels)
@@ -338,50 +333,59 @@ public class SVGAII3DCanvas : Canvas
             maxWidth -= startX - x;
             maxHeight -= startY - y;
 
-            for (int row = 0; row < maxHeight; row++)
+            if (maxWidth <= 0 || maxHeight <= 0)
             {
-                int sourceIndex = (sourceY + row) * width + sourceX;
-                Driver.VideoMemory.Copy(GetPointOffset(startX, startY + row) + frameSize, data, sourceIndex, maxWidth * _bytesPerPixel);
+                return;
+            }
+
+            if (sourceX == 0 && sourceY == 0 && maxWidth == width && maxHeight == height)
+            {
+                Driver.CopyBuffer(data.AsMemory(), startX, startY, width, height);
+            }
+            else
+            {
+                // Copy row by row due to the source offset
+                for (int row = 0; row < maxHeight; row++)
+                {
+                    int sourceIndex = (sourceY + row) * width + sourceX;
+                    Driver.CopyBuffer(data.AsMemory(sourceIndex, maxWidth), startX, startY + row, maxWidth, 1);
+                }
             }
         }
         else
         {
-            for (int row = 0; row < height; row++)
-            {
-                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width * _bytesPerPixel);
-            }
+            Driver.CopyBuffer(data.AsMemory(), x, y, width, height);
         }
     }
 
     public override void CroppedDrawImage(Image image, int x, int y, int width, int height, bool preventOffBoundPixels = true)
     {
-        int frameSize = (int)Driver.FrameSize;
         int[] data = image.RawData;
 
         if (preventOffBoundPixels)
         {
-            int modeWidth = (int)_mode.Width;
-            int modeHeight = (int)_mode.Height;
-            int maxWidth = Math.Min(width, modeWidth - x);
-            int maxHeight = Math.Min(height, modeHeight - y);
+            int maxWidth = Math.Min(width, (int)_mode.Width - x);
+            int maxHeight = Math.Min(height, (int)_mode.Height - y);
             int startX = Math.Max(0, -x);
             int startY = Math.Max(0, -y);
             int sourceWidth = maxWidth - startX;
             int sourceHeight = maxHeight - startY;
 
+            if (sourceWidth <= 0 || sourceHeight <= 0)
+            {
+                return;
+            }
+
+            // Copy row by row due to the source offset
             for (int row = 0; row < sourceHeight; row++)
             {
-                int destY = y + startY + row;
-                int destOffset = GetPointOffset(x + startX, destY) + frameSize;
-                Driver.VideoMemory.Copy(destOffset, data, (startY + row) * width + startX, sourceWidth * _bytesPerPixel);
+                int sourceIndex = (startY + row) * width + startX;
+                Driver.CopyBuffer(data.AsMemory(sourceIndex, sourceWidth), x + startX, y + startY + row, sourceWidth, 1);
             }
         }
         else
         {
-            for (int row = 0; row < height; row++)
-            {
-                Driver.VideoMemory.Copy(GetPointOffset(x, y + row) + frameSize, data, row * width, width * _bytesPerPixel);
-            }
+            Driver.CopyBuffer(data.AsMemory(), x, y, width, height);
         }
     }
 }
