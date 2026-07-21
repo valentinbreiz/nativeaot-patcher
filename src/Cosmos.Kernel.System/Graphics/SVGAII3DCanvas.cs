@@ -231,9 +231,26 @@ public class SVGAII3DCanvas : Canvas
         return Color.FromArgb((int)argb);
     }
 
+    /// <summary>
+    /// Whether the device composes a 32-bit alpha hardware cursor on the host
+    /// side. When true, callers can define a shape once with
+    /// <see cref="DefineAlphaCursor"/> and move it with <see cref="SetCursor"/>
+    /// instead of blitting a software cursor every frame.
+    /// </summary>
+    public bool HasHardwareCursor => Driver.HasAlphaCursor;
+
     public void SetCursor(bool visible, int x, int y)
     {
         Driver.SetCursor(visible, (uint)x, (uint)y);
+    }
+
+    /// <summary>
+    /// Define the hardware cursor shape. <paramref name="data"/> is
+    /// width×height premultiplied 32-bit BGRA pixels.
+    /// </summary>
+    public void DefineAlphaCursor(int hotspotX, int hotspotY, int width, int height, int[] data)
+    {
+        Driver.DefineAlphaCursor((uint)hotspotX, (uint)hotspotY, (uint)width, (uint)height, data);
     }
 
     public void CreateCursor()
