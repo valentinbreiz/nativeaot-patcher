@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum SVGA3dDeclMethod
     {
         SVGA3D_DECLMETHOD_DEFAULT = 0,
@@ -16,4 +11,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SVGA3D_DECLMETHOD_LOOKUP,
         SVGA3D_DECLMETHOD_LOOKUPPRESAMPLED,
     }
-}

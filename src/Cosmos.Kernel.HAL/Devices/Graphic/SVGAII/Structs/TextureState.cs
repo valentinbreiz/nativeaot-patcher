@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
     public struct SVGA3dTextureState
     {
@@ -35,4 +30,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
             this.floatValue = value;
         }
     }
-}

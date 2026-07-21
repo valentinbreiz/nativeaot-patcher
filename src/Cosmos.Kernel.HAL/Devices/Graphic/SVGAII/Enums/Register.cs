@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum Register : ushort
     {
         Enable3D = 0x20,
@@ -90,4 +85,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
 
         SVGA_FIFO_NUM_REGS
     }
-}

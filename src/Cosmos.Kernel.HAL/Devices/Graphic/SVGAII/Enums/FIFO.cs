@@ -1,5 +1,4 @@
-﻿namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     /// <summary>
     /// FIFO values.
     /// </summary>
@@ -22,4 +21,3 @@
         /// </summary>
         Stop = 12
     }
-}

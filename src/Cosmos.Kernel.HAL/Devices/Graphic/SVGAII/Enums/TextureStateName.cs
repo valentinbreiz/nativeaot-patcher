@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum SVGA3dTextureStateName : uint
     {
         SVGA3D_TS_INVALID = 0,
@@ -50,4 +45,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SVGA3D_TS_ALPHAARG0 = 29,   /* SVGA3dTextureArgData */
         SVGA3D_TS_MAX
     }
-}

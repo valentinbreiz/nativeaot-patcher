@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum SVGA3dPrimitiveType
     {
         SVGA3D_PRIMITIVE_INVALID = 0,
@@ -17,4 +12,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SVGA3D_PRIMITIVE_TRIANGLEFAN = 6,
         SVGA3D_PRIMITIVE_MAX
     }
-}

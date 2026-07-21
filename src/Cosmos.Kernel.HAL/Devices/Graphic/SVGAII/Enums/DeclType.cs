@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum SVGA3dDeclType
     {
         SVGA3D_DECLTYPE_FLOAT1 = 0,
@@ -27,4 +22,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SVGA3D_DECLTYPE_FLOAT16_4 = 16,
         SVGA3D_DECLTYPE_MAX,
     }
-}

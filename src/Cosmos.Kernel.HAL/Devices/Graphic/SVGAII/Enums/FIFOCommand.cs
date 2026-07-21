@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum FIFOCommand
     {
         /// <summary>
@@ -119,4 +114,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SET_SHADER = 1040 + 21,
         SET_SHADER_CONST = 1040 + 22,
     }
-}

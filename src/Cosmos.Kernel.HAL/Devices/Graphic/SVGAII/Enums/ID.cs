@@ -1,5 +1,4 @@
-﻿namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     /// <summary>
     /// ID values.
     /// </summary>
@@ -26,4 +25,3 @@
         /// </summary>
         Invalid = 0xFFFFFFFF
     }
-}

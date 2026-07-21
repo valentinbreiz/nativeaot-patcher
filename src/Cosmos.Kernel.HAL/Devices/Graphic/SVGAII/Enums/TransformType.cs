@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     public enum SVGA3dTransformType
     {
         SVGA3D_TRANSFORM_INVALID = 0,
@@ -25,4 +20,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SVGA3D_TRANSFORM_WORLD3 = 14,
         SVGA3D_TRANSFORM_MAX
     }
-}

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     [Flags]
     public enum Capability
     {
@@ -26,7 +21,7 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         /// </summary>
         RectPatFill = 4,
         /// <summary>
-        /// Lecacy off screen.
+        /// Legacy off screen.
         /// </summary>
         LecacyOffscreen = 8,
         /// <summary>
@@ -34,7 +29,7 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         /// </summary>
         RasterOp = 16,
         /// <summary>
-        /// Cruser.
+        /// Cursor.
         /// </summary>
         Cursor = 32,
         /// <summary>
@@ -113,4 +108,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         SurfaceCopy = 0x00010000,
 
     }
-}

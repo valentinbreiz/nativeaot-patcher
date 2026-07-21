@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     [Flags]
     public enum ClearFlags : uint
     {
@@ -13,4 +8,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         Depth = 0x2,
         Stencil = 0x4
     }
-}

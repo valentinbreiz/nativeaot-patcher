@@ -1,7 +1,6 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic
-{
+namespace Cosmos.Kernel.HAL.Devices.Graphic;
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SVGA3dCopyBox
     {
@@ -15,4 +14,3 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic
         public uint srcy;
         public uint srcz;
     }
-}
