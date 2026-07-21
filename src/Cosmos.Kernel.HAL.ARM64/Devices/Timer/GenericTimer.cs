@@ -192,8 +192,8 @@ public class GenericTimer : TimerDevice
             GenericTimerNative.SetTval((uint)Instance._ticksPerPeriod);
         }
 
-        // Invoke the OnTick handler (for TimerManager)
-        Instance.OnTick?.Invoke();
+        // Advance software timers and invoke the OnTick handler
+        Instance.HandleTick(Instance._periodNs);
 
         // Get current CPU ID (for now, always 0 on single CPU ARM64)
         uint cpuId = 0;
