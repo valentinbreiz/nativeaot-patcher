@@ -16161,13 +16161,13 @@ references:
   fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Broadcast
   nameWithType: MACAddress.Broadcast
 - uid: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(System.Object)
-  name: CompareTo(object)
+  name: CompareTo(object?)
   href: api/Cosmos.Kernel.HAL.Devices.Network.MACAddress.html#Cosmos_Kernel_HAL_Devices_Network_MACAddress_CompareTo_System_Object_
   commentId: M:Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(System.Object)
   name.vb: CompareTo(Object)
-  fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(object)
+  fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(object?)
   fullName.vb: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(Object)
-  nameWithType: MACAddress.CompareTo(object)
+  nameWithType: MACAddress.CompareTo(object?)
   nameWithType.vb: MACAddress.CompareTo(Object)
 - uid: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo*
   name: CompareTo
@@ -16177,13 +16177,13 @@ references:
   fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo
   nameWithType: MACAddress.CompareTo
 - uid: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(System.Object)
-  name: Equals(object)
+  name: Equals(object?)
   href: api/Cosmos.Kernel.HAL.Devices.Network.MACAddress.html#Cosmos_Kernel_HAL_Devices_Network_MACAddress_Equals_System_Object_
   commentId: M:Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(System.Object)
   name.vb: Equals(Object)
-  fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(object)
+  fullName: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(object?)
   fullName.vb: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(Object)
-  nameWithType: MACAddress.Equals(object)
+  nameWithType: MACAddress.Equals(object?)
   nameWithType.vb: MACAddress.Equals(Object)
 - uid: Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals*
   name: Equals
@@ -29725,6 +29725,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.KernelConsole.SetForegroundColor
   nameWithType: KernelConsole.SetForegroundColor
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized
+  name: ThrowIfKernelConsoleNotInitialized()
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_ThrowIfKernelConsoleNotInitialized
+  commentId: M:Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized()
+  nameWithType: KernelConsole.ThrowIfKernelConsoleNotInitialized()
+- uid: Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized*
+  name: ThrowIfKernelConsoleNotInitialized
+  href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_ThrowIfKernelConsoleNotInitialized_
+  commentId: Overload:Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized
+  nameWithType: KernelConsole.ThrowIfKernelConsoleNotInitialized
 - uid: Cosmos.Kernel.System.Graphics.KernelConsole.Write(System.Char)
   name: Write(char)
   href: api/Cosmos.Kernel.System.Graphics.KernelConsole.html#Cosmos_Kernel_System_Graphics_KernelConsole_Write_System_Char_
@@ -29848,13 +29861,13 @@ references:
   fullName: Cosmos.Kernel.System.Graphics.Mode.Equals(Cosmos.Kernel.System.Graphics.Mode)
   nameWithType: Mode.Equals(Mode)
 - uid: Cosmos.Kernel.System.Graphics.Mode.Equals(System.Object)
-  name: Equals(object)
+  name: Equals(object?)
   href: api/Cosmos.Kernel.System.Graphics.Mode.html#Cosmos_Kernel_System_Graphics_Mode_Equals_System_Object_
   commentId: M:Cosmos.Kernel.System.Graphics.Mode.Equals(System.Object)
   name.vb: Equals(Object)
-  fullName: Cosmos.Kernel.System.Graphics.Mode.Equals(object)
+  fullName: Cosmos.Kernel.System.Graphics.Mode.Equals(object?)
   fullName.vb: Cosmos.Kernel.System.Graphics.Mode.Equals(Object)
-  nameWithType: Mode.Equals(object)
+  nameWithType: Mode.Equals(object?)
   nameWithType.vb: Mode.Equals(Object)
 - uid: Cosmos.Kernel.System.Graphics.Mode.Equals*
   name: Equals
@@ -33193,15 +33206,6 @@ references:
   commentId: T:Cosmos.Kernel.System.Network.EthernetPacket
   fullName: Cosmos.Kernel.System.Network.EthernetPacket
   nameWithType: EthernetPacket
-- uid: Cosmos.Kernel.System.Network.EthernetPacket.#ctor
-  name: EthernetPacket()
-  href: api/Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket__ctor
-  commentId: M:Cosmos.Kernel.System.Network.EthernetPacket.#ctor
-  name.vb: New()
-  fullName: Cosmos.Kernel.System.Network.EthernetPacket.EthernetPacket()
-  fullName.vb: Cosmos.Kernel.System.Network.EthernetPacket.New()
-  nameWithType: EthernetPacket.EthernetPacket()
-  nameWithType.vb: EthernetPacket.New()
 - uid: Cosmos.Kernel.System.Network.EthernetPacket.#ctor(Cosmos.Kernel.HAL.Devices.Network.MACAddress,Cosmos.Kernel.HAL.Devices.Network.MACAddress,System.UInt16,System.Int32)
   name: EthernetPacket(MACAddress, MACAddress, ushort, int)
   href: api/Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket__ctor_Cosmos_Kernel_HAL_Devices_Network_MACAddress_Cosmos_Kernel_HAL_Devices_Network_MACAddress_System_UInt16_System_Int32_
@@ -33362,13 +33366,13 @@ references:
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress
   nameWithType: Address.CIDRToAddress
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(System.Object)
-  name: CompareTo(object)
+  name: CompareTo(object?)
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_CompareTo_System_Object_
   commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(System.Object)
   name.vb: CompareTo(Object)
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(object)
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(object?)
   fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Object)
-  nameWithType: Address.CompareTo(object)
+  nameWithType: Address.CompareTo(object?)
   nameWithType.vb: Address.CompareTo(Object)
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo*
   name: CompareTo
@@ -33378,13 +33382,13 @@ references:
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo
   nameWithType: Address.CompareTo
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.Equals(System.Object)
-  name: Equals(object)
+  name: Equals(object?)
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Equals_System_Object_
   commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.Equals(System.Object)
   name.vb: Equals(Object)
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Equals(object)
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Equals(object?)
   fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.Equals(Object)
-  nameWithType: Address.Equals(object)
+  nameWithType: Address.Equals(object?)
   nameWithType.vb: Address.Equals(Object)
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.Equals*
   name: Equals
@@ -33586,13 +33590,13 @@ references:
   fullName: Cosmos.Kernel.System.Network.IPv4.EndPoint.Address
   nameWithType: EndPoint.Address
 - uid: Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(System.Object)
-  name: CompareTo(object)
+  name: CompareTo(object?)
   href: api/Cosmos.Kernel.System.Network.IPv4.EndPoint.html#Cosmos_Kernel_System_Network_IPv4_EndPoint_CompareTo_System_Object_
   commentId: M:Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(System.Object)
   name.vb: CompareTo(Object)
-  fullName: Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(object)
+  fullName: Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(object?)
   fullName.vb: Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(Object)
-  nameWithType: EndPoint.CompareTo(object)
+  nameWithType: EndPoint.CompareTo(object?)
   nameWithType.vb: EndPoint.CompareTo(Object)
 - uid: Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo*
   name: CompareTo

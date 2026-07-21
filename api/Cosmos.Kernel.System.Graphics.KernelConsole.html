@@ -511,6 +511,9 @@ Can be instantiated on any canvas (hardware or virtual).</p>
 
 
 
+  <h4 class="section" id="Cosmos_Kernel_System_Graphics_KernelConsole_IsAvailable_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Always true since canvas is initialized in constructor.</p>
+</div>
 
 
 
@@ -738,7 +741,8 @@ Thread-safe.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool Initialize()</code></pre>
+    <pre><code class="lang-csharp hljs">[MemberNotNullWhen(true, &quot;Default&quot;)]
+public static bool Initialize()</code></pre>
   </div>
 
 
@@ -1044,6 +1048,33 @@ Thread-safe.</p>
     <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.consolecolor">ConsoleColor</a></dt>
     <dd></dd>
   </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_KernelConsole_ThrowIfKernelConsoleNotInitialized_" data-uid="Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_KernelConsole_ThrowIfKernelConsoleNotInitialized" data-uid="Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized">
+  ThrowIfKernelConsoleNotInitialized()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[MemberNotNull(&quot;Default&quot;)]
+public static void ThrowIfKernelConsoleNotInitialized()</code></pre>
+  </div>
+
 
 
 

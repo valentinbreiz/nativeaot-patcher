@@ -101,10 +101,11 @@
 <li><a href="#9-architecture-specific-code">9. Architecture-Specific Code</a></li>
 <li><a href="#10-memory--safety">10. Memory &amp; Safety</a></li>
 <li><a href="#11-error-handling">11. Error Handling</a></li>
-<li><a href="#12-modern-c--net-10-idioms">12. Modern C# / .NET 10 Idioms</a></li>
-<li><a href="#13-aot-constraints">13. AOT Constraints</a></li>
-<li><a href="#14-documentation">14. Documentation</a></li>
-<li><a href="#15-testing">15. Testing</a></li>
+<li><a href="#12-nullable-reference-types">12. Nullable Reference Types</a></li>
+<li><a href="#13-modern-c--net-10-idioms">13. Modern C# / .NET 10 Idioms</a></li>
+<li><a href="#14-aot-constraints">14. AOT Constraints</a></li>
+<li><a href="#15-documentation">15. Documentation</a></li>
+<li><a href="#16-testing">16. Testing</a></li>
 </ul>
 <hr>
 <h2 id="1-project-architecture">1. Project Architecture</h2>
@@ -623,8 +624,7 @@ Panic.Halt(&quot;Invalid thread state&quot;);
 <pre><code class="lang-csharp">// Good: validate at API boundaries
 public static void ConfigIP(INetworkDevice device, Address ip)
 {
-    if (device == null)
-        throw new ArgumentNullException(nameof(device));
+    ArgumentNullException.ThrowIfNull(device);
     // ...
 }
 
@@ -670,7 +670,95 @@ private static void ThrowIfKeyboardDisabled()
 </tbody>
 </table>
 <hr>
-<h2 id="12-modern-c--net-10-idioms">12. Modern C# / .NET 10 Idioms</h2>
+<h2 id="12-nullable-reference-types">12. Nullable Reference Types</h2>
+<p>Nullable reference types are enabled solution-wide (<code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in <code>Directory.Build.props</code>). Annotations are part of the API contract: a reference type without <code>?</code> is a promise that it is never null. New and modified code must not introduce nullable warnings — annotate honestly instead of silencing.</p>
+<h3 id="rules">Rules</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T?</code> on fields, parameters, returns</td>
+<td>Any value that can legitimately be null</td>
+</tr>
+<tr>
+<td><code>?? throw</code></td>
+<td>Converting a nullable into a required value</td>
+</tr>
+<tr>
+<td><code>ArgumentNullException.ThrowIfNull(arg)</code></td>
+<td>Argument validation at API boundaries</td>
+</tr>
+<tr>
+<td><code>[MemberNotNull(...)]</code> guard helpers</td>
+<td>Initialization checks the compiler can follow</td>
+</tr>
+<tr>
+<td><code>is null</code> / <code>is not null</code></td>
+<td>All null tests (not <code>== null</code> / <code>!= null</code>)</td>
+</tr>
+<tr>
+<td>Sentinel initialization (<code>= []</code>)</td>
+<td>Fields where null and empty mean the same thing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="honest-annotations">Honest Annotations</h3>
+<p>A member that can return <code>null</code> is declared with <code>?</code> — never hide it behind <code>!</code> to preserve an old signature. Conversely, do not add runtime null checks for values the annotations already guarantee: no <code>if (buffer == null) throw</code> on a non-nullable parameter, no <code>?? &quot;fallback&quot;</code> on a non-nullable return.</p>
+<pre><code class="lang-csharp">// Declare what can actually be null — callers are forced to handle it
+public static IScheduler? Current =&gt; _currentScheduler;
+public static PerCpuState? GetCpuState(uint cpuId) =&gt; _cpuStates?[cpuId];
+
+// Prefer a sentinel over a nullable field when null and empty mean the same thing
+private byte[] _window = [];                 // not: private byte[]? _window;
+</code></pre>
+<h3 id="guard-helpers">Guard Helpers</h3>
+<p>Managers with deferred initialization expose <code>ThrowIf*NotInitialized()</code> guards annotated with <code>[MemberNotNull(...)]</code> and call them at the top of public entry points (see <a href="#4-class--type-design">Managers</a>). One call proves the field non-null for the rest of the method — no <code>!</code> and no per-line checks:</p>
+<pre><code class="lang-csharp">private static PerCpuState[]? _cpuStates;
+
+[MemberNotNull(nameof(_cpuStates))]
+private static void ThrowIfCpuStateNotInitialized()
+{
+    if (_cpuStates is null)
+    {
+        throw new InvalidOperationException($&quot;{nameof(SchedulerManager)} not initialized&quot;);
+    }
+}
+
+public static void CreateThread(uint cpuId, Thread thread)
+{
+    ThrowIfCpuStateNotInitialized();
+
+    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
+    // ...
+}
+</code></pre>
+<h3 id="required-values">Required Values</h3>
+<p>Use <code>?? throw</code> where a null result is a programming error:</p>
+<pre><code class="lang-csharp">Address source = IPConfig.FindNetwork(destination)
+    ?? throw new InvalidOperationException(&quot;No network route to destination&quot;);
+
+public MACAddress MacAddress =&gt; _macAddress
+    ?? throw new InvalidOperationException($&quot;{nameof(_macAddress)} is null&quot;);
+</code></pre>
+<h3 id="constructors">Constructors</h3>
+<p>Every constructor must leave all non-nullable members initialized. Delete unused parameterless constructors instead of letting them poison the type:</p>
+<pre><code class="lang-csharp">// Bad: leaves RawData null and forces nullable noise on every user of the class
+internal ICMPPacket()
+{
+}
+</code></pre>
+<h3 id="the--operator">The <code>!</code> Operator</h3>
+<p>Null-forgiving <code>!</code> is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is <code>true</code>). If the invariant can be expressed with <code>[MemberNotNull]</code> or <code>[NotNullWhen]</code>, use the attribute instead.</p>
+<h3 id="enforcement">Enforcement</h3>
+<p>The format CI (<code>dotnet format --severity error</code>) enforces the null-handling style rules in <code>.editorconfig</code>: <code>csharp_style_throw_expression</code>, <code>dotnet_style_coalesce_expression</code>, <code>dotnet_style_null_propagation</code>, <code>csharp_style_prefer_null_check_over_type_check</code>, <code>csharp_style_pattern_matching_over_as_with_null_check</code>, <code>dotnet_style_prefer_is_null_check_over_reference_equality_method</code>, and <code>csharp_style_conditional_delegate_call</code>.</p>
+<p>Nullable warnings (<code>CS86xx</code>) are not errors yet — do not introduce new ones.</p>
+<hr>
+<h2 id="13-modern-c--net-10-idioms">13. Modern C# / .NET 10 Idioms</h2>
 <p>The project targets <code>&lt;LangVersion&gt;latest&lt;/LangVersion&gt;</code> and .NET 10. Use modern language features throughout.</p>
 <h3 id="modern-patterns">Modern Patterns</h3>
 <pre><code class="lang-csharp">// File-scoped namespaces
@@ -724,42 +812,6 @@ public int Priority
     set =&gt; field = value &gt;= 0 ? value : throw new ArgumentOutOfRangeException();
 }
 </code></pre>
-<h3 id="nullable-reference-types">Nullable Reference Types</h3>
-<p>Nullable reference types are enabled solution-wide (<code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in <code>Directory.Build.props</code>). New and modified code must not introduce nullable warnings — annotate honestly instead of silencing:</p>
-<pre><code class="lang-csharp">// Declare what can actually be null — callers are forced to handle it
-public static IScheduler? Current =&gt; _currentScheduler;
-public static PerCpuState? GetCpuState(uint cpuId) =&gt; _cpuStates?[cpuId];
-
-// Late-initialized manager state: guard with a [MemberNotNull] helper.
-// One call at the top of an entry point proves the field non-null for the
-// rest of the method — no ! and no per-line checks needed.
-[MemberNotNull(nameof(_cpuStates))]
-private static void ThrowIfCpuStateNotInitialized()
-{
-    if (_cpuStates is null)
-    {
-        throw new InvalidOperationException($&quot;{nameof(SchedulerManager)} not initialized&quot;);
-    }
-}
-
-public static void CreateThread(uint cpuId, Thread thread)
-{
-    ThrowIfCpuStateNotInitialized();
-
-    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
-    // ...
-}
-
-// Prefer a sentinel over a nullable field when null and empty mean the same thing
-private byte[] _window = [];                 // not: private byte[]? _window;
-</code></pre>
-<p><strong>Rules:</strong></p>
-<ul>
-<li>A member that can return <code>null</code> is declared with <code>?</code> — never hide it behind <code>!</code> to preserve an old signature.</li>
-<li>Managers with deferred initialization expose <code>ThrowIf*NotInitialized()</code> guards annotated with <code>[MemberNotNull(...)]</code> and call them at the top of public entry points (see <a href="#4-class--type-design">Managers</a>).</li>
-<li>Do not add runtime null checks for values the annotations already guarantee: no <code>if (buffer == null) throw</code> on a non-nullable parameter, no <code>?? &quot;fallback&quot;</code> on a non-nullable return.</li>
-<li>The null-forgiving operator <code>!</code> is a last resort for invariants flow analysis cannot see (eg. a field guaranteed non-null while a guard flag is <code>true</code>). If the invariant can be expressed with <code>[MemberNotNull]</code> or <code>[NotNullWhen]</code>, use the attribute instead.</li>
-</ul>
 <h3 id="avoid-1">Avoid</h3>
 <pre><code class="lang-csharp">// Don't use var when type isn't obvious
 var x = GetValue();           // Bad: what type is x?
@@ -805,7 +857,7 @@ if (CosmosFeatures.KeyboardEnabled)
 }
 </code></pre>
 <hr>
-<h2 id="13-aot-constraints">13. AOT Constraints</h2>
+<h2 id="14-aot-constraints">14. AOT Constraints</h2>
 <p>NativeAOT imposes strict limitations. <strong>All kernel code must be AOT-compatible.</strong></p>
 <p>.NET 10 has improved NativeAOT with smaller binaries and broader platform support, but the fundamental constraints remain.</p>
 <h3 id="forbidden">Forbidden</h3>
@@ -822,7 +874,7 @@ if (CosmosFeatures.KeyboardEnabled)
 <li><strong>LINQ</strong>, many LINQ operators allocate iterators and closures. Avoid in hot paths (GC, scheduler, interrupt handlers).</li>
 </ul>
 <hr>
-<h2 id="14-documentation">14. Documentation</h2>
+<h2 id="15-documentation">15. Documentation</h2>
 <h3 id="license-header">License Header</h3>
 <p>Every <code>.cs</code> file must start with the license header (enforced by <code>.editorconfig</code>):</p>
 <pre><code class="lang-csharp">// This code is licensed under MIT license (see LICENSE for details)
@@ -855,7 +907,7 @@ public static void Halt(string message) { ... }
 // Align context to 16 bytes (required for XMM operations)
 contextAddr = (contextAddr + 0xF) &amp; ~(nuint)0xF;
 </code></pre>
-<h2 id="15-testing">15. Testing</h2>
+<h2 id="16-testing">16. Testing</h2>
 <p>For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see <a href="testing.html">Testing</a>.</p>
 <p><strong>Code coverage:</strong> Add the <code>run-coverage</code> label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.</p>
 <hr>

@@ -165,7 +165,7 @@ Class DHCPOption
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte[]? Data { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public required byte[] Data { get; init; }</code></pre>
   </div>
 
 
@@ -197,7 +197,7 @@ Class DHCPOption
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Length { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Length { get; }</code></pre>
   </div>
 
 
@@ -229,7 +229,7 @@ Class DHCPOption
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte Type { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public required byte Type { get; init; }</code></pre>
   </div>
 
 

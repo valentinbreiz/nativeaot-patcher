@@ -262,7 +262,7 @@ Public so other kernel components (e.g. timer drivers) can share the unit conver
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static IScheduler Current { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static IScheduler? Current { get; }</code></pre>
   </div>
 
 
@@ -655,7 +655,7 @@ spin/polled paths instead of blocking.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static PerCpuState[] GetAllCpuStates()</code></pre>
+    <pre><code class="lang-csharp hljs">public static PerCpuState[]? GetAllCpuStates()</code></pre>
   </div>
 
 
@@ -722,7 +722,7 @@ worst case is observing a stale value from an in-progress tick.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static PerCpuState GetCpuState(uint cpuId)</code></pre>
+    <pre><code class="lang-csharp hljs">public static PerCpuState? GetCpuState(uint cpuId)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
