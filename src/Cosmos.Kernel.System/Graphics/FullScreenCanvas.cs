@@ -1,4 +1,5 @@
 using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.HAL.Devices.Graphic;
 
 namespace Cosmos.Kernel.System.Graphics;
 
@@ -40,6 +41,11 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver()
     {
+        if (VMWareSVGAII3D.HasSvgaII())
+        {
+            return new SVGAII3DCanvas();
+        }
+
         return new GopCanvas();
     }
 
@@ -50,6 +56,11 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver(Mode mode)
     {
+        if (VMWareSVGAII3D.HasSvgaII())
+        {
+            return new SVGAII3DCanvas(mode);
+        }
+
         return new GopCanvas(mode);
     }
 

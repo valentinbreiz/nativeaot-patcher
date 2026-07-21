@@ -32,6 +32,10 @@ public unsafe class VMWareSVGAII3D
         InitializeFIFO();
     }
 
+    public static bool HasSvgaII()
+    {
+        return PciManager.GetDevice(Pci.Enums.VendorId.VmWare, Pci.Enums.DeviceId.SvgaiiAdapter) is not null;
+    }
 
     private uint _contextId;
 
