@@ -7,7 +7,7 @@ namespace BigGustave
 
     internal static class PngOpener
     {
-        public static Png Open(Stream stream, IChunkVisitor chunkVisitor = null) => Open(stream, new PngOpenerSettings
+        public static Png Open(Stream stream, IChunkVisitor? chunkVisitor = null) => Open(stream, new PngOpenerSettings
         {
             ChunkVisitor = chunkVisitor
         });

@@ -33,7 +33,7 @@ namespace LunarLabs.Fonts
 
     internal class FontGlyph
     {
-        public GlyphBitmap Image { get; internal set; }
+        public GlyphBitmap? Image { get; internal set; }
         public int xOfs { get; internal set; }
         public int yOfs { get; internal set; }
         public int xAdvance { get; internal set; }
@@ -83,7 +83,7 @@ namespace LunarLabs.Fonts
         public int x;
         public int dx;
         public float ey;
-        public ActiveEdge next;
+        public ActiveEdge? next;
         public int valid;
     }
 

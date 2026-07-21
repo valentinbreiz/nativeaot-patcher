@@ -39,6 +39,14 @@ public sealed record TestProfile
     public string? MouseDevice { get; init; }
 
     /// <summary>
+    /// VGA adapter to swap in for the architecture default, as a QEMU
+    /// <c>-vga</c> backend name (e.g. <c>vmware</c>), or null to leave the
+    /// default in place. Replaces rather than adds — a second display adapter
+    /// would leave firmware free to pick either one as primary.
+    /// </summary>
+    public string? VgaAdapter { get; init; }
+
+    /// <summary>
     /// Architectures this profile applies to; null means any. Mirrors the
     /// modifier filter, for hardware that only one architecture can present
     /// (PS/2 on x64, virtio-mmio on the ARM64 virt machine).
@@ -156,7 +164,8 @@ internal sealed record TestModifier
         }
 
         // `with` rather than a fresh record: everything a modifier does not
-        // touch (NIC, input devices, arch filter) has to survive the overlay.
+        // touch (NIC, input devices, VGA adapter, arch filter) has to survive
+        // the overlay.
         return baseProfile with
         {
             Name = $"{baseProfile.Name}+{Name}",
@@ -470,6 +479,7 @@ public static class TestProfileLoader
                 NetworkCard = NullIfBlank(entry.Nic),
                 KeyboardDevice = NullIfBlank(entry.Keyboard),
                 MouseDevice = NullIfBlank(entry.Mouse),
+                VgaAdapter = NullIfBlank(entry.Vga),
                 Architectures = entry.Architectures
             };
 
@@ -578,6 +588,7 @@ public static class TestProfileLoader
         string? Nic,
         string? Keyboard,
         string? Mouse,
+        string? Vga,
         List<string>? Architectures,
         // Keyed by architecture, unlike a modifier's flat map: a modifier is
         // already scoped by its own "architectures" list, while a profile

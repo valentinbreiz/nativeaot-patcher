@@ -14,6 +14,15 @@
     <ProjectReference Include="../../Cosmos.TestRunner.Framework/Cosmos.TestRunner.Framework.csproj" />
   </ItemGroup>
 
+  <!-- Hardware matrix (tests/profiles.json): `bare` keeps the default-adapter
+       run (GOP over stdvga VBE on x64, ramfb on arm64); `vmware-svga` swaps in
+       the VMware SVGA II adapter — still GOP, over the device's embedded
+       Bochs VBE core, until an SVGAII driver exists for the suite to drive. -->
+  <ItemGroup>
+    <CosmosTestProfile Include="bare" />
+    <CosmosTestProfile Include="vmware-svga" />
+  </ItemGroup>
+
   <!-- Architecture-specific HAL (using project references for development) -->
   <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
     <ProjectReference Include="../../../src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj" />

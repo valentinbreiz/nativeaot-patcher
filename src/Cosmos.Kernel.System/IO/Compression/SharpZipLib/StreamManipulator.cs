@@ -286,7 +286,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression.Streams
 
         #region Instance Fields
 
-        private byte[] window_;
+        private byte[]? window_;
         private int windowStart_;
         private int windowEnd_;
 
