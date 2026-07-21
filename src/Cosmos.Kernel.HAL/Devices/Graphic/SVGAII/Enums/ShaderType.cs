@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
     public enum SVGA3dShaderType
     {
         SVGA3D_SHADERTYPE_VS = 1,

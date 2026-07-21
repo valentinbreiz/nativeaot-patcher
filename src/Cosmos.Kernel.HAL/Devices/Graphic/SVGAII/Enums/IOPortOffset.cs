@@ -1,4 +1,4 @@
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
     /// <summary>
     /// IO port offset.
     /// </summary>

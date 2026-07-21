@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
     public enum SVGA3dPrimitiveType
     {
         SVGA3D_PRIMITIVE_INVALID = 0,

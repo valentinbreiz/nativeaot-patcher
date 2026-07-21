@@ -2,7 +2,7 @@
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
 public unsafe class VMWareSVGAII3D
 {

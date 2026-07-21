@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
     public enum SVGA3dDeclType
     {
         SVGA3D_DECLTYPE_FLOAT1 = 0,

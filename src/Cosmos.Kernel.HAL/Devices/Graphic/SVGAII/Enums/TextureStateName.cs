@@ -1,6 +1,6 @@
 using System;
 
-namespace Cosmos.Kernel.HAL.Devices.Graphic;
+namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
     public enum SVGA3dTextureStateName : uint
     {
         SVGA3D_TS_INVALID = 0,

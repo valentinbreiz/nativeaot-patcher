@@ -1,5 +1,6 @@
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Graphic;
+using Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
 namespace Cosmos.Kernel.System.Graphics;
 
