@@ -11,7 +11,7 @@ public class MACAddress : IComparable
         {
             if (_broadcast == null)
             {
-                _broadcast = new MACAddress(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
+                _broadcast = new MACAddress([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
             }
             return _broadcast;
         }
@@ -23,19 +23,19 @@ public class MACAddress : IComparable
         {
             if (_none == null)
             {
-                _none = new MACAddress(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                _none = new MACAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
             }
             return _none;
         }
     }
 
-    public byte[] bytes = new byte[6];
+    public readonly byte[] bytes = new byte[6];
 
     public MACAddress(byte[] address)
     {
         if (address == null || address.Length != 6)
         {
-            throw new ArgumentException("MACAddress is null or has wrong length", "address");
+            throw new ArgumentException("MACAddress is null or has wrong length", nameof(address));
         }
 
         bytes[0] = address[0];
@@ -56,7 +56,7 @@ public class MACAddress : IComparable
     {
         if (buffer == null || buffer.Length < offset + 6)
         {
-            throw new ArgumentException("buffer does not contain enough data starting at offset", "buffer");
+            throw new ArgumentException("buffer does not contain enough data starting at offset", nameof(buffer));
         }
 
         bytes[0] = buffer[offset];
@@ -75,10 +75,10 @@ public class MACAddress : IComparable
 
     public bool IsValid()
     {
-        return bytes != null && bytes.Length == 6;
+        return bytes.Length == 6;
     }
 
-    public int CompareTo(object obj)
+    public int CompareTo(object? obj)
     {
         if (obj is MACAddress)
         {
@@ -128,7 +128,7 @@ public class MACAddress : IComparable
         }
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is MACAddress)
         {
@@ -154,6 +154,7 @@ public class MACAddress : IComparable
 
     public ulong ToNumber()
     {
+        // TODO check shifting of bytes byte[0] and byte[1]
         return (ulong)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
             (bytes[4] << 8) | (bytes[5] << 0));
     }
@@ -167,11 +168,12 @@ public class MACAddress : IComparable
 
     public uint To32BitNumber()
     {
+        // TODO check shifting of bytes byte[0] and byte[1]
         return (uint)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
             (bytes[4] << 8) | (bytes[5] << 0));
     }
 
-    private uint hash;
+    private uint _hash;
     /// <summary>
     /// Hash value for this mac. Used to uniquely identify each mac
     /// </summary>
@@ -179,12 +181,12 @@ public class MACAddress : IComparable
     {
         get
         {
-            if (hash == 0)
+            if (_hash == 0)
             {
-                hash = To32BitNumber();
+                _hash = To32BitNumber();
             }
 
-            return hash;
+            return _hash;
         }
     }
 

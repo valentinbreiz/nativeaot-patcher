@@ -305,7 +305,7 @@ public static class Serial
                     }
                     break;
                 default:
-                    WriteString(args[i].ToString());
+                    WriteString(args[i]!.ToString() ?? "");
                     break;
             }
         }

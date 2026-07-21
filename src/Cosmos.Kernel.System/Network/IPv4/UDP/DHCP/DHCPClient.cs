@@ -26,7 +26,7 @@ public class DHCPClient : UdpClient
     /// <summary>
     /// Gets the IP address of the DHCP server.
     /// </summary>
-    public static Address DHCPServerAddress(INetworkDevice networkDevice)
+    public static Address? DHCPServerAddress(INetworkDevice networkDevice)
     {
         return NetworkConfigManager.Get(networkDevice)?.DefaultGateway;
     }
@@ -65,11 +65,11 @@ public class DHCPClient : UdpClient
             if (packet.RawData[284] == 0x02) //Offer packet received
             {
                 Serial.WriteString("[DHCP] Offer received.\n");
-                return SendRequestPacket(packet.Client);
+                return SendRequestPacket(packet.Client ?? throw new Exception($"{nameof(packet.Client)} can not be null"));
             }
             else if (packet.RawData[284] == 0x05 || packet.RawData[284] == 0x06) //ACK or NAK DHCP packet received
             {
-                if (applied == false)
+                if (!applied)
                 {
                     Apply(packet, true);
 
@@ -94,8 +94,10 @@ public class DHCPClient : UdpClient
                 continue;
             }
 
-            Address source = IPConfig.FindNetwork(DHCPServerAddress(networkDevice));
-            var dhcpRelease = new DHCPRelease(source, DHCPServerAddress(networkDevice), networkDevice.MacAddress);
+            var destIp = DHCPServerAddress(networkDevice) ?? throw new Exception($"IP can not be null");
+            Address source = IPConfig.FindNetwork(destIp)
+                ?? throw new Exception($"Address can not be null");
+            var dhcpRelease = new DHCPRelease(source, destIp, networkDevice.MacAddress);
 
             OutgoingBuffer.AddPacket(dhcpRelease);
             NetworkStack.Update();

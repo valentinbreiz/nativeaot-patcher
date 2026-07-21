@@ -72,13 +72,6 @@ public class UDPPacket : IPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="UDPPacket"/> class.
     /// </summary>
-    internal UDPPacket()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UDPPacket"/> class.
-    /// </summary>
     /// <param name="rawData">The raw data.</param>
     public UDPPacket(byte[] rawData)
         : base(rawData)

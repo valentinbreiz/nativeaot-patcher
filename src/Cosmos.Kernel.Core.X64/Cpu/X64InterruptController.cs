@@ -45,10 +45,10 @@ public class X64InterruptController : IInterruptController
 
     public unsafe void Dispatch(ref IRQContext ctx)
     {
-        InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
+        InterruptManager.IrqDelegate?[]? handlers = InterruptManager.s_irqHandlers;
         if (handlers != null && ctx.interrupt < (ulong)handlers.Length)
         {
-            InterruptManager.IrqDelegate handler = handlers[(int)ctx.interrupt];
+            InterruptManager.IrqDelegate? handler = handlers[(int)ctx.interrupt];
             if (handler != null)
             {
                 handler(ref ctx);

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
@@ -13,6 +14,7 @@ public static class Panic
     /// Disables interrupts and halts the CPU.
     /// </summary>
     /// <param name="message">The panic message describing the error.</param>
+    [DoesNotReturn]
     public static void Halt(string message)
     {
         InternalCpu.DisableInterrupts();

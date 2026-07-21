@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace LunarLabs.Fonts
@@ -33,7 +34,7 @@ namespace LunarLabs.Fonts
 
     internal class FontGlyph
     {
-        public GlyphBitmap Image { get; internal set; }
+        public GlyphBitmap? Image { get; internal set; }
         public int xOfs { get; internal set; }
         public int yOfs { get; internal set; }
         public int xAdvance { get; internal set; }
@@ -83,7 +84,7 @@ namespace LunarLabs.Fonts
         public int x;
         public int dx;
         public float ey;
-        public ActiveEdge next;
+        public ActiveEdge? next;
         public int valid;
     }
 
@@ -318,7 +319,7 @@ namespace LunarLabs.Fonts
             GetGlyphHMetrics(FindGlyphIndex(codepoint), out advanceWidth, out leftSideBearing);
         }
 
-        // ascent is the coordinate above the baseline the font extends; 
+        // ascent is the coordinate above the baseline the font extends;
         // descent is the coordinate below the baseline the font extends (i.e. it is typically negative)
         // lineGap is the spacing between one row's descent and the next row's ascent...
         // you should advance the vertical position by "*ascent - *descent + *lineGap"
@@ -350,7 +351,8 @@ namespace LunarLabs.Fonts
 
         private GlyphBitmap GetGlyphBitmap(float scale_x, float scale_y, float shift_x, float shift_y, int glyph, out int xoff, out int yoff)
         {
-            var vertices = GetGlyphShape(glyph);
+            var vertices = GetGlyphShape(glyph)
+                ?? throw new Exception($"Vertices can not be null");
 
             if (scale_x == 0)
                 scale_x = scale_y;
@@ -587,7 +589,7 @@ namespace LunarLabs.Fonts
             return GetGlyphBox(FindGlyphIndex(codepoint), out x0, out y0, out x1, out y1);
         }
 
-        private List<Vertex> GetGlyphShape(int glyphIndex)
+        private List<Vertex>? GetGlyphShape(int glyphIndex)
         {
             var g = GetGlyfOffset(glyphIndex);
 
@@ -862,7 +864,7 @@ namespace LunarLabs.Fonts
 
                         // Get indexed glyph.
                         var comp_verts = GetGlyphShape(gidx);
-                        if (comp_verts.Count > 0)
+                        if (comp_verts?.Count > 0)
                         {
                             // Transform vertices.
                             for (int i = 0; i < comp_verts.Count; i++)
@@ -926,7 +928,7 @@ namespace LunarLabs.Fonts
         }
 
         // tesselate until threshhold p is happy... TODO warped to compensate for non-linear stretching
-        private void TesselateCurve(List<Point> points, ref int numPoints, float x0, float y0, float x1, float y1, float x2, float y2, float objspaceFlatnessSquared, int n)
+        private void TesselateCurve(List<Point>? points, ref int numPoints, float x0, float y0, float x1, float y1, float x2, float y2, float objspaceFlatnessSquared, int n)
         //  mx, my, dx, dy: Single;
         {
             // midpoint
@@ -956,7 +958,8 @@ namespace LunarLabs.Fonts
         }
 
         // returns number of contours
-        private void FlattenCurves(List<Vertex> vertices, float objSpaceFlatness, out int[] contours, out List<Point> windings)
+        private bool FlattenCurves(List<Vertex> vertices, float objSpaceFlatness,
+            [NotNullWhen(true)] out int[]? contours, [NotNullWhen(true)] out List<Point>? windings)
         {
             float objspace_flatness_squared = objSpaceFlatness * objSpaceFlatness;
             int n = 0;
@@ -972,7 +975,7 @@ namespace LunarLabs.Fonts
             contours = null;
             if (n == 0)
             {
-                return;
+                return false;
             }
 
             int numPoints = 0;
@@ -1047,16 +1050,15 @@ namespace LunarLabs.Fonts
 
                 contours[n] = numPoints - start;
             }
+
+            return windings is not null;
         }
 
         private void Rasterize(GlyphBitmap bitmap, float flatnessInPixels, List<Vertex> vertices, float scaleX, float scaleY, float shiftX, float shiftY, int XOff, int YOff, bool Invert)
         {
             float scale = scaleX < scaleY ? scaleX : scaleY;
 
-            int[] windingLengths;
-            List<Point> windings;
-            FlattenCurves(vertices, flatnessInPixels / scale, out windingLengths, out windings);
-            if (windings.Count > 0)
+            if (FlattenCurves(vertices, flatnessInPixels / scale, out var windingLengths, out var windings) && windings.Count > 0)
             {
                 Rasterize(bitmap, windings, windingLengths, scaleX, scaleY, shiftX, shiftY, XOff, YOff, Invert);
             }
@@ -1170,7 +1172,7 @@ namespace LunarLabs.Fonts
         {
             int eIndex = 0;
 
-            ActiveEdge active = null;
+            ActiveEdge? active = null;
             int max_weight = 255 / vSubSamples;  // weight per vertical scanline
 
             int y = off_y * vSubSamples;
@@ -1200,7 +1202,7 @@ namespace LunarLabs.Fonts
                     // update all active edges;
                     // remove all active edges that terminate before the center of this scanline
                     var curr = active;
-                    ActiveEdge prev = null;
+                    ActiveEdge? prev = null;
                     while (curr != null)
                     {
                         if (curr.ey <= scanY)
@@ -1309,9 +1311,9 @@ namespace LunarLabs.Fonts
             }
         }
 
-        // note: this routine clips fills that extend off the edges... 
+        // note: this routine clips fills that extend off the edges...
         // ideally this wouldn't happen, but it could happen if the truetype glyph bounding boxes are wrong, or if the user supplies a too-small bitmap
-        private void FillActiveEdges(byte[] scanline, int len, ActiveEdge e, int max_weight)
+        private void FillActiveEdges(byte[] scanline, int len, ActiveEdge? e, int max_weight)
         {
             // non-zero winding fill
             int x0 = 0;
@@ -1381,7 +1383,7 @@ namespace LunarLabs.Fonts
             return (P > 0);
         }
 
-        public FontGlyph RenderGlyph(char ID, float scale)
+        public FontGlyph? RenderGlyph(char ID, float scale)
         {
             if (!HasGlyph(ID))
             {

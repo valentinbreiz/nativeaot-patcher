@@ -24,12 +24,6 @@ public class IPPacket : EthernetPacket
 
         var ipPacket = new IPPacket(packetData);
 
-        if (ipPacket.SourceIP == null)
-        {
-            Serial.WriteString("[IP] SourceIP null in IPv4Handler!\n");
-            return;
-        }
-
         Serial.WriteString("[IP] From ");
         Serial.WriteString(ipPacket.SourceIP.ToString());
         Serial.WriteString(" to ");
@@ -70,13 +64,6 @@ public class IPPacket : EthernetPacket
     /// Gets the next IP fragment ID.
     /// </summary>
     public static ushort NextIPFragmentID => sNextFragmentID++;
-
-    /// <summary>
-    /// Create new instance of the <see cref="IPPacket"/> class.
-    /// </summary>
-    internal IPPacket()
-    {
-    }
 
     /// <summary>
     /// Create new instance of the <see cref="IPPacket"/> class.
@@ -139,11 +126,6 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (sourceIP == null)
-        {
-            return MACAddress.None;
-        }
-
         if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
         {
             var device = NetworkStack.AddressMap[sourceIP.Hash];
@@ -160,7 +142,7 @@ public class IPPacket : EthernetPacket
     /// <param name="dataLength">Data length.</param>
     /// <param name="protocol">Protocol.</param>
     /// <param name="source">Source address.</param>
-    /// <param name="dest">Destionation address.</param>
+    /// <param name="dest">Destination address.</param>
     /// <param name="Flags">Flags.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
     public IPPacket(MACAddress srcMAC, MACAddress destMAC, ushort dataLength, byte protocol,
@@ -294,12 +276,12 @@ public class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the source IP address.
     /// </summary>
-    public Address SourceIP { get; private set; }
+    public Address SourceIP { get; private set; } = null!;
 
     /// <summary>
     /// Gets the destination IP address.
     /// </summary>
-    public Address DestinationIP { get; private set; }
+    public Address DestinationIP { get; private set; } = null!;
 
     /// <summary>
     /// Gets the offset of the data.

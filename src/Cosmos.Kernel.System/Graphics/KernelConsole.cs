@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.System.Graphics.Fonts;
@@ -13,17 +14,15 @@ namespace Cosmos.Kernel.System.Graphics;
 public class KernelConsole
 {
     // The default (global) instance, created by Initialize()
-    private static KernelConsole? _default;
-
     /// <summary>
     /// Gets the default (global) console instance.
     /// </summary>
-    public static KernelConsole? Default => _default;
+    public static KernelConsole? Default { get; private set; }
 
     // Lock for thread-safe console access
     private Cosmos.Kernel.Core.Scheduler.SpinLock _lock;
 
-    private Canvas _canvas;
+    private readonly Canvas _canvas;
 
     // Cursor position in character coordinates (column, row)
     private int _cursorX;
@@ -49,8 +48,8 @@ public class KernelConsole
     private bool _cursorDrawn = false;
 
     // Console color palette (standard 16 colors)
-    private static readonly uint[] _palette = new uint[16]
-    {
+    private static readonly uint[] _palette =
+    [
         0xFF000000, // Black
         0xFF000080, // DarkBlue
         0xFF008000, // DarkGreen
@@ -67,7 +66,7 @@ public class KernelConsole
         0xFFFF00FF, // Magenta
         0xFFFFFF00, // Yellow
         0xFFFFFFFF  // White
-    };
+    ];
 
     private Font _font;
 
@@ -88,6 +87,16 @@ public class KernelConsole
 
         ClearCells();
     }
+
+    [MemberNotNull(nameof(Default))]
+    public static void ThrowIfKernelConsoleNotInitialized()
+    {
+        if (Default is null)
+        {
+            throw new Exception($"{nameof(KernelConsole)} is not initialized");
+        }
+    }
+
 
     /// <summary>
     /// Derives the character cell size from a font. Bitmap fonts have a fixed
@@ -129,7 +138,10 @@ public class KernelConsole
     /// <summary>
     /// Gets whether this console is available (has a valid canvas).
     /// </summary>
-    public bool IsAvailable => _canvas != null;
+    /// <remarks>
+    /// Always true since canvas is initialized in constructor.
+    /// </remarks>
+    public bool IsAvailable => true;
 
     /// <summary>
     /// Gets or sets the font used in this console.
@@ -275,6 +287,7 @@ public class KernelConsole
     /// <summary>
     /// Initializes the default (global) console on the hardware framebuffer.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(Default))]
     public static bool Initialize()
     {
         if (!Core.CosmosFeatures.GraphicsEnabled)
@@ -282,20 +295,21 @@ public class KernelConsole
             return false;
         }
 
-        if (_default != null)
+        if (Default != null)
         {
-            return false;
+            // throw exception instead of returning false to enable MemberNotNullWhen attributed above
+            throw new Exception($"{nameof(KernelConsole)} already initialized");
         }
 
         var canvas = Canvas.GetFullScreen();
 
-        _default = new KernelConsole(canvas);
+        Default = new KernelConsole(canvas);
 
         /* Clear the Screen with the color 'Blue' */
         canvas.Clear(Color.Blue);
 
         // Clear screen
-        canvas.Clear((int)_default._backgroundColor);
+        canvas.Clear((int)Default._backgroundColor);
         canvas.Display();
 
         return true;
@@ -304,7 +318,7 @@ public class KernelConsole
     /// <summary>
     /// Gets whether the default console has been initialized.
     /// </summary>
-    public static bool IsInitialized => _default != null;
+    public static bool IsInitialized => Default != null;
 
     /// <summary>
     /// Gets the cell index for a given row and column.

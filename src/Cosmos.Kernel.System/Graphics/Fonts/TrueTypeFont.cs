@@ -201,7 +201,7 @@ public class TrueTypeFont : Font
             return null;
         }
 
-        LunarLabs.Fonts.GlyphBitmap image = rendered.Image;
+        LunarLabs.Fonts.GlyphBitmap image = rendered.Image ?? throw new Exception($"{nameof(Image)} can not be null");
         return new TrueTypeGlyph(image.Pixels, image.Width, image.Height, rendered.xOfs, rendered.yOfs, rendered.xAdvance);
     }
 

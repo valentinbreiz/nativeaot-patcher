@@ -93,7 +93,7 @@ public static unsafe partial class GarbageCollector
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+            Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread;
 
             nuint stackEnd;
             if (current != null && current.StackBase != 0 && current.StackSize != 0)

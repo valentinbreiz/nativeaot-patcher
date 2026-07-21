@@ -192,7 +192,7 @@ public class Address : IComparable
         }
     }
 
-    public int CompareTo(object obj)
+    public int CompareTo(object? obj)
     {
         if (obj is Address other)
         {
@@ -209,20 +209,10 @@ public class Address : IComparable
         }
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
 
-        if (obj == null && this == null)
-        {
-            return true;
-        }
-
         if (obj == null)
-        {
-            return false;
-        }
-
-        if (this == null)
         {
             return false;
         }

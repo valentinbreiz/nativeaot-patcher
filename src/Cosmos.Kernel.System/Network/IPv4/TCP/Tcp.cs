@@ -300,7 +300,7 @@ public class Tcp
     /// <summary>
     /// The received data buffer.
     /// </summary>
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 
     public Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
@@ -419,7 +419,7 @@ public class Tcp
         }
         else if (packet.SYN)
         {
-            LocalEndPoint.Address = IPConfig.FindNetwork(packet.SourceIP);
+            LocalEndPoint.Address = IPConfig.FindNetwork(packet.SourceIP) ?? throw new Exception($"Address can not be null");
             RemoteEndPoint.Address = packet.SourceIP;
             RemoteEndPoint.Port = packet.SourcePort;
 
@@ -818,7 +818,7 @@ public class Tcp
     /// <summary>
     /// Concatenates two byte arrays.
     /// </summary>
-    private static byte[] ArrayConcat(byte[] first, byte[] second)
+    private static byte[]? ArrayConcat(byte[]? first, byte[]? second)
     {
         if (first == null)
         {

@@ -1,6 +1,7 @@
 // This code is licensed under MIT license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/KeyboardManager.cs
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
@@ -213,7 +214,7 @@ public static class KeyboardManager
     /// <summary>
     /// If available, reads the next key from the pending key-press buffer.
     /// </summary>
-    public static bool TryReadKey(out KeyEvent? key)
+    public static bool TryReadKey([NotNullWhen(true)]out KeyEvent? key)
     {
         ThrowIfDisabled();
 

@@ -180,7 +180,7 @@ public static class SocketPlug
     public static void Bind(Socket aThis, global::System.Net.EndPoint localEP)
     {
         int id = GetId(aThis);
-        var ipep = localEP as IPEndPoint;
+        var ipep = (IPEndPoint)localEP;
         _endpoints[id] = ipep;
         _localEndPoints[id] = ipep;
 
@@ -285,7 +285,8 @@ public static class SocketPlug
         }
 
         // Parse destination address
-        var destAddr = Address.Parse(address.ToString());
+        var destAddr = Address.Parse(address.ToString())
+            ?? throw new Exception("Address can not be null");
         client.Connect(destAddr, port);
 
         _remoteEndPoints[id] = new IPEndPoint(address, port);
@@ -315,9 +316,9 @@ public static class SocketPlug
             throw new Exception("Client must be closed before setting a new connection.");
         }
 
-        sm.RemoteEndPoint.Address = Address.Parse(address.ToString());
+        sm.RemoteEndPoint.Address = Address.Parse(address.ToString()) ?? throw new Exception("Address can not be null");
         sm.RemoteEndPoint.Port = (ushort)port;
-        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress;
+        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress ?? throw new Exception("CurrentAddress can not be null");
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);
@@ -616,7 +617,7 @@ public static class SocketPlug
         }
 
         var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[] data = client.NonBlockingReceive(ref ep);
+        byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
         {
@@ -719,7 +720,7 @@ public static class SocketPlug
         }
 
         var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[] data = client.NonBlockingReceive(ref ep);
+        byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
         {

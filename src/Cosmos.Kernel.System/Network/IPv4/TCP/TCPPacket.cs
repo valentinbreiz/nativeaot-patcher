@@ -83,12 +83,12 @@ public class TCPPacket : IPPacket
         }
     }
 
-    /// <summary>
-    /// Create new instance of the <see cref="TCPPacket"/> class.
-    /// </summary>
-    internal TCPPacket()
-        : base()
-    { }
+    // /// <summary>
+    // /// Create new instance of the <see cref="TCPPacket"/> class.
+    // /// </summary>
+    // internal TCPPacket()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Create new instance of the <see cref="TCPPacket"/> class.
@@ -294,7 +294,7 @@ public class TCPPacket : IPPacket
     /// <summary>
     /// TCP Options
     /// </summary>
-    public List<TCPOption> Options { get; set; }
+    public List<TCPOption>? Options { get; set; }
 
     /// <summary>
     /// Is SYN Flag set.

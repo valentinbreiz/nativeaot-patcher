@@ -63,7 +63,7 @@ public interface IScheduler
     /// Pick the next thread to run.
     /// Returns null if no runnable threads (run idle).
     /// </summary>
-    Thread PickNext(PerCpuState cpuState);
+    Thread? PickNext(PerCpuState cpuState);
 
     /// <summary>
     /// Called when picked thread couldn't be scheduled.

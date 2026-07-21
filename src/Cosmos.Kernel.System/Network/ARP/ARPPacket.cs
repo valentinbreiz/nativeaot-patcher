@@ -34,9 +34,9 @@ public class ARPPacket : EthernetPacket
                     return;
                 }
 
-                ARPCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC);
+                ARPCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC!);
 
-                if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP.Hash))
+                if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP!.Hash))
                 {
                     Serial.WriteString("[ARP] Request received from ");
                     Serial.WriteString(arpRequest.SenderIP.ToString());
@@ -48,7 +48,7 @@ public class ARPPacket : EthernetPacket
                     var reply = new ARPReplyEthernet(
                         nicMac,
                         arpRequest.TargetIP,
-                        arpRequest.SenderMAC,
+                        arpRequest.SenderMAC!,
                         arpRequest.SenderIP
                     );
 
@@ -63,19 +63,19 @@ public class ARPPacket : EthernetPacket
             {
                 var arpReply = new ARPReplyEthernet(packetData);
                 Serial.WriteString("[ARP] Reply received from ");
-                Serial.WriteString(arpReply.SenderIP.ToString());
+                Serial.WriteString(arpReply.SenderIP!.ToString());
                 Serial.WriteString("\n");
-                ARPCache.Update(arpReply.SenderIP, arpReply.SenderMAC);
+                ARPCache.Update(arpReply.SenderIP, arpReply.SenderMAC!);
             }
         }
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ARPPacket"/> class.
-    /// </summary>
-    internal ARPPacket()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="ARPPacket"/> class.
+    // /// </summary>
+    // internal ARPPacket()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ARPPacket"/> class.

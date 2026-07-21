@@ -15,7 +15,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 /// </summary>
 public class DnsClient : UdpClient
 {
-    private string queryUrl;
+    private string? _queryUrl;
 
     /// <summary>
     /// Create new instance of the <see cref="DnsClient"/> class.
@@ -39,14 +39,14 @@ public class DnsClient : UdpClient
     /// <param name="url">The domain name string to query the DNS for.</param>
     public void SendAsk(string url)
     {
-        Address source = IPConfig.FindNetwork(destination);
+        Address? source = destination is not null ? IPConfig.FindNetwork(destination): null;
         if (source == null)
         {
             throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         }
 
-        queryUrl = url;
-        var askpacket = new DNSPacketAsk(source, destination, url);
+        _queryUrl = url;
+        var askpacket = new DNSPacketAsk(source, destination!, url);
 
         OutgoingBuffer.AddPacket(askpacket);
         NetworkStack.Update();
@@ -92,7 +92,7 @@ public class DnsClient : UdpClient
 
         // Reject mismatched or unsolicited replies (e.g. spoofed/stray packets).
         if (packet.Queries == null || packet.Queries.Count == 0 ||
-            !string.Equals(packet.Queries[0].Name, queryUrl, StringComparison.OrdinalIgnoreCase))
+            !string.Equals(packet.Queries[0].Name, _queryUrl, StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
@@ -102,7 +102,8 @@ public class DnsClient : UdpClient
             return null;
         }
 
-        return ResolveAddresses(packet.Answers, queryUrl);
+        ArgumentNullException.ThrowIfNull(_queryUrl);
+        return ResolveAddresses(packet.Answers, _queryUrl);
     }
 
     /// <summary>

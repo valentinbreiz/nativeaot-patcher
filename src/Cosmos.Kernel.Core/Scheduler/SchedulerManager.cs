@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.Bridge;
@@ -101,6 +102,8 @@ public static class SchedulerManager
 
     public static void SetScheduler(IScheduler scheduler)
     {
+        ThrowIfCpuStateNotInitialized();
+
         _globalLock.Acquire();
         try
         {
@@ -127,16 +130,18 @@ public static class SchedulerManager
 
     // ========== Accessors ==========
 
-    public static IScheduler Current => _currentScheduler;
+    public static IScheduler? Current => _currentScheduler;
     public static uint CpuCount => _cpuCount;
-    public static PerCpuState GetCpuState(uint cpuId) => _cpuStates[cpuId];
-    public static PerCpuState[] GetAllCpuStates() => _cpuStates;
+    public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
+    public static PerCpuState[]? GetAllCpuStates() => _cpuStates;
 
     /// <summary>
     /// Sets up the idle thread for a CPU. Should only be called during initialization.
     /// </summary>
     public static void SetupIdleThread(uint cpuId, Thread idleThread)
     {
+        ThrowIfCpuStateNotInitialized();
+
         var state = _cpuStates[cpuId];
         state.IdleThread = idleThread;
         state.CurrentThread = idleThread;
@@ -220,7 +225,7 @@ public static class SchedulerManager
                 Serial.WriteString("[SCHED] Thread ");
                 Serial.WriteNumber(exThreadId);
                 Serial.WriteString(" threw exception: ");
-                Serial.WriteString(ex.Message ?? "Unknown error");
+                Serial.WriteString(ex.Message);
                 Serial.WriteString("\n");
             }
         }
@@ -377,11 +382,32 @@ public static class SchedulerManager
         }
     }
 
+    [MemberNotNull(nameof(_cpuStates))]
+    private static void ThrowIfCpuStateNotInitialized()
+    {
+        if (_cpuStates is null)
+        {
+            throw new Exception($"{nameof(SchedulerManager)} not initialized");
+        }
+    }
+
+    [MemberNotNull(nameof(_currentScheduler))]
+    private static void ThrowIfSchedulerNotSet()
+    {
+        if (_currentScheduler is null)
+        {
+            throw new Exception($"{nameof(SchedulerManager)}{nameof(_currentScheduler)} not initialized");
+        }
+    }
+
+
     // ========== Thread Operations ==========
 
     public static void CreateThread(uint cpuId, Thread thread)
     {
         ThrowIfDisabled();
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
 
         Serial.WriteString("[SCHED] CreateThread: entering\n");
         RegisterThread(thread);
@@ -396,6 +422,8 @@ public static class SchedulerManager
     public static void ReadyThread(uint cpuId, Thread thread)
     {
         ThrowIfDisabled();
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
@@ -426,6 +454,9 @@ public static class SchedulerManager
 
     public static void BlockThread(uint cpuId, Thread thread)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
@@ -441,7 +472,10 @@ public static class SchedulerManager
 
     public static void ExitThread(uint cpuId, Thread thread)
     {
-        // Is Hightly likely that the running thread have adquire some state on it's managed counter part (even if it wasn't started from a managed thread).
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
+        // Is Highly likely that the running thread have acquired some state on it's managed counter part (even if it wasn't started from a managed thread).
         // Here we call the OnThreadExit Callback for the managed thread so it may be cleaned.
         nint managedCallback = OnThreadExitCallback;
         if (managedCallback != IntPtr.Zero)
@@ -487,6 +521,9 @@ public static class SchedulerManager
 
     public static void YieldThread(uint cpuId, Thread thread)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
             PerCpuState state = _cpuStates[cpuId];
@@ -524,6 +561,9 @@ public static class SchedulerManager
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
     public static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         using (InternalCpu.DisableInterruptsScope())
         {
             PerCpuState cpuState = _cpuStates[cpuId];
@@ -543,7 +583,7 @@ public static class SchedulerManager
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep.</param>
     public static void Sleep(uint timeoutMs)
     {
-        Thread? currentThread = GetCpuState(GetCurrentCpuId()).CurrentThread;
+        Thread? currentThread = GetCpuState(GetCurrentCpuId())?.CurrentThread;
         if (currentThread != null)
         {
             Sleep(currentThread.CpuId, currentThread, timeoutMs);
@@ -554,12 +594,18 @@ public static class SchedulerManager
 
     public static bool OnTick(uint cpuId, ulong elapsedNs)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         var state = _cpuStates[cpuId];
         return _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
     }
 
     public static void Schedule(uint cpuId)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         var state = _cpuStates[cpuId];
         state.Lock.Acquire();
 
@@ -589,6 +635,9 @@ public static class SchedulerManager
 
     public static void SetPriority(uint cpuId, Thread thread, long priority)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         var state = _cpuStates[cpuId];
         state.Lock.Acquire();
         try
@@ -603,6 +652,8 @@ public static class SchedulerManager
 
     public static long GetPriority(Thread thread)
     {
+        ThrowIfSchedulerNotSet();
+
         return _currentScheduler.GetPriority(thread);
     }
 
@@ -610,11 +661,16 @@ public static class SchedulerManager
 
     public static uint SelectCpu(Thread thread, uint currentCpu)
     {
+        ThrowIfSchedulerNotSet();
+
         return _currentScheduler.SelectCpu(thread, currentCpu, _cpuCount);
     }
 
     public static void Balance(uint cpuId)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         var state = _cpuStates[cpuId];
         _currentScheduler.Balance(state, _cpuStates);
     }
@@ -666,7 +722,7 @@ public static class SchedulerManager
         }
 
         var state = _cpuStates[cpuId];
-        if (state == null || state.CurrentThread == null)
+        if (state.CurrentThread == null)
         {
             return;
         }
@@ -739,7 +795,7 @@ public static class SchedulerManager
         }
 
         PerCpuState state = _cpuStates[cpuId];
-        if (state == null || !state.NeedReschedule)
+        if (!state.NeedReschedule)
         {
             return;
         }
@@ -762,6 +818,9 @@ public static class SchedulerManager
     /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
     public static void ScheduleFromInterrupt(uint cpuId, nuint currentRsp)
     {
+        ThrowIfCpuStateNotInitialized();
+        ThrowIfSchedulerNotSet();
+
         var state = _cpuStates[cpuId];
 
         // No lock needed - interrupts are already disabled in interrupt context
@@ -820,7 +879,7 @@ public static class SchedulerManager
 
     // ========== Platform-specific ==========
 
-    private static void DoContextSwitch(Thread prev, Thread next)
+    private static void DoContextSwitch(Thread? prev, Thread? next)
     {
         // This is for non-interrupt context switches (e.g., voluntary yield)
         // Not fully implemented - use ScheduleFromInterrupt for preemptive switching

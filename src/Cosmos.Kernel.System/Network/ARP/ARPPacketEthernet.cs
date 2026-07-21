@@ -11,29 +11,29 @@ internal abstract class ARPPacketEthernet : ARPPacket
     /// <summary>
     /// The sender MAC address.
     /// </summary>
-    protected MACAddress senderMAC;
+    protected MACAddress senderMAC = null!;
 
     /// <summary>
     /// The target MAC address.
     /// </summary>
-    protected MACAddress targetMAC;
+    protected MACAddress targetMAC = null!;
 
     /// <summary>
     /// The sender IP address.
     /// </summary>
-    protected Address senderIP;
+    protected Address senderIP = null!;
 
     /// <summary>
     /// The target IP address.
     /// </summary>
-    protected Address targetIP;
+    protected Address targetIP = null!;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
-    /// </summary>
-    internal ARPPacketEthernet()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    // /// </summary>
+    // internal ARPPacketEthernet()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
@@ -116,12 +116,12 @@ internal abstract class ARPPacketEthernet : ARPPacket
 /// </remarks>
 internal class ARPReplyEthernet : ARPPacketEthernet
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
-    /// </summary>
-    internal ARPReplyEthernet()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
+    // /// </summary>
+    // internal ARPReplyEthernet()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
@@ -157,12 +157,12 @@ internal class ARPReplyEthernet : ARPPacketEthernet
 /// </remarks>
 internal class ARPRequestEthernet : ARPPacketEthernet
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
-    /// </summary>
-    internal ARPRequestEthernet()
-        : base()
-    { }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    // /// </summary>
+    // internal ARPRequestEthernet()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.

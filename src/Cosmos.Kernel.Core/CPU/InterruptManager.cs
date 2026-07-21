@@ -19,7 +19,7 @@ public static class InterruptManager
     /// <param name="context">The interrupt context captured by the CPU.</param>
     public delegate void IrqDelegate(ref IRQContext context);
 
-    internal static IrqDelegate[]? s_irqHandlers;
+    internal static IrqDelegate?[]? s_irqHandlers;
 
     private static IInterruptController? s_controller;
 
