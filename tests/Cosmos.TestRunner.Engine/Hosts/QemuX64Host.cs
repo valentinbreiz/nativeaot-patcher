@@ -82,7 +82,8 @@ public class QemuX64Host : IQemuHost
             MachineOptions = machineOptions ?? new Dictionary<string, string>(),
             NetworkCard = devices?.NetworkCard,
             KeyboardDevice = devices?.KeyboardDevice,
-            MouseDevice = devices?.MouseDevice
+            MouseDevice = devices?.MouseDevice,
+            VgaAdapter = devices?.VgaAdapter
         });
         var startInfo = QemuLauncher.ToProcessStartInfo(plan);
         if (_qemuBinaryOverride is not null)

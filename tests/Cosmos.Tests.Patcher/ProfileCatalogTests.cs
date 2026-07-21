@@ -106,4 +106,25 @@ public class ProfileCatalogTests
             }
         }
     }
+
+    // The vmware-svga cell is the only run where the VMware SVGA II adapter
+    // is present at all — losing it would fail nothing, the suite would just
+    // never see that hardware again (and the future SVGAII driver would run
+    // untested). The bare cell keeps the default-adapter path covered.
+    [Fact]
+    public void GraphicSuiteCoversBothVgaAdapters()
+    {
+        string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", "Cosmos.Kernel.Tests.Graphic");
+
+        IReadOnlyList<TestProfile> x64Cells = TestProfileLoader.LoadFor(suiteDir, "x64");
+        Assert.Single(x64Cells, c => c.Name == "bare" && c.VgaAdapter == null);
+        TestProfile svga = Assert.Single(x64Cells, c => c.Name == "vmware-svga");
+        Assert.Equal("vmware", svga.VgaAdapter);
+
+        // The adapter is programmed through PCI port I/O, so the arm64 column
+        // runs only the bare (ramfb/GOP) cell.
+        TestProfile arm64Cell = Assert.Single(TestProfileLoader.LoadFor(suiteDir, "arm64"));
+        Assert.Equal("bare", arm64Cell.Name);
+        Assert.Null(arm64Cell.VgaAdapter);
+    }
 }
