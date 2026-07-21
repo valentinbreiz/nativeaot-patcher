@@ -62,6 +62,12 @@ public unsafe class SvgaIIDriver : GraphicDevice
     public uint FrameOffset { get; private set; }
 
     /// <summary>
+    /// Whether the device supports the 32-bit alpha hardware cursor
+    /// (composed host-side; QEMU's vmware-svga does not advertise it).
+    /// </summary>
+    public bool HasAlphaCursor => (Capabilities & (uint)Capability.AlphaCursor) != 0;
+
+    /// <summary>
     /// Whether the device negotiated SVGA3D support during FIFO initialization.
     /// </summary>
     public bool Is3DEnabled { get; private set; }
@@ -552,16 +558,17 @@ public unsafe class SvgaIIDriver : GraphicDevice
     }
 
     /// <summary>
-    /// Define alpha cursor.
+    /// Define alpha cursor. <paramref name="data"/> is width×height premultiplied
+    /// 32-bit BGRA pixels.
     /// </summary>
-    public void DefineAlphaCursor(uint width, uint height, int[] data)
+    public void DefineAlphaCursor(uint hotspotX, uint hotspotY, uint width, uint height, int[] data)
     {
         WriteToFifo((uint)FIFOCommand.DEFINE_ALPHA_CURSOR);
         WriteToFifo(0); // ID
-        WriteToFifo(0); // Hotspot X
-        WriteToFifo(0); // Hotspot Y
-        WriteToFifo(width); // Width
-        WriteToFifo(height); // Height
+        WriteToFifo(hotspotX);
+        WriteToFifo(hotspotY);
+        WriteToFifo(width);
+        WriteToFifo(height);
 
         for (int i = 0; i < data.Length; i++)
         {
@@ -586,16 +593,19 @@ public unsafe class SvgaIIDriver : GraphicDevice
     }
 
     /// <summary>
-    /// Sets the cursor position and draws it.
+    /// Sets the cursor position and draws it. CursorOn is written last — that is
+    /// the write that latches the new ID/X/Y on the host. (The old gen2 code also
+    /// read-modify-wrote Register.CursorCount, but 0x0C is BYTES_PER_LINE in the
+    /// v2 register map — it was bumping the pitch register on every mouse move.)
     /// </summary>
     /// <param name="visible">Visible.</param>
     /// <param name="x">X coordinate.</param>
     /// <param name="y">Y coordinate.</param>
     public void SetCursor(bool visible, uint x, uint y)
     {
-        WriteRegister(Register.CursorOn, (uint)(visible ? 1 : 0));
+        WriteRegister(Register.CursorID, 0);
         WriteRegister(Register.CursorX, x);
         WriteRegister(Register.CursorY, y);
-        WriteRegister(Register.CursorCount, ReadRegister(Register.CursorCount) + 1);
+        WriteRegister(Register.CursorOn, (uint)(visible ? 1 : 0));
     }
 }
