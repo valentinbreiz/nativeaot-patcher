@@ -89,6 +89,7 @@ public class QemuARM64Host : IQemuHost
                 NetworkCard = devices?.NetworkCard,
                 KeyboardDevice = devices?.KeyboardDevice,
                 MouseDevice = devices?.MouseDevice,
+                VgaAdapter = devices?.VgaAdapter,
                 AllowGuestShutdown = true
             });
         }

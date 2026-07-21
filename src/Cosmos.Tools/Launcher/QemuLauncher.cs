@@ -46,6 +46,16 @@ public sealed class QemuLaunchOptions
     /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
     /// </summary>
     public string? MouseDevice { get; init; }
+
+    /// <summary>
+    /// VGA adapter exposed to the guest, as a <c>-vga</c> backend name (e.g.
+    /// <c>vmware</c>, <c>virtio</c>, <c>none</c>). <c>null</c> keeps the
+    /// architecture default (stdvga on q35, nothing beyond ramfb on virt).
+    /// Unlike <see cref="KeyboardDevice"/> this is not a <c>-device</c> model:
+    /// <c>-vga</c> replaces the machine's default adapter instead of adding a
+    /// second one alongside it.
+    /// </summary>
+    public string? VgaAdapter { get; init; }
     /// <summary>
     /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
     /// path, the controller type (ahci or nvme), and an optional comma-prefixed
@@ -214,6 +224,7 @@ public static class QemuLauncher
 
         AppendInputDevice(args, options.KeyboardDevice);
         AppendInputDevice(args, options.MouseDevice);
+        AppendVgaAdapter(args, options.VgaAdapter);
 
         if (options.Debug)
         {
@@ -262,7 +273,9 @@ public static class QemuLauncher
         {
             args.Append(" -no-shutdown");
         }
-        if (!options.Headless)
+        // A profile-selected adapter is emitted later (shared path) and -vga
+        // may only appear once, so the windowed default steps aside for it.
+        if (!options.Headless && options.VgaAdapter is null)
         {
             args.Append(" -vga std");
         }
@@ -408,6 +421,24 @@ public static class QemuLauncher
 
         ValidateOptionToken(model, "input device model");
         args.Append($" -device {model}");
+    }
+
+    /// <summary>
+    /// Selects the guest's VGA adapter as a <c>-vga</c> backend. <c>null</c>/empty
+    /// keeps the architecture default; any other value — including QEMU's own
+    /// <c>none</c> — is passed through. Emitted for both arches: the profile
+    /// catalog's architecture filter is what keeps an adapter off a machine
+    /// that cannot present it.
+    /// </summary>
+    internal static void AppendVgaAdapter(StringBuilder args, string? adapter)
+    {
+        if (string.IsNullOrWhiteSpace(adapter))
+        {
+            return;
+        }
+
+        ValidateOptionToken(adapter, "vga adapter");
+        args.Append($" -vga {adapter}");
     }
 
     /// <summary>
