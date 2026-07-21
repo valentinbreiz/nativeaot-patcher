@@ -1,4 +1,3 @@
-using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
@@ -6,20 +5,10 @@ using Mono.Collections.Generic;
 namespace Cosmos.Patcher.Patching;
 
 /// <summary>
-/// Handles patching of properties with plug implementations.
+/// PlugPatcher.Property -> Handles patching of properties with plug implementations.
 /// </summary>
-public class PropertyPatcher
+public partial class PlugPatcher
 {
-    private readonly IBuildLogger _log;
-    private readonly MethodPatcher _methodPatcher;
-    private readonly FieldPatcher _fieldPatcher;
-
-    public PropertyPatcher(IBuildLogger log, MethodPatcher methodPatcher, FieldPatcher fieldPatcher)
-    {
-        _log = log;
-        _methodPatcher = methodPatcher;
-        _fieldPatcher = fieldPatcher;
-    }
 
     /// <summary>
     /// Patches a target property with the implementation from a plug property.
@@ -55,13 +44,13 @@ public class PropertyPatcher
         if (plugProperty.SetMethod != null && targetProperty.SetMethod != null)
         {
             _log.Debug("Patching set method");
-            _methodPatcher.PatchMethod(targetProperty.SetMethod, plugProperty.SetMethod, true);
+            PatchMethod(targetProperty.SetMethod, plugProperty.SetMethod, true);
         }
 
         if (plugProperty.GetMethod != null && targetProperty.GetMethod != null)
         {
             _log.Debug("Patching get method");
-            _methodPatcher.PatchMethod(targetProperty.GetMethod, plugProperty.GetMethod, true);
+            PatchMethod(targetProperty.GetMethod, plugProperty.GetMethod, true);
         }
 
         // Update property metadata
@@ -72,7 +61,7 @@ public class PropertyPatcher
         FieldReference plugFieldRef = (FieldReference)plugBackingField.Instruction.Operand;
 
         // Patch the backing field itself
-        _fieldPatcher.PatchField(targetType, plugFieldRef.Resolve(), targetFieldRef.Name);
+        PatchField(targetType, plugFieldRef.Resolve(), targetFieldRef.Name);
 
         // Replace field access in accessors
         if (targetProperty.SetMethod != null)
@@ -86,6 +75,36 @@ public class PropertyPatcher
         }
 
         _log.Info($"Completed property patch: {targetProperty.FullName}");
+    }
+
+
+    private void RemoveProperty(TypeDefinition targetType, PropertyDefinition property)
+    {
+        FieldDefinition? backingField = null;
+
+        if (property.GetMethod != null)
+        {
+            var fieldInfo = FindBackingField(property.GetMethod);
+            if (fieldInfo.Instruction != null)
+            {
+                backingField = ((FieldReference)fieldInfo.Instruction.Operand).Resolve();
+            }
+
+            RemoveMethod(targetType, property.GetMethod);
+        }
+
+        if (property.SetMethod != null)
+        {
+            RemoveMethod(targetType, property.SetMethod);
+        }
+
+        if (backingField != null)
+        {
+            targetType.Fields.Remove(backingField);
+        }
+
+        targetType.Properties.Remove(property);
+        _log.Debug($"Removed property: {property.Name}");
     }
 
     /// <summary>

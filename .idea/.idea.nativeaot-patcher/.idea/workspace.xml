@@ -17,30 +17,17 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime.Base/src/System/Runtime/ExceptionIDs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime.Base/src/System/Runtime/ExceptionIDs.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/System.Private.StackTraceMetadata/src/Internal/StackTraceMetadata/MethodNameFormatter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/System.Private.StackTraceMetadata/src/Internal/StackTraceMetadata/MethodNameFormatter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderGen.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Metadata/NativeFormat/NativeFormatReaderGen.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormat.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormat.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/NativeFormat/NativeFormatWriter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MetadataBlob.cs" beforeDir="false" afterPath="$PROJECT_DIR$/dotnet/runtime/src/coreclr/tools/Common/Internal/Runtime/MetadataBlob.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CPU/InternalCpu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CPU/InternalCpu.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" afterDir="false" />
-    </list>
-    <option name="SHOW_DIALOG" value="false" />
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="$MSBuildEnableWorkloadResolver$" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
-    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="$MSBuildEnableWorkloadResolver$" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DpaMonitoringSettings">
-    <option name="firstShow" value="false" />
+    <option name="firstShow" value="$MSBuildEnableWorkloadResolver$" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="42" />
-    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+    <option name="cachedIndexableFilesCount" value="79" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -52,8 +39,9 @@
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/17984549421b681fe790c4d38f66c39d317140427936a4e4d7198eb2984d/X86Base.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6a9f2693521f8afb171ea18703115ae76f26ef8522aea9fd22281cc53e71c/Directory.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/42b5d014cd2255c6e1b2cf314c549b7229dc9638eb9ca4bbe508158bef38d51/PropertyDefinition.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/de4732c7b872321ec35770c85de139e4cf216f578e4fa12a706b29ebcda8e/MethodDefinition.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/.ai/mcp/mcp.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
@@ -70,7 +58,66 @@
     <commands />
     <urls />
   </component>
-  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="$MSBuildEnableWorkloadResolver$" />
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0436458132400221" />
+      <entry key="MS500" value="1.9881619861267266" />
+      <entry key="S2" value="3.4490215152364136" />
+      <entry key="S5" value="4.214376405860907" />
+      <entry key="S10" value="4.679668377045797" />
+      <entry key="S30" value="8.483809451780155" />
+      <entry key="S60" value="14.233607204602055" />
+      <entry key="M2" value="20.11707744412658" />
+      <entry key="M5" value="25.414506116572078" />
+      <entry key="M10" value="27.58916750952313" />
+      <entry key="M15" value="28.442155922114335" />
+      <entry key="M30" value="31.73999835482193" />
+      <entry key="H1" value="46.467130275105056" />
+      <entry key="H2" value="74.41315482285755" />
+      <entry key="H4" value="102.92233997677329" />
+      <entry key="D1" value="140.4194322613491" />
+      <entry key="W1" value="148.58147858619967" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="2.1589211326638058E-217" />
+      <entry key="S30" value="8.892647763214598E-73" />
+      <entry key="S60" value="1.4968005136774805E-36" />
+      <entry key="M2" value="2.0633292776753552E-18" />
+      <entry key="M5" value="1.6762653028391754E-7" />
+      <entry key="M10" value="9.601936073841238E-4" />
+      <entry key="M15" value="0.02309036707394807" />
+      <entry key="M30" value="0.7764463224936713" />
+      <entry key="H1" value="5.115319223146296" />
+      <entry key="H2" value="13.47402982366639" />
+      <entry key="H4" value="21.9881272310248" />
+      <entry key="D1" value="33.153006498688185" />
+      <entry key="W1" value="35.57860341472628" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9663922527462478" />
+      <entry key="MS500" value="1.9274284431086757" />
+      <entry key="S2" value="3.4155408675089096" />
+      <entry key="S5" value="4.19743059752994" />
+      <entry key="S10" value="4.670297147885378" />
+      <entry key="S30" value="8.478905001116035" />
+      <entry key="S60" value="14.22938707268399" />
+      <entry key="M2" value="20.113916812341436" />
+      <entry key="M5" value="25.41283113157571" />
+      <entry key="M10" value="27.589195158365765" />
+      <entry key="M15" value="28.464496389378784" />
+      <entry key="M30" value="32.514417004770344" />
+      <entry key="H1" value="51.5770218330097" />
+      <entry key="H2" value="87.88037227540529" />
+      <entry key="H4" value="124.90501063992353" />
+      <entry key="D1" value="173.57108603967518" />
+      <entry key="W1" value="184.15987506949236" />
+    </decayedShown>
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="Toolset" />
   </component>
@@ -85,23 +132,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;zarlo/vfs/3&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "cidr.known.project.marker": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "refactor/patcher",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
@@ -152,6 +204,8 @@
       <workItem from="1777592381777" duration="335000" />
       <workItem from="1777903850741" duration="7755000" />
       <workItem from="1777937585773" duration="2828000" />
+      <workItem from="1780157711350" duration="1878000" />
+      <workItem from="1784650578782" duration="8785000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -241,14 +295,22 @@
       <option name="project" value="LOCAL" />
       <updated>1768354108488</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="upd: patcher structure">
+      <option name="closed" value="true" />
+      <created>1784663168405</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1784663168405</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
-  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="$MSBuildEnableWorkloadResolver$" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="$MSBuildEnableWorkloadResolver$" />
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
@@ -272,6 +334,7 @@
     <MESSAGE value="upd: fixed generics check" />
     <MESSAGE value="upd: fix Cosmos.Tools" />
     <MESSAGE value="upd: fix Cosmos.Build.Common.targets" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: fix Cosmos.Build.Common.targets" />
+    <MESSAGE value="upd: patcher structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: patcher structure" />
   </component>
 </project>

@@ -1,3 +1,4 @@
+using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.IL;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
@@ -8,17 +9,10 @@ using MonoMod.Utils;
 namespace Cosmos.Patcher.Patching;
 
 /// <summary>
-/// Handles patching of fields with plug implementations.
+/// PlugPatcher.Field -> Handles patching of fields with plug implementations.
 /// </summary>
-public class FieldPatcher
+public partial class PlugPatcher
 {
-    private readonly IBuildLogger _log;
-
-    public FieldPatcher(IBuildLogger log)
-    {
-        _log = log;
-    }
-
     /// <summary>
     /// Patches a target field with the definition from a plug field.
     /// </summary>

@@ -1,3 +1,4 @@
+using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 

@@ -5,7 +5,7 @@ using MonoMod.Utils;
 
 namespace Cosmos.Patcher.Extensions;
 
-public static class MethodBodyEx
+public static class MethodBodyExtension
 {
     [return: NotNullIfNotNull("bo")]
     public static MethodDefinition? ReplaceMethodWithJump(this MethodDefinition? bo, MethodDefinition m)
@@ -49,10 +49,12 @@ public static class MethodBodyEx
             return null;
         }
 
-        MethodBody bc = new(m);
-        bc.MaxStackSize = newBody.MaxStackSize;
-        bc.InitLocals = newBody.InitLocals;
-        bc.LocalVarToken = newBody.LocalVarToken;
+        MethodBody bc = new(m)
+        {
+            MaxStackSize = newBody.MaxStackSize,
+            InitLocals = newBody.InitLocals,
+            LocalVarToken = newBody.LocalVarToken
+        };
 
         bc.Instructions.AddRange(newBody.Instructions.Select(o =>
         {
@@ -163,5 +165,4 @@ public static class MethodBodyEx
         body.ExceptionHandlers.Clear();
         body.Variables.Clear();
     }
-
 }
