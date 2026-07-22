@@ -301,37 +301,6 @@ public class SVGAII3DCanvas : Canvas
         Driver.Swap();
     }
 
-    public override void DrawString(string str, Font font, Color color, int x, int y)
-    {
-        int length = str.Length;
-        int width = font.Width;
-
-        for (int i = 0; i < length; i++)
-        {
-            DrawChar(str[i], font, color, x, y);
-            x += width;
-        }
-    }
-
-    public override void DrawChar(char c, Font font, Color color, int x, int y)
-    {
-        int height = font.Height;
-        int width = font.Width;
-        byte[] data = font.Data;
-        int p = height * c;
-
-        for (int cy = 0; cy < height; cy++)
-        {
-            for (int cx = 0; cx < width; cx++)
-            {
-                if (font.ConvertByteToBitAddress(data[p + cy], cx + 1))
-                {
-                    DrawPoint(color, x + cx, y + cy);
-                }
-            }
-        }
-    }
-
     public override void DrawImage(Image image, int x, int y, bool preventOffBoundPixels = true)
     {
         int width = (int)image.Width;
