@@ -1,3 +1,4 @@
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
@@ -34,10 +35,13 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver()
     {
-        PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
-        if (svgaDevice is not null)
+        if (CosmosFeatures.PCIEnabled)
         {
-            return new SVGAII3DCanvas(svgaDevice);
+            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+            if (svgaDevice is not null)
+            {
+                return new SVGAII3DCanvas(svgaDevice);
+            }
         }
 
         return new GopCanvas();
@@ -50,10 +54,13 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver(Mode mode)
     {
-        PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
-        if (svgaDevice is not null)
+        if (CosmosFeatures.PCIEnabled)
         {
-            return new SVGAII3DCanvas(svgaDevice, mode);
+            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+            if (svgaDevice is not null)
+            {
+                return new SVGAII3DCanvas(svgaDevice);
+            }
         }
 
         return new GopCanvas(mode);
