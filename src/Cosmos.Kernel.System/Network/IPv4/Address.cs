@@ -82,7 +82,7 @@ public sealed class Address : IComparable
             throw new ArgumentOutOfRangeException(nameof(buffer), $"Buffer has to be 4 bytes long");
         }
 
-        Parts = [..buffer[0..4]];
+        Parts = [.. buffer[0..4]];
 
     }
 
