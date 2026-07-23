@@ -15,4 +15,12 @@ public static partial class X64CpuNative
     [LibraryImport("*", EntryPoint = "_native_cpu_invlpg")]
     [SuppressGCTransition]
     public static partial void InvalidatePage(ulong virtualAddress);
+
+    [LibraryImport("*", EntryPoint = "_native_cpu_write_cr3")]
+    [SuppressGCTransition]
+    public static partial void WriteCr3(ulong pageTableRoot);
+
+    [LibraryImport("*", EntryPoint = "_native_x64_set_kernel_cr3")]
+    [SuppressGCTransition]
+    public static partial void SetKernelCr3(ulong pageTableRoot);
 }

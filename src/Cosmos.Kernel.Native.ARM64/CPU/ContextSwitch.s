@@ -5,8 +5,11 @@
 .global _native_get_context_switch_sp
 .global _native_get_sp
 .global _native_set_context_switch_new_thread
+.global _native_set_context_switch_cr3
+.global _native_get_context_switch_cr3
 .global _context_switch_target_sp
 .global _context_switch_is_new_thread
+.global _context_switch_target_cr3
 .global _temp_is_new_thread
 
 .section .bss
@@ -22,6 +25,11 @@ _context_switch_target_sp:
 // RESUMED threads use eret
 .balign 8
 _context_switch_is_new_thread:
+    .quad 0
+
+// Target TTBR1 page-table root for the pending context switch (0 = no change).
+.balign 8
+_context_switch_target_cr3:
     .quad 0
 
 // Temporary storage for is_new_thread flag during restore
@@ -66,4 +74,23 @@ _native_set_context_switch_new_thread:
     adrp    x1, _context_switch_is_new_thread
     add     x1, x1, :lo12:_context_switch_is_new_thread
     str     x0, [x1]
+    ret
+
+// void _native_set_context_switch_cr3(uint64_t cr3)
+// Sets the target TTBR1 page-table root for the pending context switch.
+// x0 = new page-table root physical address
+.balign 4
+_native_set_context_switch_cr3:
+    adrp    x1, _context_switch_target_cr3
+    add     x1, x1, :lo12:_context_switch_target_cr3
+    str     x0, [x1]
+    ret
+
+// uint64_t _native_get_context_switch_cr3(void)
+// Returns the pending context switch TTBR1 root.
+.balign 4
+_native_get_context_switch_cr3:
+    adrp    x1, _context_switch_target_cr3
+    add     x1, x1, :lo12:_context_switch_target_cr3
+    ldr     x0, [x1]
     ret

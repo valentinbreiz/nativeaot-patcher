@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
@@ -111,6 +112,27 @@ public class X64InterruptController : IInterruptController
 
     private static void HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
+        // For page faults, give the managed handler a chance to resolve or kill the process.
+        if (interrupt == PageFaultVector)
+        {
+            ulong errorCode = 0;
+            if (HasErrorCode(interrupt))
+            {
+                errorCode = Cosmos.Kernel.Core.X64.Bridge.IdtNative.GetLastErrorCode();
+            }
+
+            bool wasWrite = (errorCode & (1UL << 1)) != 0;
+            bool wasInstructionFetch = (errorCode & (1UL << 4)) != 0;
+
+            var info = new PageFaultInfo(faultAddress, errorCode, wasWrite, wasInstructionFetch);
+            if (PageFaultHandler.Handle(info))
+            {
+                // Handler resolved the fault (e.g. terminated the process).
+                // The scheduler will pick another thread on the next tick.
+                return;
+            }
+        }
+
         Serial.Write("[INT] FATAL: Exception ", interrupt, "\n");
 
         if (HasErrorCode(interrupt))

@@ -41,5 +41,9 @@ public enum ThreadFlags : ushort
     /// to call the managed thread start.
     /// </summary>
     Managed = 1 << 3,
+    /// <summary>
+    /// Thread belongs to a native user-space process. Its stack is not scanned by the GC.
+    /// </summary>
+    NativeProcess = 1 << 4,
     // Bits 8-15 reserved for scheduler-specific flags
 }

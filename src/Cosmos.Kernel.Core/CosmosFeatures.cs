@@ -67,6 +67,22 @@ public static class CosmosFeatures
         AppContext.TryGetSwitch("Cosmos.Kernel.Core.Scheduler.Enabled", out bool enabled) ? enabled : true;
 
     /// <summary>
+    /// Controls kernel-owned paging and virtual address spaces.
+    /// Set via CosmosEnablePaging property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.Paging.Enabled")]
+    public static bool PagingEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.Paging.Enabled", out bool enabled) ? enabled : false;
+
+    /// <summary>
+    /// Controls ring-0 user land process support.
+    /// Set via CosmosEnableUserLand property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.UserLand.Enabled")]
+    public static bool UserLandEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.UserLand.Enabled", out bool enabled) ? enabled : false;
+
+    /// <summary>
     /// Controls graphics support initialization.
     /// Set via CosmosEnableGraphics property in csproj.
     /// </summary>

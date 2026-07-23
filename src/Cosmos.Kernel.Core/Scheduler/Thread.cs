@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using Cosmos.Kernel.Core.Memory.VAS;
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
@@ -14,6 +15,12 @@ public unsafe class Thread : SchedulerExtensible
     // ===== State =====
     public ThreadState State { get; set; }
     public ThreadFlags Flags { get; set; }
+
+    // ===== Address Space =====
+    /// <summary>
+    /// Address space this thread runs in. If null, the thread uses the kernel space.
+    /// </summary>
+    public AddressSpace? AddressSpace { get; set; }
 
     // ===== Context (architecture-specific values) =====
     public nuint StackPointer { get; internal set; }

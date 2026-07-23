@@ -4,6 +4,7 @@ using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
@@ -40,6 +41,14 @@ namespace Internal.Runtime.CompilerHelpers
             // Initialize platform-specific HAL
             Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
             PlatformHAL.Initialize(initializer);
+
+            // Capture the kernel address space from the bootloader page tables.
+            // Only needed when paging/user-land features are enabled.
+            if (CosmosFeatures.PagingEnabled || CosmosFeatures.UserLandEnabled)
+            {
+                Serial.WriteString("[KERNEL]   - Capturing kernel address space...\n");
+                AddressSpace.InitializeKernelSpace();
+            }
 
             // Initialize interrupts (skipped if CosmosEnableInterrupts=false)
             if (InterruptManager.IsEnabled)

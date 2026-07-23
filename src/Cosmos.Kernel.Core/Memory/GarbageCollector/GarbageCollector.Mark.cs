@@ -148,6 +148,12 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
+        // Native user-process threads run raw code and have no managed roots.
+        if ((thread.Flags & Scheduler.ThreadFlags.NativeProcess) != 0)
+        {
+            return;
+        }
+
         if (thread.State != Scheduler.ThreadState.Running)
         {
             Scheduler.ThreadContext* ctx = thread.GetContext();

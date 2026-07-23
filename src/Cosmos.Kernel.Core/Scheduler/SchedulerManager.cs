@@ -5,6 +5,7 @@ using Cosmos.Kernel.Core.Bridge;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using Cosmos.Kernel.Core.Memory.VAS;
 using SysThread = System.Threading.Thread;
 
 namespace Cosmos.Kernel.Core.Scheduler;
@@ -140,6 +141,7 @@ public static class SchedulerManager
         var state = _cpuStates[cpuId];
         state.IdleThread = idleThread;
         state.CurrentThread = idleThread;
+        state.CurrentAddressSpace = AddressSpace.KernelSpace;
         RegisterThread(idleThread);
     }
 
@@ -794,8 +796,14 @@ public static class SchedulerManager
             next.State = ThreadState.Running;
             next.LastScheduledAt = GetTimestamp();
 
-            // Request context switch - set new thread flag and target RSP
+            // Determine the target address space. Kernel threads with no explicit
+            // AddressSpace use the singleton kernel space.
+            AddressSpace nextSpace = next.AddressSpace ?? AddressSpace.KernelSpace!;
+            state.CurrentAddressSpace = nextSpace;
+
+            // Request context switch - set new thread flag, target RSP, and target CR3
             ContextSwitchNative.SetContextSwitchNewThread(isNewThread ? 1 : 0);
+            ContextSwitchNative.SetContextSwitchCr3(nextSpace.PageTableRoot);
             ContextSwitchNative.SetContextSwitchSp(next.StackPointer);
         }
     }
