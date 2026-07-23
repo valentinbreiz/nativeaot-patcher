@@ -344,7 +344,9 @@ public class Tcp : IDisposable
     /// Holds real data length as _data might be longer due to being rented.
     /// </summary>
     private int _dataLength = 0;
-    public ReadOnlySpan<byte> Data => _data[.._dataLength];
+
+    private int _dataOffset = 0;
+    public ReadOnlySpan<byte> Data => _data.AsSpan().Slice(_dataOffset, _dataLength);
 
     private Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
@@ -877,20 +879,13 @@ public class Tcp : IDisposable
         {
             s_arrayPool.Return(_data);
             _data = [];
+            _dataOffset = 0;
             _dataLength = 0;
             return;
         }
 
-        int requiredLength = _dataLength - offset;
-        byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
-        Buffer.BlockCopy(_data, offset, result, 0, requiredLength);
-        if (_data.Length > 0)
-        {
-            s_arrayPool.Return(_data);
-        }
-
-        _data = result;
-        _dataLength = requiredLength;
+        _dataOffset += offset;
+        _dataLength -= offset;
     }
 
     /// <summary>
@@ -903,16 +898,18 @@ public class Tcp : IDisposable
             return;
         }
 
-        int requiredLength = _dataLength + other.Length;
+        int realDataLength = _dataLength - _dataOffset;
+        int requiredLength = realDataLength + other.Length;
         byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
-        Buffer.BlockCopy(_data, 0, result, 0, _dataLength);
-        Buffer.BlockCopy(other, 0, result, _dataLength, other.Length);
+        Buffer.BlockCopy(_data, _dataOffset, result, 0, realDataLength);
+        Buffer.BlockCopy(other, 0, result, realDataLength, other.Length);
         if (_data.Length > 0)
         {
             s_arrayPool.Return(_data);
         }
 
         _data = result;
+        _dataOffset = 0;
         _dataLength = requiredLength;
     }
 
