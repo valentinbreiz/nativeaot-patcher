@@ -898,11 +898,21 @@ public class Tcp : IDisposable
             return;
         }
 
+        Span<byte> target;
+        // if new data fits into existing buffer, then no need to allocate a new one and write there
+        // just append to existing buffer
+        if (_dataOffset + _dataLength + other.Length <= _dataLength)
+        {
+            target = _data.AsSpan(_dataOffset + _dataLength);
+            other.CopyTo(target);
+            _dataLength += other.Length;
+            return;
+        }
         int realDataLength = _dataLength - _dataOffset;
         int requiredLength = realDataLength + other.Length;
         byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
         Buffer.BlockCopy(_data, _dataOffset, result, 0, realDataLength);
-        var target = result.AsSpan(realDataLength);
+        target = result.AsSpan(realDataLength);
         other.CopyTo(target);
         if (_data.Length > 0)
         {
