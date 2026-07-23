@@ -61,7 +61,7 @@ public static class NetworkStack
         }
 
         // Add new config
-        AddressMap!.Add(ipAddress.Hash, device);
+        AddressMap!.Add(ipAddress.Id, device);
         MACMap.Add(mac.Hash, device);
 
         // Register packet handler

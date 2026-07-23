@@ -30,7 +30,7 @@ internal static class ARPCache
     internal static bool Contains(Address ipAddress)
     {
         EnsureCacheExists();
-        return Cache.ContainsKey(ipAddress.Hash);
+        return Cache.ContainsKey(ipAddress.Id);
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ internal static class ARPCache
     internal static void Update(Address ipAddress, MACAddress macAddress)
     {
         EnsureCacheExists();
-        uint ipHash = ipAddress.Hash;
+        uint ipHash = ipAddress.Id;
         if (ipHash == 0)
         {
             return;
@@ -69,7 +69,7 @@ internal static class ARPCache
     {
         EnsureCacheExists();
 
-        if (!Cache.TryGetValue(ipAddress.Hash, out MACAddress? resolve))
+        if (!Cache.TryGetValue(ipAddress.Id, out MACAddress? resolve))
         {
             return null;
         }

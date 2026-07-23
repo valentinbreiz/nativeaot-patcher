@@ -843,7 +843,7 @@ public class Tcp
 
     internal bool Equals(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
-        return LocalEndPoint.Port.Equals(localPort) && RemoteEndPoint.Port.Equals(remotePort) && LocalEndPoint.Address.Hash.Equals(localIp.Hash) && RemoteEndPoint.Address.Hash.Equals(remoteIp.Hash);
+        return LocalEndPoint.Port.Equals(localPort) && RemoteEndPoint.Port.Equals(remotePort) && LocalEndPoint.Address.Id.Equals(localIp.Id) && RemoteEndPoint.Address.Id.Equals(remoteIp.Id);
     }
 
     #endregion

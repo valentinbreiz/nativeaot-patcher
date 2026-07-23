@@ -38,7 +38,7 @@ public class IPPacket : EthernetPacket
         bool isForUs = false;
         if (NetworkStack.AddressMap != null)
         {
-            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Hash);
+            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
         }
         bool isBroadcast = ipPacket.DestinationIP.Parts[3] == 255;
 
@@ -129,9 +129,9 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
         {
-            var device = NetworkStack.AddressMap[sourceIP.Hash];
+            var device = NetworkStack.AddressMap[sourceIP.Id];
             return device.MacAddress;
         }
         return MACAddress.None;
