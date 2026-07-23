@@ -891,7 +891,7 @@ public class Tcp : IDisposable
     /// <summary>
     /// Appends bytes to <see cref="_data"/>.
     /// </summary>
-    internal void AppendToData(byte[] other)
+    internal void AppendToData(ReadOnlySpan<byte> other)
     {
         if (other.Length == 0)
         {
@@ -902,7 +902,8 @@ public class Tcp : IDisposable
         int requiredLength = realDataLength + other.Length;
         byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
         Buffer.BlockCopy(_data, _dataOffset, result, 0, realDataLength);
-        Buffer.BlockCopy(other, 0, result, realDataLength, other.Length);
+        var target = result.AsSpan(realDataLength);
+        other.CopyTo(target);
         if (_data.Length > 0)
         {
             s_arrayPool.Return(_data);
