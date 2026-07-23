@@ -26,6 +26,14 @@ public static class GICv3
     private static ulong _currentCpuRdBase;
     private static ulong _currentCpuSgiBase;
 
+    /// <summary>
+    /// Physical address field (bits [51:12], 4 KiB aligned) shared by GITS_CBASER and
+    /// GICR_PROPBASER (ARM IHI 0069G §11.10). Not valid for GICR_PENDBASER (bits [51:16])
+    /// or GITS_BASER (bits [47:12]), which keep their own masks.
+    /// Internal: shared with the ITS and LPI configuration code.
+    /// </summary>
+    internal const ulong BASER_PHYS_ADDR_MASK = 0x000FFFFFFFFFF000UL;
+
     // Distributor registers (offsets from GICD_BASE)
     private const uint GICD_CTLR = 0x000;        // Distributor Control
     private const uint GICD_TYPER = 0x004;        // Interrupt Controller Type

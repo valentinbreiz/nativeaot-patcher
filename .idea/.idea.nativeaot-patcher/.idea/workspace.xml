@@ -6,7 +6,6 @@
     <projectFile>src/Cosmos.Patcher/Cosmos.Patcher.csproj</projectFile>
     <projectFile>src/Cosmos.Tools/Cosmos.Tools.csproj</projectFile>
     <projectFile>tests/ConsoleApp1/ConsoleApp1.csproj</projectFile>
-    <projectFile>tests/Kernels/Cosmos.Kernel.Tests.Process/Cosmos.Kernel.Tests.Process.csproj</projectFile>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
@@ -18,41 +17,17 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global.json" beforeDir="false" afterPath="$PROJECT_DIR$/global.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nativeaot-patcher.slnx" beforeDir="false" afterPath="$PROJECT_DIR$/nativeaot-patcher.slnx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Bridge/Import/X64CpuNative.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Bridge/Import/X64CpuNative.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Cpu/X64InterruptController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Cpu/X64InterruptController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CPU/InternalCpu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CPU/InternalCpu.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Thread.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Thread.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/EagerCtor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/EagerCtor.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/EagerCtor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/EagerCtor.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/PageTable.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/PageTable.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/CpuOps.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/CpuOps.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Sdk/Sdk/Sdk.props" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Sdk/Sdk/Sdk.props" afterDir="false" />
-    </list>
-    <option name="SHOW_DIALOG" value="false" />
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="$MSBuildEnableWorkloadResolver$" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
-    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="$MSBuildEnableWorkloadResolver$" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DpaMonitoringSettings">
-    <option name="firstShow" value="false" />
+    <option name="firstShow" value="$MSBuildEnableWorkloadResolver$" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="42" />
-    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+    <option name="cachedIndexableFilesCount" value="79" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -64,48 +39,85 @@
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4ac38e449eb749c4a6c4081231b3deb2db3000/34/6419db15/TimeSpan.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/bc1ce46f00134d278b8f309999ab54df83800/c1/6bd04fe3/Enumerable.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/17984549421b681fe790c4d38f66c39d317140427936a4e4d7198eb2984d/X86Base.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6a9f2693521f8afb171ea18703115ae76f26ef8522aea9fd22281cc53e71c/Directory.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/.mcp.json" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/.vscode/launch.json" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/.vscode/tasks.json" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Bootstrap/main.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/MiscHelpers.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/nativeaot/Runtime/thread.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/dotnet/runtime/src/coreclr/vm/methodtablebuilder.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/examples/DevKernel/.cosmos/config.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/42b5d014cd2255c6e1b2cf314c549b7229dc9638eb9ca4bbe508158bef38d51/PropertyDefinition.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/de4732c7b872321ec35770c85de139e4cf216f578e4fa12a706b29ebcda8e/MethodDefinition.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/.ai/mcp/mcp.json" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/CachedInterfaceDispatch.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Atomics/AtomicInt.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ProcessSignals.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Enums/EFlagsEnum.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/DebugInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Vfs/ModeEnum.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/ACPI/acpi_wrapper.c" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/ACPI/cosmos_support.c" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/ACPI/lai_host.c" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/C/floor.c" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/C/floorf.c" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Native.MultiArch/C/isfinite.c" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Commands/BuildCommand.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Program.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.Process/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file:///tmp/JetBrainsPerUserTemp-1000-1/SourceGeneratedDocuments/7F79445FFEAA9D1CC626B82E/Microsoft.Interop.LibraryImportGenerator/Microsoft.Interop.LibraryImportGenerator/LibraryImports.g.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
-  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="$MSBuildEnableWorkloadResolver$" />
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0436458132400221" />
+      <entry key="MS500" value="1.9881619861267266" />
+      <entry key="S2" value="3.4490215152364136" />
+      <entry key="S5" value="4.214376405860907" />
+      <entry key="S10" value="4.679668377045797" />
+      <entry key="S30" value="8.483809451780155" />
+      <entry key="S60" value="14.233607204602055" />
+      <entry key="M2" value="20.11707744412658" />
+      <entry key="M5" value="25.414506116572078" />
+      <entry key="M10" value="27.58916750952313" />
+      <entry key="M15" value="28.442155922114335" />
+      <entry key="M30" value="31.73999835482193" />
+      <entry key="H1" value="46.467130275105056" />
+      <entry key="H2" value="74.41315482285755" />
+      <entry key="H4" value="102.92233997677329" />
+      <entry key="D1" value="140.4194322613491" />
+      <entry key="W1" value="148.58147858619967" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="2.1589211326638058E-217" />
+      <entry key="S30" value="8.892647763214598E-73" />
+      <entry key="S60" value="1.4968005136774805E-36" />
+      <entry key="M2" value="2.0633292776753552E-18" />
+      <entry key="M5" value="1.6762653028391754E-7" />
+      <entry key="M10" value="9.601936073841238E-4" />
+      <entry key="M15" value="0.02309036707394807" />
+      <entry key="M30" value="0.7764463224936713" />
+      <entry key="H1" value="5.115319223146296" />
+      <entry key="H2" value="13.47402982366639" />
+      <entry key="H4" value="21.9881272310248" />
+      <entry key="D1" value="33.153006498688185" />
+      <entry key="W1" value="35.57860341472628" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9663922527462478" />
+      <entry key="MS500" value="1.9274284431086757" />
+      <entry key="S2" value="3.4155408675089096" />
+      <entry key="S5" value="4.19743059752994" />
+      <entry key="S10" value="4.670297147885378" />
+      <entry key="S30" value="8.478905001116035" />
+      <entry key="S60" value="14.22938707268399" />
+      <entry key="M2" value="20.113916812341436" />
+      <entry key="M5" value="25.41283113157571" />
+      <entry key="M10" value="27.589195158365765" />
+      <entry key="M15" value="28.464496389378784" />
+      <entry key="M30" value="32.514417004770344" />
+      <entry key="H1" value="51.5770218330097" />
+      <entry key="H2" value="87.88037227540529" />
+      <entry key="H4" value="124.90501063992353" />
+      <entry key="D1" value="173.57108603967518" />
+      <entry key="W1" value="184.15987506949236" />
+    </decayedShown>
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="Toolset" />
   </component>
@@ -122,6 +134,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
@@ -129,12 +142,15 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "cidr.known.project.marker": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "zarlo/userland/0",
-    "last_opened_file_path": "/mnt/data/projects/gitlab/liquip/fresh/tests/Kernels/Cosmos.Kernel.Tests.Process/Cosmos.Kernel.Tests.Process.csproj",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "refactor/patcher",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -142,29 +158,6 @@
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
     </key>
-  </component>
-  <component name="RunManager">
-    <configuration name="Cosmos.Kernel.Tests.Process" type="DotNetProject" factoryName=".NET Project">
-      <option name="EXE_PATH" value="" />
-      <option name="PROGRAM_PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PASS_PARENT_ENVS" value="1" />
-      <option name="ENV_FILE_PATHS" value="" />
-      <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
-      <option name="USE_MONO" value="0" />
-      <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="AUTO_ATTACH_CHILDREN" value="0" />
-      <option name="PROJECT_PATH" value="$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.Process/Cosmos.Kernel.Tests.Process.csproj" />
-      <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
-      <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
-      <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
-      <option name="PROJECT_KIND" value="DotNetCore" />
-      <option name="PROJECT_TFM" value="" />
-      <method v="2">
-        <option name="Build" />
-      </method>
-    </configuration>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -211,10 +204,8 @@
       <workItem from="1777592381777" duration="335000" />
       <workItem from="1777903850741" duration="7755000" />
       <workItem from="1777937585773" duration="2828000" />
-      <workItem from="1784193860358" duration="3934000" />
-      <workItem from="1784615180450" duration="9147000" />
-      <workItem from="1784646267174" duration="18373000" />
-      <workItem from="1784748785241" duration="7827000" />
+      <workItem from="1780157711350" duration="1878000" />
+      <workItem from="1784650578782" duration="8785000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -304,14 +295,22 @@
       <option name="project" value="LOCAL" />
       <updated>1768354108488</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="upd: patcher structure">
+      <option name="closed" value="true" />
+      <created>1784663168405</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1784663168405</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
-  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="$MSBuildEnableWorkloadResolver$" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="$MSBuildEnableWorkloadResolver$" />
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
@@ -335,6 +334,7 @@
     <MESSAGE value="upd: fixed generics check" />
     <MESSAGE value="upd: fix Cosmos.Tools" />
     <MESSAGE value="upd: fix Cosmos.Build.Common.targets" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: fix Cosmos.Build.Common.targets" />
+    <MESSAGE value="upd: patcher structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd: patcher structure" />
   </component>
 </project>

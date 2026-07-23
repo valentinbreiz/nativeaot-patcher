@@ -1,5 +1,7 @@
+using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Cosmos.Patcher.Debug;
 
@@ -19,7 +21,7 @@ public static class DebugHelpers
     /// <summary>
     /// Formats a method signature for display.
     /// </summary>
-    public static string FormatMethod(MethodDefinition method)
+    public static string FormatMethodSignature(MethodDefinition method)
     {
         string owner = method.DeclaringType?.FullName ?? "?";
         string ret = method.ReturnType?.FullName ?? "void";
@@ -34,7 +36,7 @@ public static class DebugHelpers
     public static void DumpIL(IBuildLogger log, MethodDefinition method)
     {
         log.Debug($"IL for method: {method.FullName}");
-        foreach (var instruction in method.Body.Instructions)
+        foreach (Instruction? instruction in method.Body.Instructions)
         {
             log.Debug($"  {instruction}");
         }
@@ -46,7 +48,7 @@ public static class DebugHelpers
     public static void DumpTypeMembers(IBuildLogger log, TypeDefinition type)
     {
         log.Debug($"--- Members of {type.FullName} ---");
-        foreach (var member in GetMembers(type))
+        foreach (IMemberDefinition member in type.GetMembers())
         {
             log.Debug($"  {member.GetType().Name}: {member.FullName}");
             if (member is MethodDefinition { HasBody: true } method)
@@ -55,26 +57,5 @@ public static class DebugHelpers
             }
         }
         log.Debug($"--- End members ---");
-    }
-
-    /// <summary>
-    /// Gets all members of a type (methods, properties, fields).
-    /// </summary>
-    private static IEnumerable<IMemberDefinition> GetMembers(TypeDefinition type)
-    {
-        foreach (var method in type.Methods)
-        {
-            yield return method;
-        }
-
-        foreach (var property in type.Properties)
-        {
-            yield return property;
-        }
-
-        foreach (var field in type.Fields)
-        {
-            yield return field;
-        }
     }
 }

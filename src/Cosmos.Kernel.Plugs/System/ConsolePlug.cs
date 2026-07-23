@@ -22,6 +22,21 @@ public class ConsolePlug
         }
     }
 
+    /// <summary>
+    /// Flushes the console back buffer to the screen. The console only draws
+    /// into the canvas back buffer, so every mutation visible to the user
+    /// (writes, cursor moves) must be followed by a flush.
+    /// </summary>
+    private static void DisplayCanvas()
+    {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
+        if (KernelConsole.Default.IsAvailable)
+        {
+            KernelConsole.Default.Canvas.Display();
+        }
+    }
+
     [PlugMember]
     private static TextWriter CreateOutputWriter(Stream outputStream)
     {
@@ -29,7 +44,7 @@ public class ConsolePlug
         {
             if (Console.OutputEncoding != Encoding.Default)
             {
-                //TODO: Once lock keyword works, call 'TextWriter.Syncronize' to get a thread save reader.
+                //TODO: Once lock keyword works, call 'TextWriter.Synchronize' to get a thread save reader.
                 return new StreamWriter(outputStream, Console.OutputEncoding, 256, leaveOpen: true)
                 {
                     AutoFlush = true
@@ -46,11 +61,10 @@ public class ConsolePlug
     [PlugMember]
     public static void Clear()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.Clear();
-        if (KernelConsole.Default.IsAvailable)
-        {
-            KernelConsole.Default.Canvas.Display();
-        }
+        DisplayCanvas();
     }
 
     [PlugMember]
@@ -63,6 +77,8 @@ public class ConsolePlug
     [PlugMember]
     public static void set_ForegroundColor(ConsoleColor value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.SetForegroundColor(value);
     }
 
@@ -76,78 +92,108 @@ public class ConsolePlug
     [PlugMember]
     public static void set_BackgroundColor(ConsoleColor value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.SetBackgroundColor(value);
     }
 
     [PlugMember]
     public static void ResetColor()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.ResetColors();
     }
 
     [PlugMember]
     public static int get_CursorLeft()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.CursorX;
     }
 
     [PlugMember]
     public static void set_CursorLeft(int value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.CursorX = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static int get_CursorTop()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.CursorY;
     }
 
     [PlugMember]
     public static void set_CursorTop(int value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.CursorY = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static void SetCursorPosition(int left, int top)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.SetCursorPosition(left, top);
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static bool get_CursorVisible()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.CursorVisible;
     }
 
     [PlugMember]
     public static void set_CursorVisible(bool value)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         KernelConsole.Default.CursorVisible = value;
+        DisplayCanvas();
     }
 
     [PlugMember]
     public static int get_WindowWidth()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_WindowHeight()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.Rows;
     }
 
     [PlugMember]
     public static int get_BufferWidth()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.Cols;
     }
 
     [PlugMember]
     public static int get_BufferHeight()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         return KernelConsole.Default.Rows;
     }
 
@@ -164,6 +210,7 @@ public class ConsolePlug
     [PlugMember]
     public static ConsoleKeyInfo ReadKey(bool intercept)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
         ThrowIfKeyboardDisabled();
 
         var keyEvent = KeyboardManager.ReadKey();
@@ -171,10 +218,7 @@ public class ConsolePlug
         if (!intercept && keyEvent.KeyChar != '\0')
         {
             KernelConsole.Default.Write(keyEvent.KeyChar);
-            if (KernelConsole.Default.IsAvailable)
-            {
-                KernelConsole.Default.Canvas.Display();
-            }
+            DisplayCanvas();
         }
 
         return ToConsoleKeyInfo(keyEvent);

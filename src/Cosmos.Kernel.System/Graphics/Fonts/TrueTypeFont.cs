@@ -102,6 +102,24 @@ public class TrueTypeFont : Font
     }
 
     /// <summary>
+    /// Gets the horizontal advance in pixels of a single character at the
+    /// given size, without kerning. Zero when the font has no glyph for the
+    /// character.
+    /// </summary>
+    /// <param name="c">The character to measure.</param>
+    /// <param name="sizePx">The text size in pixels.</param>
+    public int GetAdvance(char c, int sizePx)
+    {
+        if (!_font.HasGlyph(c))
+        {
+            return 0;
+        }
+
+        _font.GetCodepointHMetrics(c, out int advance, out _);
+        return (int)Math.Floor(advance * GetScale(sizePx));
+    }
+
+    /// <summary>
     /// Gets the kerning adjustment in pixels for a pair of characters at the
     /// given size. Zero for fonts without a legacy kerning table.
     /// </summary>
@@ -183,7 +201,7 @@ public class TrueTypeFont : Font
             return null;
         }
 
-        LunarLabs.Fonts.GlyphBitmap image = rendered.Image;
+        LunarLabs.Fonts.GlyphBitmap image = rendered.Image ?? throw new Exception($"{nameof(Image)} can not be null");
         return new TrueTypeGlyph(image.Pixels, image.Width, image.Height, rendered.xOfs, rendered.yOfs, rendered.xAdvance);
     }
 

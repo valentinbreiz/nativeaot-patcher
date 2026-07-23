@@ -196,6 +196,8 @@ jobs:
             | Windows | `CosmosSetup-${{ needs.build-packages.outputs.version }}-windows.exe` | Requires .NET 10 SDK, run installer |
             | Linux / macOS | `dotnet tool install -g Cosmos.Tools && cosmos install` | Requires .NET 10 SDK |
 
+            Already installed? Run `cosmos update` to move to this release — or `dotnet tool update -g Cosmos.Tools && cosmos install` if your CLI predates the update command.
+
             ### Prerequisites
 
             - [.NET 10 SDK](https://dot.net/download)
@@ -203,6 +205,10 @@ jobs:
             ### Quick Start
 
             - [Installation guide](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/install.html)
+          # Append the auto-generated changelog (merged PRs / commits since the
+          # previous tag) below the download table — releases had no change
+          # description at all before this.
+          generate_release_notes: true
           draft: false
           prerelease: false
           files: |

@@ -30,7 +30,7 @@ public static unsafe partial class GarbageCollector
         // alone is a compile-time flag that doesn't guarantee _cpuStates is allocated.
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.Enabled)
         {
-            PerCpuState cpuState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
+            PerCpuState? cpuState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
             if (cpuState?.CurrentThread != null)
             {
                 return ref cpuState.CurrentThread.AllocContext;
@@ -173,9 +173,33 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        uint gap = (uint)(ac.AllocLimit - ac.AllocPtr);
-        if (gap >= MinBlockSize)
+        // Canary for the alloc-path atomicity invariant (#382): an IRQ-interleaved
+        // allocation used to leave AllocPtr past AllocLimit, which underflowed the
+        // gap below into a ~4GB stamp. AllocObject now runs with interrupts
+        // disabled, so this should never fire — if it does, drop the context
+        // instead of stamping garbage and report it loudly.
+        if (ac.AllocPtr > ac.AllocLimit)
         {
+            Serial.WriteString("[TLAB] BUG Ptr>Limit ptr=");
+            Serial.WriteHex((ulong)ac.AllocPtr);
+            Serial.WriteString(" limit=");
+            Serial.WriteHex((ulong)ac.AllocLimit);
+            Serial.WriteString("\n");
+            ac.AllocPtr = null;
+            ac.AllocLimit = null;
+            return;
+        }
+
+        uint gap = (uint)(ac.AllocLimit - ac.AllocPtr);
+        if (gap >= MinBlockSize + ReservedHeaderSlotSize)
+        {
+            // Exclude the trailing header slot: for a TLAB carved from segment bump
+            // space, the next bump allocation starts exactly at AllocLimit and its
+            // runtime header (objRef-4) lands in the gap's last 4 bytes — a free
+            // block must never own them (recycling would zero the stored value).
+            gap -= ReservedHeaderSlotSize;
+            SanitizeReservedHeaderSlot(ac.AllocPtr + gap);
+
             FreeBlock* freeBlock = (FreeBlock*)ac.AllocPtr;
             freeBlock->MethodTable = s_freeMethodTable;
             freeBlock->Size = (int)gap;

@@ -1,4 +1,6 @@
-using Cosmos.Kernel.HAL;
+using Cosmos.Kernel.Core;
+using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.System.Graphics;
 
@@ -11,7 +13,7 @@ public static class FullScreenCanvas
     /// <summary>
     /// Whether the CGS (Cosmos Graphics Subsystem) is currently in use.
     /// </summary>
-    public static bool IsInUse { get; private set; } = false;
+    public static bool IsInUse { get; private set; }
 
     /// <summary>
     /// Disables the specified graphics driver used, and returns to VGA text mode 80x25.
@@ -20,19 +22,12 @@ public static class FullScreenCanvas
     {
         if (IsInUse)
         {
-            videoDriver.Disable();
+            s_videoDriver!.Disable();
             IsInUse = false;
         }
     }
 
-    private enum VideoDriver
-    {
-        VMWareSVGAIIDriver,
-        VBEDriver,
-        VGADriver
-    }
-
-    private static Canvas? videoDriver = null;
+    private static Canvas? s_videoDriver = null;
 
     /// <summary>
     /// Gets a <see cref="Canvas"/> instance, using an implementation based on
@@ -40,6 +35,15 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver()
     {
+        if (CosmosFeatures.PCIEnabled)
+        {
+            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+            if (svgaDevice is not null)
+            {
+                return new SVGAII3DCanvas(svgaDevice);
+            }
+        }
+
         return new GopCanvas();
     }
 
@@ -50,6 +54,15 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver(Mode mode)
     {
+        if (CosmosFeatures.PCIEnabled)
+        {
+            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+            if (svgaDevice is not null)
+            {
+                return new SVGAII3DCanvas(svgaDevice);
+            }
+        }
+
         return new GopCanvas(mode);
     }
 
@@ -66,13 +79,10 @@ public static class FullScreenCanvas
             throw new InvalidOperationException("Graphics support is disabled. Set CosmosEnableGraphics=true in your csproj to enable it.");
         }
 
-        if (videoDriver == null)
-        {
-            videoDriver = GetVideoDriver();
-        }
+        s_videoDriver ??= GetVideoDriver();
 
         IsInUse = true;
-        return videoDriver;
+        return s_videoDriver;
     }
 
     /// <summary>
@@ -85,17 +95,17 @@ public static class FullScreenCanvas
             throw new InvalidOperationException("Graphics support is disabled. Set CosmosEnableGraphics=true in your csproj to enable it.");
         }
 
-        if (videoDriver == null)
+        if (s_videoDriver == null)
         {
-            videoDriver = GetVideoDriver(mode);
+            s_videoDriver = GetVideoDriver(mode);
         }
         else
         {
-            videoDriver.Mode = mode;
+            s_videoDriver.Mode = mode;
         }
 
         IsInUse = true;
-        return videoDriver;
+        return s_videoDriver;
     }
 
     /// <summary>
@@ -121,8 +131,8 @@ public static class FullScreenCanvas
     /// <summary>
     /// Gets the currently used screen display canvas.
     /// </summary>
-    public static Canvas GetCurrentFullScreenCanvas()
+    public static Canvas? GetCurrentFullScreenCanvas()
     {
-        return videoDriver;
+        return s_videoDriver;
     }
 }

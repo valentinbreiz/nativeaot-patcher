@@ -254,7 +254,7 @@ namespace Cosmos.Build.Analyzer.Patcher
             }
 
             // Non-null guaranteed by IsNullOrEmpty guard above.
-            string name = targetName;
+            string name = targetName!;
 
             // Strip assembly qualifier if present ("Full.Type.Name, AssemblyName")
             if (name.Contains(','))

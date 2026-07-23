@@ -231,8 +231,8 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.Enabled)
             {
-                Scheduler.PerCpuState cpuState = Scheduler.SchedulerManager.GetCpuState(Scheduler.SchedulerManager.GetCurrentCpuId());
-                return cpuState.CurrentThread?.Id ?? 1;
+                Scheduler.PerCpuState? cpuState = Scheduler.SchedulerManager.GetCpuState(Scheduler.SchedulerManager.GetCurrentCpuId());
+                return cpuState?.CurrentThread?.Id ?? 1;
             }
 
             return 1;
@@ -294,7 +294,7 @@ namespace Cosmos.Kernel.Core.Runtime
         }
 
         [RuntimeExport("RhpLdelemaRef")]
-        public static unsafe ref object? RhpLdelemaRef(object?[] array, nint index, MethodTable* elementType)
+        public static unsafe ref object RhpLdelemaRef(object?[] array, nint index, MethodTable* elementType)
         {
 
             ref object rawData = ref MemoryMarshal.GetArrayDataReference(array)!;

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
@@ -331,6 +332,15 @@ public static class LocalApic
         {
             // Busy wait
         }
+
+        // Re-arm the periodic scheduler tick this wait hijacked: the LVT was
+        // masked and switched to one-shot above, and without this the
+        // scheduler tick stays dead after the first Wait call.
+        if (_timerIntervalMs != 0)
+        {
+            Write(LAPIC_TIMER_LVT, TIMER_PERIODIC | TIMER_VECTOR);
+            Write(LAPIC_TIMER_INIT, _ticksPerMs * _timerIntervalMs);
+        }
     }
 
     /// <summary>
@@ -402,7 +412,7 @@ public static class LocalApic
         nuint currentRsp = contextPtr - X64InterruptController.XmmSaveAreaSizeBytes;  // RSP points to start of XMM save area
 
         // Sanity check RSP - should be in kernel space (0xFFFF800000000000+)
-        if ((currentRsp & X64InterruptController.KernelSpaceCanonicalMask) != X64InterruptController.KernelSpaceCanonicalMask)
+        if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) != AddressSpace.KernelSpaceCanonicalMask)
         {
             Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", _timerTickCount, ": ");
             Serial.WriteHex((ulong)currentRsp);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
@@ -15,8 +16,8 @@ namespace Cosmos.Kernel.System.Graphics;
 internal class GopCanvas : Canvas
 {
     static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
-    Mode mode;
-    int _refreshRate = 60;
+    private Mode _mode;
+    private readonly int _refreshRate = 60;
 
     public override int RefreshRate => _refreshRate;
 
@@ -27,7 +28,7 @@ internal class GopCanvas : Canvas
     {
     }
 
-    GopDriver driver;
+    private readonly GopDriver? driver;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GopCanvas"/> class.
@@ -45,13 +46,22 @@ internal class GopCanvas : Canvas
             driver = new GopDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
 
             // Update mode to match actual framebuffer resolution
-            this.mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
+            this._mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
 
             _refreshRate = ParseEdidRefreshRate(fb);
         }
         else
         {
             Mode = mode;
+        }
+    }
+
+    [MemberNotNull(nameof(driver))]
+    private void ThrowIfDriverNotInitialized()
+    {
+        if (driver is null)
+        {
+            throw new Exception($"{nameof(driver)} not initialized");
         }
     }
 
@@ -113,7 +123,7 @@ internal class GopCanvas : Canvas
 
     public override Mode Mode
     {
-        get => mode;
+        get => _mode;
         set
         {
             // GOP/Limine cannot change the framebuffer mode after boot (SetMode is
@@ -126,12 +136,12 @@ internal class GopCanvas : Canvas
             // firmware can hand us (e.g. 1280x800).
             if (driver != null)
             {
-                mode = new Mode(driver.Width, driver.Height, value.ColorDepth);
+                _mode = new Mode(driver.Width, driver.Height, value.ColorDepth);
             }
             else
             {
                 SetMode(value);
-                mode = value;
+                _mode = value;
             }
         }
     }
@@ -216,7 +226,7 @@ internal class GopCanvas : Canvas
             * (the one that takes ushort for ColorDepth.ColorDepth16 and the one that takes byte for ColorDepth.ColorDepth8)
             * For ColorDepth.ColorDepth24 you should mask the Alpha byte.
             */
-        switch (mode.ColorDepth)
+        switch (_mode.ColorDepth)
         {
             case ColorDepth.ColorDepth4:
                 throw new NotImplementedException();
@@ -227,6 +237,7 @@ internal class GopCanvas : Canvas
             case ColorDepth.ColorDepth24:
                 throw new NotImplementedException();
             case ColorDepth.ColorDepth32:
+                ThrowIfDriverNotInitialized();
                 driver.ClearScreen((uint)aColor);
                 break;
             default:
@@ -242,7 +253,7 @@ internal class GopCanvas : Canvas
             * (the one that takes ushort for ColorDepth.ColorDepth16 and the one that takes byte for ColorDepth.ColorDepth8)
             * For ColorDepth.ColorDepth24 you should mask the Alpha byte.
             */
-        switch (mode.ColorDepth)
+        switch (_mode.ColorDepth)
         {
             case ColorDepth.ColorDepth4:
                 throw new NotImplementedException();
@@ -253,6 +264,7 @@ internal class GopCanvas : Canvas
             case ColorDepth.ColorDepth24:
                 throw new NotImplementedException();
             case ColorDepth.ColorDepth32:
+                ThrowIfDriverNotInitialized();
                 driver.ClearScreen((uint)aColor.ToArgb());
                 break;
             default:
@@ -267,6 +279,8 @@ internal class GopCanvas : Canvas
         */
     public override void DrawPoint(Color aColor, int aX, int aY)
     {
+        ThrowIfDriverNotInitialized();
+
         //uint offset;
 
         /*
@@ -309,6 +323,7 @@ internal class GopCanvas : Canvas
 
     public override void DrawPoint(uint aColor, int aX, int aY)
     {
+        ThrowIfDriverNotInitialized();
         //uint offset;
 
         switch (Mode.ColorDepth)
@@ -337,6 +352,7 @@ internal class GopCanvas : Canvas
 
     public override void DrawArray(Color[] aColors, int aX, int aY, int aWidth, int aHeight)
     {
+        ThrowIfDriverNotInitialized();
         ThrowIfCoordNotValid(aX, aY);
         ThrowIfCoordNotValid(aX + aWidth, aY + aHeight);
 
@@ -352,16 +368,21 @@ internal class GopCanvas : Canvas
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight)
     {
+        ThrowIfDriverNotInitialized();
+
         driver.CopyBuffer(aColors.AsMemory(), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight, int startIndex)
     {
+        ThrowIfDriverNotInitialized();
+
         driver.CopyBuffer(aColors.AsMemory(startIndex), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)
     {
+        ThrowIfDriverNotInitialized();
         // ClearVRAM clears one uint at a time. So we clear pixelwise not byte wise. That's why we divide by 32 and not 8.
         if (preventOffBoundPixels)
         {
@@ -432,14 +453,16 @@ internal class GopCanvas : Canvas
 
     public override void DrawImage(Image image, int x, int y, bool preventOffBoundPixels = true)
     {
+        ThrowIfDriverNotInitialized();
+
         var width = (int)image.Width;
         var height = (int)image.Height;
         var data = image.RawData;
 
         if (preventOffBoundPixels)
         {
-            var maxWidth = Math.Min(width, (int)mode.Width - x);
-            var maxHeight = Math.Min(height, (int)mode.Height - y);
+            var maxWidth = Math.Min(width, (int)_mode.Width - x);
+            var maxHeight = Math.Min(height, (int)_mode.Height - y);
             var startX = Math.Max(0, x);
             var startY = Math.Max(0, y);
 
@@ -478,6 +501,8 @@ internal class GopCanvas : Canvas
 
     public override void CroppedDrawImage(Image aImage, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)
     {
+        ThrowIfDriverNotInitialized();
+
         var xBitmap = aImage.RawData;
         var xWidth = aWidth;
         var xHeight = aHeight;
@@ -524,6 +549,8 @@ internal class GopCanvas : Canvas
 
     public override void DrawCanvas(Canvas canvas, int x, int y)
     {
+        ThrowIfDriverNotInitialized();
+
         var srcBuffer = canvas.GetBuffer();
         if (srcBuffer != null)
         {
@@ -539,23 +566,29 @@ internal class GopCanvas : Canvas
 
     public override void Display()
     {
-        driver.Swap();
+        driver?.Swap();
     }
 
     #region Reading
 
     public override Color GetPointColor(int aX, int aY)
     {
+        ThrowIfDriverNotInitialized();
+
         return Color.FromArgb((int)driver.GetPixel(aX, aY));
     }
 
     public override int GetRawPointColor(int aX, int aY)
     {
+        ThrowIfDriverNotInitialized();
+
         return (int)driver.GetPixel(aX, aY);
     }
 
     public override Bitmap GetImage(int x, int y, int width, int height)
     {
+        ThrowIfDriverNotInitialized();
+
         Bitmap bitmap = new((uint)width, (uint)height, ColorDepth.ColorDepth32);
 
         int startX = Math.Max(0, x);

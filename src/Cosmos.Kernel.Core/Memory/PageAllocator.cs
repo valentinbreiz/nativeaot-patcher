@@ -18,11 +18,8 @@ public static unsafe class PageAllocator
     /// </list></remarks>
     public const ulong PageSize = 4096;
 
-    /// <summary>Base of the kernel-image window (top 2 GiB of the canonical higher half); addresses at or above it are kernel-image mappings, not HHDM aliases.</summary>
-    private const ulong KernelImageWindow = 0xFFFFFFFF80000000UL;
-
     /// <summary>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset). Public so drivers translating HHDM aliases for DMA share the same base.</summary>
-    public const ulong DefaultHhdmOffset = 0xFFFF800000000000UL;
+    public const ulong DefaultHhdmOffset = AddressSpace.KernelSpaceStart;
 
     /// <summary>Bytes per kilobyte; applied once for KB and twice for MB conversions in diagnostics.</summary>
     private const ulong BytesPerKilobyte = 1024;
@@ -88,7 +85,7 @@ public static unsafe class PageAllocator
     /// <returns>Physical address</returns>
     public static ulong VirtualToPhysical(ulong virtualAddress)
     {
-        if (virtualAddress >= KernelImageWindow)
+        if (virtualAddress >= AddressSpace.KernelImageWindow)
         {
             Serial.WriteString("[PageAllocator] ERROR: VirtualToPhysical(0x");
             Serial.WriteHex(virtualAddress);

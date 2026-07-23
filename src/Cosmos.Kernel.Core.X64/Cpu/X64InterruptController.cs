@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Scheduler;
 
@@ -48,10 +49,10 @@ public class X64InterruptController : IInterruptController
 
     public unsafe void Dispatch(ref IRQContext ctx)
     {
-        InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
+        InterruptManager.IrqDelegate?[]? handlers = InterruptManager.s_irqHandlers;
         if (handlers != null && ctx.interrupt < (ulong)handlers.Length)
         {
-            InterruptManager.IrqDelegate handler = handlers[(int)ctx.interrupt];
+            InterruptManager.IrqDelegate? handler = handlers[(int)ctx.interrupt];
             if (handler != null)
             {
                 handler(ref ctx);
@@ -72,7 +73,7 @@ public class X64InterruptController : IInterruptController
                     // timer handler: the saved context sits 256 bytes (XMM
                     // save area) below the IRQContext.
                     nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - XmmSaveAreaSizeBytes;
-                    if ((currentRsp & KernelSpaceCanonicalMask) == KernelSpaceCanonicalMask)
+                    if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) == AddressSpace.KernelSpaceCanonicalMask)
                     {
                         SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
                     }

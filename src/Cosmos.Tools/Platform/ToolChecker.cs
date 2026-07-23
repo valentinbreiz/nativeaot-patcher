@@ -56,11 +56,18 @@ public static class ToolChecker
         return results;
     }
 
+    /// <summary>Per-user Cosmos state directory (parent of the tools dir; holds e.g. the update-check state).</summary>
+    public static string GetCosmosRootPath()
+    {
+        return PlatformInfo.CurrentOS == OSPlatform.Windows
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cosmos");
+    }
+
     public static string GetCosmosToolsPath()
     {
-        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return PlatformInfo.CurrentOS == OSPlatform.Windows
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Cosmos", "Tools")
-            : Path.Combine(home, ".cosmos", "tools");
+            ? Path.Combine(GetCosmosRootPath(), "Tools")
+            : Path.Combine(GetCosmosRootPath(), "tools");
     }
 }

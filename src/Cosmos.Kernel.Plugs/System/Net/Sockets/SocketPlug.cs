@@ -180,7 +180,7 @@ public static class SocketPlug
     public static void Bind(Socket aThis, global::System.Net.EndPoint localEP)
     {
         int id = GetId(aThis);
-        var ipep = localEP as IPEndPoint;
+        var ipep = (IPEndPoint)localEP;
         _endpoints[id] = ipep;
         _localEndPoints[id] = ipep;
 
@@ -285,7 +285,8 @@ public static class SocketPlug
         }
 
         // Parse destination address
-        var destAddr = Address.Parse(address.ToString());
+        var destAddr = Address.Parse(address.ToString())
+            ?? throw new Exception("Address can not be null");
         client.Connect(destAddr, port);
 
         _remoteEndPoints[id] = new IPEndPoint(address, port);
@@ -315,9 +316,9 @@ public static class SocketPlug
             throw new Exception("Client must be closed before setting a new connection.");
         }
 
-        sm.RemoteEndPoint.Address = Address.Parse(address.ToString());
+        sm.RemoteEndPoint.Address = Address.Parse(address.ToString()) ?? throw new Exception("Address can not be null");
         sm.RemoteEndPoint.Port = (ushort)port;
-        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress;
+        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress ?? throw new Exception("CurrentAddress can not be null");
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);
@@ -538,8 +539,7 @@ public static class SocketPlug
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
-        var ipep = remoteEP as IPEndPoint;
-        if (ipep == null)
+        if (remoteEP is not IPEndPoint ipep)
         {
             throw new NotSupportedException("Only IPEndPoint supported");
         }
@@ -616,7 +616,7 @@ public static class SocketPlug
         }
 
         var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[] data = client.NonBlockingReceive(ref ep);
+        byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
         {
@@ -719,7 +719,7 @@ public static class SocketPlug
         }
 
         var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[] data = client.NonBlockingReceive(ref ep);
+        byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
         {
@@ -800,12 +800,18 @@ public static class SocketPlug
         }
         else if (sm.Status == Status.CLOSING || sm.Status == Status.CLOSE_WAIT)
         {
-            while (sm.WaitStatus(Status.CLOSED) != true)
+            if (sm.WaitStatus(Status.CLOSED, timeout))
             {
-                ;
+                Tcp.RemoveConnection(sm);
+            }
+            else
+            {
+                // The final ACK never arrived — detach instead of blocking
+                // forever; Tcp reaps the connection once it reaches CLOSED.
+                Serial.WriteString("[SocketPlug] CloseTcp: passive close pending, detaching connection\n");
+                sm.Detached = true;
             }
 
-            Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);
             _endpoints.Remove(id);
             _localEndPoints.Remove(id);
@@ -828,13 +834,25 @@ public static class SocketPlug
             sm.Status = Status.FIN_WAIT1;
             sm.SendEmptyPacket(Flags.FIN | Flags.ACK);
 
-            if (sm.WaitStatus(Status.CLOSED, 5000) == false)
+            // Wait for the peer to ACK our FIN. Once it is ACKed the close has
+            // succeeded from the caller's point of view — the peer may hold
+            // its half of the connection open for as long as it wants
+            // (issue #369), so Close() must not block on or throw for the
+            // peer's own FIN.
+            sm.WaitLeaveStatus(Status.FIN_WAIT1, timeout);
+
+            if (sm.Status == Status.CLOSED)
             {
-                Serial.WriteString("[SocketPlug] Close Failed to close TCP connection!\n");
-                throw new Exception("Failed to close TCP connection!");
+                Tcp.RemoveConnection(sm);
+            }
+            else
+            {
+                // Half-close: detach the state machine so it finishes the
+                // handshake in the background; Tcp reaps it on CLOSED.
+                Serial.WriteString("[SocketPlug] CloseTcp: peer FIN pending, detaching connection\n");
+                sm.Detached = true;
             }
 
-            Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);
         }
 

@@ -289,9 +289,18 @@ public class Tcp
     public Status Status;
 
     /// <summary>
+    /// Whether the connection has been detached from its owning socket:
+    /// Close() already returned but the peer has not finished the FIN
+    /// handshake yet. A detached state machine keeps processing packets in
+    /// the background and is removed from <see cref="Connections"/> as soon
+    /// as it reaches <see cref="Status.CLOSED"/>.
+    /// </summary>
+    public bool Detached;
+
+    /// <summary>
     /// The received data buffer.
     /// </summary>
-    public byte[] Data { get; set; }
+    public byte[]? Data { get; set; }
 
     public Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
@@ -304,6 +313,19 @@ public class Tcp
     /// Handles incoming TCP packets according to the current connection status.
     /// </summary>
     internal void ReceiveData(TCPPacket packet)
+    {
+        ReceiveDataInternal(packet);
+
+        // A detached connection has no owner left to clean it up — reap it
+        // from the connection table once the state machine lands on CLOSED.
+        if (Detached && Status == Status.CLOSED)
+        {
+            Serial.WriteString("[TCP] Detached connection closed, reaping\n");
+            RemoveConnection(this);
+        }
+    }
+
+    private void ReceiveDataInternal(TCPPacket packet)
     {
         Serial.WriteString("[" + Table[(int)Status] + "] " + packet.ToString() + "\n");
 
@@ -397,7 +419,7 @@ public class Tcp
         }
         else if (packet.SYN)
         {
-            LocalEndPoint.Address = IPConfig.FindNetwork(packet.SourceIP);
+            LocalEndPoint.Address = IPConfig.FindNetwork(packet.SourceIP) ?? throw new Exception($"Address can not be null");
             RemoteEndPoint.Address = packet.SourceIP;
             RemoteEndPoint.Port = packet.SourcePort;
 
@@ -661,6 +683,12 @@ public class Tcp
 
             WaitAndClose();
         }
+        else if (packet.RST)
+        {
+            Status = Status.CLOSED;
+
+            Serial.WriteString("[TCP] Connection reset in FIN_WAIT2!\n");
+        }
     }
 
     /// <summary>
@@ -741,6 +769,20 @@ public class Tcp
     }
 
     /// <summary>
+    /// Waits until the connection leaves the given status (with timeout in milliseconds).
+    /// </summary>
+    public bool WaitLeaveStatus(Status status, int timeout)
+    {
+        int waited = 0;
+        while (Status == status && waited < timeout)
+        {
+            Timer.TimerManager.Wait(10);
+            waited += 10;
+        }
+        return Status != status;
+    }
+
+    /// <summary>
     /// Sends an empty packet.
     /// </summary>
     public void SendEmptyPacket(Flags flag)
@@ -776,7 +818,7 @@ public class Tcp
     /// <summary>
     /// Concatenates two byte arrays.
     /// </summary>
-    private static byte[] ArrayConcat(byte[] first, byte[] second)
+    private static byte[]? ArrayConcat(byte[]? first, byte[]? second)
     {
         if (first == null)
         {

@@ -14,5 +14,5 @@ public abstract class SchedulerExtensible
     /// <summary>
     /// Type-safe accessor for extension data.
     /// </summary>
-    public T GetSchedulerData<T>() where T : class => (T)SchedulerData;
+    public T? GetSchedulerData<T>() where T : class => (T?)SchedulerData;
 }

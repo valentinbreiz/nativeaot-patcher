@@ -39,7 +39,7 @@ public class IPConfig
     /// Finds the network address for the specified destination IP address.
     /// </summary>
     /// <param name="destIP">The destination IP address.</param>
-    public static Address FindNetwork(Address destIP)
+    public static Address? FindNetwork(Address destIP)
     {
         Address? defaultGw = null;
 
@@ -122,6 +122,7 @@ public class IPConfig
     /// <returns>Address value.</returns>
     internal static Address? FindRoute(Address destIP)
     {
+        // TODO is this correct implementation?
         for (int c = 0; c < ipConfigs.Count; c++)
         {
             return ipConfigs[c].DefaultGateway;

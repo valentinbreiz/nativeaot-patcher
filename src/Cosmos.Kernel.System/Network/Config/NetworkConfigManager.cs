@@ -26,7 +26,7 @@ public static class NetworkConfigManager
     /// <summary>
     /// Gets the current IPv4 address.
     /// </summary>
-    public static Address CurrentAddress => CurrentNetworkConfig?.IPConfig?.IPAddress;
+    public static Address? CurrentAddress => CurrentNetworkConfig?.IPConfig?.IPAddress;
 
     /// <summary>
     /// Sets the configuration of the current network.

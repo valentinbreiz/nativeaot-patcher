@@ -25,8 +25,9 @@ public sealed class QemuLaunchOptions
     /// place (the historical behaviour); <c>"none"</c> emits <c>-nic none</c> so
     /// the guest gets no card at all; any other value emits a user-mode
     /// <c>-netdev</c> + <c>-device &lt;model&gt;</c> pair (e.g. <c>e1000e</c>,
-    /// <c>virtio-net-device</c>). Ignored when <see cref="EnableNetworkTesting"/>
-    /// is set, which owns the NIC in that path.
+    /// <c>virtio-net-device</c>). When <see cref="EnableNetworkTesting"/> is
+    /// set this still selects the model, but that path always adds its port
+    /// forwards and rejects <c>"none"</c>.
     /// </summary>
     public string? NetworkCard { get; init; }
 
@@ -45,6 +46,16 @@ public sealed class QemuLaunchOptions
     /// <c>virtio-mouse-device</c> is the ARM64 <c>virt</c> option.
     /// </summary>
     public string? MouseDevice { get; init; }
+
+    /// <summary>
+    /// VGA adapter exposed to the guest, as a <c>-vga</c> backend name (e.g.
+    /// <c>vmware</c>, <c>virtio</c>, <c>none</c>). <c>null</c> keeps the
+    /// architecture default (stdvga on q35, nothing beyond ramfb on virt).
+    /// Unlike <see cref="KeyboardDevice"/> this is not a <c>-device</c> model:
+    /// <c>-vga</c> replaces the machine's default adapter instead of adding a
+    /// second one alongside it.
+    /// </summary>
+    public string? VgaAdapter { get; init; }
     /// <summary>
     /// Disks to attach. Each <see cref="DiskAttachment"/> carries the image
     /// path, the controller type (ahci or nvme), and an optional comma-prefixed
@@ -120,6 +131,13 @@ public static class QemuLauncher
     /// <summary>TCP port forwarded host-to-guest for the network test runner's stream traffic.</summary>
     private const int NetworkTestTcpPort = 5558;
 
+    /// <summary>
+    /// TCP port of the test runner's raw-Ethernet listener (IcmpTestServer). Slirp's
+    /// hostfwd only forwards TCP/UDP, so host-sourced ICMP rides a stream netdev
+    /// hubbed with slirp: frames are 4-byte big-endian-length-prefixed Ethernet.
+    /// </summary>
+    private const int NetworkTestRawSocketPort = 5560;
+
     public static async Task<QemuLaunchPlan> BuildAsync(QemuLaunchOptions options)
     {
         CommandToolDefinition tool = options.Architecture switch
@@ -187,8 +205,17 @@ public static class QemuLauncher
 
         if (options.EnableNetworkTesting)
         {
-            string nic = options.Architecture == "x64" ? "e1000e" : "virtio-net-device";
-            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort} -device {nic},netdev=net0");
+            string nic = ResolveNetworkTestNic(options.Architecture, options.NetworkCard);
+            // One hub joins three ports: slirp (DHCP/NAT + the UDP/TCP hostfwds),
+            // a raw-Ethernet stream socket to the runner's IcmpTestServer, and the
+            // guest NIC. The stream port exists because slirp cannot forward
+            // host-sourced ICMP; the runner must be listening before QEMU starts.
+            args.Append($" -netdev user,id=net0,hostfwd=udp::{NetworkTestUdpPort}-:{NetworkTestUdpPort},hostfwd=tcp::{NetworkTestTcpPort}-:{NetworkTestTcpPort}");
+            args.Append($" -netdev stream,id=rawnet0,addr.type=inet,addr.host=127.0.0.1,addr.port={NetworkTestRawSocketPort}");
+            args.Append(" -netdev hubport,id=hubport0,hubid=0,netdev=net0");
+            args.Append(" -netdev hubport,id=hubport1,hubid=0,netdev=rawnet0");
+            args.Append(" -netdev hubport,id=hubport2,hubid=0");
+            args.Append($" -device {nic},netdev=hubport2");
         }
         else if (options.NetworkCard is not null)
         {
@@ -197,6 +224,7 @@ public static class QemuLauncher
 
         AppendInputDevice(args, options.KeyboardDevice);
         AppendInputDevice(args, options.MouseDevice);
+        AppendVgaAdapter(args, options.VgaAdapter);
 
         if (options.Debug)
         {
@@ -245,7 +273,9 @@ public static class QemuLauncher
         {
             args.Append(" -no-shutdown");
         }
-        if (!options.Headless)
+        // A profile-selected adapter is emitted later (shared path) and -vga
+        // may only appear once, so the windowed default steps aside for it.
+        if (!options.Headless && options.VgaAdapter is null)
         {
             args.Append(" -vga std");
         }
@@ -391,6 +421,48 @@ public static class QemuLauncher
 
         ValidateOptionToken(model, "input device model");
         args.Append($" -device {model}");
+    }
+
+    /// <summary>
+    /// Selects the guest's VGA adapter as a <c>-vga</c> backend. <c>null</c>/empty
+    /// keeps the architecture default; any other value — including QEMU's own
+    /// <c>none</c> — is passed through. Emitted for both arches: the profile
+    /// catalog's architecture filter is what keeps an adapter off a machine
+    /// that cannot present it.
+    /// </summary>
+    internal static void AppendVgaAdapter(StringBuilder args, string? adapter)
+    {
+        if (string.IsNullOrWhiteSpace(adapter))
+        {
+            return;
+        }
+
+        ValidateOptionToken(adapter, "vga adapter");
+        args.Append($" -vga {adapter}");
+    }
+
+    /// <summary>
+    /// Picks the NIC model for a network-testing run. A test profile selects
+    /// the model when it has an opinion (e.g. driving the suite over
+    /// virtio-net-pci rather than the architecture default); the port forwards
+    /// are added either way, since the runner reaches the guest through them
+    /// whatever the card is. <c>"none"</c> is rejected rather than silently
+    /// producing a run with no way to reach the guest.
+    /// </summary>
+    internal static string ResolveNetworkTestNic(string architecture, string? requested)
+    {
+        if (requested is not null && requested.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Network testing needs a NIC, but the network card is set to \"none\".", nameof(requested));
+        }
+
+        string nic = string.IsNullOrWhiteSpace(requested)
+            ? architecture == "x64" ? "e1000e" : "virtio-net-device"
+            : requested.Trim();
+
+        ValidateOptionToken(nic, "network card model");
+        return nic;
     }
 
     internal static void AppendDeviceOptions(StringBuilder args, string extra)
