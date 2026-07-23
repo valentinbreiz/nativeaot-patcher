@@ -5,6 +5,7 @@
 *                   Port of Cosmos Code.
 */
 
+using System.Buffers;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Network.Config;
 
@@ -143,11 +144,15 @@ public class TransmissionControlBlock
 /// <remarks>
 /// See <a href="https://datatracker.ietf.org/doc/html/rfc793">RFC 793</a> for more information.
 /// </remarks>
-public class Tcp
+public class Tcp: IDisposable
 {
-    public static ushort DynamicPortStart = 49152;
+    public static readonly ushort DynamicPortStart = 49152;
 
-    private static ushort nextPort = 49152;
+    private static ushort s_nextPort = 49152;
+    /// <summary>
+    /// Array pool used to rent buffers.
+    /// </summary>
+    private static readonly ArrayPool<byte> s_arrayPool = ArrayPool<byte>.Shared;
 
     /// <summary>
     /// Gets a dynamic port (simple incrementing approach for AOT compatibility).
@@ -156,10 +161,10 @@ public class Tcp
     {
         for (int i = 0; i < tries; i++)
         {
-            ushort port = nextPort++;
-            if (nextPort >= 65535)
+            ushort port = s_nextPort++;
+            if (s_nextPort >= 65535)
             {
-                nextPort = DynamicPortStart;
+                s_nextPort = DynamicPortStart;
             }
 
             bool portInUse = false;
@@ -187,19 +192,19 @@ public class Tcp
     public const ushort TcpWindowSize = 8192;
 
     // Simple sequence number generator
-    private static uint sequenceCounter = 1000;
+    private static uint s_sequenceCounter = 1000;
 
     #region Static
     /// <summary>
     /// A list of currently active connections.
     /// </summary>
-    public static List<Tcp> Connections = new();
+    private static List<Tcp> Connections { get; } = new();
 
     /// <summary>
     /// String / enum correspondance (used for debugging)
     /// </summary>
-    public static readonly string[] Table = new string[11]
-    {
+    public static readonly string[] Table =
+    [
         "LISTEN",
         "SYN_SENT",
         "SYN_RECEIVED",
@@ -211,20 +216,44 @@ public class Tcp
         "LAST_ACK",
         "TIME_WAIT",
         "CLOSED"
-    };
+    ];
+
+    /// <summary>
+    /// Creates a TCP connection object.
+    /// </summary>
+    /// <param name="localPort"></param>
+    /// <param name="remotePort"></param>
+    /// <param name="localIp"></param>
+    /// <param name="remoteIp"></param>
+    /// <returns>A <see cref="Tcp"/> connection instance.</returns>
+    internal static Tcp CreateNewConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    {
+        var tcp = new Tcp(localPort, remotePort, localIp, remoteIp);
+        Connections.Add(tcp);
+        return tcp;
+    }
+
+    public static Tcp CreateConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    {
+        var tcp = new Tcp(localPort, remotePort, localIp, remoteIp);
+        Connections.Add(tcp);
+        return tcp;
+    }
 
     /// <summary>
     /// Gets a TCP connection object that matches the specified local and remote ports and addresses.
     /// </summary>
     internal static Tcp? GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
-        foreach (var con in Connections)
+        for (int i=0; i<Connections.Count; i++)
         {
+            var con = Connections[i];
             if (con.Equals(localPort, remotePort, localIp, remoteIp))
             {
                 return con;
             }
-            else if (con.LocalEndPoint.Port.Equals(localPort) && con.Status == Status.LISTEN)
+            // Is this correct if clause? Shouldn't be there another loop?
+            if (con.LocalEndPoint.Port.Equals(localPort) && con.Status == Status.LISTEN)
             {
                 return con;
             }
@@ -235,31 +264,41 @@ public class Tcp
     /// <summary>
     /// Removes a TCP connection object that matches the specified local and remote ports and addresses.
     /// </summary>
-    public static void RemoveConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    /// <returns>True when connection was removed, false when one was not found and removed.</returns>
+    public static bool RemoveConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
         for (int i = 0; i < Connections.Count; i++)
         {
-            if (Connections[i].Equals(localPort, remotePort, localIp, remoteIp))
+            var conn = Connections[i];
+            if (conn.Equals(localPort, remotePort, localIp, remoteIp))
             {
+                conn.Dispose();
                 Connections.RemoveAt(i);
-                return;
+                return true;
             }
         }
+
+        return false;
     }
 
     /// <summary>
     /// Removes a TCP connection object by reference.
     /// </summary>
-    public static void RemoveConnection(Tcp connection)
+    /// <returns>True when connection was removed, false when one was not found and removed.</returns>
+    public static bool RemoveConnection(Tcp connection)
     {
         for (int i = 0; i < Connections.Count; i++)
         {
-            if (object.ReferenceEquals(Connections[i], connection))
+            var conn = Connections[i];
+            if (ReferenceEquals(conn, connection))
             {
+                conn.Dispose();
                 Connections.RemoveAt(i);
-                return;
+                return true;
             }
         }
+
+        return false;
     }
 
     #endregion
@@ -269,24 +308,24 @@ public class Tcp
     /// <summary>
     /// The local end-point.
     /// </summary>
-    public EndPoint LocalEndPoint;
+    public EndPoint LocalEndPoint { get; private set; }
 
     /// <summary>
     /// The remote end-point.
     /// </summary>
-    public EndPoint RemoteEndPoint;
+    public EndPoint RemoteEndPoint { get; private set; }
 
     /// <summary>
     /// The connection Transmission Control Block.
     /// </summary>
-    public TransmissionControlBlock TCB { get; set; }
+    public TransmissionControlBlock TCB { get; private set; }
 
     #endregion
 
     /// <summary>
     /// The connection status.
     /// </summary>
-    public Status Status;
+    public Status Status { get; set; }
 
     /// <summary>
     /// Whether the connection has been detached from its owning socket:
@@ -295,18 +334,28 @@ public class Tcp
     /// the background and is removed from <see cref="Connections"/> as soon
     /// as it reaches <see cref="Status.CLOSED"/>.
     /// </summary>
-    public bool Detached;
+    public bool Detached { get; set; }
 
     /// <summary>
     /// The received data buffer.
     /// </summary>
-    public byte[]? Data { get; set; }
+    private byte[] _data = [];
+    /// <summary>
+    /// Holds real data length as _data might be longer due to being rented.
+    /// </summary>
+    private int _dataLength = 0;
+    public ReadOnlySpan<byte> Data => _data[.._dataLength];
 
-    public Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
+    private Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
         LocalEndPoint = new EndPoint(localIp, localPort);
         RemoteEndPoint = new EndPoint(remoteIp, remotePort);
         TCB = new TransmissionControlBlock();
+    }
+
+    public void AssignData(ReadOnlySpan<byte> source, int offset, int count, int length)
+    {
+
     }
 
     /// <summary>
@@ -327,7 +376,7 @@ public class Tcp
 
     private void ReceiveDataInternal(TCPPacket packet)
     {
-        Serial.WriteString("[" + Table[(int)Status] + "] " + packet.ToString() + "\n");
+        Serial.WriteString($"[{Table[(int)Status]}] {packet}\n");
 
         if (Status == Status.LISTEN)
         {
@@ -404,7 +453,6 @@ public class Tcp
         if (packet.RST)
         {
             Serial.WriteString("[TCP] RST received at LISTEN state, packet passed.\n");
-            return;
         }
         else if (packet.FIN)
         {
@@ -424,7 +472,7 @@ public class Tcp
             RemoteEndPoint.Port = packet.SourcePort;
 
             // Simple sequence number generation
-            uint sequenceNumber = sequenceCounter++;
+            uint sequenceNumber = s_sequenceCounter++;
 
             //Fill TCB
             TCB.SndUna = sequenceNumber;
@@ -503,7 +551,7 @@ public class Tcp
         else if (packet.ACK)
         {
             //Check for bad ACK packet
-            if (packet.AckNumber - TCB.ISS < 0 || packet.AckNumber - TCB.SndNxt > 0)
+            if ((int)packet.AckNumber - TCB.ISS < 0 || packet.AckNumber - TCB.SndNxt > 0)
             {
                 SendEmptyPacket(Flags.RST, packet.AckNumber);
                 Serial.WriteString("[TCP] Bad ACK received at SYN_SENT.\n");
@@ -571,10 +619,10 @@ public class Tcp
 
                 TCB.RcvNxt += packet.TCP_DataLength;
 
-                Data = ArrayConcat(Data, packet.TCP_Data);
+                AppendToData(packet.TCP_Data);
 
                 Serial.WriteString("[TCP] Data buffer now has ");
-                Serial.WriteNumber((ulong)(Data?.Length ?? 0));
+                Serial.WriteNumber((ulong)(_data?.Length ?? 0));
                 Serial.WriteString(" bytes\n");
 
                 // Handle FIN flag within PSH handling if both are set
@@ -615,14 +663,14 @@ public class Tcp
             {
                 TCB.RcvNxt += packet.TCP_DataLength;
 
-                Data = ArrayConcat(Data, packet.TCP_Data);
+                AppendToData(packet.TCP_Data);
             }
         }
         if (packet.RST)
         {
             Status = Status.CLOSED;
 
-            Serial.WriteString("[TCP] Connection resetted!\n");
+            Serial.WriteString("[TCP] Connection reset!\n");
         }
         else if (packet.FIN)
         {
@@ -787,7 +835,8 @@ public class Tcp
     /// </summary>
     public void SendEmptyPacket(Flags flag)
     {
-        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port, TCB.SndNxt, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
+        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
+            TCB.SndNxt, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
     }
 
     /// <summary>
@@ -795,7 +844,8 @@ public class Tcp
     /// </summary>
     internal void SendEmptyPacket(Flags flag, uint sequenceNumber)
     {
-        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port, sequenceNumber, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
+        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
+            sequenceNumber, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
     }
 
     /// <summary>
@@ -815,36 +865,71 @@ public class Tcp
         NetworkStack.Update();
     }
 
-    /// <summary>
-    /// Concatenates two byte arrays.
-    /// </summary>
-    private static byte[]? ArrayConcat(byte[]? first, byte[]? second)
+    public void AdvanceDataOffset(int offset)
     {
-        if (first == null)
+        if (offset == 0)
         {
-            return second;
+            return;
         }
-        if (second == null)
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(offset, _dataLength);
+
+        if (offset == _dataLength && _dataLength != 0)
         {
-            return first;
+            s_arrayPool.Return(_data);
+            _data = [];
+            _dataLength = 0;
+            return;
         }
 
-        byte[] result = new byte[first.Length + second.Length];
-        for (int i = 0; i < first.Length; i++)
+        int requiredLength = _dataLength - offset;
+        byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
+        Buffer.BlockCopy(_data, offset, result, 0, requiredLength);
+        if (_data.Length > 0)
         {
-            result[i] = first[i];
+            s_arrayPool.Return(_data);
         }
-        for (int i = 0; i < second.Length; i++)
+
+        _data = result;
+        _dataLength = requiredLength;
+    }
+
+    /// <summary>
+    /// Appends bytes to <see cref="_data"/>.
+    /// </summary>
+    internal void AppendToData(byte[] other)
+    {
+        if (other.Length == 0)
         {
-            result[first.Length + i] = second[i];
+            return;
         }
-        return result;
+
+        int requiredLength = _dataLength + other.Length;
+        byte[] result = ArrayPool<byte>.Shared.Rent(requiredLength);
+        Buffer.BlockCopy(_data, 0, result, 0, _dataLength);
+        Buffer.BlockCopy(other, 0, result, _dataLength, other.Length);
+        if (_data.Length > 0)
+        {
+            s_arrayPool.Return(_data);
+        }
+
+        _data = result;
+        _dataLength = requiredLength;
     }
 
     internal bool Equals(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
-        return LocalEndPoint.Port.Equals(localPort) && RemoteEndPoint.Port.Equals(remotePort) && LocalEndPoint.Address.Hash.Equals(localIp.Hash) && RemoteEndPoint.Address.Hash.Equals(remoteIp.Hash);
+        return LocalEndPoint.Port.Equals(localPort) && RemoteEndPoint.Port.Equals(remotePort) &&
+               LocalEndPoint.Address.Hash.Equals(localIp.Hash) && RemoteEndPoint.Address.Hash.Equals(remoteIp.Hash);
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        if (_data.Length > 0)
+        {
+            s_arrayPool.Return(_data);
+        }
+        // TODO release managed resources here
+    }
 }
