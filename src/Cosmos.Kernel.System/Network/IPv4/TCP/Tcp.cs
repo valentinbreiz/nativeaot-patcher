@@ -144,7 +144,7 @@ public class TransmissionControlBlock
 /// <remarks>
 /// See <a href="https://datatracker.ietf.org/doc/html/rfc793">RFC 793</a> for more information.
 /// </remarks>
-public class Tcp: IDisposable
+public class Tcp : IDisposable
 {
     public static readonly ushort DynamicPortStart = 49152;
 
@@ -245,7 +245,7 @@ public class Tcp: IDisposable
     /// </summary>
     internal static Tcp? GetConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
-        for (int i=0; i<Connections.Count; i++)
+        for (int i = 0; i < Connections.Count; i++)
         {
             var con = Connections[i];
             if (con.Equals(localPort, remotePort, localIp, remoteIp))

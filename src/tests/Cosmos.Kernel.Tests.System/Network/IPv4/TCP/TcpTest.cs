@@ -30,7 +30,7 @@ public class TcpTest
         [Test]
         public void WhenDataIsNotEmpty_AndOtherIsEmpty_DataDoesNotChange()
         {
-            target.AppendToData([0,1]);
+            target.AppendToData([0, 1]);
 
             target.AppendToData([]);
 
@@ -40,7 +40,7 @@ public class TcpTest
         [Test]
         public void WhenDataIsNotEmpty_AndOtherIsNotEmpty_OtherIsAppendedToData()
         {
-            target.AppendToData([0,1]);
+            target.AppendToData([0, 1]);
 
             target.AppendToData([2, 3]);
 
@@ -54,7 +54,7 @@ public class TcpTest
         [Test]
         public void WhenAdvancingByZero_NoChangesAreMade()
         {
-            target.AppendToData([0,1]);
+            target.AppendToData([0, 1]);
 
             target.AdvanceDataOffset(0);
 
@@ -64,7 +64,7 @@ public class TcpTest
         [Test]
         public void WhenAdvancingByOneAndLengthIsTwo_OnlyLastElementRemains()
         {
-            target.AppendToData([0,1]);
+            target.AppendToData([0, 1]);
 
             target.AdvanceDataOffset(1);
 
@@ -73,7 +73,7 @@ public class TcpTest
         [Test]
         public void WhenAdvancingByTwoAndLengthIsTwo_DataLengthIsZero()
         {
-            target.AppendToData([0,1]);
+            target.AppendToData([0, 1]);
 
             target.AdvanceDataOffset(2);
 
