@@ -42,7 +42,7 @@ public class ICMPPacket : IPPacket
                 Serial.WriteString(icmpPacket.SourceIP.ToString());
                 Serial.WriteString("\n");
 
-                var receiver = ICMPClient.GetClient(icmpPacket.SourceIP.Hash);
+                var receiver = ICMPClient.GetClient(icmpPacket.SourceIP.Id);
                 receiver?.ReceiveData(icmpPacket);
                 break;
             case 8: // Echo request
