@@ -301,7 +301,7 @@ public static unsafe partial class GarbageCollector
 
             // MethodTable must be in kernel address space (higher-half).
             // Reject pointers in userspace range — they're garbage from conservative scanning.
-            if (mtPtr < AddressSpace.KernelSpaceStart)
+            if (mtPtr < AddressSpaceConst.KernelSpaceStart)
             {
                 continue;
             }

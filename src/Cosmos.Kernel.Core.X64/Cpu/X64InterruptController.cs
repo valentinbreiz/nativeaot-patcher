@@ -73,7 +73,7 @@ public class X64InterruptController : IInterruptController
                     // timer handler: the saved context sits 256 bytes (XMM
                     // save area) below the IRQContext.
                     nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - XmmSaveAreaSizeBytes;
-                    if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) == AddressSpace.KernelSpaceCanonicalMask)
+                    if ((currentRsp & AddressSpaceConst.KernelSpaceCanonicalMask) == AddressSpaceConst.KernelSpaceCanonicalMask)
                     {
                         SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
                     }

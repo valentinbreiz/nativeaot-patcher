@@ -412,7 +412,7 @@ public static class LocalApic
         nuint currentRsp = contextPtr - X64InterruptController.XmmSaveAreaSizeBytes;  // RSP points to start of XMM save area
 
         // Sanity check RSP - should be in kernel space (0xFFFF800000000000+)
-        if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) != AddressSpace.KernelSpaceCanonicalMask)
+        if ((currentRsp & AddressSpaceConst.KernelSpaceCanonicalMask) != AddressSpaceConst.KernelSpaceCanonicalMask)
         {
             Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", _timerTickCount, ": ");
             Serial.WriteHex((ulong)currentRsp);
