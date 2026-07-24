@@ -56,8 +56,9 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_FuncletNoCrashOnAllocInCatch", TestGCFuncletNoCrashOnAllocInCatch);
         TR.Run("GC_ThrowThroughDeepChain", TestGCThrowThroughDeepChain);
 
-        // GC Soundness Tests. The interior-pointer test (byref-only root across a collect)
-        // is parked in #384 until interior-pointer support (#376) lands — it fails today.
+        // GC Soundness Tests. GC_InteriorPointerRoot FAILS until interior-pointer
+        // support (#376) lands — it is the acceptance test for #384.
+        TR.Run("GC_InteriorPointerRoot", TestGCInteriorPointerRoot);
         TR.Run("GC_StaticOnlyReachability", TestGCStaticOnlyReachability);
         TR.Run("GC_MultithreadChurnUnderCollect", TestGCMultithreadChurnUnderCollect);
         TR.Run("GC_MallocHeapNotSwept", TestGCMallocHeapNotSwept);
@@ -894,6 +895,51 @@ public class Kernel : Sys.Kernel
     }
 
     // ==================== GC Soundness Tests ====================
+
+    /// <summary>
+    /// Allocates a TLAB-sized array and returns a byref into it. NoInlining guarantees the
+    /// array reference itself dies with this frame — the returned interior pointer is the only
+    /// root left. TLAB-sized (8416+ bytes) so that, if wrongly freed, the churn's TLAB refill
+    /// takes the free block and zeroes it, making the collection observable.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ref int LeakInteriorRef()
+    {
+        int[] arr = new int[2100];
+        for (int i = 0; i < arr.Length; i++)
+        {
+            arr[i] = 0x5A5A0000 + i;
+        }
+
+        return ref arr[8];
+    }
+
+    private static void TestGCInteriorPointerRoot()
+    {
+        ref int r = ref LeakInteriorRef();
+
+        Assert.Equal(0x5A5A0008, r, "GC: interior-pointer array must be intact before collect");
+
+        CoreGC.Collect();
+        int afterCollect = r;
+
+        // Churn: TLAB refills reuse freed >=8KB blocks and zero them, so a wrongly freed
+        // array reads back 0 (or junk) here instead of the 0x5A5A pattern.
+        for (int i = 0; i < 512; i++)
+        {
+            int[] junk = new int[32];
+            junk[0] = i;
+        }
+
+        Serial.WriteString("[Test] interior byref after collect: ");
+        Serial.WriteHex((uint)afterCollect);
+        Serial.WriteString(", after churn: ");
+        Serial.WriteHex((uint)r);
+        Serial.WriteString("\n");
+
+        Assert.Equal(0x5A5A0008, r,
+            "GC: an object whose only root is an interior pointer (byref/Span) must survive collection (#384)");
+    }
 
     /// <summary>Holds the only reference to the statics-reachability test array.</summary>
     private static int[]? s_staticOnlyArray;
