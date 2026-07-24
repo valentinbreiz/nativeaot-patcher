@@ -186,7 +186,7 @@ public static unsafe partial class GarbageCollector
 
         while (segment != null)
         {
-            if (segment->Start >= obj && segment->End < obj)
+            if (obj >= segment->Start && obj < segment->End)
             {
                 var start = (GCObject*)segment->Start;
                 while (start < segment->End)
@@ -196,7 +196,7 @@ public static unsafe partial class GarbageCollector
                         return start;
                     }
 
-                    if(obj > start && obj < (void*)((byte*)start + start->ComputeSize()))
+                    if(obj > start && obj < (byte*)start + start->ComputeSize())
                     {
                         return start;
                     }
