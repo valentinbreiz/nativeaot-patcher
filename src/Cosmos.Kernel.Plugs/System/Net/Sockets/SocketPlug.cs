@@ -246,8 +246,8 @@ public static class SocketPlug
             ;
         }
 
-        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToByteArray()), sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToByteArray()), sm.LocalEndPoint.Port);
+        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToSpan()), sm.RemoteEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToSpan()), sm.LocalEndPoint.Port);
 
         return aThis;
     }
@@ -322,7 +322,7 @@ public static class SocketPlug
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToByteArray()), sm.LocalEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToSpan()), sm.LocalEndPoint.Port);
 
         // Simple sequence number generation
         uint sequenceNumber = (uint)(1000 + id);
@@ -727,7 +727,7 @@ public static class SocketPlug
         }
 
         // Update the remote endpoint (use byte array to avoid endianness issues)
-        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToByteArray()), ep.Port);
+        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToSpan()), ep.Port);
 
         int bytesToCopy = Math.Min(data.Length, size);
         Buffer.BlockCopy(data, 0, buffer, offset, bytesToCopy);
