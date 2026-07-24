@@ -162,6 +162,51 @@ public static unsafe partial class GarbageCollector
         {
             return;
         }
+
+        if((gcRefFlags & GcRefFlags.GC_CALL_INTERIOR) != 0)
+        {
+            // The reported slot is an interior pointer. If it points to a valid object, mark the
+            // object itself (the header) instead of the interior pointer. This is the same hole
+            // the conservative scanner has: it will see the interior pointer and mark the object
+            // anyway, so we don't need to do anything special here.
+            void* obj = GetParentObject((void*)(*pObjRef));
+            if (obj != null)
+            {
+                TryMarkRoot((nint)obj);
+            }
+            return;
+        }
+        
         TryMarkRoot((nint)(*pObjRef));
+    }
+
+    private static void* GetParentObject(void* obj)
+    {
+        var segment = s_segments;
+
+        while (segment != null)
+        {
+            if (segment->Start >= obj && segment->End < obj)
+            {
+                var start = (GCObject*)segment->Start;
+                while (start < segment->End)
+                {
+                    if (start == obj)
+                    {
+                        return start;
+                    }
+
+                    if(obj > start && obj < (void*)((byte*)start + start->ComputeSize()))
+                    {
+                        return start;
+                    }
+
+                    start = (GCObject*)((byte*)start + start->ComputeSize());
+                }
+            }
+            segment = segment->Next;
+        }
+        
+        return obj;
     }
 }
