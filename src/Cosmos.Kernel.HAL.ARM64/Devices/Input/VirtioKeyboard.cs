@@ -69,8 +69,8 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         // For legacy MMIO (version 1), set guest page size before any queue setup
         if (_mmioVersion == 1)
         {
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, 4096);
-            Serial.Write("[VirtioKeyboard] Set guest page size to 4096\n");
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_GUEST_PAGE_SIZE, (uint)PageAllocator.PageSize);
+            Serial.Write("[VirtioKeyboard] Set guest page size\n");
         }
 
         // Set ACKNOWLEDGE status bit
@@ -191,10 +191,10 @@ public unsafe class VirtioKeyboard : KeyboardDevice
         if (_mmioVersion == 1)
         {
             // Legacy: set queue alignment and PFN (page frame number)
-            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, 4096);
+            VirtioMMIO.Write32(_baseAddress, VirtioMMIO.REG_QUEUE_ALIGN, (uint)PageAllocator.PageSize);
 
             ulong baseAddr = _eventQueue.QueueBaseAddr;
-            uint pfn = (uint)(baseAddr / 4096);
+            uint pfn = (uint)(baseAddr / PageAllocator.PageSize);
 
             Serial.Write("[VirtioKeyboard] Queue PFN=0x");
             Serial.WriteHex(pfn);

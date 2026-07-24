@@ -18,7 +18,7 @@ public static unsafe partial class GarbageCollector
     private static GCSegment* AllocateSegment(uint requestedSize)
     {
         uint size = requestedSize < s_maxSegmentSize ? s_maxSegmentSize : requestedSize;
-        uint totalSize = size + (uint)sizeof(GCSegment);
+        uint totalSize = size + (uint)sizeof(GCSegment) + ReservedHeaderSlotSize;
         ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
 
         var memory = (byte*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
@@ -29,7 +29,9 @@ public static unsafe partial class GarbageCollector
 
         var segment = (GCSegment*)memory;
         segment->Next = null;
-        segment->Start = memory + Align((uint)sizeof(GCSegment));
+        // Pad Start so the first object's runtime header write (objRef-4) lands in
+        // zeroed filler instead of the segment struct's last field (UsedSize).
+        segment->Start = memory + Align((uint)sizeof(GCSegment)) + ReservedHeaderSlotSize;
         segment->End = memory + (pageCount * PageAllocator.PageSize);
         segment->Bump = segment->Start;
         segment->TotalSize = (uint)(segment->End - segment->Start);

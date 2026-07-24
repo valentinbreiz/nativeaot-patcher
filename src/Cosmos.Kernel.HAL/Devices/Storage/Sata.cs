@@ -30,7 +30,7 @@ public class Sata : BlockDevice
     /// never span more than this or the HBA would DMA past the page into
     /// adjacent kernel memory.
     /// </summary>
-    private const uint MaxSectorsPerCommand = (uint)(4096 / RegularSectorSize);
+    private const uint MaxSectorsPerCommand = (uint)(PageAllocator.PageSize / RegularSectorSize);
 
     /// <summary>PxTFD status mask: BSY (bit 7) | DRQ (bit 3) - device busy or requesting a data transfer.</summary>
     private const uint TfdBusyDrqMask = (uint)(AtaDeviceStatus.Busy | AtaDeviceStatus.DRQ);

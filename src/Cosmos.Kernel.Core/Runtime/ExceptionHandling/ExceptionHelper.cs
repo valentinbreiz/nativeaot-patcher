@@ -206,7 +206,12 @@ public static unsafe partial class ExceptionHelper
 
             // Does this frame have a handler covering the call that threw? On a rethrow, the
             // clauses this exception already entered must not catch it again.
-            if (TryFindHandler(ex, frame.ReturnAddress, isRethrow, frame.FramePointer, out EHClause clause, pRegDisplay))
+            // Probe one byte back into the call: every ReturnAddress here — including frame 0's
+            // throwAddress, captured as RhpThrowEx's return address — points at the instruction
+            // AFTER the call, and clause try-ends are exclusive, so a call ending a try region
+            // would otherwise miss its handler (#387). RyuJIT pads such calls with nop/int3
+            // today, making this adjustment behavior-preserving on the current codegen.
+            if (TryFindHandler(ex, frame.ReturnAddress - 1, isRethrow, frame.FramePointer, out EHClause clause, pRegDisplay))
             {
                 Serial.WriteString("[EH] Handler found at 0x");
                 Serial.WriteHex((nuint)clause.HandlerAddress);

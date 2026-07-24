@@ -39,6 +39,13 @@ public class ConditionVariable : IDisposable
     /// <param name="mutex">The mutex protecting the condition.</param>
     /// <remarks>
     /// This method releases the mutex while the thread is blocked and re-acquires it before returning.
+    /// Waiter-list insertion, the mutex release, and the park form one IRQ-off section so a Signal
+    /// can only ever observe a fully parked thread. The mutex must be released before BlockThread
+    /// (a Blocked thread still holding it could never be signaled), but inside the scope: releasing
+    /// with interrupts enabled re-opens the lost-wakeup window (#357) — the release hands the mutex
+    /// to a waiter and requests a reschedule, so the very next IRQ exit can run the new owner, whose
+    /// Signal readies this still-Running thread; the subsequent BlockThread then buries the wakeup
+    /// forever. Same shape as Mutex.Acquire / InterruptEvent.WaitCore (eab7e338).
     /// </remarks>
     public void Wait(Mutex mutex)
     {
@@ -54,18 +61,24 @@ public class ConditionVariable : IDisposable
         Serial.WriteNumber(currentThread.Id);
         Serial.WriteString("\n");
 
-        _lockGuard.Acquire();
-        if (!_waitingThreads.Contains(currentThread!))
+        using (_lockGuard.AcquireIrqSafe())
         {
-            _waitingThreads.Add(currentThread!);
+            if (!ContainsWaiterLocked(currentThread))
+            {
+                _waitingThreads.Add(currentThread);
+            }
+
+            mutex.Release();
+            SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
         }
-        _lockGuard.Release();
 
-        // Release the mutex while waiting
-        mutex.Release();
-
-        SchedulerManager.BlockThread(currentThread.CpuId, currentThread);
-        InternalCpu.Halt();
+        // Only park the CPU while still Blocked (same rationale as Mutex.Acquire): if a Signal
+        // already readied this thread between scope-dispose and this point, halting would sleep
+        // past the wake-up until an unrelated interrupt.
+        if (currentThread.State == ThreadState.Blocked)
+        {
+            InternalCpu.Halt();
+        }
 
         Serial.WriteString("[CV] Wait WOKE thread=");
         Serial.WriteNumber(currentThread.Id);
@@ -99,34 +112,77 @@ public class ConditionVariable : IDisposable
         Serial.WriteNumber(timeoutMs);
         Serial.WriteString("\n");
 
-        // Release the mutex while waiting
-        mutex.Release();
-
-        _lockGuard.Acquire();
-        if (!_waitingThreads.Contains(currentThread!))
+        // Same atomic insert+release+park section as Wait — the old order (release, then
+        // insert) additionally lost any Signal landing between the two: it found no waiters.
+        using (_lockGuard.AcquireIrqSafe())
         {
-            _waitingThreads.Add(currentThread!);
-        }
-        _lockGuard.Release();
+            if (!ContainsWaiterLocked(currentThread))
+            {
+                _waitingThreads.Add(currentThread);
+            }
 
-        // Put thread to sleep with timeout
-        SchedulerManager.Sleep(currentThread.CpuId, currentThread, timeoutMs);
+            mutex.Release();
+            SchedulerManager.MarkSleeping(currentThread.CpuId, currentThread, timeoutMs);
+        }
+
+        if (currentThread.State == ThreadState.Sleeping)
+        {
+            InternalCpu.Halt();
+        }
 
         Serial.WriteString("[CV] WaitTimeout WOKE thread=");
         Serial.WriteNumber(currentThread.Id);
         Serial.WriteString("\n");
 
+        // Signaled iff Signal/SignalAll removed this thread from the wait list before the
+        // timeout fired. On timeout the stale entry must be removed here, or a later Signal
+        // would consume it instead of waking a real waiter.
+        bool signaled;
+        using (_lockGuard.AcquireIrqSafe())
+        {
+            signaled = !ContainsWaiterLocked(currentThread);
+            if (!signaled)
+            {
+                RemoveWaiterLocked(currentThread);
+            }
+        }
+
+        currentThread.WakeupTime = 0;
+
         // Reacquire the mutex before returning
         mutex.Acquire();
 
-        if (currentThread.WakeupTime > 0)
+        return signaled;
+    }
+
+    /// <summary>
+    /// ReferenceEquals scan (not List.Contains) to match the scheduler's convention of
+    /// avoiding EqualityComparer&lt;T&gt;.Default in kernel paths (see Mutex, InterruptEvent).
+    /// Caller must hold <see cref="_lockGuard"/>.
+    /// </summary>
+    private bool ContainsWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
         {
-            currentThread.WakeupTime = 0;
-            return true;
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                return true;
+            }
         }
-        else
+
+        return false;
+    }
+
+    /// <summary>Removes a thread from the wait list. Caller must hold <see cref="_lockGuard"/>.</summary>
+    private void RemoveWaiterLocked(SchedThread thread)
+    {
+        for (int i = 0; i < _waitingThreads.Count; i++)
         {
-            return false;
+            if (ReferenceEquals(_waitingThreads[i], thread))
+            {
+                _waitingThreads.RemoveAt(i);
+                return;
+            }
         }
     }
 
@@ -135,26 +191,27 @@ public class ConditionVariable : IDisposable
     /// </summary>
     public void Signal()
     {
-        _lockGuard.Acquire();
-
-        if (_waitingThreads.Count > 0)
+        // IRQ-safe like every other _lockGuard use: Wait holds this lock with interrupts
+        // masked, so a plain-acquire holder preempted mid-section would deadlock it.
+        using (_lockGuard.AcquireIrqSafe())
         {
-            SchedThread waitingThread = _waitingThreads[0];
-            _waitingThreads.RemoveAt(0);
+            if (_waitingThreads.Count > 0)
+            {
+                SchedThread waitingThread = _waitingThreads[0];
+                _waitingThreads.RemoveAt(0);
 
-            Serial.WriteString("[CV] Signal -> ReadyThread id=");
-            Serial.WriteNumber(waitingThread.Id);
-            Serial.WriteString("\n");
+                Serial.WriteString("[CV] Signal -> ReadyThread id=");
+                Serial.WriteNumber(waitingThread.Id);
+                Serial.WriteString("\n");
 
-            // Wake the thread by marking it ready
-            SchedulerManager.ReadyThread(waitingThread.CpuId, waitingThread);
+                // Wake the thread by marking it ready
+                SchedulerManager.ReadyThread(waitingThread.CpuId, waitingThread);
+            }
+            else
+            {
+                Serial.WriteString("[CV] Signal (no waiters)\n");
+            }
         }
-        else
-        {
-            Serial.WriteString("[CV] Signal (no waiters)\n");
-        }
-
-        _lockGuard.Release();
     }
 
     /// <summary>
@@ -162,17 +219,16 @@ public class ConditionVariable : IDisposable
     /// </summary>
     public void SignalAll()
     {
-        _lockGuard.Acquire();
-
-        foreach (SchedThread thread in _waitingThreads)
+        using (_lockGuard.AcquireIrqSafe())
         {
-            // Wake each thread by marking it ready
-            SchedulerManager.ReadyThread(thread.CpuId, thread);
+            foreach (SchedThread thread in _waitingThreads)
+            {
+                // Wake each thread by marking it ready
+                SchedulerManager.ReadyThread(thread.CpuId, thread);
+            }
+
+            _waitingThreads.Clear();
         }
-
-        _waitingThreads.Clear();
-
-        _lockGuard.Release();
     }
 
     public void Dispose()

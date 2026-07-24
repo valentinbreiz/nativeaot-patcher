@@ -115,14 +115,13 @@ public static unsafe class GICv3Its
     private const byte BASER_TYPE_COLLECTION = 4;
 
     // GITS_CBASER bit layout — same address encoding as PROPBASER (bits [51:12]).
-    private const ulong CBASER_ADDR_MASK = 0x000FFFFFFFFFF000UL;
     private const ulong CBASER_VALID = 1UL << 63;
     private const ulong CBASER_INNERSHAREABLE = 1UL << 10;
 
     // ITS command layout: every command is 32 bytes (4 × u64) in the queue.
     private const uint ItsCommandSize = 32;
     // Command queue lives in one 4 KiB page → 128 commands of 32 bytes each.
-    private const uint CommandQueueBytes = 4096;
+    private const uint CommandQueueBytes = CommandQueuePages * ItsPageSize;
     /// <summary>Number of 4 KiB pages backing the command-queue ring (CommandQueueBytes worth).</summary>
     private const uint CommandQueuePages = 1;
 
@@ -296,7 +295,7 @@ public static unsafe class GICv3Its
         ulong cbaser = CBASER_VALID
                      | CBASER_INNERSHAREABLE
                      | BASER_INNER_CACHE_RaWaWb
-                     | (_cmdQueuePhys & CBASER_ADDR_MASK)
+                     | (_cmdQueuePhys & GICv3.BASER_PHYS_ADDR_MASK)
                      | 0; // size = (4KB / 4KB) - 1 = 0
         Native.MMIO.Write64(_itsBase + GITS_CBASER, cbaser);
         // Same policy as the BASER tables: a command queue whose

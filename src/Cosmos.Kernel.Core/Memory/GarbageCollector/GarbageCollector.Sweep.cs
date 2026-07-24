@@ -56,23 +56,6 @@ public static unsafe partial class GarbageCollector
             // Get MethodTable (mask off mark bit)
             MethodTable* mt = obj->GetMethodTable();
 
-            if (mt == null)
-            {
-                // Zeroed TLAB gap (< MinBlockSize, zeroed by StampUnusedTlab) —
-                // dead space. Fold it into the free run and keep walking:
-                // breaking here would strand everything up to Bump, so the
-                // trailing reset never fires and the segment can never be
-                // returned to the page allocator.
-                if (freeRunStart == null)
-                {
-                    freeRunStart = ptr;
-                }
-
-                freeRunSize += (uint)sizeof(nint);
-                ptr += sizeof(nint);
-                continue;
-            }
-
             // Check if this is a free block from previous GC
             if (mt == s_freeMethodTable)
             {
@@ -95,10 +78,24 @@ public static unsafe partial class GarbageCollector
                 continue;
             }
 
-            // Check if this is a managed object (MT points outside heap to kernel code)
-            if (IsInGCHeap((nint)mt))
+            // Anything that is not a plausible MethodTable is dead filler:
+            //  - null: zeroed TLAB gap (< MinBlockSize, zeroed by StampUnusedTlab);
+            //  - below AddressSpace.KernelSpaceStart: data, most commonly the runtime object header
+            //    (identity hash / thin lock) written at objRef-4 of an object that
+            //    directly follows a gap — the word then reads as header << 32;
+            //  - inside the GC heap: a stale interior pointer.
+            // Fold it into the free run and keep walking: breaking here would strand
+            // everything up to Bump, so the trailing reset never fires and the segment
+            // can never be returned to the page allocator. Dereferencing it (the old
+            // behavior for non-null values) faulted on non-canonical addresses (#382 GP).
+            if (mt == null || (ulong)mt < AddressSpace.KernelSpaceStart || IsInGCHeap((nint)mt))
             {
-                // Not a managed object - skip pointer-sized chunk
+                if (freeRunStart == null)
+                {
+                    freeRunStart = ptr;
+                }
+
+                freeRunSize += (uint)sizeof(nint);
                 ptr += sizeof(nint);
                 continue;
             }
@@ -154,21 +151,45 @@ public static unsafe partial class GarbageCollector
 
     /// <summary>
     /// Converts a contiguous free run into a <see cref="FreeBlock"/> and adds it to the free list.
+    /// The last <see cref="ReservedHeaderSlotSize"/> bytes of the run are excluded from the block:
+    /// they may hold the runtime object header (objRef-4) of the object that follows the run,
+    /// which must survive block recycling (<see cref="AllocFromFreeList"/> zeroes what it hands out).
     /// </summary>
     /// <param name="start">Start of the free run.</param>
-    /// <param name="size">Size of the free run in bytes. Must be at least <see cref="MinBlockSize"/>.</param>
+    /// <param name="size">Size of the free run in bytes.</param>
     private static void FlushFreeRun(byte* start, uint size)
     {
-        if (start == null || size < MinBlockSize)
+        if (start == null || size < MinBlockSize + ReservedHeaderSlotSize)
         {
             return;
         }
+
+        size -= ReservedHeaderSlotSize;
+        SanitizeReservedHeaderSlot(start + size);
 
         var freeBlock = (FreeBlock*)start;
         freeBlock->MethodTable = s_freeMethodTable;
         freeBlock->Size = (int)size;
         freeBlock->Next = null;
         AddToFreeList(freeBlock, 's');
+    }
+
+    /// <summary>
+    /// Prepares the 8-byte tail slot excluded from a free block. The high 4 bytes are the
+    /// following object's runtime header (identity hash / thin lock) and must survive; the
+    /// low 4 bytes are dead. Clears any leftover value that could still read as a kernel
+    /// pointer (a stale reference in a dead object's tail) so the sweep walk can never
+    /// misparse the slot as an object — real header words always stay below
+    /// <see cref="AddressSpace.KernelSpaceStart"/>.
+    /// </summary>
+    /// <param name="slot">Address of the 8-byte reserved slot.</param>
+    private static void SanitizeReservedHeaderSlot(byte* slot)
+    {
+        *(uint*)slot = 0;
+        if (*(ulong*)slot >= AddressSpace.KernelSpaceStart)
+        {
+            *(ulong*)slot = 0;
+        }
     }
 
     /// <summary>
