@@ -82,7 +82,6 @@ public static class Global
 
             // Halt
             while (true) { }
-            return;
         }
 
         Serial.WriteString("[Global] Starting kernel...\n");

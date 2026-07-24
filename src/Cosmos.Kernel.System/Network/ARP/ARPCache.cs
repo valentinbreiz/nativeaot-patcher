@@ -1,4 +1,5 @@
-﻿using Cosmos.Kernel.HAL.Devices.Network;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.ARP;
@@ -16,6 +17,7 @@ internal static class ARPCache
     /// <summary>
     /// Ensures the cache map exists.
     /// </summary>
+    [MemberNotNull(nameof(Cache))]
     private static void EnsureCacheExists()
     {
         Cache ??= new Dictionary<uint, MACAddress>();
@@ -66,11 +68,12 @@ internal static class ARPCache
     internal static MACAddress? Resolve(Address ipAddress)
     {
         EnsureCacheExists();
-        if (Cache.ContainsKey(ipAddress.Hash) == false)
+
+        if (!Cache.TryGetValue(ipAddress.Hash, out MACAddress? resolve))
         {
             return null;
         }
 
-        return Cache[ipAddress.Hash];
+        return resolve;
     }
 }

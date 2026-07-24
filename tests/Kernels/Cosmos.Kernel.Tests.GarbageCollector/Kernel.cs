@@ -5,6 +5,7 @@ using System.Threading;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
+using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
@@ -60,6 +61,7 @@ public class Kernel : Sys.Kernel
         TR.Run("GC_InteriorPointerRoot", TestGCInteriorPointerRoot);
         TR.Run("GC_StaticOnlyReachability", TestGCStaticOnlyReachability);
         TR.Run("GC_MultithreadChurnUnderCollect", TestGCMultithreadChurnUnderCollect);
+        TR.Run("GC_MallocHeapNotSwept", TestGCMallocHeapNotSwept);
 
         // GC Info & Configuration Tests
         TR.Run("GC_Info_SimpleMemoryInfo", TestGCInfoSimpleMemoryInfo);
@@ -1068,6 +1070,68 @@ public class Kernel : Sys.Kernel
         Assert.True(s_churnIterations > 0, "GC: churn workers must have completed at least one iteration");
         Assert.Equal(0, s_churnErrorCount,
             "GC: parked-thread survivors must never be corrupted by collections (" + s_churnErrorCount + " errors)");
+    }
+
+    /// <summary>
+    /// A live <see cref="Heap"/> allocation whose first word happens to hold a pointer into
+    /// the GC heap (a native struct caching a managed buffer address). The GC must never free
+    /// it: managed objects cannot live in the malloc heaps, so the sweep has no business there.
+    /// Issue #386 — the malloc-heap sweepers' inverted MethodTable check treated exactly this
+    /// shape as an unmarked managed object and freed it while live.
+    /// </summary>
+    private static unsafe void TestGCMallocHeapNotSwept()
+    {
+        byte[] managedBuffer = new byte[128];
+
+        byte* small = Heap.Alloc(64);     // SmallHeap (SMT slot)
+        byte* medium = Heap.Alloc(3000);  // MediumHeap (page + header)
+        byte* large = Heap.Alloc(8192);   // LargeHeap (multi-page + header)
+
+        // First word: a real GC-heap pointer with the LSB clear — reads as an
+        // "unmarked object whose MethodTable is inside the GC heap" to the sweeper.
+        fixed (byte* bp = managedBuffer)
+        {
+            *(byte**)small = bp;
+            *(byte**)medium = bp;
+            *(byte**)large = bp;
+        }
+
+        small[8] = 0xC5;
+
+        CoreGC.Collect();
+
+        // SmallHeap.Free zeroes the slot header's size and the data;
+        // Medium/LargeHeap.Free return the pages to the page allocator (RAT -> Empty).
+        bool smallAlive = SmallHeap.GetHeader(small)->Size != 0;
+        bool mediumAlive = PageAllocator.GetPageType(medium) == PageType.HeapMedium;
+        bool largeAlive = PageAllocator.GetPageType(large) == PageType.HeapLarge;
+
+        Assert.True(smallAlive,
+            "GC: live small-heap block must remain allocated across a collect (issue #386)");
+        Assert.True(smallAlive && small[8] == 0xC5,
+            "GC: live small-heap block data must be intact after a collect (issue #386)");
+        Assert.True(mediumAlive,
+            "GC: live medium-heap block must remain allocated across a collect (issue #386)");
+        Assert.True(largeAlive,
+            "GC: live large-heap block must remain allocated across a collect (issue #386)");
+
+        GC.KeepAlive(managedBuffer);
+
+        // Free only what survived — Heap.Free on an already-freed block panics the kernel.
+        if (smallAlive)
+        {
+            Heap.Free(small);
+        }
+
+        if (mediumAlive)
+        {
+            Heap.Free(medium);
+        }
+
+        if (largeAlive)
+        {
+            Heap.Free(large);
+        }
     }
 
     // ==================== GC Info & Configuration Tests ====================

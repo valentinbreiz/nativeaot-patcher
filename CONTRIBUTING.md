@@ -87,6 +87,7 @@ The full rules are in the [Coding Guidelines](docs/articles/dev/coding-guideline
 - C# 14 / .NET 10, 4-space indentation, Allman braces
 - Braces are always required; use explicit types instead of `var`
 - Private fields `_camelCase`, static fields `s_camelCase`, constants `PascalCase`
+- Nullable reference types are enabled solution-wide; do not introduce nullable warnings — declare `?` honestly, guard late-initialized state with `[MemberNotNull]` helpers, and avoid the null-forgiving `!`
 - Kernel code must be AOT-compatible: no reflection, no dynamic code generation
 - Architecture-specific code goes behind `#if ARCH_X64` / `#if ARCH_ARM64`, only in `Cosmos.Kernel.Core` or `Cosmos.Kernel.Plugs`
 

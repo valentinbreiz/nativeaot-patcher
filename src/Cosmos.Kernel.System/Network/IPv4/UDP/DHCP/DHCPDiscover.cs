@@ -18,12 +18,6 @@ internal class DHCPDiscover : DHCPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="DHCPDiscover"/> class.
     /// </summary>
-    internal DHCPDiscover() : base()
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPDiscover"/> class.
-    /// </summary>
     internal DHCPDiscover(byte[] rawData) : base(rawData)
     { }
 

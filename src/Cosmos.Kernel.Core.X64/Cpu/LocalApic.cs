@@ -332,6 +332,15 @@ public static class LocalApic
         {
             // Busy wait
         }
+
+        // Re-arm the periodic scheduler tick this wait hijacked: the LVT was
+        // masked and switched to one-shot above, and without this the
+        // scheduler tick stays dead after the first Wait call.
+        if (_timerIntervalMs != 0)
+        {
+            Write(LAPIC_TIMER_LVT, TIMER_PERIODIC | TIMER_VECTOR);
+            Write(LAPIC_TIMER_INIT, _ticksPerMs * _timerIntervalMs);
+        }
     }
 
     /// <summary>

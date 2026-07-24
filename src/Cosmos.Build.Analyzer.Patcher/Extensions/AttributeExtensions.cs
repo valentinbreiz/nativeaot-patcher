@@ -10,7 +10,7 @@ public static class AttributeExtensions
         int positional = 0)
     {
         ExpressionSyntax? expression = positional >= 0 && positional <= attribute.ArgumentList?.Arguments.Count - 1
-                ? attribute.ArgumentList.Arguments[positional].Expression
+                ? attribute.ArgumentList?.Arguments[positional].Expression
             : attribute.ArgumentList?.Arguments
                 .FirstOrDefault(a => string.Equals((a.NameEquals?.Name ?? a.NameColon?.Name)?.ToString(), named, StringComparison.InvariantCultureIgnoreCase))
                 ?.Expression;

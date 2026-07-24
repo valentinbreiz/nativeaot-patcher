@@ -23,6 +23,8 @@ public sealed class ConsoleStream : Stream
 
     public override void Write(ReadOnlySpan<byte> buffer)
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         var value = Console.OutputEncoding.GetString(buffer);
         KernelConsole.Default.Write(value);
         if (KernelConsole.Default.IsAvailable)
@@ -71,7 +73,12 @@ public sealed class ConsoleStream : Stream
         Write(new ReadOnlySpan<byte>(buffer, offset, count));
     }
 
-    public override void WriteByte(byte value) => KernelConsole.Default.Write((char)value);
+    public override void WriteByte(byte value)
+    {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
+        KernelConsole.Default?.Write((char)value);
+    }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
@@ -134,6 +141,8 @@ public sealed class ConsoleStream : Stream
 
     private bool ReadLineCore()
     {
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         int cursorPos = 0;
 
         while (true)

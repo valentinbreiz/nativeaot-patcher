@@ -192,11 +192,13 @@ public class Address : IComparable
         }
     }
 
-    public int CompareTo(object obj)
+    public int CompareTo(object? obj)
     {
         if (obj is Address other)
         {
-            if (other.hash != hash)
+            // Compare through the property: the backing field is lazily
+            // computed and stays 0 until Hash is first read.
+            if (other.Hash != Hash)
             {
                 return -1;
             }
@@ -209,20 +211,10 @@ public class Address : IComparable
         }
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
 
-        if (obj == null && this == null)
-        {
-            return true;
-        }
-
         if (obj == null)
-        {
-            return false;
-        }
-
-        if (this == null)
         {
             return false;
         }

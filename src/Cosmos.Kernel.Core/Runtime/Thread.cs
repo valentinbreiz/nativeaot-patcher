@@ -57,7 +57,7 @@ public class Thread
         Serial.WriteString("RhYield Called\n");
         if (CosmosFeatures.SchedulerEnabled)
         {
-            Scheduler.Thread? thread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+            Scheduler.Thread? thread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread;
             if (thread != null)
             {
                 //TODO: Switch Threads (if possible)
