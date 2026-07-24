@@ -150,6 +150,12 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
+        // Native user-process threads run raw code and have no managed roots.
+        if ((thread.Flags & Scheduler.ThreadFlags.NativeProcess) != 0)
+        {
+            return;
+        }
+
         if (thread.State != Scheduler.ThreadState.Running)
         {
             Scheduler.ThreadContext* ctx = thread.GetContext();
@@ -295,7 +301,7 @@ public static unsafe partial class GarbageCollector
 
             // MethodTable must be in kernel address space (higher-half).
             // Reject pointers in userspace range — they're garbage from conservative scanning.
-            if (mtPtr < AddressSpace.KernelSpaceStart)
+            if (mtPtr < AddressSpaceConst.KernelSpaceStart)
             {
                 continue;
             }

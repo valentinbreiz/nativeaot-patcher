@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
@@ -25,6 +26,9 @@ public class X64InterruptController : IInterruptController
 
     /// <summary>Size in bytes of the XMM save area the asm stub pushes below the IRQContext. Internal: shared with the LAPIC timer handler's RSP derivation.</summary>
     internal const int XmmSaveAreaSizeBytes = 256;
+
+    /// <summary>Upper canonical bits of a kernel-space (higher-half) address, used as both mask and expected value. Internal: shared with the LAPIC timer handler's RSP sanity check.</summary>
+    internal const ulong KernelSpaceCanonicalMask = 0xFFFF000000000000;
 
     public bool IsInitialized => ApicManager.IsInitialized;
 
@@ -69,7 +73,7 @@ public class X64InterruptController : IInterruptController
                     // timer handler: the saved context sits 256 bytes (XMM
                     // save area) below the IRQContext.
                     nuint currentRsp = (nuint)Unsafe.AsPointer(ref ctx) - XmmSaveAreaSizeBytes;
-                    if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) == AddressSpace.KernelSpaceCanonicalMask)
+                    if ((currentRsp & AddressSpaceConst.KernelSpaceCanonicalMask) == AddressSpaceConst.KernelSpaceCanonicalMask)
                     {
                         SchedulerManager.ReschedulePendingFromIrq(LocalApic.GetId(), currentRsp);
                     }
@@ -109,6 +113,27 @@ public class X64InterruptController : IInterruptController
 
     private static void HandleFatalException(ulong interrupt, ulong cpuFlags, ulong faultAddress)
     {
+        // For page faults, give the managed handler a chance to resolve or kill the process.
+        if (interrupt == PageFaultVector)
+        {
+            ulong errorCode = 0;
+            if (HasErrorCode(interrupt))
+            {
+                errorCode = Cosmos.Kernel.Core.X64.Bridge.IdtNative.GetLastErrorCode();
+            }
+
+            bool wasWrite = (errorCode & (1UL << 1)) != 0;
+            bool wasInstructionFetch = (errorCode & (1UL << 4)) != 0;
+
+            var info = new PageFaultInfo(faultAddress, errorCode, wasWrite, wasInstructionFetch);
+            if (PageFaultHandler.Handle(info))
+            {
+                // Handler resolved the fault (e.g. terminated the process).
+                // The scheduler will pick another thread on the next tick.
+                return;
+            }
+        }
+
         Serial.Write("[INT] FATAL: Exception ", interrupt, "\n");
 
         if (HasErrorCode(interrupt))

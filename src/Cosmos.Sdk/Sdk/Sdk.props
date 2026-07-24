@@ -40,6 +40,8 @@
     <CosmosEnableFat Condition="'$(CosmosEnableFat)' == ''">true</CosmosEnableFat>
     <CosmosEnableGraphics Condition="'$(CosmosEnableGraphics)' == ''">true</CosmosEnableGraphics>
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
+    <CosmosEnablePaging Condition="'$(CosmosEnablePaging)' == ''">false</CosmosEnablePaging>
+    <CosmosEnableUserLand Condition="'$(CosmosEnableUserLand)' == ''">false</CosmosEnableUserLand>
     <!-- CosmosDefaultFont has no default: when unset, PCScreenFont falls back to its
          embedded Fonts.DefaultFont.psf. Set it to the manifest resource name of a PSF
          embedded in the kernel project to override the default console font. -->
@@ -71,10 +73,14 @@
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Filesystems.Fat.Enabled" Value="$(CosmosEnableFat)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.System.Graphics.Enabled" Value="$(CosmosEnableGraphics)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Paging.Enabled" Value="$(CosmosEnablePaging)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.UserLand.Enabled" Value="$(CosmosEnableUserLand)" Trim="true"/>
     <!-- Key must match PCScreenFont.Default.DefaultFontKey ("...Fonts.DefaultFont");
          it was previously written as "...Fonts.CustomFont", which nothing reads. -->
     <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
-    <!-- Root architecture-specific HAL assemblies to ensure module initializers run -->
+    <!-- Root architecture-specific Core and HAL assemblies to ensure module initializers run -->
+    <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.Core.X64"/>
+    <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.Core.ARM64"/>
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))" Include="--root:Cosmos.Kernel.HAL.X64"/>
     <IlcArg Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))" Include="--root:Cosmos.Kernel.HAL.ARM64"/>
   </ItemGroup>

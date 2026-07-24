@@ -28,6 +28,14 @@ public static unsafe partial class ContextSwitchNative
     [SuppressGCTransition]
     public static partial void SetContextSwitchNewThread(int isNew);
 
+    [LibraryImport("*", EntryPoint = "_native_set_context_switch_cr3")]
+    [SuppressGCTransition]
+    public static partial void SetContextSwitchCr3(ulong cr3);
+
+    [LibraryImport("*", EntryPoint = "_native_get_context_switch_cr3")]
+    [SuppressGCTransition]
+    public static partial ulong GetContextSwitchCr3();
+
     /// <summary>
     /// Captures the calling frame's callee-saved registers + stack pointer into the supplied
     /// <c>REGDISPLAY</c> and returns the caller's return address (IP). Used by the precise GC

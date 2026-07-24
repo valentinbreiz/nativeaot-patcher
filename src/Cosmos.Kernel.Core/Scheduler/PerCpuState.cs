@@ -1,3 +1,5 @@
+using Cosmos.Kernel.Core.Memory.VAS;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
@@ -11,6 +13,11 @@ public class PerCpuState : SchedulerExtensible
     // ===== Current Execution =====
     public Thread? CurrentThread { get; internal set; }
     public Thread? IdleThread { get; internal set; }
+
+    /// <summary>
+    /// Address space currently active on this CPU. Updated during context switch.
+    /// </summary>
+    public AddressSpace? CurrentAddressSpace { get; set; }
 
     // ===== Timing =====
     public ulong LastTickAt { get; internal set; }

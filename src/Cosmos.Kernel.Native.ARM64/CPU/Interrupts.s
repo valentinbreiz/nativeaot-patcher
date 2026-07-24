@@ -206,6 +206,27 @@ __exception_common:
     add     x11, x11, :lo12:_temp_is_new_thread
     str     x13, [x11]
 
+    // Check for address-space switch (TTBR1 root stored in _context_switch_target_cr3)
+    adrp    x11, _context_switch_target_cr3
+    add     x11, x11, :lo12:_context_switch_target_cr3
+    ldr     x14, [x11]
+    cbz     x14, .Lskip_ttbr_switch
+
+    // Combine new BADDR with current ASID from TTBR1_EL1
+    mrs     x15, ttbr1_el1
+    and     x14, x14, #0x0000FFFFFFFFF000  // keep only page-table address
+    mov     x16, #0x0000FFFFFFFFF000
+    bic     x15, x15, x16                  // clear BADDR, keep ASID/top bits
+    orr     x15, x15, x14
+    msr     ttbr1_el1, x15
+    dsb     sy
+    isb
+    tlbi    vmalle1is
+    dsb     sy
+    isb
+    str     xzr, [x11]                     // clear target CR3
+
+.Lskip_ttbr_switch:
     // Switch to new context's stack
     // x12 = new SP (points to start of saved context)
     mov     sp, x12
