@@ -165,6 +165,19 @@ file_header_template = This code is licensed under MIT license (see LICENSE for 
 # CA2255: The 'ModuleInitializer' attribute should not be used in libraries
 dotnet_diagnostic.CA2255.severity = none
 
+# CA1051: Do not declare visible instance fields (structs excluded to preserve hardware layouts)
+dotnet_diagnostic.CA1051.severity = warning
+dotnet_code_quality.CA1051.exclude_structs = true
+
+# CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2211.severity = warning
+
+# IDE0002: Simplify member access (e.g. object.ReferenceEquals -> ReferenceEquals)
+dotnet_diagnostic.IDE0002.severity = warning
+
+# IDE0060: Flag unused parameters
+dotnet_code_quality_unused_parameters = all:warning
+
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman
