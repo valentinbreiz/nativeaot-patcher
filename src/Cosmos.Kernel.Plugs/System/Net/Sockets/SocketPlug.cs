@@ -113,7 +113,7 @@ public static class SocketPlug
         {
             if (_tcpStateMachines.TryGetValue(id, out var sm))
             {
-                return sm.Data?.Length ?? 0;
+                return sm.Data.Length;
             }
         }
         else if (proto == ProtocolType.Udp)
@@ -208,17 +208,16 @@ public static class SocketPlug
     public static void StartTcp(Socket aThis)
     {
         int id = GetId(aThis);
-        if (!_endpoints.TryGetValue(id, out var ep) || ep == null)
+        if (!_endpoints.TryGetValue(id, out var ep))
         {
             Serial.WriteString("[SocketPlug] Socket not bound\n");
             throw new InvalidOperationException("Socket not bound");
         }
 
-        var sm = new Tcp((ushort)ep.Port, 0, Address.Zero, Address.Zero);
+        var sm = Tcp.CreateConnection((ushort)ep.Port, 0, Address.Zero, Address.Zero);
         sm.LocalEndPoint.Port = (ushort)ep.Port;
         sm.Status = Status.LISTEN;
 
-        Tcp.Connections.Add(sm);
         _tcpStateMachines[id] = sm;
     }
 
@@ -645,21 +644,20 @@ public static class SocketPlug
         }
 
         // If data is already available, return it immediately (even if connection closed)
-        if (sm.Data != null && sm.Data.Length > 0)
+        if (sm.Data.Length > 0)
         {
             int bytesToCopy = Math.Min(sm.Data.Length, size);
-            Buffer.BlockCopy(sm.Data, 0, buffer, offset, bytesToCopy);
+            var target = buffer.AsSpan(offset, bytesToCopy);
+            sm.Data.Slice(0, bytesToCopy).CopyTo(target);
 
-            byte[] remainingData = new byte[sm.Data.Length - bytesToCopy];
-            Buffer.BlockCopy(sm.Data, bytesToCopy, remainingData, 0, remainingData.Length);
-            sm.Data = remainingData;
+            sm.AdvanceDataOffset(bytesToCopy);
 
             return bytesToCopy;
         }
 
         // Wait for data only if connection is still active
         int timeout = 0;
-        while ((sm.Data == null || sm.Data.Length == 0) && timeout < 100000)
+        while (sm.Data.Length == 0 && timeout < 100000)
         {
             // Allow reading data in ESTABLISHED, CLOSE_WAIT, or FIN_WAIT states
             if (sm.Status != Status.ESTABLISHED &&
@@ -672,17 +670,16 @@ public static class SocketPlug
             timeout++;
         }
 
-        if (sm.Data == null || sm.Data.Length == 0)
+        if (sm.Data.Length == 0)
         {
             return 0;
         }
 
         int bytes = Math.Min(sm.Data.Length, size);
-        Buffer.BlockCopy(sm.Data, 0, buffer, offset, bytes);
+        var finalTarget = buffer.AsSpan(offset, bytes);
+        sm.Data.Slice(0, bytes).CopyTo(finalTarget);
 
-        byte[] remaining = new byte[sm.Data.Length - bytes];
-        Buffer.BlockCopy(sm.Data, bytes, remaining, 0, remaining.Length);
-        sm.Data = remaining;
+        sm.AdvanceDataOffset(bytes);
 
         return bytes;
     }
