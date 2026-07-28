@@ -12,6 +12,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.TCP;
 /// <summary>
 /// TCP Flags
 /// </summary>
+[Flags]
 public enum Flags : byte
 {
     /// <summary>
