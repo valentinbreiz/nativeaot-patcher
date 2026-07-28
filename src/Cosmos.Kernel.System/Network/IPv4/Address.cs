@@ -79,7 +79,7 @@ public sealed class Address : IComparable<Address>
     {
         if (buffer.Length != 4)
         {
-            throw new ArgumentOutOfRangeException(nameof(buffer), $"Buffer has to be 4 bytes long");
+            throw new ArgumentOutOfRangeException(nameof(buffer), "Buffer has to be 4 bytes long");
         }
 
         Parts = [.. buffer[0..4]];
