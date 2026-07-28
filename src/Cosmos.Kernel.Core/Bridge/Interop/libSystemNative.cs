@@ -9,9 +9,9 @@ internal static class libSystemNative
     [StructLayout(LayoutKind.Sequential)]
     internal struct ProcessCpuInformation
     {
-        internal ulong lastRecordedCurrentTime;
-        internal ulong lastRecordedKernelTime;
-        internal ulong lastRecordedUserTime;
+        internal ulong _lastRecordedCurrentTime;
+        internal ulong _lastRecordedKernelTime;
+        internal ulong _lastRecordedUserTime;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "SystemNative_GetCpuUtilization")]
@@ -25,15 +25,15 @@ internal static class libSystemNative
         ulong currentTime = GetMonotonicNs();
         ulong busyTime = SchedulerManager.GetBusyCpuTimeNs();
 
-        ulong lastTime = previousCpuInfo->lastRecordedCurrentTime;
-        ulong lastBusy = previousCpuInfo->lastRecordedUserTime;
+        ulong lastTime = previousCpuInfo->_lastRecordedCurrentTime;
+        ulong lastBusy = previousCpuInfo->_lastRecordedUserTime;
 
         // First call: seed snapshot only.
         if (lastTime == 0)
         {
-            previousCpuInfo->lastRecordedCurrentTime = currentTime;
-            previousCpuInfo->lastRecordedUserTime = busyTime;
-            previousCpuInfo->lastRecordedKernelTime = 0;
+            previousCpuInfo->_lastRecordedCurrentTime = currentTime;
+            previousCpuInfo->_lastRecordedUserTime = busyTime;
+            previousCpuInfo->_lastRecordedKernelTime = 0;
             return 0.0;
         }
 
@@ -59,9 +59,9 @@ internal static class libSystemNative
             }
         }
 
-        previousCpuInfo->lastRecordedCurrentTime = currentTime;
-        previousCpuInfo->lastRecordedUserTime = busyTime;
-        previousCpuInfo->lastRecordedKernelTime = 0;
+        previousCpuInfo->_lastRecordedCurrentTime = currentTime;
+        previousCpuInfo->_lastRecordedUserTime = busyTime;
+        previousCpuInfo->_lastRecordedKernelTime = 0;
         return utilization;
     }
 

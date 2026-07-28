@@ -12,25 +12,25 @@ public static class TimerManager
     /// <summary>Nanoseconds in one millisecond.</summary>
     private const ulong NanosecondsPerMillisecond = 1_000_000;
 
-    private static ITimerDevice? _timer;
-    private static bool _initialized;
+    private static ITimerDevice? s_timer;
+    private static bool s_initialized;
 
     /// <summary>
     /// Gets whether the timer manager is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Initializes the timer manager.
     /// </summary>
     public static void Initialize()
     {
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
 
-        _initialized = true;
+        s_initialized = true;
     }
 
     /// <summary>
@@ -43,20 +43,20 @@ public static class TimerManager
             return;
         }
 
-        _timer = timer;
+        s_timer = timer;
     }
 
     /// <summary>
     /// Gets the current timer frequency in Hz.
     /// </summary>
-    public static uint Frequency => _timer?.Frequency ?? 0;
+    public static uint Frequency => s_timer?.Frequency ?? 0;
 
     /// <summary>
     /// Sets the timer frequency in Hz.
     /// </summary>
     public static void SetFrequency(uint frequency)
     {
-        _timer?.SetFrequency(frequency);
+        s_timer?.SetFrequency(frequency);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public static class TimerManager
     /// <param name="ms">Milliseconds to wait.</param>
     public static void Wait(uint ms)
     {
-        _timer?.Wait(ms);
+        s_timer?.Wait(ms);
     }
 
     /// <summary>
@@ -105,23 +105,23 @@ public static class TimerManager
             return;
         }
 
-        _timer?.UnregisterTimer(timer);
+        s_timer?.UnregisterTimer(timer);
     }
 
     private static SoftwareTimer? ScheduleCore(Action callback, uint ms, bool recurring)
     {
-        if (_timer == null || callback == null)
+        if (s_timer == null || callback == null)
         {
             return null;
         }
 
         SoftwareTimer timer = new(callback, ms * NanosecondsPerMillisecond, recurring);
-        _timer.RegisterTimer(timer);
+        s_timer.RegisterTimer(timer);
         return timer;
     }
 
     /// <summary>
     /// Gets the registered timer device.
     /// </summary>
-    public static ITimerDevice? Timer => _timer;
+    public static ITimerDevice? Timer => s_timer;
 }

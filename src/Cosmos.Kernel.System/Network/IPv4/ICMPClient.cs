@@ -8,17 +8,17 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// </summary>
 public class ICMPClient : IDisposable
 {
-    private static readonly Dictionary<uint, ICMPClient> clients = new();
+    private static readonly Dictionary<uint, ICMPClient> s_clients = new();
 
     /// <summary>
-    /// The destination address.
+    /// The _destination address.
     /// </summary>
-    internal Address? destination;
+    internal Address? _destination;
 
     /// <summary>
     /// The RX buffer queue.
     /// </summary>
-    internal Queue<ICMPPacket> rxBuffer;
+    internal Queue<ICMPPacket> _rxBuffer;
 
     /// <summary>
     /// Gets a client by its IP address hash.
@@ -27,7 +27,7 @@ public class ICMPClient : IDisposable
     /// <returns>If a client is connected to the given address, the <see cref="ICMPClient"/>; otherwise, <see langword="null"/>.</returns>
     internal static ICMPClient? GetClient(uint iphash)
     {
-        if (clients.TryGetValue(iphash, out var client))
+        if (s_clients.TryGetValue(iphash, out var client))
         {
             return client;
         }
@@ -39,17 +39,17 @@ public class ICMPClient : IDisposable
     /// </summary>
     public ICMPClient()
     {
-        rxBuffer = new Queue<ICMPPacket>(8);
+        _rxBuffer = new Queue<ICMPPacket>(8);
     }
 
     /// <summary>
     /// Connects to the given client.
     /// </summary>
-    /// <param name="dest">The destination address.</param>
+    /// <param name="dest">The _destination address.</param>
     public void Connect(Address dest)
     {
-        destination = dest;
-        clients[dest.Id] = this;
+        _destination = dest;
+        s_clients[dest.Id] = this;
     }
 
     /// <summary>
@@ -57,26 +57,26 @@ public class ICMPClient : IDisposable
     /// </summary>
     public void Close()
     {
-        if (destination != null && clients.ContainsKey(destination.Id))
+        if (_destination != null && s_clients.ContainsKey(_destination.Id))
         {
-            clients.Remove(destination.Id);
+            s_clients.Remove(_destination.Id);
         }
     }
 
     /// <summary>
-    /// Sends an ICMP echo request to the connected destination.
+    /// Sends an ICMP echo request to the connected _destination.
     /// </summary>
     /// <param name="id">The echo identifier.</param>
     /// <param name="sequence">The echo sequence number.</param>
     public void SendEcho(ushort id = 0x0001, ushort sequence = 0x0001)
     {
-        if (destination == null)
+        if (_destination == null)
         {
-            throw new InvalidOperationException("Must establish a destination by calling Connect() before using SendEcho()");
+            throw new InvalidOperationException("Must establish a _destination by calling Connect() before using SendEcho()");
         }
 
-        Address source = IPConfig.FindNetwork(destination) ?? throw new InvalidOperationException("No network route to destination");
-        var request = new ICMPEchoRequest(source, destination, id, sequence);
+        Address source = IPConfig.FindNetwork(_destination) ?? throw new InvalidOperationException("No network route to _destination");
+        var request = new ICMPEchoRequest(source, _destination, id, sequence);
         OutgoingBuffer.AddPacket(request);
         NetworkStack.Update();
     }
@@ -90,18 +90,18 @@ public class ICMPClient : IDisposable
     public int Receive(ref EndPoint source, int timeout = 5000)
     {
         int waited = 0;
-        while (rxBuffer.Count < 1 && waited < timeout)
+        while (_rxBuffer.Count < 1 && waited < timeout)
         {
             TimerManager.Wait(10);
             waited += 10;
         }
 
-        if (rxBuffer.Count < 1)
+        if (_rxBuffer.Count < 1)
         {
             return -1;
         }
 
-        var packet = new ICMPEchoReply(rxBuffer.Dequeue().RawData);
+        var packet = new ICMPEchoReply(_rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
 
         return waited;
@@ -113,7 +113,7 @@ public class ICMPClient : IDisposable
     /// <param name="packet">The packet to receive.</param>
     internal void ReceiveData(ICMPPacket packet)
     {
-        rxBuffer.Enqueue(packet);
+        _rxBuffer.Enqueue(packet);
     }
 
     public void Dispose()

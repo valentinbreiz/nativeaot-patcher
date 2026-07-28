@@ -435,7 +435,7 @@ public class Tcp : IDisposable
             }
             else
             {
-                if (!packet.RST)
+                if (!packet._rst)
                 {
                     SendEmptyPacket(Flags.ACK);
                 }
@@ -452,22 +452,22 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessListen(TCPPacket packet)
     {
-        if (packet.RST)
+        if (packet._rst)
         {
             Serial.WriteString("[TCP] RST received at LISTEN state, packet passed.\n");
         }
-        else if (packet.FIN)
+        else if (packet._fin)
         {
             Serial.WriteString("[TCP] Connection closed! (FIN received on LISTEN state)\n");
         }
-        else if (packet.ACK)
+        else if (packet._ack)
         {
             TCB.RcvNxt = packet.SequenceNumber;
             TCB.SndNxt = packet.AckNumber;
 
             Status = Status.ESTABLISHED;
         }
-        else if (packet.SYN)
+        else if (packet._syn)
         {
             LocalEndPoint.Address = IPConfig.FindNetwork(packet.SourceIP) ?? throw new Exception($"Address can not be null");
             RemoteEndPoint.Address = packet.SourceIP;
@@ -501,7 +501,7 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessSynReceived(TCPPacket packet)
     {
-        if (packet.ACK)
+        if (packet._ack)
         {
             if (TCB.SndUna <= packet.AckNumber && packet.AckNumber <= TCB.SndNxt)
             {
@@ -523,12 +523,12 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessSynSent(TCPPacket packet)
     {
-        if (packet.SYN)
+        if (packet._syn)
         {
             TCB.IRS = packet.SequenceNumber;
             TCB.RcvNxt = packet.SequenceNumber + 1;
 
-            if (packet.ACK)
+            if (packet._ack)
             {
                 TCB.SndUna = packet.AckNumber;
                 TCB.SndWnd = packet.WindowSize;
@@ -550,7 +550,7 @@ public class Tcp : IDisposable
                 Serial.WriteString("[TCP] Connection closed! (" + packet.GetFlags() + " received on SYN_SENT state)\n");
             }
         }
-        else if (packet.ACK)
+        else if (packet._ack)
         {
             //Check for bad ACK packet
             if ((int)packet.AckNumber - TCB.ISS < 0 || packet.AckNumber - TCB.SndNxt > 0)
@@ -566,12 +566,12 @@ public class Tcp : IDisposable
                 Status = Status.ESTABLISHED;
             }
         }
-        else if (packet.FIN)
+        else if (packet._fin)
         {
             Status = Status.CLOSED;
             Serial.WriteString("[TCP] Connection closed! (FIN received on SYN_SENT state).\n");
         }
-        else if (packet.RST)
+        else if (packet._rst)
         {
             Status = Status.CLOSED;
             Serial.WriteString("[TCP] Connection refused by remote computer.\n");
@@ -583,7 +583,7 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessEstablished(TCPPacket packet)
     {
-        if (packet.ACK)
+        if (packet._ack)
         {
             if (TCB.SndUna < packet.AckNumber && packet.AckNumber <= TCB.SndNxt)
             {
@@ -613,7 +613,7 @@ public class Tcp : IDisposable
                 return;
             }
 
-            if (packet.PSH)
+            if (packet._psh)
             {
                 Serial.WriteString("[TCP] PSH received, data length: ");
                 Serial.WriteNumber((ulong)packet.TCP_DataLength);
@@ -628,7 +628,7 @@ public class Tcp : IDisposable
                 Serial.WriteString(" bytes\n");
 
                 // Handle FIN flag within PSH handling if both are set
-                if (packet.FIN)
+                if (packet._fin)
                 {
                     Serial.WriteString("[TCP] PSH+FIN received, closing\n");
                     TCB.RcvNxt++;
@@ -649,7 +649,7 @@ public class Tcp : IDisposable
                 }
                 return;
             }
-            else if (packet.FIN)
+            else if (packet._fin)
             {
                 Serial.WriteString("[TCP] FIN received, closing connection\n");
                 TCB.RcvNxt++;
@@ -668,13 +668,13 @@ public class Tcp : IDisposable
                 AppendToData(packet.TCP_Data);
             }
         }
-        if (packet.RST)
+        if (packet._rst)
         {
             Status = Status.CLOSED;
 
             Serial.WriteString("[TCP] Connection reset!\n");
         }
-        else if (packet.FIN)
+        else if (packet._fin)
         {
             TCB.RcvNxt++;
 
@@ -695,9 +695,9 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessFinWait1(TCPPacket packet)
     {
-        if (packet.ACK)
+        if (packet._ack)
         {
-            if (packet.FIN)
+            if (packet._fin)
             {
                 TCB.RcvNxt++;
 
@@ -710,7 +710,7 @@ public class Tcp : IDisposable
                 Status = Status.FIN_WAIT2;
             }
         }
-        else if (packet.FIN)
+        else if (packet._fin)
         {
             TCB.RcvNxt++;
 
@@ -725,7 +725,7 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessFinWait2(TCPPacket packet)
     {
-        if (packet.FIN)
+        if (packet._fin)
         {
             TCB.RcvNxt++;
 
@@ -733,7 +733,7 @@ public class Tcp : IDisposable
 
             WaitAndClose();
         }
-        else if (packet.RST)
+        else if (packet._rst)
         {
             Status = Status.CLOSED;
 
@@ -746,7 +746,7 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessClosing(TCPPacket packet)
     {
-        if (packet.ACK)
+        if (packet._ack)
         {
             WaitAndClose();
         }
@@ -757,7 +757,7 @@ public class Tcp : IDisposable
     /// </summary>
     public void ProcessCloseWait(TCPPacket packet)
     {
-        if (packet.ACK)
+        if (packet._ack)
         {
             Status = Status.CLOSED;
         }
@@ -859,7 +859,7 @@ public class Tcp : IDisposable
 
         // Increment SndNxt BEFORE NetworkStack.Update() so that incoming packets
         // processed during Update() see the correct value
-        if (packet.SYN || packet.FIN)
+        if (packet._syn || packet._fin)
         {
             TCB.SndNxt++;
         }

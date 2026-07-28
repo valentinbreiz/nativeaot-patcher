@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 public class IPPacket : EthernetPacket
 {
     protected byte ipHeaderLength;
-    private static ushort sNextFragmentID;
+    private static ushort s_sNextFragmentID;
 
     /// <summary>
     /// Handles a single IPv4 packet.
@@ -66,7 +66,7 @@ public class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the next IP fragment ID.
     /// </summary>
-    public static ushort NextIPFragmentID => sNextFragmentID++;
+    public static ushort NextIPFragmentID => s_sNextFragmentID++;
 
     /// <summary>
     /// Create new instance of the <see cref="IPPacket"/> class.

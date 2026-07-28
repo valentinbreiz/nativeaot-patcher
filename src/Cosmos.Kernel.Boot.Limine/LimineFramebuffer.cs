@@ -69,7 +69,7 @@ public readonly unsafe struct LimineFramebuffer
     public readonly byte GreenMaskShift;
     public readonly byte BlueMaskSize;
     public readonly byte BlueMaskShift;
-    private readonly byte p1, p2, p3, p4, p5, p6, p7;
+    private readonly byte _p1, _p2, _p3, _p4, _p5, _p6, _p7;
     public readonly ulong EdidSize;
     public readonly void* Edid;
 }

@@ -18,10 +18,10 @@ public static class KeyboardManager
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.KeyboardEnabled;
 
-    private static List<IKeyboardDevice>? _keyboards;
-    private static Queue<KeyEvent>? _queuedKeys;
-    private static ScanMapBase? _scanMap;
-    private static bool _initialized;
+    private static List<IKeyboardDevice>? s_keyboards;
+    private static Queue<KeyEvent>? s_queuedKeys;
+    private static ScanMapBase? s_scanMap;
+    private static bool s_initialized;
 
     /// <summary>
     /// The num-lock state.
@@ -56,7 +56,7 @@ public static class KeyboardManager
     /// <summary>
     /// Whether a keyboard input is pending to be processed.
     /// </summary>
-    public static bool KeyAvailable => _queuedKeys != null && _queuedKeys.Count > 0;
+    public static bool KeyAvailable => s_queuedKeys != null && s_queuedKeys.Count > 0;
 
     private static void ThrowIfDisabled()
     {
@@ -74,16 +74,16 @@ public static class KeyboardManager
     {
         ThrowIfDisabled();
 
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
 
-        _keyboards = new List<IKeyboardDevice>();
-        _queuedKeys = new Queue<KeyEvent>();
-        _scanMap = new USStandardLayout();
+        s_keyboards = new List<IKeyboardDevice>();
+        s_queuedKeys = new Queue<KeyEvent>();
+        s_scanMap = new USStandardLayout();
 
-        _initialized = true;
+        s_initialized = true;
     }
 
     /// <summary>
@@ -91,19 +91,19 @@ public static class KeyboardManager
     /// </summary>
     public static void RegisterKeyboard(IKeyboardDevice keyboard)
     {
-        if (_keyboards == null || keyboard == null)
+        if (s_keyboards == null || keyboard == null)
         {
             return;
         }
 
         keyboard.OnKeyPressed = HandleScanCode;
-        _keyboards.Add(keyboard);
+        s_keyboards.Add(keyboard);
 
         // Enable keyboard after callback is set (this registers IRQ handler)
         keyboard.Enable();
 
         Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] Registered keyboard, total: ");
-        Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
+        Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)s_keyboards.Count);
         Cosmos.Kernel.Core.IO.Serial.Write("\n");
     }
 
@@ -112,7 +112,7 @@ public static class KeyboardManager
     /// </summary>
     private static void Enqueue(KeyEvent keyEvent)
     {
-        _queuedKeys?.Enqueue(keyEvent);
+        s_queuedKeys?.Enqueue(keyEvent);
     }
 
     /// <summary>
@@ -120,37 +120,37 @@ public static class KeyboardManager
     /// </summary>
     public static void HandleScanCode(byte scanCode, bool released)
     {
-        if (_scanMap == null)
+        if (s_scanMap == null)
         {
             return;
         }
 
         byte key = scanCode;
 
-        if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.CapsLock) && !released)
+        if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.CapsLock) && !released)
         {
             CapsLock = !CapsLock;
             UpdateLeds();
         }
-        else if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.NumLock) && !released)
+        else if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.NumLock) && !released)
         {
             NumLock = !NumLock;
             UpdateLeds();
         }
-        else if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.ScrollLock) && !released)
+        else if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.ScrollLock) && !released)
         {
             ScrollLock = !ScrollLock;
             UpdateLeds();
         }
-        else if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LCtrl) || _scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RCtrl))
+        else if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LCtrl) || s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RCtrl))
         {
             ControlPressed = !released;
         }
-        else if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LShift) || _scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RShift))
+        else if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LShift) || s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RShift))
         {
             ShiftPressed = !released;
         }
-        else if (_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LAlt) || _scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RAlt))
+        else if (s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.LAlt) || s_scanMap.ScanCodeMatchesKey(key, ConsoleKeyEx.RAlt))
         {
             AltPressed = !released;
         }
@@ -171,12 +171,12 @@ public static class KeyboardManager
     /// </summary>
     private static void UpdateLeds()
     {
-        if (_keyboards == null)
+        if (s_keyboards == null)
         {
             return;
         }
 
-        foreach (IKeyboardDevice keyboard in _keyboards)
+        foreach (IKeyboardDevice keyboard in s_keyboards)
         {
             keyboard.UpdateLeds();
         }
@@ -189,12 +189,12 @@ public static class KeyboardManager
     /// <exception cref="InvalidOperationException"></exception>
     public static KeyEvent Peek()
     {
-        if (_queuedKeys == null)
+        if (s_queuedKeys == null)
         {
             throw new InvalidOperationException("KeyboardManager not initialized!");
         }
 
-        return _queuedKeys.Peek();
+        return s_queuedKeys.Peek();
     }
 
     /// <summary>
@@ -202,12 +202,12 @@ public static class KeyboardManager
     /// </summary>
     public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)
     {
-        if (_scanMap == null)
+        if (s_scanMap == null)
         {
             keyInfo = null;
             return false;
         }
-        keyInfo = _scanMap.ConvertScanCode(scanCode, ControlPressed, ShiftPressed, AltPressed, NumLock, CapsLock, ScrollLock);
+        keyInfo = s_scanMap.ConvertScanCode(scanCode, ControlPressed, ShiftPressed, AltPressed, NumLock, CapsLock, ScrollLock);
         return keyInfo != null;
     }
 
@@ -218,9 +218,9 @@ public static class KeyboardManager
     {
         ThrowIfDisabled();
 
-        if (_queuedKeys != null && _queuedKeys.Count > 0)
+        if (s_queuedKeys != null && s_queuedKeys.Count > 0)
         {
-            key = _queuedKeys.Dequeue();
+            key = s_queuedKeys.Dequeue();
             return true;
         }
 
@@ -228,7 +228,7 @@ public static class KeyboardManager
         return false;
     }
 
-    private static bool _readKeyEntered = false;
+    private static bool s_readKeyEntered = false;
 
     /// <summary>
     /// Reads the next key from the pending key-press buffer, blocking until available.
@@ -237,13 +237,13 @@ public static class KeyboardManager
     {
         ThrowIfDisabled();
 
-        if (!_readKeyEntered)
+        if (!s_readKeyEntered)
         {
-            _readKeyEntered = true;
+            s_readKeyEntered = true;
             Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] ReadKey() entered\n");
         }
 
-        while (_queuedKeys == null || _queuedKeys.Count == 0)
+        while (s_queuedKeys == null || s_queuedKeys.Count == 0)
         {
             // Poll all keyboards for events (in case interrupts aren't working)
             PollKeyboards();
@@ -252,40 +252,40 @@ public static class KeyboardManager
             HAL.PlatformHAL.CpuOps?.Halt();
         }
 
-        return _queuedKeys.Dequeue();
+        return s_queuedKeys.Dequeue();
     }
 
-    private static uint _pollCallCount = 0;
+    private static uint s_pollCallCount = 0;
 
-    private static bool _pollEntered = false;
+    private static bool s_pollEntered = false;
 
     /// <summary>
     /// Polls all registered keyboards for events.
     /// </summary>
     private static void PollKeyboards()
     {
-        if (!_pollEntered)
+        if (!s_pollEntered)
         {
-            _pollEntered = true;
+            s_pollEntered = true;
             Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards() first call\n");
         }
 
-        if (_keyboards == null)
+        if (s_keyboards == null)
         {
             return;
         }
 
-        _pollCallCount++;
-        if (_pollCallCount % 100 == 0)
+        s_pollCallCount++;
+        if (s_pollCallCount % 100 == 0)
         {
             Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards #");
-            Cosmos.Kernel.Core.IO.Serial.WriteNumber(_pollCallCount);
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber(s_pollCallCount);
             Cosmos.Kernel.Core.IO.Serial.Write(" keyboards=");
-            Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_keyboards.Count);
+            Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)s_keyboards.Count);
             Cosmos.Kernel.Core.IO.Serial.Write("\n");
         }
 
-        foreach (var keyboard in _keyboards)
+        foreach (var keyboard in s_keyboards)
         {
             keyboard.Poll();
         }
@@ -294,7 +294,7 @@ public static class KeyboardManager
     /// <summary>
     /// Gets the currently used keyboard layout.
     /// </summary>
-    public static ScanMapBase? GetKeyLayout() => _scanMap;
+    public static ScanMapBase? GetKeyLayout() => s_scanMap;
 
     /// <summary>
     /// Sets the currently used keyboard layout.
@@ -303,7 +303,7 @@ public static class KeyboardManager
     {
         if (scanMap != null)
         {
-            _scanMap = scanMap;
+            s_scanMap = scanMap;
         }
     }
 
