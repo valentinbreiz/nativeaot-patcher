@@ -45,8 +45,8 @@ public class IPConfig
 
         foreach (IPConfig ipConfig in ipConfigs)
         {
-            if ((ipConfig.IPAddress.Hash & ipConfig.SubnetMask.Hash) ==
-                (destIP.Hash & ipConfig.SubnetMask.Hash))
+            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
+                (destIP.Id & ipConfig.SubnetMask.Id))
             {
                 return ipConfig.IPAddress;
             }
@@ -92,8 +92,8 @@ public class IPConfig
     {
         for (int c = 0; c < ipConfigs.Count; c++)
         {
-            if ((ipConfigs[c].IPAddress.Hash & ipConfigs[c].SubnetMask.Hash) ==
-                (destIP.Hash & ipConfigs[c].SubnetMask.Hash))
+            if ((ipConfigs[c].IPAddress.Id & ipConfigs[c].SubnetMask.Id) ==
+                (destIP.Id & ipConfigs[c].SubnetMask.Id))
             {
                 return true;
             }
@@ -108,9 +108,9 @@ public class IPConfig
     /// <param name="sourceIP">Source IP.</param>
     internal static INetworkDevice? FindInterface(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
         {
-            return NetworkStack.AddressMap[sourceIP.Hash];
+            return NetworkStack.AddressMap[sourceIP.Id];
         }
         return null;
     }

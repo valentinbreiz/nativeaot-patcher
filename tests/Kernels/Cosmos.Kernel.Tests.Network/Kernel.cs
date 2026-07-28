@@ -194,7 +194,7 @@ public class Kernel : Sys.Kernel
         Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after DHCP");
 
         // Verify we got a valid IP (not 0.0.0.0)
-        Assert.True(_localIP.Hash != 0, "DHCP should assign a non-zero IP address");
+        Assert.True(_localIP.Id != 0, "DHCP should assign a non-zero IP address");
     }
 
     // ==================== ICMP Tests ====================
@@ -895,7 +895,7 @@ public class Kernel : Sys.Kernel
             Serial.WriteString("\n");
 
             // Verify we got a valid IP (not 0.0.0.0)
-            Assert.True(resolvedIP.Hash != 0, "Resolved IP should not be 0.0.0.0");
+            Assert.True(resolvedIP.Id != 0, "Resolved IP should not be 0.0.0.0");
             Assert.True(true, "DNS resolution for valentin.bzh succeeded");
         }
         else
@@ -947,7 +947,7 @@ public class Kernel : Sys.Kernel
             Serial.WriteString("\n");
 
             Assert.True(addresses.Count > 0, "CNAME chain should yield at least one A record");
-            Assert.True(addresses[0].Hash != 0, "Resolved IP should not be 0.0.0.0");
+            Assert.True(addresses[0].Id != 0, "Resolved IP should not be 0.0.0.0");
         }
         else
         {

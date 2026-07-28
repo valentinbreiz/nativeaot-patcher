@@ -49,7 +49,7 @@ public class ICMPClient : IDisposable
     public void Connect(Address dest)
     {
         destination = dest;
-        clients[dest.Hash] = this;
+        clients[dest.Id] = this;
     }
 
     /// <summary>
@@ -57,9 +57,9 @@ public class ICMPClient : IDisposable
     /// </summary>
     public void Close()
     {
-        if (destination != null && clients.ContainsKey(destination.Hash))
+        if (destination != null && clients.ContainsKey(destination.Id))
         {
-            clients.Remove(destination.Hash);
+            clients.Remove(destination.Id);
         }
     }
 
