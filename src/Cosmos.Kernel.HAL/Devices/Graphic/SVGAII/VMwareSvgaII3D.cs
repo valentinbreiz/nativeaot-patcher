@@ -20,6 +20,12 @@ public unsafe class VMWareSVGAII3D
     public VMWareSVGAII3D(SvgaIIDriver driver)
     {
         _driver = driver;
+
+        s_dmaSize = _driver.VideoMemory.Size / 8;
+        uint dmaStartOffset = (_driver.VideoMemory.Size - s_dmaSize) & ~3u;
+
+        s_dmaStart = new SVGAGuestPtr { gmrId = SVGA_GMR_FRAMEBUFFER, offset = dmaStartOffset };
+        s_nextPtr.offset = s_dmaStart.offset;
     }
 
     private uint _contextId;
@@ -33,6 +39,8 @@ public unsafe class VMWareSVGAII3D
 
     private bool _fifoFenceSupported;
     private uint _guestFenceCounter = 1;
+
+    public uint _lastDMASize = 0;
 
     private int[] _imagebuffer = [];
 
@@ -243,6 +251,8 @@ public unsafe class VMWareSVGAII3D
             MemoryOp.MemCopy((byte*)pDest, (byte*)buffer, (int)size);
         }
 
+        PopDMABuffer();
+
         return _imagebuffer;
     }
 
@@ -303,6 +313,11 @@ public unsafe class VMWareSVGAII3D
 
         SurfaceDMA2D(sid, &gPtr, SVGA3dTransferType.SVGA3D_WRITE_HOST_VRAM, size, 1);
 
+        uint fence = InsertFence();
+        SyncToFence(fence);
+
+        PopDMABuffer();
+
         return sid;
     }
 
@@ -318,6 +333,11 @@ public unsafe class VMWareSVGAII3D
         MemoryOp.MemSet((byte*)buffer, 0x30, 1280 * 720 * 4);
 
         SurfaceDMA2D(sid, &gPtr, SVGA3dTransferType.SVGA3D_WRITE_HOST_VRAM, 1280, 720);
+
+        uint fence = InsertFence();
+        SyncToFence(fence);
+
+        PopDMABuffer();
 
         return sid;
     }
@@ -336,6 +356,11 @@ public unsafe class VMWareSVGAII3D
         }
 
         SurfaceDMA2D(sid, &gPtr, SVGA3dTransferType.SVGA3D_WRITE_HOST_VRAM, width, height);
+
+        uint fence = InsertFence();
+        SyncToFence(fence);
+
+        PopDMABuffer();
 
         return new() { sid = sid, face = 0, mipmap = 0 };
     }
@@ -537,10 +562,21 @@ public unsafe class VMWareSVGAII3D
     }
 
     private static SVGAGuestPtr s_nextPtr = new SVGAGuestPtr { gmrId = 0, offset = 0 };
+    private static SVGAGuestPtr s_dmaStart = new SVGAGuestPtr { gmrId = 0, offset = 0 };
 
+    private static uint s_dmaSize = 0;
     private const uint SVGA_GMR_FRAMEBUFFER = 0xFFFFFFFEu;
 
-    public unsafe void* SVGA3DUtil_AllocDMABuffer(uint size, out SVGAGuestPtr ptr)
+    public void PopDMABuffer()
+    {
+        if (_lastDMASize <= (s_nextPtr.offset - s_dmaStart.offset))
+        {
+            s_nextPtr.offset -= _lastDMASize;
+        }
+        _lastDMASize = 0;
+    }
+
+    public void* SVGA3DUtil_AllocDMABuffer(uint size, out SVGAGuestPtr ptr)
     {
         uint alignedSize = (size + 3u) & ~3u;
         if ((_driver.Capabilities & (uint)Capability.Gmr) == 0)
@@ -550,7 +586,11 @@ public unsafe class VMWareSVGAII3D
 
         if (s_nextPtr.offset + alignedSize > _driver.VideoMemory.Size)
         {
-            throw new OutOfMemoryException("Not enough VRAM for framebuffer-backed buffer");
+            throw new OutOfMemoryException(
+                $"DMA scratch buffer request of {alignedSize} bytes exceeds remaining scratch space " +
+                $"({_driver.VideoMemory.Size - s_nextPtr.offset} bytes free, region size {s_dmaSize} bytes). " +
+                $"Consider splitting the upload into smaller chunks."
+            );
         }
 
         ptr = new SVGAGuestPtr
@@ -562,6 +602,7 @@ public unsafe class VMWareSVGAII3D
         void* buffer = (void*)(_driver.VideoMemory.Base + s_nextPtr.offset);
 
         s_nextPtr.offset += alignedSize;
+        _lastDMASize = alignedSize;
 
         return buffer;
     }

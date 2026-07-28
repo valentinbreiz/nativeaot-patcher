@@ -10,9 +10,9 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <summary>
 /// Represents a IPv4 address.
 /// </summary>
-public class Address : IComparable
+public class Address : IComparable<Address>
 {
-    private uint hash;
+    private uint _id;
 
     /// <summary>
     /// The parts of the address.
@@ -179,36 +179,31 @@ public class Address : IComparable
     /// <summary>
     /// The hash value for this IP. Used to uniquely identify each IP.
     /// </summary>
-    public uint Hash
+    public uint Id
     {
         get
         {
-            if (hash == 0)
+            if (_id == 0)
             {
-                hash = ToUInt32();
+                _id = ToUInt32();
             }
 
-            return hash;
+            return _id;
         }
     }
 
-    public int CompareTo(object? obj)
+    public int CompareTo(Address? other)
     {
-        if (obj is Address other)
+        if (other is null)
         {
-            // Compare through the property: the backing field is lazily
-            // computed and stays 0 until Hash is first read.
-            if (other.Hash != Hash)
-            {
-                return -1;
-            }
+            return 1;
+        }
 
-            return 0;
-        }
-        else
+        if (other.IsIpv4 ^ IsIpv4)
         {
-            throw new ArgumentException("obj is not a IPv4Address", nameof(obj));
+            throw new Exception("Can't compare IPv6 and IPv4 addresses");
         }
+        return Id.CompareTo(other.Id);
     }
 
     public override bool Equals(object? obj)
