@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -830,7 +831,7 @@ public class Kernel : Sys.Kernel
         for (int i = 0; i < DNSConfig.DNSNameservers.Count; i++)
         {
             var ns = DNSConfig.DNSNameservers[i];
-            var parts = ns.ToByteArray();
+            var parts = ns.Parts;
             if (parts[0] == 1 && parts[1] == 1 && parts[2] == 1 && parts[3] == 1)
             {
                 foundCloudflare = true;
@@ -1001,7 +1002,7 @@ public class Kernel : Sys.Kernel
                 Serial.WriteString(addresses[i].ToString());
                 Serial.WriteString("\n");
 
-                byte[] bytes = addresses[i].ToByteArray();
+                ImmutableArray<byte> bytes = addresses[i].Parts;
                 bool isOneOneOneOne = bytes[0] == 1 && bytes[1] == 1 && bytes[2] == 1 && bytes[3] == 1;
                 bool isOneZeroZeroOne = bytes[0] == 1 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 1;
                 if (!isOneOneOneOne && !isOneZeroZeroOne)
