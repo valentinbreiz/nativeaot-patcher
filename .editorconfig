@@ -178,6 +178,19 @@ dotnet_diagnostic.IDE0002.severity = warning
 # IDE0060: Flag unused parameters
 dotnet_code_quality_unused_parameters = all:warning
 
+# CA1065: Do not raise exceptions in unexpected locations (GetHashCode, Equals, ToString, ...)
+dotnet_diagnostic.CA1065.severity = warning
+
+# CA1819: Properties should not return arrays (prefer ImmutableArray/ReadOnlySpan)
+dotnet_diagnostic.CA1819.severity = warning
+
+# CA2201: Do not raise reserved exception types (e.g. bare System.Exception)
+dotnet_diagnostic.CA2201.severity = warning
+
+# MSBuild task contract requires array-typed properties (ITaskItem[], string[])
+[src/Cosmos.Build.*/**.cs]
+dotnet_diagnostic.CA1819.severity = none
+
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
 indent_brace_style = Allman
