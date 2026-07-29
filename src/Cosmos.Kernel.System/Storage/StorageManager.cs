@@ -257,7 +257,7 @@ public static class StorageManager
                 Serial.WriteString("[StorageManager] Unpartitioned filesystem volume detected on ");
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
-                _partitions.Add(new Partition(device, 0, device.BlockCount, 0u));
+                s_partitions.Add(new Partition(device, 0, device.BlockCount, 0u));
             }
         }
         catch (Exception)
