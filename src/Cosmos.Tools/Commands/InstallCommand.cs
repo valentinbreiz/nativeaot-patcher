@@ -550,7 +550,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
     // Tool directories that should be on PATH. QEMU exes live under qemu\bin\
     // (so the bundle's qemu\share\qemu\ BIOS files are discoverable via -L,
     // which launchers add automatically).
-    private static readonly string[] ToolPathSubDirs =
+    private static readonly string[] s_toolPathSubDirs =
     [
         Path.Combine("llvm-tools", "bin"),
         "xorriso",
@@ -565,7 +565,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
             string currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
             bool changed = false;
 
-            foreach (string sub in ToolPathSubDirs)
+            foreach (string sub in s_toolPathSubDirs)
             {
                 string dir = Path.Combine(toolsPath, sub);
                 if (!currentPath.Contains(dir, StringComparison.OrdinalIgnoreCase))
@@ -591,7 +591,7 @@ public class InstallCommand : AsyncCommand<InstallSettings>
         {
             string currentPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
             bool changed = false;
-            foreach (string sub in ToolPathSubDirs)
+            foreach (string sub in s_toolPathSubDirs)
             {
                 string dir = Path.Combine(toolsPath, sub);
                 string upper = currentPath.ToUpperInvariant();

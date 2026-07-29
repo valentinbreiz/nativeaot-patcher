@@ -14,7 +14,7 @@ public static unsafe class Idt
 {
     public static ulong GetCurrentCodeSelector() => IdtNative.GetCurrentCodeSelector();
 
-    private static IdtEntry[]? IdtEntries;
+    private static IdtEntry[]? s_idtEntries;
 
     /// <summary>
     /// Registers all IRQ stubs in the IDT.
@@ -26,13 +26,13 @@ public static unsafe class Idt
         Serial.Write("[IDT] Initializing with CS=0x", cs.ToString("X"), "\n");
 
         // Allocate IDT entries array if not already done
-        if (IdtEntries == null)
+        if (s_idtEntries == null)
         {
-            Serial.WriteString("[IDT] Allocating IdtEntries array...\n");
-            IdtEntries = new IdtEntry[256];
+            Serial.WriteString("[IDT] Allocating s_idtEntries array...\n");
+            s_idtEntries = new IdtEntry[256];
         }
-        Serial.WriteString("[IDT] IdtEntries length: ");
-        Serial.WriteNumber((ulong)IdtEntries.Length);
+        Serial.WriteString("[IDT] s_idtEntries length: ");
+        Serial.WriteNumber((ulong)s_idtEntries.Length);
         Serial.WriteString("\n");
 
         // Initialize all 256 IDT entries
@@ -44,13 +44,13 @@ public static unsafe class Idt
                 Serial.WriteNumber((ulong)i);
                 Serial.WriteString("\n");
             }
-            IdtEntries[i].Selector = (ushort)cs;
-            IdtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate
-            IdtEntries[i].Offset = (ulong)GetStub(i);
+            s_idtEntries[i].Selector = (ushort)cs;
+            s_idtEntries[i].RawFlags = 0x8E00;  // P=1, DPL=0, Type=Interrupt Gate
+            s_idtEntries[i].Offset = (ulong)GetStub(i);
         }
 
         // Load the IDT into the CPU
-        fixed (void* ptr = &IdtEntries[0])
+        fixed (void* ptr = &s_idtEntries[0])
         {
             IdtPointer idtPtr = new IdtPointer
             {

@@ -8,12 +8,12 @@ namespace Cosmos.Kernel.Tests.System.Network.IPv4.TCP;
 
 public class TcpTest
 {
-    private Tcp target = null!;
+    private Tcp _target = null!;
 
     [SetUp]
     public void Setup()
     {
-        target = Tcp.CreateConnection(0, 0, new Address(1, 2, 3, 4), new Address(1, 2, 3, 4));
+        _target = Tcp.CreateConnection(0, 0, new Address(1, 2, 3, 4), new Address(1, 2, 3, 4));
     }
 
     [TestFixture]
@@ -22,29 +22,29 @@ public class TcpTest
         [Test]
         public void WhenBothData_AndOtherAreEmpty_DataIsEmpty()
         {
-            target.AppendToData([]);
+            _target.AppendToData([]);
 
-            Assert.That(target.Data.Length, Is.EqualTo(0));
+            Assert.That(_target.Data.Length, Is.EqualTo(0));
         }
 
         [Test]
         public void WhenDataIsNotEmpty_AndOtherIsEmpty_DataDoesNotChange()
         {
-            target.AppendToData([0, 1]);
+            _target.AppendToData([0, 1]);
 
-            target.AppendToData([]);
+            _target.AppendToData([]);
 
-            Assert.That(target.Data.ToArray(), Is.EquivalentTo([0, 1]));
+            Assert.That(_target.Data.ToArray(), Is.EquivalentTo([0, 1]));
         }
 
         [Test]
         public void WhenDataIsNotEmpty_AndOtherIsNotEmpty_OtherIsAppendedToData()
         {
-            target.AppendToData([0, 1]);
+            _target.AppendToData([0, 1]);
 
-            target.AppendToData([2, 3]);
+            _target.AppendToData([2, 3]);
 
-            Assert.That(target.Data.ToArray(), Is.EquivalentTo([0, 1, 2, 3]));
+            Assert.That(_target.Data.ToArray(), Is.EquivalentTo([0, 1, 2, 3]));
         }
     }
 
@@ -54,30 +54,30 @@ public class TcpTest
         [Test]
         public void WhenAdvancingByZero_NoChangesAreMade()
         {
-            target.AppendToData([0, 1]);
+            _target.AppendToData([0, 1]);
 
-            target.AdvanceDataOffset(0);
+            _target.AdvanceDataOffset(0);
 
-            Assert.That(target.Data.ToArray(), Is.EquivalentTo([0, 1]));
+            Assert.That(_target.Data.ToArray(), Is.EquivalentTo([0, 1]));
         }
 
         [Test]
         public void WhenAdvancingByOneAndLengthIsTwo_OnlyLastElementRemains()
         {
-            target.AppendToData([0, 1]);
+            _target.AppendToData([0, 1]);
 
-            target.AdvanceDataOffset(1);
+            _target.AdvanceDataOffset(1);
 
-            Assert.That(target.Data.ToArray(), Is.EquivalentTo([1]));
+            Assert.That(_target.Data.ToArray(), Is.EquivalentTo([1]));
         }
         [Test]
         public void WhenAdvancingByTwoAndLengthIsTwo_DataLengthIsZero()
         {
-            target.AppendToData([0, 1]);
+            _target.AppendToData([0, 1]);
 
-            target.AdvanceDataOffset(2);
+            _target.AdvanceDataOffset(2);
 
-            Assert.That(target.Data.Length, Is.Zero);
+            Assert.That(_target.Data.Length, Is.Zero);
         }
     }
 }

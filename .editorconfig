@@ -16,6 +16,21 @@ trim_trailing_whitespace = true
 [*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
 generated_code = true
 
+# Vendored and upstream-mirroring code: keep diffable with its origin, skip style analysis
+[src/Cosmos.Kernel.System/IO/Compression/SharpZipLib/**.cs]
+generated_code = true
+
+[src/Cosmos.Kernel.System/Graphics/Images/Png/**.cs]
+generated_code = true
+
+# fdlibm port (via Cosmos Gen2)
+[src/Cosmos.Kernel.Core/Runtime/Math.cs]
+generated_code = true
+
+# Mirrors dotnet/runtime internals
+[src/Cosmos.Kernel.Core/Runtime/Internal/**.cs]
+generated_code = true
+
 # C# files
 [*.cs]
 # New line preferences
@@ -190,6 +205,10 @@ dotnet_diagnostic.CA2201.severity = warning
 # MSBuild task contract requires array-typed properties (ITaskItem[], string[])
 [src/Cosmos.Build.*/**.cs]
 dotnet_diagnostic.CA1819.severity = none
+
+# Plug members are matched by name against their patch targets (BCL/runtime internals) - do not rename
+[src/Cosmos.Kernel.Plugs/**.cs]
+dotnet_diagnostic.IDE1006.severity = none
 
 [*.{cpp,h,in}]
 curly_bracket_next_line = true

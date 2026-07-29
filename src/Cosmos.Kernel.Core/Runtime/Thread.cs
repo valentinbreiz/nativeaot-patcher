@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.Core.Runtime;
 public class Thread
 {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    private static object[][] threadData;
+    private static object[][] s_threadData;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     [RuntimeExport("RhGetThreadStaticStorage")]
     internal static ref object[][] RhGetThreadStaticStorage()
@@ -22,7 +22,7 @@ public class Thread
         }
         else
         {
-            return ref threadData;
+            return ref s_threadData;
         }
     }
 
