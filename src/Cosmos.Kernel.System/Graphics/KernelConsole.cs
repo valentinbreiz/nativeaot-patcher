@@ -48,7 +48,7 @@ public class KernelConsole
     private bool _cursorDrawn = false;
 
     // Console color palette (standard 16 colors)
-    private static readonly uint[] _palette =
+    private static readonly uint[] s_palette =
     [
         0xFF000000, // Black
         0xFF000080, // DarkBlue
@@ -265,7 +265,7 @@ public class KernelConsole
     /// </summary>
     public void SetForegroundColor(ConsoleColor color)
     {
-        _foregroundColor = _palette[(int)color];
+        _foregroundColor = s_palette[(int)color];
     }
 
     /// <summary>
@@ -273,7 +273,7 @@ public class KernelConsole
     /// </summary>
     public void SetBackgroundColor(ConsoleColor color)
     {
-        _backgroundColor = _palette[(int)color];
+        _backgroundColor = s_palette[(int)color];
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class KernelConsole
     /// </summary>
     public static uint ConsoleColorToUint(ConsoleColor color)
     {
-        return _palette[(int)color];
+        return s_palette[(int)color];
     }
 
     /// <summary>

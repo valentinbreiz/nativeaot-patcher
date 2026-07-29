@@ -21,7 +21,7 @@ public class DHCPClient : UdpClient
     /// <summary>
     /// Is DHCP asked check variable
     /// </summary>
-    private bool applied = false;
+    private bool _applied = false;
 
     /// <summary>
     /// Gets the IP address of the DHCP server.
@@ -69,7 +69,7 @@ public class DHCPClient : UdpClient
             }
             else if (packet.RawData[284] == 0x05 || packet.RawData[284] == 0x06) //ACK or NAK DHCP packet received
             {
-                if (!applied)
+                if (!_applied)
                 {
                     Apply(packet, true);
 
@@ -133,7 +133,7 @@ public class DHCPClient : UdpClient
             OutgoingBuffer.AddPacket(dhcpDiscover);
             NetworkStack.Update();
 
-            applied = false;
+            _applied = false;
         }
 
         return Receive();
@@ -167,7 +167,7 @@ public class DHCPClient : UdpClient
     /// <param name="message">Enable/Disable the displaying of messages about DHCP applying and conf.</param>
     private void Apply(DHCPPacket packet, bool message = false)
     {
-        if (applied == false)
+        if (_applied == false)
         {
             NetworkStack.RemoveAllConfigIP();
 
@@ -197,19 +197,19 @@ public class DHCPClient : UdpClient
                         DNSConfig.Add(packet.DNS);
                     }
 
-                    Serial.WriteString("[DHCP CONFIG] IP configuration applied.\n");
+                    Serial.WriteString("[DHCP CONFIG] IP configuration _applied.\n");
 
-                    applied = true;
+                    _applied = true;
 
                     return;
                 }
             }
 
-            Serial.WriteString("[DHCP CONFIG] No DHCP Config applied!\n");
+            Serial.WriteString("[DHCP CONFIG] No DHCP Config _applied!\n");
         }
         else
         {
-            Serial.WriteString("[DHCP CONFIG] DHCP already applied.\n");
+            Serial.WriteString("[DHCP CONFIG] DHCP already _applied.\n");
         }
     }
 }

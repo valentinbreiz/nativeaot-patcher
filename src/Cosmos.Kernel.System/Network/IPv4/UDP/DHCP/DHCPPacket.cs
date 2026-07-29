@@ -37,7 +37,7 @@ public class DHCPOption
 public class DHCPPacket : UDPPacket
 {
     // Simple transaction ID generator
-    private static int idCounter = 1;
+    private static int s_idCounter = 1;
 
     /// <summary>
     /// Handles a single DHCP packet.
@@ -75,7 +75,7 @@ public class DHCPPacket : UDPPacket
         RawData[44] = 0x06; // Length mac
         RawData[45] = 0x00; // hops
 
-        int id = idCounter++;
+        int id = s_idCounter++;
         RawData[46] = (byte)((id >> 24) & 0xFF);
         RawData[47] = (byte)((id >> 16) & 0xFF);
         RawData[48] = (byte)((id >> 8) & 0xFF);

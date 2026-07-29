@@ -15,7 +15,7 @@ namespace Cosmos.Kernel.System.Graphics;
 /// </summary>
 internal class GopCanvas : Canvas
 {
-    static readonly Mode defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
+    static readonly Mode s_defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
     private Mode _mode;
     private readonly int _refreshRate = 60;
 
@@ -24,11 +24,11 @@ internal class GopCanvas : Canvas
     /// <summary>
     /// Initializes a new instance of the <see cref="GopCanvas"/> class.
     /// </summary>
-    internal GopCanvas() : this(defaultMode)
+    internal GopCanvas() : this(s_defaultMode)
     {
     }
 
-    private readonly GopDriver? driver;
+    private readonly GopDriver? _driver;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GopCanvas"/> class.
@@ -43,7 +43,7 @@ internal class GopCanvas : Canvas
         if (Limine.Framebuffer.Response != null && Limine.Framebuffer.Response->FramebufferCount > 0)
         {
             LimineFramebuffer* fb = Limine.Framebuffer.Response->Framebuffers[0];
-            driver = new GopDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
+            _driver = new GopDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
 
             // Update mode to match actual framebuffer resolution
             this._mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
@@ -56,12 +56,12 @@ internal class GopCanvas : Canvas
         }
     }
 
-    [MemberNotNull(nameof(driver))]
+    [MemberNotNull(nameof(_driver))]
     private void ThrowIfDriverNotInitialized()
     {
-        if (driver is null)
+        if (_driver is null)
         {
-            throw new Exception($"{nameof(driver)} not initialized");
+            throw new Exception($"{nameof(_driver)} not initialized");
         }
     }
 
@@ -116,7 +116,7 @@ internal class GopCanvas : Canvas
 
     public override void Disable()
     {
-        //driver.DisableDisplay();
+        //_driver.DisableDisplay();
     }
 
     public override string Name() => "GopCanvas";
@@ -134,9 +134,9 @@ internal class GopCanvas : Canvas
             // framebuffer size is also deliberately NOT checked against
             // AvailableModes — that legacy VBE list doesn't contain every mode
             // firmware can hand us (e.g. 1280x800).
-            if (driver != null)
+            if (_driver != null)
             {
-                _mode = new Mode(driver.Width, driver.Height, value.ColorDepth);
+                _mode = new Mode(_driver.Width, _driver.Height, value.ColorDepth);
             }
             else
             {
@@ -199,7 +199,7 @@ internal class GopCanvas : Canvas
         new Mode(1920, 1200, ColorDepth.ColorDepth32),
     };
 
-    public override Mode DefaultGraphicsMode => defaultMode;
+    public override Mode DefaultGraphicsMode => s_defaultMode;
 
     /// <summary>
     /// Sets the used display mode, disabling text mode if it is active.
@@ -212,7 +212,7 @@ internal class GopCanvas : Canvas
         ushort yres = (ushort)Mode.Height;
         ushort bpp = (ushort)Mode.ColorDepth;
 
-        //driver.VBESet(xres, yres, bpp);
+        //_driver.VBESet(xres, yres, bpp);
     }
     #endregion
 
@@ -238,7 +238,7 @@ internal class GopCanvas : Canvas
                 throw new NotImplementedException();
             case ColorDepth.ColorDepth32:
                 ThrowIfDriverNotInitialized();
-                driver.ClearScreen((uint)aColor);
+                _driver.ClearScreen((uint)aColor);
                 break;
             default:
                 throw new NotImplementedException();
@@ -265,7 +265,7 @@ internal class GopCanvas : Canvas
                 throw new NotImplementedException();
             case ColorDepth.ColorDepth32:
                 ThrowIfDriverNotInitialized();
-                driver.ClearScreen((uint)aColor.ToArgb());
+                _driver.ClearScreen((uint)aColor.ToArgb());
                 break;
             default:
                 throw new NotImplementedException();
@@ -306,14 +306,14 @@ internal class GopCanvas : Canvas
                     aColor = AlphaBlend(aColor, GetPointColor(aX, aY), aColor.A);
                 }
 
-                driver.DrawPixel((uint)aColor.ToArgb(), aX, aY);
+                _driver.DrawPixel((uint)aColor.ToArgb(), aX, aY);
 
                 break;
             case ColorDepth.ColorDepth24:
 
                 //offset = (uint)GetPointOffset(aX, aY);
 
-                driver.DrawPixel((uint)aColor.ToArgb(), aX, aY);
+                _driver.DrawPixel((uint)aColor.ToArgb(), aX, aY);
 
                 break;
             default:
@@ -331,13 +331,13 @@ internal class GopCanvas : Canvas
             case ColorDepth.ColorDepth32:
                 //offset = (uint)GetPointOffset(aX, aY);
 
-                driver.DrawPixel(aColor, aX, aY);
+                _driver.DrawPixel(aColor, aX, aY);
 
                 break;
             case ColorDepth.ColorDepth24:
                 //offset = (uint)GetPointOffset(aX, aY);
 
-                driver.DrawPixel(aColor, aX, aY);
+                _driver.DrawPixel(aColor, aX, aY);
 
                 break;
             default:
@@ -363,21 +363,21 @@ internal class GopCanvas : Canvas
             pixels[i] = (uint)aColors[i].ToArgb();
         }
 
-        driver.CopyBuffer(pixels.AsMemory(), aX, aY, aWidth, aHeight);
+        _driver.CopyBuffer(pixels.AsMemory(), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight)
     {
         ThrowIfDriverNotInitialized();
 
-        driver.CopyBuffer(aColors.AsMemory(), aX, aY, aWidth, aHeight);
+        _driver.CopyBuffer(aColors.AsMemory(), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawArray(int[] aColors, int aX, int aY, int aWidth, int aHeight, int startIndex)
     {
         ThrowIfDriverNotInitialized();
 
-        driver.CopyBuffer(aColors.AsMemory(startIndex), aX, aY, aWidth, aHeight);
+        _driver.CopyBuffer(aColors.AsMemory(startIndex), aX, aY, aWidth, aHeight);
     }
 
     public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)
@@ -406,7 +406,7 @@ internal class GopCanvas : Canvas
         var color = aColor.ToArgb();
         for (int i = aY; i < aY + aHeight; i++)
         {
-            driver.ClearVRAM((int)((i * driver.Pitch) + (aX * 4)), aWidth, color);
+            _driver.ClearVRAM((int)((i * _driver.Pitch) + (aX * 4)), aWidth, color);
         }
     }
 
@@ -481,7 +481,7 @@ internal class GopCanvas : Canvas
             // If no cropping needed, use CopyBuffer directly
             if (sourceX == 0 && sourceY == 0 && maxWidth == width && maxHeight == height)
             {
-                driver.CopyBuffer(data.AsMemory(), startX, startY, width, height);
+                _driver.CopyBuffer(data.AsMemory(), startX, startY, width, height);
             }
             else
             {
@@ -489,13 +489,13 @@ internal class GopCanvas : Canvas
                 for (int i = 0; i < maxHeight; i++)
                 {
                     int sourceIndex = (sourceY + i) * width + sourceX;
-                    driver.CopyBuffer(data.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
+                    _driver.CopyBuffer(data.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
                 }
             }
         }
         else
         {
-            driver.CopyBuffer(data.AsMemory(), x, y, width, height);
+            _driver.CopyBuffer(data.AsMemory(), x, y, width, height);
         }
     }
 
@@ -529,7 +529,7 @@ internal class GopCanvas : Canvas
             // If no cropping needed, use CopyBuffer directly
             if (sourceX == 0 && sourceY == 0 && maxWidth == xWidth && maxHeight == xHeight)
             {
-                driver.CopyBuffer(xBitmap.AsMemory(), startX, startY, xWidth, xHeight);
+                _driver.CopyBuffer(xBitmap.AsMemory(), startX, startY, xWidth, xHeight);
             }
             else
             {
@@ -537,13 +537,13 @@ internal class GopCanvas : Canvas
                 for (int i = 0; i < maxHeight; i++)
                 {
                     int sourceIndex = (sourceY + i) * xWidth + sourceX;
-                    driver.CopyBuffer(xBitmap.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
+                    _driver.CopyBuffer(xBitmap.AsMemory(sourceIndex, maxWidth), startX, startY + i, maxWidth, 1);
                 }
             }
         }
         else
         {
-            driver.CopyBuffer(xBitmap.AsMemory(), aX, aY, xWidth, xHeight);
+            _driver.CopyBuffer(xBitmap.AsMemory(), aX, aY, xWidth, xHeight);
         }
     }
 
@@ -554,7 +554,7 @@ internal class GopCanvas : Canvas
         var srcBuffer = canvas.GetBuffer();
         if (srcBuffer != null)
         {
-            driver.CopyBuffer(srcBuffer.AsMemory(), x, y, canvas.Width, canvas.Height);
+            _driver.CopyBuffer(srcBuffer.AsMemory(), x, y, canvas.Width, canvas.Height);
         }
         else
         {
@@ -566,7 +566,7 @@ internal class GopCanvas : Canvas
 
     public override void Display()
     {
-        driver?.Swap();
+        _driver?.Swap();
     }
 
     #region Reading
@@ -575,14 +575,14 @@ internal class GopCanvas : Canvas
     {
         ThrowIfDriverNotInitialized();
 
-        return Color.FromArgb((int)driver.GetPixel(aX, aY));
+        return Color.FromArgb((int)_driver.GetPixel(aX, aY));
     }
 
     public override int GetRawPointColor(int aX, int aY)
     {
         ThrowIfDriverNotInitialized();
 
-        return (int)driver.GetPixel(aX, aY);
+        return (int)_driver.GetPixel(aX, aY);
     }
 
     public override Bitmap GetImage(int x, int y, int width, int height)
@@ -603,10 +603,10 @@ internal class GopCanvas : Canvas
 
         for (int posy = startY; posy < endY; posy++)
         {
-            int srcOffset = (int)(posy * driver.Pitch + startX * 4);
+            int srcOffset = (int)(posy * _driver.Pitch + startX * 4);
             int destOffset = (posy - startY + offsetY) * width + offsetX;
 
-            driver.GetVRAM(srcOffset, rawData, destOffset, endX - startX);
+            _driver.GetVRAM(srcOffset, rawData, destOffset, endX - startX);
         }
 
         bitmap.RawData = rawData;

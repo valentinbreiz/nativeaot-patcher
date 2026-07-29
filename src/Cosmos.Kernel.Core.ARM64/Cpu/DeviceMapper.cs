@@ -27,7 +27,7 @@ public static unsafe class DeviceMapper
     private const ulong BLOCK_2MB_ADDR_MASK = 0x0000FFFFFFE00000UL;
     private const ulong BLOCK_1GB_ADDR_MASK = 0x0000FFFFC0000000UL;
 
-    private static bool _spareL2Used;
+    private static bool s_spareL2Used;
 
     // ── Public API ──────────────────────────────────────────────────
 
@@ -202,7 +202,7 @@ public static unsafe class DeviceMapper
     /// </summary>
     private static ulong* SplitL1Block(ulong* l1, int l1idx, ulong l1entry, ulong hhdmOffset)
     {
-        if (_spareL2Used)
+        if (s_spareL2Used)
         {
             Serial.Write("[DeviceMapper] ERROR: Spare L2 table already used\n");
             return null;
@@ -252,7 +252,7 @@ public static unsafe class DeviceMapper
         // (vale1 only flushes one page; we need broader flush)
         DeviceMapperNative.FlushTlb(0); // will be followed by individual flushes if needed
 
-        _spareL2Used = true;
+        s_spareL2Used = true;
 
         Serial.Write("[DeviceMapper] Split L1 block into L2 table at PA 0x");
         Serial.WriteHex(l2pa);

@@ -23,25 +23,25 @@ public static class NetworkManager
         }
     }
 
-    private static INetworkDevice? _primaryDevice;
-    private static INetworkDevice?[]? _devices;
-    private static int _deviceCount;
-    private static bool _initialized;
+    private static INetworkDevice? s_primaryDevice;
+    private static INetworkDevice?[]? s_devices;
+    private static int s_deviceCount;
+    private static bool s_initialized;
 
     /// <summary>
     /// Gets whether the network manager is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Gets the primary network device.
     /// </summary>
-    public static INetworkDevice? PrimaryDevice => _primaryDevice;
+    public static INetworkDevice? PrimaryDevice => s_primaryDevice;
 
     /// <summary>
     /// Gets the number of registered network devices.
     /// </summary>
-    public static int DeviceCount => _deviceCount;
+    public static int DeviceCount => s_deviceCount;
 
     /// <summary>
     /// Initializes the network manager.
@@ -50,14 +50,14 @@ public static class NetworkManager
     {
         ThrowIfDisabled();
 
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
 
-        _devices = new INetworkDevice[8];
-        _deviceCount = 0;
-        _initialized = true;
+        s_devices = new INetworkDevice[8];
+        s_deviceCount = 0;
+        s_initialized = true;
     }
 
     /// <summary>
@@ -66,17 +66,17 @@ public static class NetworkManager
     /// <param name="device">The network device to register.</param>
     public static void RegisterDevice(INetworkDevice device)
     {
-        if (device == null || _devices == null || _deviceCount >= _devices.Length)
+        if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)
         {
             return;
         }
 
-        _devices[_deviceCount++] = device;
+        s_devices[s_deviceCount++] = device;
 
         // First device becomes primary
-        if (_primaryDevice == null)
+        if (s_primaryDevice == null)
         {
-            _primaryDevice = device;
+            s_primaryDevice = device;
         }
     }
 
@@ -89,12 +89,12 @@ public static class NetworkManager
     {
         ThrowIfDisabled();
 
-        if (_devices == null || index < 0 || index >= _deviceCount)
+        if (s_devices == null || index < 0 || index >= s_deviceCount)
         {
             return null;
         }
 
-        return _devices[index];
+        return s_devices[index];
     }
 
     /// <summary>
@@ -106,11 +106,11 @@ public static class NetworkManager
     public static bool Send(byte[] data, int length)
     {
         ThrowIfDisabled();
-        return _primaryDevice?.Send(data, length) ?? false;
+        return s_primaryDevice?.Send(data, length) ?? false;
     }
 
     /// <summary>
     /// Gets whether the primary device link is up.
     /// </summary>
-    public static bool LinkUp => _primaryDevice?.LinkUp ?? false;
+    public static bool LinkUp => s_primaryDevice?.LinkUp ?? false;
 }
