@@ -4,6 +4,7 @@ using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.System.Filesystems.Fat;
 using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 
 namespace Cosmos.Kernel.System.Storage;
@@ -230,6 +231,33 @@ public static class StorageManager
                         slot++;
                     }
                 }
+
+                if (slot > 0)
+                {
+                    return;
+                }
+            }
+
+            // No partition table produced an entry. A filesystem formatted
+            // straight onto the disk (a "superfloppy": mkfs.vfat / Windows
+            // format of a raw image) carries the MBR's 0xAA55 boot signature
+            // in its BPB sector, so it lands here rather than in a table
+            // branch above. Probe the boot sector as a FAT BPB and, when its
+            // claimed geometry fits the device, surface the whole disk as the
+            // single partition the Partitions contract promises for
+            // unpartitioned hosts. A blank disk fails the probe and stays
+            // partitionless; GPT disks never reach here (empty GPTs return
+            // above, keeping their on-disk structures out of partition I/O).
+            Span<byte> boot = new byte[(int)device.BlockSize];
+            device.ReadBlock(FatBootSector.BootSectorLba, 1, boot);
+            if (FatBootSector.TryParse(boot, out FatBootSector? volume)
+                && volume!.BytesPerSector == device.BlockSize
+                && volume.TotalSectorCount <= device.BlockCount)
+            {
+                Serial.WriteString("[StorageManager] Unpartitioned filesystem volume detected on ");
+                Serial.WriteString(device.Name);
+                Serial.WriteString("\n");
+                s_partitions.Add(new Partition(device, 0, device.BlockCount, 0u));
             }
         }
         catch (Exception)
