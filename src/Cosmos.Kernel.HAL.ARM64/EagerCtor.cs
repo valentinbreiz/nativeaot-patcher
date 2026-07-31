@@ -1,8 +1,8 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
-using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.ARM64.Memory;
+using Cosmos.Kernel.Core.Memory.VAS;
 
 namespace Cosmos.Kernel.HAL.ARM64;
 

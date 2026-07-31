@@ -34,7 +34,4 @@
         <Project Path="src/Cosmos.Patcher/Cosmos.Patcher.csproj" />
         <Project Path="src/Cosmos.Sdk/Cosmos.Sdk.csproj" />
     </Folder>
-    <Folder Name="/tests/">
-        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Process/Cosmos.Kernel.Tests.Process.csproj" />
-    </Folder>
 </Solution>

@@ -22,6 +22,11 @@ public unsafe class Thread : SchedulerExtensible
     /// </summary>
     public AddressSpace? AddressSpace { get; set; }
 
+    /// <summary>
+    /// if set then this is a userspace thread
+    /// </summary>
+    public Process? Process { get; set; }
+
     // ===== Context (architecture-specific values) =====
     public nuint StackPointer { get; internal set; }
     public nuint InstructionPointer { get; internal set; }

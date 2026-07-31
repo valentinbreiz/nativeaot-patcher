@@ -83,6 +83,18 @@ public static class CosmosFeatures
         AppContext.TryGetSwitch("Cosmos.Kernel.Core.UserLand.Enabled", out bool enabled) ? enabled : false;
 
     /// <summary>
+    /// Controls the kernel-side syscall dispatch surface (the
+    /// <see cref="SysCalls.SysCallNative"/> entry, the handler table, and
+    /// the trap-stub wiring it drives). Requires UserLand to actually
+    /// receive traps — when UserLand is off this defaults to false so ILC
+    /// trims the entire subsystem away. Set via CosmosEnableSysCalls
+    /// property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.SysCalls.Enabled")]
+    public static bool SysCallsEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.SysCalls.Enabled", out bool enabled) ? enabled : false;
+
+    /// <summary>
     /// Controls graphics support initialization.
     /// Set via CosmosEnableGraphics property in csproj.
     /// </summary>

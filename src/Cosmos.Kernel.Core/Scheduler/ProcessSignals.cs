@@ -36,7 +36,21 @@ public class ProcessSignals
         }
         if (handel != null)
         {
-            _process.StartThread(new Thread());
+            Thread thread = new Thread
+            {
+                Id = SchedulerManager.AllocateThreadId(),
+                CpuId = 0,
+                State = ThreadState.Created,
+                Flags = ThreadFlags.NativeProcess
+            };
+#if ARCH_X64
+            ushort cs = (ushort)Idt.GetCurrentCodeSelector();
+            thread.InitializeStack(entryPoint, cs, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
+#elif ARCH_ARM64
+                // ARM64: no code selector needed, use 0.
+                thread.InitializeStack(entryPoint, 0, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
+#endif
+            _process.StartThread(thread);
             handel();
         }
 

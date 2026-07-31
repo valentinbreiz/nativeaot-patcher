@@ -42,6 +42,7 @@
     <CosmosEnableScheduler Condition="'$(CosmosEnableScheduler)' == ''">true</CosmosEnableScheduler>
     <CosmosEnablePaging Condition="'$(CosmosEnablePaging)' == ''">false</CosmosEnablePaging>
     <CosmosEnableUserLand Condition="'$(CosmosEnableUserLand)' == ''">false</CosmosEnableUserLand>
+    <CosmosEnableSysCalls Condition="'$(CosmosEnableSysCalls)' == ''">false</CosmosEnableSysCalls>
     <!-- CosmosDefaultFont has no default: when unset, PCScreenFont falls back to its
          embedded Fonts.DefaultFont.psf. Set it to the manifest resource name of a PSF
          embedded in the kernel project to override the default console font. -->
@@ -75,6 +76,7 @@
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Scheduler.Enabled" Value="$(CosmosEnableScheduler)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.Paging.Enabled" Value="$(CosmosEnablePaging)" Trim="true"/>
     <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.UserLand.Enabled" Value="$(CosmosEnableUserLand)" Trim="true"/>
+    <RuntimeHostConfigurationOption Include="Cosmos.Kernel.Core.SysCalls.Enabled" Value="$(CosmosEnableSysCalls)" Trim="true"/>
     <!-- Key must match PCScreenFont.Default.DefaultFontKey ("...Fonts.DefaultFont");
          it was previously written as "...Fonts.CustomFont", which nothing reads. -->
     <RuntimeHostConfigurationOption Condition="'$(CosmosDefaultFont)' != ''" Include="Cosmos.Kernel.System.Graphics.Fonts.DefaultFont" Value="$(CosmosDefaultFont)" />
