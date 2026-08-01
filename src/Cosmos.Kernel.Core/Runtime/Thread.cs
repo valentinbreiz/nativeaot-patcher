@@ -45,6 +45,28 @@ public class Thread
         pStackLow = pStackHigh - (nint)BootStack.Size;
     }
 
+    /// <summary>
+    /// Default stack size CoreLib's Thread.CreateThread uses when the
+    /// constructor's maxStackSize is unset (&lt;= 0).
+    /// </summary>
+    [RuntimeExport("RhGetDefaultStackSize")]
+    internal static IntPtr RhGetDefaultStackSize()
+    {
+        return (nint)Scheduler.Thread.DefaultStackSize;
+    }
+
+    /// <summary>
+    /// Entry-point address CoreLib passes to SystemNative_CreateThread. Unused:
+    /// Cosmos threads start at ThreadNative.EntryPointStub and the scheduler's
+    /// InvokeCurrentThreadStart runs CoreLib's StartThread with the
+    /// GCHandle&lt;Thread&gt; parameter itself.
+    /// </summary>
+    [RuntimeExport("RhGetThreadEntryPointAddress")]
+    internal static IntPtr RhGetThreadEntryPointAddress()
+    {
+        return IntPtr.Zero;
+    }
+
     [RuntimeExport("RhSetCurrentThreadName")]
     internal static unsafe void RhSetCurrentThreadName(ushort* name)
     {
