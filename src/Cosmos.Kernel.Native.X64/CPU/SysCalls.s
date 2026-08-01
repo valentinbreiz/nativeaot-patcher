@@ -76,20 +76,23 @@ _native_x64_init_syscall:
     mov     rcx, 0xC0000101               // KERNEL_GS_BASE
     wrmsr
 
-    // STAR: SYSCALL CS = current kernel CS (RPL stripped) -> SS = CS+8.
-    //       SYSRET  CS = kernel CS | 3 (ring-3 code) -> SS = CS+8.
-    xor     rax, rax
-    mov     ax, cs
-    and     rax, 0xFFFFFFFFFFFFFFFC      // KCS (strip RPL)
-    mov     r11, rax                     // KCS
-    or      rax, 3                       // user CS for SYSRET (ring-3 selector)
-    shl     rax, 48                      // STAR[63:48]
-    mov     rdx, r11
-    shl     rdx, 32                      // STAR[47:32] = KCS
-    or      rax, rdx                     // rax = full 64-bit STAR
+    // STAR: SYSCALL CS = kernel code selector (0x08), SS = kernel CS + 8
+    //              (= 0x10, the kernel data selector).
+    //       SYSRET  CS = user code selector (0x1B, RPL=3), SS = user CS + 8
+    //              (= 0x23, the user data selector).
+    // Selectors must match the GDT installed by CPU/Gdt.s. STAR[47:32] =
+    // SYSCALL CS; STAR[63:48] = SYSRET CS (the CPU adds +8 for SS itself).
+    // 64-bit value to write: (0x1BULL << 48) | (0x08ULL << 32).
+    mov     rdx, 0x001B
+    shl     rdx, 32                          // STAR[63:48] = user CS 0x1B
+    mov     rax, 0x0008
+    shl     rax, 32                          // STAR[47:32] = kernel CS 0x08
+    or      rax, rdx                         // rax = full 64-bit STAR value
     mov     rdx, rax
-    shr     rdx, 32                      // EDX = STAR high
-    mov     rcx, 0xC0000081              // STAR (eax already holds STAR low)
+    shr     rdx, 32                          // EDX = STAR high
+                                        // EAX already holds STAR low (0 here)
+    xor     eax, eax
+    mov     rcx, 0xC0000081                  // STAR
     wrmsr
 
     // LSTAR = syscall_entry

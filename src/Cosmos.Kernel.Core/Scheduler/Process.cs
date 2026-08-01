@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.VAS;
 
 namespace Cosmos.Kernel.Core.Scheduler;
@@ -26,6 +27,41 @@ public class Process
     /// all threads started by this process must be in the same ring.
     /// </summary>
     public byte Ring { get; set; }
+
+    /// <summary>
+    /// Next free user-space stack top, carved downward from
+    /// <see cref="UserStackBase"/>. Each ring-3 thread's stack is mapped at a
+    /// fresh VA so concurrent threads don't alias. Page-aligned; PoC: never
+    /// recycled (released wholesale when the address space dies).
+    /// </summary>
+    private ulong _userStackCursor = UserStackBase;
+
+    /// <summary>
+    /// Base of the user stack region - well below the x64 canonical user limit
+    /// (<c>0x0000800000000000</c> used by <c>PageFaultHandler</c>) and below
+    /// any typical process image layout, so stacks grow downward into free
+    /// space. ARM64's low-half user region is unbounded, so the same base is
+    /// fine on both architectures.
+    /// </summary>
+    private const ulong UserStackBase = 0x0000400000000000UL;
+
+    /// <summary>
+    /// Allocates <paramref name="size"/> bytes of user virtual address space
+    /// for a ring-3 thread stack, returning the (exclusive) top VA. The
+    /// caller maps physical pages against this range and points the thread's
+    /// RSP/SP at the returned top. Page-aligned; PoC: never recycled.
+    /// </summary>
+    public nuint AllocateUserStack(nuint size)
+    {
+        // Page-align the size up; carve downward from the cursor.
+        ulong pages = ((ulong)size + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
+        ulong bytes = pages * PageAllocator.PageSize;
+        _userStackCursor -= bytes;
+        // Page-align the cursor top (it already is - bytes is a multiple of
+        // the page size - but keep the invariant explicit).
+        _userStackCursor &= ~(ulong)(PageAllocator.PageSize - 1);
+        return (nuint)_userStackCursor;
+    }
 
     /// <summary>
     /// Threads belonging to this process.

@@ -35,6 +35,13 @@ public class X64InterruptController : IInterruptController
     public void Initialize()
     {
         Serial.Write("[X64InterruptController] Starting IDT initialization...\n");
+        // Install the kernel GDT (ring-0 + ring-3 descriptors) before reading
+        // CS for the IDT selectors. Limine's boot GDT only has ring-0
+        // descriptors; we need the ring-3 selectors (0x1B/0x23) ready so
+        // SYSCALL/SYSRET and ring-3 iretq can drop CPL. The reloaded CS is
+        // 0x08 - matching what Limine set - so existing IRQ stubs are
+        // unaffected.
+        Gdt.Load();
         Idt.RegisterAllInterrupts();
         Serial.Write("[X64InterruptController] IDT initialization complete\n");
     }

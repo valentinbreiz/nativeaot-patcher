@@ -909,13 +909,29 @@ irq\n\()_stub:
     iretq
 
 .Lnew_thread\n:
-    // NEW thread - need to set up RSP from context and jump
+    // NEW thread - set up RSP/CS/CPL from the saved CPU frame and jump.
     // Stack: RIP, CS, RFLAGS, RSP, SS
+    //
+    // Ring-3 threads carry CS with RPL=3 (0x1B); iretq to a lower CPL pops
+    // RIP/RFLAGS/RSP/SS and drops CPL automatically - it's the only way to
+    // return to ring 3. Ring-0 threads (CS RPL=0) keep the manual RSP load
+    // + jmp: iretq to the same CPL doesn't pop RSP/SS, so the frame layout
+    // differs and the manual path avoids a 5th pop. Discriminate on the CS
+    // low bits set by ThreadContext.Initialize.
+    mov rax, [rsp + 8]            // CS from the frame (still on stack)
+    test al, 3
+    jnz .Lnew_thread_iretq\n
+
     pop r11          // RIP -> r11
     add rsp, 8       // skip CS
     popfq            // restore RFLAGS (enables interrupts)
     pop rsp          // load thread's stack pointer
     jmp r11          // jump to entry point
+
+.Lnew_thread_iretq\n:
+    // Ring-3 new thread: the saved frame has RIP, CS(=0x1B), RFLAGS,
+    // RSP(user), SS(=0x23). iretq restores all five and drops CPL to 3.
+    iretq
 .endm
 
 // Generate IRQ stubs

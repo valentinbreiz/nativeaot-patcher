@@ -21,17 +21,14 @@
     <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/global.json" beforeDir="false" afterPath="$PROJECT_DIR$/global.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/CosmosFeatures.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Cpu/X64InterruptController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Cpu/X64InterruptController.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Process.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Process.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ProcessSignals.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ProcessSignals.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/SysCalls/SysCallContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/SysCalls/SysCallContext.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/SysCalls/SysCallDispatcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/SysCalls/SysCallDispatcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/SysCalls/SysCallNative.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Bridge/Export/SysCallNative.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64PlatformInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.ARM64/ARM64PlatformInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.Interfaces/IPlatformInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.Interfaces/IPlatformInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64PlatformInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL.X64/X64PlatformInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Thread.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Thread.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/SysCalls.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/SysCalls.s" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -404,6 +401,7 @@
     <MESSAGE value="remove dupe lai" />
     <MESSAGE value="allow IDE0270" />
     <MESSAGE value="fix build issues" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix build issues" />
+    <MESSAGE value="work on system calls" />
+    <option name="LAST_COMMIT_MESSAGE" value="work on system calls" />
   </component>
 </project>

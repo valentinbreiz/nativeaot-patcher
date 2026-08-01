@@ -2,6 +2,7 @@
 
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.Memory.VAS;
 
 
 
@@ -41,6 +42,7 @@ public partial class ProcessSignals
         }
         if (handel != null)
         {
+            nuint entryPoint = handel.Value;
             Thread thread = new Thread
             {
                 Id = SchedulerManager.AllocateThreadId(),
@@ -49,17 +51,19 @@ public partial class ProcessSignals
                 Flags = ThreadFlags.NativeProcess
             };
 
-            unsafe
-            {
-                nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)0;
+            byte ring = _process.Ring;
+            AddressSpace? userSpace = ring == 3 ? _process.AddressSpace : null;
+
 #if ARCH_X64
-                ushort cs = (ushort)GetCurrentCodeSelector();
-                thread.InitializeStack(entryPoint, cs, stackSize: SstackSize);
+            // Ring-3 paths ignore codeSegment (ThreadContext picks 0x1B); pass
+            // 0 so InitializeStack forwards it as a sentinel. Ring-0 keeps the
+            // current kernel CS for the manual RSP+jmp exit path.
+            ushort cs = ring == 3 ? (ushort)0 : (ushort)GetCurrentCodeSelector();
+            thread.InitializeStack(entryPoint, cs, stackSize: SstackSize, ring: ring, userSpace: userSpace, userProcess: _process);
 #elif ARCH_ARM64
-                // ARM64: no code selector needed, use 0.
-                thread.InitializeStack(entryPoint, 0, stackSize: SstackSize);
+            // ARM64: no code selector needed, use 0.
+            thread.InitializeStack(entryPoint, 0, stackSize: SstackSize, ring: ring, userSpace: userSpace, userProcess: _process);
 #endif
-            }
 
             _process.StartThread(thread);
         }
