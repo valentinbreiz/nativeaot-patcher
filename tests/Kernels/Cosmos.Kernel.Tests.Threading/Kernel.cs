@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.Tests.Threading;
 public class Kernel : Sys.Kernel
 {
     /// <summary>Total number of tests announced to the test runner for this suite.</summary>
-    private const int ExpectedTestCount = 56;
+    private const int ExpectedTestCount = 58;
 
     /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
     private const int LockIterationsPerThread = 100;
@@ -120,6 +120,8 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_EnsureSufficientExecutionStack_Passes", TestEnsureSufficientStackInThread);
         TR.Run("Thread_RecordToString_Works", TestRecordToStringInThread);
         TR.Run("MainThread_RecordToString_Works", TestRecordToStringOnMainThread);
+        TR.Run("Thread_MaxStackSize_IsHonored", TestThreadMaxStackSizeHonored);
+        TR.Run("Thread_MaxStackSize_TinyRequestIsFloored", TestThreadTinyStackSizeFloored);
         TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
         TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
         TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
@@ -486,6 +488,68 @@ public class Kernel : Sys.Kernel
         {
             Assert.Fail("record ToString should not throw InsufficientExecutionStackException on the main thread");
         }
+    }
+
+    // ===== Thread constructor maxStackSize (#435) =====
+    // Upstream Thread.CreateThread resolves the constructor's maxStackSize
+    // (<= 0 means RhGetDefaultStackSize) and passes it to the exported
+    // SystemNative_CreateThread, which page-aligns it and floors it at 64KB.
+    // The worker reads its own scheduler thread's StackSize to observe what
+    // was actually allocated.
+
+    /// <summary>Requested stack size for the honored-request test (512KB, above the default).</summary>
+    private const int LargeRequestedStackSize = 512 * 1024;
+    /// <summary>Requested stack size for the floored-request test (16KB, below the 64KB floor).</summary>
+    private const int TinyRequestedStackSize = 16 * 1024;
+    /// <summary>Smallest stack SystemNative_CreateThread allocates for a managed thread.</summary>
+    private const int MinThreadStackSize = 64 * 1024;
+
+    private static volatile bool _stackSizeProbeDone;
+    private static ulong _observedStackSize;
+    private static volatile bool _observedStackSufficient;
+
+    private static void StackSizeProbeWorker()
+    {
+        _observedStackSize = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!.CurrentThread!.StackSize;
+        _observedStackSufficient = RuntimeHelpers.TryEnsureSufficientExecutionStack();
+        _stackSizeProbeDone = true;
+    }
+
+    private static void RunStackSizeProbe(int requestedStackSize)
+    {
+        _stackSizeProbeDone = false;
+        _observedStackSize = 0;
+        _observedStackSufficient = false;
+
+        var thread = new SysThread(StackSizeProbeWorker, requestedStackSize);
+        thread.Start();
+
+        for (int i = 0; i < TaskPollRetries && !_stackSizeProbeDone; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+    }
+
+    private static void TestThreadMaxStackSizeHonored()
+    {
+        RunStackSizeProbe(LargeRequestedStackSize);
+
+        Assert.True(_stackSizeProbeDone, "stack-size probe worker should finish");
+        Assert.True(_observedStackSize == LargeRequestedStackSize,
+            "scheduler thread should get the requested 512KB stack");
+        Assert.True(_observedStackSufficient,
+            "a 512KB stack should pass TryEnsureSufficientExecutionStack");
+    }
+
+    private static void TestThreadTinyStackSizeFloored()
+    {
+        RunStackSizeProbe(TinyRequestedStackSize);
+
+        Assert.True(_stackSizeProbeDone, "floored stack-size probe worker should finish");
+        Assert.True(_observedStackSize == MinThreadStackSize,
+            "a 16KB request should be floored to the 64KB minimum");
+        Assert.False(_observedStackSufficient,
+            "a 64KB stack sits below CoreLib's 128KB reserve, so TryEnsureSufficientExecutionStack reports false (upstream-faithful)");
     }
 
     // ===== Mutex idle-thread contention (scheduler Mutex, not System.Threading) =====
