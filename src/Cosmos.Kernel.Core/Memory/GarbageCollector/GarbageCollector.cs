@@ -49,43 +49,6 @@ public static unsafe partial class GarbageCollector
     internal struct FreeMarker { }
 
     /// <summary>
-    /// Describes a contiguous GC heap segment used for bump allocation.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct GCSegment
-    {
-        /// <summary>
-        /// Next segment in the linked list.
-        /// </summary>
-        public GCSegment* Next;
-
-        /// <summary>
-        /// Start of the usable allocation area (after the segment header).
-        /// </summary>
-        public byte* Start;
-
-        /// <summary>
-        /// End of the segment's address range.
-        /// </summary>
-        public byte* End;
-
-        /// <summary>
-        /// Current bump allocation pointer. Advances toward <see cref="End"/>.
-        /// </summary>
-        public byte* Bump;
-
-        /// <summary>
-        /// Total usable size in bytes (<see cref="End"/> - <see cref="Start"/>).
-        /// </summary>
-        public uint TotalSize;
-
-        /// <summary>
-        /// Bytes currently in use (live + dead objects before sweep).
-        /// </summary>
-        public uint UsedSize;
-    }
-
-    /// <summary>
     /// Describes a value-type series within a GCDesc for arrays of structs containing references.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
@@ -161,11 +124,6 @@ public static unsafe partial class GarbageCollector
     private static MethodTable* s_freeMethodTable;
 
     /// <summary>
-    /// Head of the GC segment linked list.
-    /// </summary>
-    private static GCSegment* s_segments;
-
-    /// <summary>
     /// Segment currently being used for bump allocation.
     /// </summary>
     private static GCSegment* s_currentSegment;
@@ -176,9 +134,17 @@ public static unsafe partial class GarbageCollector
     private static GCSegment* s_lastSegment;
 
     /// <summary>
-    /// Tail of the segment linked list (for O(1) append).
+    /// Segment Manager of the GC Heap
     /// </summary>
-    private static GCSegment* s_tailSegment;
+    private static GCSegmentManager s_segmentManager = new();
+    /// <summary>
+    /// Segment Manager for the pinned segments.
+    /// </summary>
+    private static GCSegmentManager s_pinnedSegmentManager = new();
+    /// <summary>
+    /// GCHandle Manager.
+    /// </summary>
+    internal static GCHandleManager s_gCHandleManager = new();
 
     /// <summary>
     /// Default segment size. Grows as needed.
@@ -325,13 +291,11 @@ public static unsafe partial class GarbageCollector
         s_freeMethodTable = MethodTable.Of<FreeMarker>();
 
         // Allocate initial segment
-        s_currentSegment = AllocateSegment(s_maxSegmentSize);
-        s_segments = s_currentSegment;
+        s_currentSegment = s_segmentManager.AllocateSegment(s_maxSegmentSize);
         s_lastSegment = s_currentSegment;
-        s_tailSegment = s_currentSegment;
         s_heapRangeDirty = true;
         RecomputeHeapRange();
-        if (s_segments == null)
+        if (s_segmentManager.Segments == null)
         {
             Serial.WriteString("[GC] ERROR: Failed to allocate initial segment\n");
             return;
@@ -351,8 +315,7 @@ public static unsafe partial class GarbageCollector
         }
 
         s_markStackCount = 0;
-
-        InitializeGCHandleStore();
+        s_gCHandleManager.InitializeGCHandleStore();
 
         s_initialized = true;
         Serial.WriteString("[GC] Initialization complete\n");
@@ -397,7 +360,7 @@ public static unsafe partial class GarbageCollector
             MarkPhase();
 
             // Free Weak GC Handles
-            FreeWeakHandles();
+            s_gCHandleManager.FreeWeakHandles();
 
             // Sweep and rebuild free lists
             freedCount = SweepPhase();

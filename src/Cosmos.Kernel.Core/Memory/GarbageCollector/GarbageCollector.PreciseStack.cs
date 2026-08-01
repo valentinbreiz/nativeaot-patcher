@@ -163,24 +163,21 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        if((gcRefFlags & GcRefFlags.GC_CALL_INTERIOR) != 0)
+        if ((gcRefFlags & GcRefFlags.GC_CALL_INTERIOR) != 0)
         {
-            // The reported slot is an interior pointer. If it points to a valid object, mark the
-            // object itself (the header) instead of the interior pointer. This is the same hole
-            // the conservative scanner has: it will see the interior pointer and mark the object
-            // anyway, so we don't need to do anything special here.
-            void* obj = GetParentObject((void*)(*pObjRef));
-            if (obj != null)
-            {
-                TryMarkRoot((nint)obj);
-            }
+            // An interior pointer is reported. Find the parent object in the GC heap and mark it.
+            // Check if we are dealing with a pinned object, we need to use the correct segment list.
+            void* obj = (gcRefFlags & GcRefFlags.GC_CALL_PINNED) != 0
+                        ? GetParentObject((void*)*pObjRef, s_pinnedSegmentManager.Segments)
+                        : GetParentObject((void*)*pObjRef, s_segmentManager.Segments);
+
+            TryMarkRoot((nint)obj);
             return;
         }
-        
         TryMarkRoot((nint)(*pObjRef));
     }
 
-    private static void* GetParentObject(void* obj)
+    private static void* GetParentObject(void* obj, GCSegment* s_segments)
     {
         var segment = s_segments;
 
@@ -188,25 +185,27 @@ public static unsafe partial class GarbageCollector
         {
             if (obj >= segment->Start && obj < segment->End)
             {
-                var start = (GCObject*)segment->Start;
-                while (start < segment->End)
+                var start = segment->FindClosestObjectBelow((nint)obj);
+
+                var segEnum = new GCSegment.Enumerator((byte*)start, (byte*)obj);
+
+                while (segEnum.MoveNext())
                 {
-                    if (start == obj)
+                    var current = segEnum.Current;
+                    if (current == obj)
                     {
-                        return start;
+                        return current;
                     }
 
-                    if(obj > start && obj < (byte*)start + start->ComputeSize())
+                    if (obj > current && obj < (byte*)current + current->ComputeSize())
                     {
-                        return start;
+                        return current;
                     }
-
-                    start = (GCObject*)((byte*)start + start->ComputeSize());
                 }
             }
             segment = segment->Next;
         }
-        
+
         return obj;
     }
 }

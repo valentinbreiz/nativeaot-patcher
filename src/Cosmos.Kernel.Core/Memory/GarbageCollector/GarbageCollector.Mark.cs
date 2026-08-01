@@ -37,24 +37,8 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void ScanGCHandles()
     {
-        if (s_handlerStore == null)
-        {
-            return;
-        }
-
-        int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
-        var handles = new Span<GCHandle>((void*)s_handlerStore->Bump, size);
-
-        // Pass 1: Mark strong handles (Normal and Pinned, excluding dependent)
-        for (int i = 0; i < handles.Length; i++)
-        {
-            if ((IntPtr)handles[i].obj != IntPtr.Zero
-                && handles[i].type >= GCHandleType.Normal
-                && handles[i].extraInfo == 0)
-            {
-                TryMarkRoot((nint)handles[i].obj);
-            }
-        }
+        ScanGCHandles(GCHandleType.Normal);
+        ScanGCHandles(GCHandleType.Pinned);
 
         // Pass 2: Dependent handle convergence loop
         // If primary is marked, mark secondary. Repeat until no new marks (handles transitive chains).
@@ -62,18 +46,23 @@ public static unsafe partial class GarbageCollector
         while (markedNew)
         {
             markedNew = false;
-            for (int i = 0; i < handles.Length; i++)
+            var storeEnum = s_gCHandleManager.DependentHandleStore.GetEnumerator();
+            while (storeEnum.MoveNext())
             {
-                if ((IntPtr)handles[i].obj != IntPtr.Zero && handles[i].extraInfo != 0
-                    && handles[i].obj->IsMarked)
+                if (storeEnum.Current->Object->IsMarked && !((GCObject*)storeEnum.Current->ExtraInfo)->IsMarked)
                 {
-                    var secondary = (GCObject*)handles[i].extraInfo;
-                    if (!secondary->IsMarked)
-                    {
-                        TryMarkRoot((nint)secondary);
-                        markedNew = true;
-                    }
+                    TryMarkRoot(storeEnum.Current->ExtraInfo);
+                    markedNew = true;
                 }
+            }
+        }
+
+        void ScanGCHandles(GCHandleType type)
+        {
+            var storeEnum = s_gCHandleManager.GCHandleControllers[(int)type].GetEnumerator();
+            while (storeEnum.MoveNext())
+            {
+                TryMarkRoot((nint)storeEnum.Current->Object);
             }
         }
     }
