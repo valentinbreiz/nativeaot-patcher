@@ -271,6 +271,8 @@ using RuntimeMemory = Cosmos.Kernel.Core.Runtime.Memory;
 using RuntimeMath = Cosmos.Kernel.Core.Runtime.Math;
 using RuntimeGC = Cosmos.Kernel.Core.Runtime.GC;
 using RuntimeThread = Cosmos.Kernel.Core.Runtime.Thread;
+using System.Runtime.InteropServices;
+using GCHandle = System.Runtime.InteropServices.GCHandle;
 
 namespace Cosmos.Kernel.Tests.Runtime;
 
@@ -298,7 +300,7 @@ public unsafe class Kernel : Sys.Kernel
         // -- RhHandleFree --
         TR.Run("RhHandleFree_Zero_NoOp", Test_RhHandleFree_Zero_NoOp);
         // -- RhHandleSet --
-        TR.Run("RhHandleSet_ReturnsZero", Test_RhHandleSet_ReturnsZero);
+        TR.Run("RhHandleSet_Overrides_Handle_Target", Test_RhHandleSet_Overrides_Handle_Target);
         // -- RhNewString --
         TR.Run("RhNewString_Length5", Test_RhNewString_Length5);
         // -- RhNewVariableSizeObject --
@@ -596,11 +598,18 @@ public unsafe class Kernel : Sys.Kernel
     }
 
     // -- RhHandleSet --
-    private static void Test_RhHandleSet_ReturnsZero()
+    private static void Test_RhHandleSet_Overrides_Handle_Target()
     {
-        // Stub body returns IntPtr.Zero regardless of input.
-        nint result = RuntimeMemory.RhHandleSet(new object());
-        Assert.True(result == nint.Zero, "RhHandleSet stub returns IntPtr.Zero");
+        var obj1 = new object();
+        var obj2 = new object();
+
+        var handle = GCHandle.Alloc(obj1, GCHandleType.Weak);
+
+        Assert.True(handle.Target == obj1, "Handle.Target should be obj1 before RhHandleSet");
+
+        RuntimeMemory.RhHandleSet(GCHandle.ToIntPtr(handle), *(GCObject**)Unsafe.AsPointer(ref obj2));
+
+        Assert.True(handle.Target == obj2, "Handle.Target should be obj2 after RhHandleSet");
     }
 
     // -- RhNewString --

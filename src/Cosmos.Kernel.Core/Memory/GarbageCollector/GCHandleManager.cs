@@ -237,7 +237,7 @@ internal unsafe struct GCHandleManager()
     /// <param name="handle">The handle to free. No-op if <see cref="IntPtr.Zero"/>.</param>
     internal void FreeHandle(GCHandle* handle)
     {
-        if (IsValidHandleType(handle->Type))
+        if (handle != null && IsValidHandleType(handle->Type))
         {
 
             var store = handle->Type == (GCHandleType)6
