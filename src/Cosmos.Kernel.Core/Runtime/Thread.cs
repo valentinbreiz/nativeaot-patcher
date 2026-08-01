@@ -29,8 +29,20 @@ public class Thread
     [RuntimeExport("RhGetCurrentThreadStackBounds")]
     internal static void RhGetCurrentThreadStackBounds(out IntPtr pStackLow, out IntPtr pStackHigh)
     {
-        pStackLow = (nint)ContextSwitchNative.GetSp();
-        pStackHigh = pStackLow + (nint)Scheduler.Thread.DefaultStackSize;
+        if (CosmosFeatures.SchedulerEnabled)
+        {
+            Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread;
+            if (current != null && current.StackBase != 0)
+            {
+                pStackLow = (nint)current.StackBase;
+                pStackHigh = (nint)(current.StackBase + current.StackSize);
+                return;
+            }
+        }
+
+        // Boot/idle thread: runs on the bootloader-provided stack.
+        pStackHigh = (nint)BootStack.Top;
+        pStackLow = pStackHigh - (nint)BootStack.Size;
     }
 
     [RuntimeExport("RhSetCurrentThreadName")]

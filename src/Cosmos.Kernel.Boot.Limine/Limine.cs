@@ -10,6 +10,7 @@ public static class Limine
     public static readonly LimineBootTimeRequest BootTime = new();
     public static readonly LimineEfiSystemTableRequest EfiSystemTable = new();
     public static readonly LimineExecutableCmdlineRequest ExecutableCmdline = new();
+    public static readonly LimineStackSizeRequest StackSize = new(LimineStackSizeRequest.DefaultRequestedSize);
 
     /// <summary>
     /// Pointer to the kernel command line (null-terminated C string) passed
