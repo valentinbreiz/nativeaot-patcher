@@ -45,6 +45,7 @@ public class Process
     public void StartThread(Thread thread)
     {
         thread.AddressSpace = AddressSpace;
+
         Threads.Add(thread);
     }
 

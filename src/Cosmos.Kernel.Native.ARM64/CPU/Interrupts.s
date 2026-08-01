@@ -52,8 +52,24 @@ _native_arm64_exception_vectors:
     b       __exception_common
 
 // Lower EL using AArch64
+// SYNC vector: discriminate SVC (EC = 0x15) from synchronous faults. SVC
+// goes to __syscall_common (CPU/SysCalls.s) with a 48-byte frame of saved
+// syscall regs; anything else falls through to __exception_common as before.
 .balign 0x80
     stp     x0, x1, [sp, #-16]!
+    stp     x2, x3, [sp, #-16]!
+    stp     x4, x5, [sp, #-16]!
+    stp     x6, x7, [sp, #-16]!
+    stp     x8, x30, [sp, #-16]!
+    mrs     x0, esr_el1
+    lsr     x0, x0, #26
+    cmp     x0, #0x15              // EC = 0x15 = SVC from AArch64
+    b.eq    __syscall_common
+    ldp     x8, x30, [sp], #16
+    ldp     x6, x7, [sp], #16
+    ldp     x4, x5, [sp], #16
+    ldp     x2, x3, [sp], #16
+    ldp     x0, x1, [sp], #16
     mov     x0, #0
     b       __exception_common
 .balign 0x80

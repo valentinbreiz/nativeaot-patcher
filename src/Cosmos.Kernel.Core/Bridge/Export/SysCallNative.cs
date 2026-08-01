@@ -1,8 +1,9 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.SysCalls;
 
-namespace Cosmos.Kernel.Core.SysCalls;
+namespace Cosmos.Kernel.Core.Bridge.Export;
 
 /// <summary>
 /// Native entry point invoked from the architecture-specific syscall trap

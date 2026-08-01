@@ -1,5 +1,6 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using Cosmos.Kernel.Core.Bridge.Export;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.SysCalls;
@@ -60,7 +61,7 @@ public static class SysCallDispatcher
     /// handler already registered for that slot. Must be called after
     /// <see cref="Initialize"/>; a missing table is a kernel bug and halts.
     /// </summary>
-    public static void Register(SysCallNumber number, SysCallHandler handler)
+    public static void Register(uint number, SysCallHandler handler)
     {
         if (s_handlers == null)
         {
@@ -83,7 +84,7 @@ public static class SysCallDispatcher
     /// this returns, calls to that number return <see cref="SysCallError.Enosys"/>.
     /// Safe to call on a never-registered number.
     /// </summary>
-    public static void Unregister(SysCallNumber number)
+    public static void Unregister(uint number)
     {
         if (s_handlers == null)
         {

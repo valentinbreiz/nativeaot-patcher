@@ -1,28 +1,33 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
+using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
+
+
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
-public class ProcessSignals
+public partial class ProcessSignals
 {
+
+    public const uint SstackSize = 1024 * 4;
 
     internal ProcessSignals(Process process)
     {
         _process = process;
     }
 
-    private Action?[] Handels = new Action?[31];
+    private nuint?[] Handels = new nuint?[31];
     private readonly Process _process;
 
-    public void RegisterHandel(ushort signal, Action func)
+    public void RegisterHandel(ushort signal, nuint func)
     {
         Handels[signal] = func;
     }
 
     public void Send(ushort signal)
     {
-        Action? handel = Handels[signal];
+        nuint? handel = Handels[signal];
         ProcessSignalConfig config = ProcessSignalConfigs.Configs[signal];
         if (config.KillProcess)
         {
@@ -43,15 +48,20 @@ public class ProcessSignals
                 State = ThreadState.Created,
                 Flags = ThreadFlags.NativeProcess
             };
+
+            unsafe
+            {
+                nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)0;
 #if ARCH_X64
-            ushort cs = (ushort)Idt.GetCurrentCodeSelector();
-            thread.InitializeStack(entryPoint, cs, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
+                ushort cs = (ushort)GetCurrentCodeSelector();
+                thread.InitializeStack(entryPoint, cs, stackSize: SstackSize);
 #elif ARCH_ARM64
                 // ARM64: no code selector needed, use 0.
-                thread.InitializeStack(entryPoint, 0, (nuint)GCHandle<SysThread>.ToIntPtr(thisThreadHandle));
+                thread.InitializeStack(entryPoint, 0, stackSize: SstackSize);
 #endif
+            }
+
             _process.StartThread(thread);
-            handel();
         }
 
         if (config.KillProcess)
@@ -59,7 +69,16 @@ public class ProcessSignals
             _process.Kill(1);
         }
     }
+
+
+#if ARCH_X64
+    // replace this with something better
+    [LibraryImport("*", EntryPoint = "_native_x64_get_code_selector")]
+    [SuppressGCTransition]
+    public static partial ulong GetCurrentCodeSelector();
+#endif
 }
+
 
 
 public readonly struct ProcessSignalConfig

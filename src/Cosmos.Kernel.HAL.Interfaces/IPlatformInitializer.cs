@@ -67,6 +67,18 @@ public interface IPlatformInitializer
     void InitializeHardware();
 
     /// <summary>
+    /// Arms the architecture's syscall trap so userspace SYSCALL/SVC reach
+    /// <c>SysCallNative.Dispatch</c>. Called after
+    /// <c>SysCallDispatcher.Initialize</c> so the handler table exists before
+    /// any trap can fire, and after the interrupt/exception vectors are up
+    /// (ARM64's SVC route lives in the exception vector table installed by
+    /// <c>InitializeHardware</c>). x64 programs STAR/LSTAR/FMASK and the
+    /// per-CPU KERNEL_GS_BASE block; ARM64 is a no-op (the SVC vector slot
+    /// already routes to <c>__syscall_common</c>).
+    /// </summary>
+    void InitializeSysCalls();
+
+    /// <summary>
     /// Creates and initializes the platform timer device.
     /// </summary>
     ITimerDevice CreateTimer();

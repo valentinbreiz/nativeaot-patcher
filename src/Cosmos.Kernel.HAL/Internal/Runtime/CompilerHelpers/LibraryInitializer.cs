@@ -8,6 +8,7 @@ using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
+using Cosmos.Kernel.Core.SysCalls;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Devices.Virtio;
@@ -91,6 +92,19 @@ namespace Internal.Runtime.CompilerHelpers
                     Serial.WriteString("[KERNEL]   - Initializing NVMe...\n");
                     Nvme.Initialize();
                 }
+            }
+
+            // Arm the syscall dispatch surface (gated by CosmosEnableSysCalls,
+            // which only fires when UserLand is on). Allocate the handler table
+            // first, then let the platform initializer wire the arch trap
+            // (x64 SYSCALL MSRs / per-CPU GS block; ARM64 SVC is routed by the
+            // exception vectors already installed above). Done after the
+            // interrupt/exception vectors are up so ARM64 SVC can fire.
+            if (CosmosFeatures.SysCallsEnabled)
+            {
+                Serial.WriteString("[KERNEL]   - Initializing syscall dispatch...\n");
+                SysCallDispatcher.Initialize();
+                initializer.InitializeSysCalls();
             }
         }
     }
