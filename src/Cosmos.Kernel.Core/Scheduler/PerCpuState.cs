@@ -26,7 +26,7 @@ public class PerCpuState : SchedulerExtensible
     // InterruptEvent.Signal); consumed by ReschedulePendingFromIrq on
     // hardware-IRQ exit so the woken thread runs immediately instead of
     // sitting in the run queue until the next timer tick.
-    internal bool NeedReschedule;
+    internal bool _needReschedule;
 
     // ===== Synchronization =====
     public SpinLock Lock;

@@ -168,7 +168,7 @@ public class GenericTimer : TimerDevice
     /// <summary>
     /// Timer tick counter for debugging.
     /// </summary>
-    private static uint _timerTickCount;
+    private static uint s_timerTickCount;
 
     /// <summary>
     /// Handles the timer interrupt.
@@ -180,7 +180,7 @@ public class GenericTimer : TimerDevice
             return;
         }
 
-        _timerTickCount++;
+        s_timerTickCount++;
 
         // Re-arm the timer for the next period
         if (Instance._ticksPerPeriod > uint.MaxValue)
@@ -204,10 +204,10 @@ public class GenericTimer : TimerDevice
         nuint currentSp = contextPtr - ARM64InterruptController.NeonSaveAreaBytes;  // SP points to start of NEON save area
 
         // Log first few ticks and then periodically
-        if (_timerTickCount <= 5 || _timerTickCount % 100 == 0)
+        if (s_timerTickCount <= 5 || s_timerTickCount % 100 == 0)
         {
             Serial.Write("[GenericTimer] Tick ");
-            Serial.WriteNumber(_timerTickCount);
+            Serial.WriteNumber(s_timerTickCount);
             Serial.Write(" SP=0x");
             Serial.WriteHex((ulong)currentSp);
             Serial.Write("\n");

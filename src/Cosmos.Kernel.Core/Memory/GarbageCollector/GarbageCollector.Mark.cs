@@ -131,12 +131,11 @@ public static unsafe partial class GarbageCollector
     /// <summary>
     /// Stack-end bound for the current thread when its <see cref="Scheduler.Thread"/> has no
     /// allocated <c>StackBase</c>/<c>StackSize</c> — the boot/idle thread runs on the bootloader's
-    /// stack. Returns the current SP plus the default stack size: a deliberately generous bound, so
-    /// a word or two of slop from this helper's own frame is immaterial.
+    /// stack, whose top kmain captured before any managed code ran.
     /// </summary>
     private static nuint GetCurrentStackEndForBootStack()
     {
-        return ContextSwitchNative.GetSp() + Scheduler.Thread.DefaultStackSize;
+        return Runtime.BootStack.Top;
     }
 
     /// <summary>

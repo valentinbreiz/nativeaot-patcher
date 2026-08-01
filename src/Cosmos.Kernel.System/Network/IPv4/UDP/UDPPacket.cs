@@ -15,7 +15,7 @@ public delegate void UDPDataReceivedHandler(UDPPacket packet);
 /// </summary>
 public class UDPPacket : IPPacket
 {
-    private ushort udpCRC;
+    private ushort _udpCRC;
 
     /// <summary>
     /// Callback for receiving UDP data.
@@ -146,7 +146,7 @@ public class UDPPacket : IPPacket
         SourcePort = (ushort)((RawData[DataOffset] << 8) | RawData[DataOffset + 1]);
         DestinationPort = (ushort)((RawData[DataOffset + 2] << 8) | RawData[DataOffset + 3]);
         UDPLength = (ushort)((RawData[DataOffset + 4] << 8) | RawData[DataOffset + 5]);
-        udpCRC = (ushort)((RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
+        _udpCRC = (ushort)((RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
     }
 
     /// <summary>

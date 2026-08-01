@@ -201,11 +201,11 @@ public class StrideScheduler : IScheduler
     }
 
     // Debug counter for OnTick logging
-    private static uint _onTickLogCount;
+    private static uint s_onTickLogCount;
 
     public bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs)
     {
-        _onTickLogCount++;
+        s_onTickLogCount++;
 
         if (current == null)
         {
@@ -244,7 +244,7 @@ public class StrideScheduler : IScheduler
         UpdateGlobalPass(cpuData);
 
         // Log every 100 ticks
-        if (_onTickLogCount % 100 == 0)
+        if (s_onTickLogCount % 100 == 0)
         {
             Cosmos.Kernel.Core.IO.Serial.WriteString("[STRIDE] OnTick: current=");
             Cosmos.Kernel.Core.IO.Serial.WriteNumber(current.Id);

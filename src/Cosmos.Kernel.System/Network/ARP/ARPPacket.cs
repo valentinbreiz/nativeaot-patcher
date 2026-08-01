@@ -36,13 +36,13 @@ public class ARPPacket : EthernetPacket
 
                 ARPCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC!);
 
-                if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP!.Hash))
+                if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP!.Id))
                 {
                     Serial.WriteString("[ARP] Request received from ");
                     Serial.WriteString(arpRequest.SenderIP.ToString());
                     Serial.WriteString("\n");
 
-                    var nic = NetworkStack.AddressMap[arpRequest.TargetIP.Hash];
+                    var nic = NetworkStack.AddressMap[arpRequest.TargetIP.Id];
                     var nicMac = new MACAddress(nic.MacAddress);
 
                     var reply = new ARPReplyEthernet(

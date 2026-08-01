@@ -48,9 +48,13 @@ public unsafe class Thread : SchedulerExtensible
 
 
     /// <summary>
-    /// Default stack size for new threads (64KB).
+    /// Default stack size for new threads (256KB). Must stay above CoreLib's
+    /// 128KB MinExecutionStackSize (64-bit) or
+    /// RuntimeHelpers.EnsureSufficientExecutionStack — called by generated
+    /// record ToString/PrintMembers among others — throws
+    /// InsufficientExecutionStackException on every call (#433).
     /// </summary>
-    public const nuint DefaultStackSize = 64 * 1024;
+    public const nuint DefaultStackSize = 256 * 1024;
 
     /// <summary>
     /// Maximum number of threads tracked by the global thread registry.

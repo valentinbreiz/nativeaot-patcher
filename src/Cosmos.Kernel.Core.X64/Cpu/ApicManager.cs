@@ -9,12 +9,12 @@ namespace Cosmos.Kernel.Core.X64.Cpu;
 /// </summary>
 public static class ApicManager
 {
-    private static bool _initialized;
+    private static bool s_initialized;
 
     /// <summary>
     /// Gets whether the APIC system is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Initializes the APIC system using MADT information.
@@ -57,7 +57,7 @@ public static class ApicManager
             Serial.Write("[ApicManager] WARNING: No I/O APIC found in MADT!\n");
         }
 
-        _initialized = true;
+        s_initialized = true;
         Serial.Write("[ApicManager] APIC system initialized\n");
     }
 
@@ -70,7 +70,7 @@ public static class ApicManager
     /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
     public static unsafe void RouteIrq(byte irq, byte vector, bool startMasked = false)
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             Serial.Write("[ApicManager] ERROR: APIC not initialized!\n");
             return;

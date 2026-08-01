@@ -23,15 +23,15 @@ public class PS2Mouse : MouseDevice
     }
 
     // Static reference to the first mouse instance (for IRQ handler)
-    private static PS2Mouse? _instance;
+    private static PS2Mouse? s_instance;
 
     // Flag to prevent multiple IRQ registrations
-    private static bool _irqRegistered;
+    private static bool s_irqRegistered;
 
     // Mouse packet buffer (3 bytes for standard PS/2 mouse, 4 bytes for scroll wheel)
-    private static byte[] _packet = new byte[4];
-    private static int _packetIndex = 0;
-    private static bool _hasScrollWheel = false;
+    private static byte[] s_packet = new byte[4];
+    private static int s_packetIndex = 0;
+    private static bool s_hasScrollWheel = false;
 
     /// <summary>
     /// Registers IRQ handler for mouse interrupts.
@@ -109,9 +109,9 @@ public class PS2Mouse : MouseDevice
         SendCommand(Command.SetDefaults);
 
         // Try to enable scroll wheel (IntelliMouse protocol)
-        _hasScrollWheel = TryEnableScrollWheel();
+        s_hasScrollWheel = TryEnableScrollWheel();
 
-        if (_hasScrollWheel)
+        if (s_hasScrollWheel)
         {
             Serial.WriteString("[PS2Mouse] Scroll wheel enabled\n");
         }
@@ -119,9 +119,9 @@ public class PS2Mouse : MouseDevice
         Serial.WriteString("[PS2Mouse] Initialized (data reporting will be enabled later)\n");
 
         // Store first mouse instance for IRQ handler
-        if (_instance == null)
+        if (s_instance == null)
         {
-            _instance = this;
+            s_instance = this;
         }
     }
 
@@ -151,39 +151,39 @@ public class PS2Mouse : MouseDevice
         byte data = Native.IO.Read8(0x60);
 
         // Add to packet buffer
-        _packet[_packetIndex] = data;
-        _packetIndex++;
+        s_packet[s_packetIndex] = data;
+        s_packetIndex++;
 
         // Check if we have a complete packet
-        int packetSize = _hasScrollWheel ? 4 : 3;
-        if (_packetIndex >= packetSize)
+        int packetSize = s_hasScrollWheel ? 4 : 3;
+        if (s_packetIndex >= packetSize)
         {
-            _packetIndex = 0;
+            s_packetIndex = 0;
 
             // Validate packet (bit 3 of first byte should always be 1)
-            if ((_packet[0] & 0x08) != 0x08)
+            if ((s_packet[0] & 0x08) != 0x08)
             {
                 // Invalid packet, skip it
                 return;
             }
 
             // Parse packet
-            bool leftButton = (_packet[0] & 0x01) != 0;
-            bool rightButton = (_packet[0] & 0x02) != 0;
-            bool middleButton = (_packet[0] & 0x04) != 0;
+            bool leftButton = (s_packet[0] & 0x01) != 0;
+            bool rightButton = (s_packet[0] & 0x02) != 0;
+            bool middleButton = (s_packet[0] & 0x04) != 0;
 
             // X/Y (9-bit signed values) and Z movement
-            int deltaX = _packet[1];
-            int deltaY = _packet[2];
-            int deltaZ = _hasScrollWheel ? _packet[3] & 0x0F : 0;
+            int deltaX = s_packet[1];
+            int deltaY = s_packet[2];
+            int deltaZ = s_hasScrollWheel ? s_packet[3] & 0x0F : 0;
 
             // Sign-extend X, Y and Z if negative
-            if ((_packet[0] & 0x10) != 0)
+            if ((s_packet[0] & 0x10) != 0)
             {
                 deltaX |= unchecked((int)0xFFFFFF00);
             }
 
-            if ((_packet[0] & 0x20) != 0)
+            if ((s_packet[0] & 0x20) != 0)
             {
                 deltaY |= unchecked((int)0xFFFFFF00);
             }
@@ -197,17 +197,17 @@ public class PS2Mouse : MouseDevice
             deltaY = -deltaY;
 
             // Update instance state
-            if (_instance != null)
+            if (s_instance != null)
             {
-                _instance.X += deltaX;
-                _instance.Y += deltaY;
-                _instance.ScrollDelta = deltaZ;
-                _instance.LeftButton = leftButton;
-                _instance.RightButton = rightButton;
-                _instance.MiddleButton = middleButton;
+                s_instance.X += deltaX;
+                s_instance.Y += deltaY;
+                s_instance.ScrollDelta = deltaZ;
+                s_instance.LeftButton = leftButton;
+                s_instance.RightButton = rightButton;
+                s_instance.MiddleButton = middleButton;
 
                 // Invoke callback
-                _instance.OnMouseEvent?.Invoke(deltaX, deltaY, deltaZ, leftButton, rightButton, middleButton);
+                s_instance.OnMouseEvent?.Invoke(deltaX, deltaY, deltaZ, leftButton, rightButton, middleButton);
             }
         }
 
@@ -238,10 +238,10 @@ public class PS2Mouse : MouseDevice
     public override void Enable()
     {
         // Register IRQ handler on first Enable() call (after callback is set)
-        if (!_irqRegistered)
+        if (!s_irqRegistered)
         {
             RegisterIRQHandler();
-            _irqRegistered = true;
+            s_irqRegistered = true;
             return;
         }
 

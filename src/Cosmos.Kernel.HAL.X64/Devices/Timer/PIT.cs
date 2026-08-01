@@ -25,8 +25,8 @@ public class PIT : TimerDevice
 
     public bool T0RateGen = false;
 
-    private ushort t0Countdown = 65535;
-    private ushort t2Countdown = 65535;
+    private ushort _t0Countdown = 65535;
+    private ushort _t2Countdown = 65535;
 
     /// <summary>
     /// Channel 0 data port.
@@ -75,10 +75,10 @@ public class PIT : TimerDevice
 
     public ushort T0Countdown
     {
-        get => t0Countdown;
+        get => _t0Countdown;
         set
         {
-            t0Countdown = value;
+            _t0Countdown = value;
 
             Native.IO.Write8(Command, (byte)(T0RateGen ? 0x34 : 0x30));
             Native.IO.Write8(Data0, (byte)(value & 0xFF));
@@ -89,11 +89,11 @@ public class PIT : TimerDevice
     /// <summary>
     /// Gets the timer frequency in Hz.
     /// </summary>
-    public override uint Frequency => PITFrequency / t0Countdown;
+    public override uint Frequency => PITFrequency / _t0Countdown;
 
     public uint T0Frequency
     {
-        get => PITFrequency / t0Countdown;
+        get => PITFrequency / _t0Countdown;
         set
         {
             if (value < 19 || value > 1193180)
@@ -117,7 +117,7 @@ public class PIT : TimerDevice
 
     public uint T0DelayNS
     {
-        get => PITDelayNS * t0Countdown;
+        get => PITDelayNS * _t0Countdown;
         set
         {
             if (value > 54918330)
@@ -132,10 +132,10 @@ public class PIT : TimerDevice
 
     public ushort T2Countdown
     {
-        get => t2Countdown;
+        get => _t2Countdown;
         set
         {
-            t2Countdown = value;
+            _t2Countdown = value;
 
             Native.IO.Write8(Command, 0xB6);
             Native.IO.Write8(Data2, (byte)(value & 0xFF));
@@ -145,7 +145,7 @@ public class PIT : TimerDevice
 
     public uint T2Frequency
     {
-        get => PITFrequency / t2Countdown;
+        get => PITFrequency / _t2Countdown;
         set
         {
             if (value < 19 || value > 1193180)
@@ -160,7 +160,7 @@ public class PIT : TimerDevice
 
     public uint T2DelayNS
     {
-        get => PITDelayNS * t2Countdown;
+        get => PITDelayNS * _t2Countdown;
         set
         {
             if (value > 54918330)
@@ -180,7 +180,7 @@ public class PIT : TimerDevice
     public override void RegisterTimer(SoftwareTimer timer)
     {
         base.RegisterTimer(timer);
-        T0Countdown = t0Countdown;
+        T0Countdown = _t0Countdown;
     }
 
     private static void HandleIRQ(ref IRQContext aContext)
@@ -195,7 +195,7 @@ public class PIT : TimerDevice
         // In one-shot mode, must reload after each interrupt
         if (!Instance.T0RateGen)
         {
-            Instance.T0Countdown = Instance.t0Countdown;
+            Instance.T0Countdown = Instance._t0Countdown;
         }
 
         Instance.HandleTick(t0Delay);

@@ -54,17 +54,17 @@ public static unsafe class PageAllocator
     /// stored at the end of RAM
     /// </remarks>
     // We need a pointer as the RAT can move around in future with dynamic RAM etc.
-    private static byte* mRAT;
+    private static byte* s_mRAT;
 
     /// <summary>
     /// Virtual address of the RAT base (one byte per page).
     /// </summary>
-    public static ulong RatAddress => (ulong)mRAT;
+    public static ulong RatAddress => (ulong)s_mRAT;
 
     /// <summary>
     /// Pointer to end of the heap
     /// </summary>
-    private static byte* HeapEnd;
+    private static byte* s_heapEnd;
 
     /// <summary>
     /// Size of heap.
@@ -419,31 +419,31 @@ public static unsafe class PageAllocator
         Serial.WriteString(" KB\n");
 
         // IMPORTANT: Following Cosmos OS structure, place RAT at the END of usable memory
-        // Heap: [RamStart ... HeapEnd] [RAT]
-        mRAT = usableStart + usableSize - xRatTotalSize;
+        // Heap: [RamStart ... s_heapEnd] [RAT]
+        s_mRAT = usableStart + usableSize - xRatTotalSize;
         RamStart = usableStart;
         RamSize = usableSize - xRatTotalSize;
-        HeapEnd = mRAT;  // Heap ends where RAT begins
+        s_heapEnd = s_mRAT;  // Heap ends where RAT begins
 
         Serial.WriteString("[PageAllocator] Memory layout (Cosmos-style):\n");
         Serial.WriteString("  RamStart (heap): 0x");
         Serial.WriteHex((ulong)RamStart);
-        Serial.WriteString("\n  HeapEnd: 0x");
-        Serial.WriteHex((ulong)HeapEnd);
+        Serial.WriteString("\n  s_heapEnd: 0x");
+        Serial.WriteHex((ulong)s_heapEnd);
         Serial.WriteString("\n  RAT location: 0x");
-        Serial.WriteHex((ulong)mRAT);
+        Serial.WriteHex((ulong)s_mRAT);
         Serial.WriteString("\n  RAT end: 0x");
-        Serial.WriteHex((ulong)(mRAT + xRatTotalSize));
+        Serial.WriteHex((ulong)(s_mRAT + xRatTotalSize));
         Serial.WriteString("\n  Heap size: ");
         Serial.WriteNumber(RamSize / BytesPerKilobyte / BytesPerKilobyte);
         Serial.WriteString(" MB\n");
 
         // Sanity checks
-        if (mRAT < RamStart)
+        if (s_mRAT < RamStart)
         {
             throw new Exception("RAT is before heap start - invalid memory layout!");
         }
-        if ((ulong)mRAT % PageSize != 0)
+        if ((ulong)s_mRAT % PageSize != 0)
         {
             throw new Exception("RAT is not page-aligned!");
         }
@@ -455,14 +455,14 @@ public static unsafe class PageAllocator
 
         // Test first write before loop
         Serial.WriteString("[PageAllocator] Testing first RAT write at 0x");
-        Serial.WriteHex((ulong)mRAT);
+        Serial.WriteHex((ulong)s_mRAT);
         Serial.WriteString("...\n");
-        mRAT[0] = (byte)PageType.Empty;
+        s_mRAT[0] = (byte)PageType.Empty;
         Serial.WriteString("[PageAllocator] First write successful, initializing all entries...\n");
 
         for (ulong i = 0; i < TotalPageCount; i++)
         {
-            mRAT[i] = (byte)PageType.Empty;
+            s_mRAT[i] = (byte)PageType.Empty;
 
             // Progress indicator every 10000 pages to confirm loop is progressing
             if (i > 0 && i % RatInitProgressInterval == 0)
@@ -488,7 +488,7 @@ public static unsafe class PageAllocator
 
         for (ulong i = ratStartPage; i < TotalPageCount; i++)
         {
-            mRAT[i] = (byte)PageType.PageAllocator;
+            s_mRAT[i] = (byte)PageType.PageAllocator;
         }
 
         // Free page count is total minus RAT pages
@@ -505,14 +505,14 @@ public static unsafe class PageAllocator
 
         // Test RAT is writable
         Serial.WriteString("[PageAllocator] Testing RAT write access...\n");
-        byte testValue = mRAT[0];
-        mRAT[0] = RatWriteTestValue;
-        if (mRAT[0] != RatWriteTestValue)
+        byte testValue = s_mRAT[0];
+        s_mRAT[0] = RatWriteTestValue;
+        if (s_mRAT[0] != RatWriteTestValue)
         {
             Serial.WriteString("[PageAllocator] ERROR: RAT is not writable!\n");
             throw new Exception("RAT memory is not writable!");
         }
-        mRAT[0] = testValue; // Restore
+        s_mRAT[0] = testValue; // Restore
         Serial.WriteString("[PageAllocator] RAT write test passed\n");
 
         // Initialize small heap
@@ -545,7 +545,7 @@ public static unsafe class PageAllocator
         uint xCount = 0;
         if (aPageCount == 1)
         {
-            for (byte* ptr = mRAT; ptr < mRAT + TotalPageCount; ptr++)
+            for (byte* ptr = s_mRAT; ptr < s_mRAT + TotalPageCount; ptr++)
             {
                 if ((PageType)(*ptr) == PageType.Empty)
                 {
@@ -556,9 +556,9 @@ public static unsafe class PageAllocator
         }
         else
         {
-            // This loop will FAIL if mRAT is ever 0. This should be impossible though
+            // This loop will FAIL if s_mRAT is ever 0. This should be impossible though
             // so we don't bother to account for such a case. xPos would also have issues.
-            for (byte* ptr = mRAT + TotalPageCount - 1; ptr >= mRAT; ptr--)
+            for (byte* ptr = s_mRAT + TotalPageCount - 1; ptr >= s_mRAT; ptr--)
             {
                 if (*ptr == (byte)PageType.Empty)
                 {
@@ -578,7 +578,7 @@ public static unsafe class PageAllocator
         // If we found enough space, mark it as used.
         if (startPage != null)
         {
-            long offset = startPage - mRAT;
+            long offset = startPage - s_mRAT;
             byte* pageAddress = RamStart + (ulong)offset * PageSize;
 
             if ((ulong)offset >= TotalPageCount)
@@ -586,11 +586,11 @@ public static unsafe class PageAllocator
                 return null;
             }
 
-            mRAT[offset] = (byte)aType;
+            s_mRAT[offset] = (byte)aType;
 
             for (ulong i = 1; i < aPageCount; i++)
             {
-                mRAT[(ulong)offset + i] = (byte)PageType.Extension;
+                s_mRAT[(ulong)offset + i] = (byte)PageType.Extension;
             }
 
             if (zero)
@@ -620,12 +620,12 @@ public static unsafe class PageAllocator
     public static uint GetFirstPageAllocatorIndex(void* aPtr)
     {
         ulong xPos = (ulong)((byte*)aPtr - RamStart) / PageSize;
-        // See note about when mRAT = 0 in Alloc.
-        for (byte* p = mRAT + xPos; p >= mRAT; p--)
+        // See note about when s_mRAT = 0 in Alloc.
+        for (byte* p = s_mRAT + xPos; p >= s_mRAT; p--)
         {
             if (*p != (byte)PageType.Extension)
             {
-                return (uint)(p - mRAT);
+                return (uint)(p - s_mRAT);
             }
         }
 
@@ -647,12 +647,12 @@ public static unsafe class PageAllocator
     /// <exception cref="Exception">Thrown if page type is not found.</exception>
     public static PageType GetPageType(void* aPtr)
     {
-        if (aPtr < RamStart || aPtr > HeapEnd)
+        if (aPtr < RamStart || aPtr > s_heapEnd)
         {
             return PageType.Empty;
         }
 
-        return (PageType)mRAT[GetFirstPageAllocatorIndex(aPtr)];
+        return (PageType)s_mRAT[GetFirstPageAllocatorIndex(aPtr)];
     }
 
     /// <summary>
@@ -661,10 +661,10 @@ public static unsafe class PageAllocator
     /// <param name="aPageIdx">A index to the page to be freed.</param>
     public static void Free(uint aPageIdx)
     {
-        byte* p = mRAT + aPageIdx;
+        byte* p = s_mRAT + aPageIdx;
         *p = (byte)PageType.Empty;
         FreePageCount++;
-        for (; p < mRAT + TotalPageCount;)
+        for (; p < s_mRAT + TotalPageCount;)
         {
             if (*++p != (byte)PageType.Extension)
             {
@@ -702,14 +702,14 @@ public static unsafe class PageAllocator
         empty = gcHeap = heapSmall = heapMedium = heapLarge = unmanaged =
             pageDirectory = pageAllocator = smt = extension = unknown = 0;
 
-        if (mRAT == null || TotalPageCount == 0)
+        if (s_mRAT == null || TotalPageCount == 0)
         {
             return;
         }
 
         for (ulong i = 0; i < TotalPageCount; i++)
         {
-            byte b = mRAT[i];
+            byte b = s_mRAT[i];
             switch ((PageType)b)
             {
                 case PageType.Empty: empty++; break;
