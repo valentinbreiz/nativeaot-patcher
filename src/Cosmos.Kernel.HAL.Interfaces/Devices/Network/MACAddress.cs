@@ -2,18 +2,18 @@ namespace Cosmos.Kernel.HAL.Devices.Network;
 
 public class MACAddress : IComparable
 {
-    private static MACAddress? _broadcast;
-    private static MACAddress? _none;
+    private static MACAddress? s_broadcast;
+    private static MACAddress? s_none;
 
     public static MACAddress Broadcast
     {
         get
         {
-            if (_broadcast == null)
+            if (s_broadcast == null)
             {
-                _broadcast = new MACAddress([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+                s_broadcast = new MACAddress([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
             }
-            return _broadcast;
+            return s_broadcast;
         }
     }
 
@@ -21,11 +21,11 @@ public class MACAddress : IComparable
     {
         get
         {
-            if (_none == null)
+            if (s_none == null)
             {
-                _none = new MACAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+                s_none = new MACAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
             }
-            return _none;
+            return s_none;
         }
     }
 

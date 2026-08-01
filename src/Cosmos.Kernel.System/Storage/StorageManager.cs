@@ -4,6 +4,7 @@ using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.System.Filesystems.Fat;
 using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
 
 namespace Cosmos.Kernel.System.Storage;
@@ -29,26 +30,26 @@ public static class StorageManager
         }
     }
 
-    private static IBlockDevice? _primaryDevice;
-    private static IBlockDevice?[]? _devices;
-    private static int _deviceCount;
-    private static List<Partition>? _partitions;
-    private static bool _initialized;
+    private static IBlockDevice? s_primaryDevice;
+    private static IBlockDevice?[]? s_devices;
+    private static int s_deviceCount;
+    private static List<Partition>? s_partitions;
+    private static bool s_initialized;
 
     /// <summary>
     /// Gets whether the storage manager is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Gets the primary block device (first one registered).
     /// </summary>
-    public static IBlockDevice? PrimaryDevice => _primaryDevice;
+    public static IBlockDevice? PrimaryDevice => s_primaryDevice;
 
     /// <summary>
     /// Gets the number of registered block devices.
     /// </summary>
-    public static int DeviceCount => _deviceCount;
+    public static int DeviceCount => s_deviceCount;
 
     /// <summary>
     /// Partitions discovered across every registered device. Each entry is
@@ -56,7 +57,7 @@ public static class StorageManager
     /// starting LBA, so filesystem drivers consume them without knowing
     /// whether the host disk is GPT-, MBR-, or unpartitioned.
     /// </summary>
-    public static IReadOnlyList<Partition> Partitions => (IReadOnlyList<Partition>?)_partitions ?? Array.Empty<Partition>();
+    public static IReadOnlyList<Partition> Partitions => (IReadOnlyList<Partition>?)s_partitions ?? Array.Empty<Partition>();
 
     /// <summary>
     /// Initializes the storage manager.
@@ -65,15 +66,15 @@ public static class StorageManager
     {
         ThrowIfDisabled();
 
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
 
-        _devices = new IBlockDevice[MaxDevices];
-        _deviceCount = 0;
-        _partitions = new List<Partition>();
-        _initialized = true;
+        s_devices = new IBlockDevice[MaxDevices];
+        s_deviceCount = 0;
+        s_partitions = new List<Partition>();
+        s_initialized = true;
     }
 
     /// <summary>
@@ -111,12 +112,12 @@ public static class StorageManager
 
     public static void RegisterDevice(IBlockDevice device)
     {
-        if (device == null || _devices == null || _deviceCount >= _devices.Length)
+        if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)
         {
             return;
         }
 
-        // Serializes _devices/_partitions mutation for post-boot callers
+        // Serializes s_devices/s_partitions mutation for post-boot callers
         // (device hotplug paths, tests); reads are still unsynchronized —
         // enumerating Partitions while another thread rescans remains the
         // caller's problem. Re-registering a known device is a no-op:
@@ -126,20 +127,20 @@ public static class StorageManager
         s_mutationLock.Acquire();
         try
         {
-            for (int i = 0; i < _deviceCount; i++)
+            for (int i = 0; i < s_deviceCount; i++)
             {
-                if (ReferenceEquals(_devices[i], device))
+                if (ReferenceEquals(s_devices[i], device))
                 {
                     return;
                 }
             }
 
-            _devices[_deviceCount++] = device;
+            s_devices[s_deviceCount++] = device;
 
             // First device becomes primary
-            if (_primaryDevice == null)
+            if (s_primaryDevice == null)
             {
-                _primaryDevice = device;
+                s_primaryDevice = device;
             }
 
             ScanPartitions(device);
@@ -158,7 +159,7 @@ public static class StorageManager
     /// </summary>
     public static void RescanPartitions(IBlockDevice device)
     {
-        if (_partitions == null || device == null)
+        if (s_partitions == null || device == null)
         {
             return;
         }
@@ -166,11 +167,11 @@ public static class StorageManager
         s_mutationLock.Acquire();
         try
         {
-            for (int i = _partitions.Count - 1; i >= 0; i--)
+            for (int i = s_partitions.Count - 1; i >= 0; i--)
             {
-                if (ReferenceEquals(_partitions[i].Host, device))
+                if (ReferenceEquals(s_partitions[i].Host, device))
                 {
-                    _partitions.RemoveAt(i);
+                    s_partitions.RemoveAt(i);
                 }
             }
 
@@ -184,7 +185,7 @@ public static class StorageManager
 
     private static void ScanPartitions(IBlockDevice device)
     {
-        if (_partitions == null)
+        if (s_partitions == null)
         {
             return;
         }
@@ -200,7 +201,7 @@ public static class StorageManager
                 for (int i = 0; i < entries.Count; i++)
                 {
                     Gpt.PartitionEntry e = entries[i];
-                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
+                    s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
                 }
                 return;
             }
@@ -215,7 +216,7 @@ public static class StorageManager
                 for (int i = 0; i < entries.Count; i++)
                 {
                     Mbr.PartitionEntry e = entries[i];
-                    _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
+                    s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
                     slot++;
                 }
 
@@ -226,10 +227,37 @@ public static class StorageManager
                     for (int i = 0; i < logicals.Count; i++)
                     {
                         Mbr.PartitionEntry e = logicals[i];
-                        _partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
+                        s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
                         slot++;
                     }
                 }
+
+                if (slot > 0)
+                {
+                    return;
+                }
+            }
+
+            // No partition table produced an entry. A filesystem formatted
+            // straight onto the disk (a "superfloppy": mkfs.vfat / Windows
+            // format of a raw image) carries the MBR's 0xAA55 boot signature
+            // in its BPB sector, so it lands here rather than in a table
+            // branch above. Probe the boot sector as a FAT BPB and, when its
+            // claimed geometry fits the device, surface the whole disk as the
+            // single partition the Partitions contract promises for
+            // unpartitioned hosts. A blank disk fails the probe and stays
+            // partitionless; GPT disks never reach here (empty GPTs return
+            // above, keeping their on-disk structures out of partition I/O).
+            Span<byte> boot = new byte[(int)device.BlockSize];
+            device.ReadBlock(FatBootSector.BootSectorLba, 1, boot);
+            if (FatBootSector.TryParse(boot, out FatBootSector? volume)
+                && volume!.BytesPerSector == device.BlockSize
+                && volume.TotalSectorCount <= device.BlockCount)
+            {
+                Serial.WriteString("[StorageManager] Unpartitioned filesystem volume detected on ");
+                Serial.WriteString(device.Name);
+                Serial.WriteString("\n");
+                s_partitions.Add(new Partition(device, 0, device.BlockCount, 0u));
             }
         }
         catch (Exception)
@@ -254,11 +282,11 @@ public static class StorageManager
     {
         ThrowIfDisabled();
 
-        if (_devices == null || index < 0 || index >= _deviceCount)
+        if (s_devices == null || index < 0 || index >= s_deviceCount)
         {
             return null;
         }
 
-        return _devices[index];
+        return s_devices[index];
     }
 }

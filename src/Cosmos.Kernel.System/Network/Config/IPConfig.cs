@@ -9,14 +9,14 @@ namespace Cosmos.Kernel.System.Network.Config;
 /// </summary>
 public class IPConfig
 {
-    private static readonly List<IPConfig> ipConfigs = new();
+    private static readonly List<IPConfig> s_ipConfigs = new();
 
     /// <summary>
     /// Add the given IPv4 configuration.
     /// </summary>
     internal static void Add(IPConfig config)
     {
-        ipConfigs.Add(config);
+        s_ipConfigs.Add(config);
     }
 
     /// <summary>
@@ -24,7 +24,7 @@ public class IPConfig
     /// </summary>
     internal static void Remove(IPConfig config)
     {
-        ipConfigs.Remove(config);
+        s_ipConfigs.Remove(config);
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ public class IPConfig
     /// </summary>
     internal static void RemoveAll()
     {
-        ipConfigs.Clear();
+        s_ipConfigs.Clear();
     }
 
     /// <summary>
@@ -43,10 +43,10 @@ public class IPConfig
     {
         Address? defaultGw = null;
 
-        foreach (IPConfig ipConfig in ipConfigs)
+        foreach (IPConfig ipConfig in s_ipConfigs)
         {
-            if ((ipConfig.IPAddress.Hash & ipConfig.SubnetMask.Hash) ==
-                (destIP.Hash & ipConfig.SubnetMask.Hash))
+            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
+                (destIP.Id & ipConfig.SubnetMask.Id))
             {
                 return ipConfig.IPAddress;
             }
@@ -90,10 +90,10 @@ public class IPConfig
     /// <param name="destIP">The address to check.</param>
     internal static bool IsLocalAddress(Address destIP)
     {
-        for (int c = 0; c < ipConfigs.Count; c++)
+        for (int c = 0; c < s_ipConfigs.Count; c++)
         {
-            if ((ipConfigs[c].IPAddress.Hash & ipConfigs[c].SubnetMask.Hash) ==
-                (destIP.Hash & ipConfigs[c].SubnetMask.Hash))
+            if ((s_ipConfigs[c].IPAddress.Id & s_ipConfigs[c].SubnetMask.Id) ==
+                (destIP.Id & s_ipConfigs[c].SubnetMask.Id))
             {
                 return true;
             }
@@ -108,9 +108,9 @@ public class IPConfig
     /// <param name="sourceIP">Source IP.</param>
     internal static INetworkDevice? FindInterface(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
         {
-            return NetworkStack.AddressMap[sourceIP.Hash];
+            return NetworkStack.AddressMap[sourceIP.Id];
         }
         return null;
     }
@@ -123,9 +123,9 @@ public class IPConfig
     internal static Address? FindRoute(Address destIP)
     {
         // TODO is this correct implementation?
-        for (int c = 0; c < ipConfigs.Count; c++)
+        for (int c = 0; c < s_ipConfigs.Count; c++)
         {
-            return ipConfigs[c].DefaultGateway;
+            return s_ipConfigs[c].DefaultGateway;
         }
 
         return null;

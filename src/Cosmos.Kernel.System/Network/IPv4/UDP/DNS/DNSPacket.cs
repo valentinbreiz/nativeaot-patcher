@@ -63,7 +63,7 @@ public class DNSAnswer
 public class DNSPacket : UDPPacket
 {
     // Simple transaction ID generator
-    private static byte transactionCounter = 1;
+    private static byte s_transactionCounter = 1;
 
     /// <summary>
     /// Handles DNS packets.
@@ -95,7 +95,7 @@ public class DNSPacket : UDPPacket
     public DNSPacket(Address source, Address dest, ushort urlnb, ushort len)
         : base(source, dest, 53, 53, (ushort)(len + 12))
     {
-        byte transactionID = transactionCounter++;
+        byte transactionID = s_transactionCounter++;
         RawData[this.DataOffset + 8] = (byte)((transactionID >> 8) & 0xFF);
         RawData[this.DataOffset + 9] = (byte)((transactionID >> 0) & 0xFF);
 

@@ -16,23 +16,23 @@ namespace Cosmos.Kernel.Core.Scheduler;
 public static class SchedulerManager
 {
 
-    private static IScheduler? _currentScheduler;
-    private static PerCpuState[]? _cpuStates;
-    private static uint _cpuCount;
-    private static SpinLock _globalLock;
-    private static bool _enabled;
-    private static uint _nextThreadId;
+    private static IScheduler? s_currentScheduler;
+    private static PerCpuState[]? s_cpuStates;
+    private static uint s_cpuCount;
+    private static SpinLock s_globalLock;
+    private static bool s_enabled;
+    private static uint s_nextThreadId;
 
     // Global thread registry: tracks ALL live threads across all states
     // (Running, Ready, Blocked, Sleeping). Used by GC to scan all thread stacks.
     // Allocated once at init to avoid heap allocations during GC.
-    private static Thread?[]? _allThreads;
-    private static int _allThreadCount;
+    private static Thread?[]? s_allThreads;
+    private static int s_allThreadCount;
 
     // Cumulative TotalRuntime of exited non-idle threads. Live-thread runtime
-    // disappears from _allThreads on UnregisterThread, so we move it here to
+    // disappears from s_allThreads on UnregisterThread, so we move it here to
     // keep GetBusyCpuTimeNs monotonic across thread lifecycle.
-    private static ulong _exitedNonIdleRuntimeNs;
+    private static ulong s_exitedNonIdleRuntimeNs;
 
     /// <summary>
     /// Default time slice in nanoseconds (10ms).
@@ -67,7 +67,7 @@ public static class SchedulerManager
     /// is exactly one execution context, so callers fall back to
     /// spin/polled paths instead of blocking.
     /// </summary>
-    public static bool IsReady => IsEnabled && _cpuStates != null;
+    public static bool IsReady => IsEnabled && s_cpuStates != null;
 
     private static void ThrowIfDisabled()
     {
@@ -83,17 +83,17 @@ public static class SchedulerManager
     {
         ThrowIfDisabled();
 
-        _cpuCount = cpuCount;
-        _cpuStates = new PerCpuState[cpuCount];
+        s_cpuCount = cpuCount;
+        s_cpuStates = new PerCpuState[cpuCount];
 
         for (uint i = 0; i < cpuCount; i++)
         {
-            _cpuStates[i] = new PerCpuState { CpuId = i };
+            s_cpuStates[i] = new PerCpuState { CpuId = i };
         }
 
         // Pre-allocate thread registry
-        _allThreads = new Thread?[Thread.MaxThreadCount];
-        _allThreadCount = 0;
+        s_allThreads = new Thread?[Thread.MaxThreadCount];
+        s_allThreadCount = 0;
 
         Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Initialize();
         Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Initialize();
@@ -104,36 +104,36 @@ public static class SchedulerManager
     {
         ThrowIfCpuStateNotInitialized();
 
-        _globalLock.Acquire();
+        s_globalLock.Acquire();
         try
         {
-            if (_currentScheduler != null)
+            if (s_currentScheduler != null)
             {
-                for (uint i = 0; i < _cpuCount; i++)
+                for (uint i = 0; i < s_cpuCount; i++)
                 {
-                    _currentScheduler.ShutdownCpu(_cpuStates[i]);
+                    s_currentScheduler.ShutdownCpu(s_cpuStates[i]);
                 }
             }
 
-            _currentScheduler = scheduler;
+            s_currentScheduler = scheduler;
 
-            for (uint i = 0; i < _cpuCount; i++)
+            for (uint i = 0; i < s_cpuCount; i++)
             {
-                scheduler.InitializeCpu(_cpuStates[i]);
+                scheduler.InitializeCpu(s_cpuStates[i]);
             }
         }
         finally
         {
-            _globalLock.Release();
+            s_globalLock.Release();
         }
     }
 
     // ========== Accessors ==========
 
-    public static IScheduler? Current => _currentScheduler;
-    public static uint CpuCount => _cpuCount;
-    public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
-    public static PerCpuState[]? GetAllCpuStates() => _cpuStates;
+    public static IScheduler? Current => s_currentScheduler;
+    public static uint CpuCount => s_cpuCount;
+    public static PerCpuState? GetCpuState(uint cpuId) => s_cpuStates?[cpuId];
+    public static PerCpuState[]? GetAllCpuStates() => s_cpuStates;
 
     /// <summary>
     /// Sets up the idle thread for a CPU. Should only be called during initialization.
@@ -142,7 +142,7 @@ public static class SchedulerManager
     {
         ThrowIfCpuStateNotInitialized();
 
-        var state = _cpuStates[cpuId];
+        var state = s_cpuStates[cpuId];
         state.IdleThread = idleThread;
         state.CurrentThread = idleThread;
         RegisterThread(idleThread);
@@ -153,14 +153,14 @@ public static class SchedulerManager
     /// </summary>
     public static bool Enabled
     {
-        get => _enabled;
-        set => _enabled = value;
+        get => s_enabled;
+        set => s_enabled = value;
     }
 
     /// <summary>
     /// Allocates a new unique thread ID.
     /// </summary>
-    public static uint AllocateThreadId() => _nextThreadId++;
+    public static uint AllocateThreadId() => s_nextThreadId++;
 
     // ========== Thread Entry Dispatch ==========
     [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "StartThread")]
@@ -264,12 +264,12 @@ public static class SchedulerManager
     /// <summary>
     /// Returns the thread registry array. Safe to call from GC (no allocations).
     /// </summary>
-    public static Thread?[]? Threads => _allThreads;
+    public static Thread?[]? Threads => s_allThreads;
 
     /// <summary>
     /// Returns the number of registered threads. Safe to call from GC.
     /// </summary>
-    public static int ThreadCount => _allThreadCount;
+    public static int ThreadCount => s_allThreadCount;
 
     /// <summary>
     /// Returns the CPU ID currently executing this code path. Single-CPU today.
@@ -287,13 +287,13 @@ public static class SchedulerManager
     /// </summary>
     public static ulong GetBusyCpuTimeNs()
     {
-        Thread?[]? threads = _allThreads;
+        Thread?[]? threads = s_allThreads;
         if (threads == null)
         {
             return 0;
         }
 
-        ulong sum = _exitedNonIdleRuntimeNs;
+        ulong sum = s_exitedNonIdleRuntimeNs;
         for (int i = 0; i < threads.Length; i++)
         {
             Thread? t = threads[i];
@@ -327,27 +327,27 @@ public static class SchedulerManager
     /// </summary>
     public static void RegisterThread(Thread thread)
     {
-        if (_allThreads == null)
+        if (s_allThreads == null)
         {
             return;
         }
 
         // Idempotent: idle-thread setup goes through both CreateThread and
         // SetupIdleThread, both of which call here. Avoid duplicate slots.
-        for (int i = 0; i < _allThreads.Length; i++)
+        for (int i = 0; i < s_allThreads.Length; i++)
         {
-            if (_allThreads[i] == thread)
+            if (s_allThreads[i] == thread)
             {
                 return;
             }
         }
 
-        for (int i = 0; i < _allThreads.Length; i++)
+        for (int i = 0; i < s_allThreads.Length; i++)
         {
-            if (_allThreads[i] == null)
+            if (s_allThreads[i] == null)
             {
-                _allThreads[i] = thread;
-                _allThreadCount++;
+                s_allThreads[i] = thread;
+                s_allThreadCount++;
                 return;
             }
         }
@@ -362,41 +362,41 @@ public static class SchedulerManager
     /// </summary>
     public static void UnregisterThread(Thread thread)
     {
-        if (_allThreads == null)
+        if (s_allThreads == null)
         {
             return;
         }
 
-        for (int i = 0; i < _allThreads.Length; i++)
+        for (int i = 0; i < s_allThreads.Length; i++)
         {
-            if (_allThreads[i] == thread)
+            if (s_allThreads[i] == thread)
             {
                 if ((thread.Flags & ThreadFlags.IdleThread) == 0)
                 {
-                    _exitedNonIdleRuntimeNs += thread.TotalRuntime;
+                    s_exitedNonIdleRuntimeNs += thread.TotalRuntime;
                 }
-                _allThreads[i] = null;
-                _allThreadCount--;
+                s_allThreads[i] = null;
+                s_allThreadCount--;
                 return;
             }
         }
     }
 
-    [MemberNotNull(nameof(_cpuStates))]
+    [MemberNotNull(nameof(s_cpuStates))]
     private static void ThrowIfCpuStateNotInitialized()
     {
-        if (_cpuStates is null)
+        if (s_cpuStates is null)
         {
             throw new Exception($"{nameof(SchedulerManager)} not initialized");
         }
     }
 
-    [MemberNotNull(nameof(_currentScheduler))]
+    [MemberNotNull(nameof(s_currentScheduler))]
     private static void ThrowIfSchedulerNotSet()
     {
-        if (_currentScheduler is null)
+        if (s_currentScheduler is null)
         {
-            throw new Exception($"{nameof(SchedulerManager)}{nameof(_currentScheduler)} not initialized");
+            throw new Exception($"{nameof(SchedulerManager)}{nameof(s_currentScheduler)} not initialized");
         }
     }
 
@@ -413,8 +413,8 @@ public static class SchedulerManager
         RegisterThread(thread);
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            var state = _cpuStates[cpuId];
-            _currentScheduler.OnThreadCreate(state, thread);
+            var state = s_cpuStates[cpuId];
+            s_currentScheduler.OnThreadCreate(state, thread);
         }
         Serial.WriteString("[SCHED] CreateThread: done\n");
     }
@@ -427,7 +427,7 @@ public static class SchedulerManager
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            var state = _cpuStates[cpuId];
+            var state = s_cpuStates[cpuId];
 
             // Only set to Ready if not a new thread (Created).
             // New threads stay Created until they actually start running.
@@ -437,12 +437,12 @@ public static class SchedulerManager
                 thread.State = ThreadState.Ready;
             }
 
-            _currentScheduler.OnThreadReady(state, thread);
+            s_currentScheduler.OnThreadReady(state, thread);
 
             // Ask the next hardware-IRQ exit to reschedule: when this wake
             // comes from an ISR (InterruptEvent.Signal), the woken thread
             // would otherwise sit in the run queue until the next timer tick.
-            state.NeedReschedule = true;
+            state._needReschedule = true;
 
             Serial.WriteString("[SCHED] Thread ");
             Serial.WriteNumber(thread.Id);
@@ -459,16 +459,16 @@ public static class SchedulerManager
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            PerCpuState state = _cpuStates[cpuId];
+            PerCpuState state = s_cpuStates[cpuId];
 
             thread.State = ThreadState.Blocked;
-            _currentScheduler.OnThreadBlocked(state, thread);
+            s_currentScheduler.OnThreadBlocked(state, thread);
 
             // Ask the next IRQ exit to switch away (same as ReadyThread): a
             // blocked current thread otherwise keeps re-entering its halt
             // loop until the quantum tick preempts it — or forever when the
             // periodic tick is not running.
-            state.NeedReschedule = true;
+            state._needReschedule = true;
 
             Serial.WriteString("[SCHED] BlockThread id=");
             Serial.WriteNumber(thread.Id);
@@ -505,7 +505,7 @@ public static class SchedulerManager
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            PerCpuState state = _cpuStates[cpuId];
+            PerCpuState state = s_cpuStates[cpuId];
 
             // Return TLAB and track unused bytes before unregistering
             if (GarbageCollector.IsEnabled)
@@ -519,7 +519,7 @@ public static class SchedulerManager
             }
 
             thread.State = ThreadState.Dead;
-            _currentScheduler.OnThreadExit(state, thread);
+            s_currentScheduler.OnThreadExit(state, thread);
             UnregisterThread(thread);
             Serial.WriteString("[SCHED] ExitThread: OnThreadExit done\n");
         }
@@ -532,9 +532,9 @@ public static class SchedulerManager
 
         using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            PerCpuState state = _cpuStates[cpuId];
+            PerCpuState state = s_cpuStates[cpuId];
 
-            _currentScheduler.OnThreadYield(state, thread);
+            s_currentScheduler.OnThreadYield(state, thread);
         }
     }
 
@@ -572,7 +572,7 @@ public static class SchedulerManager
 
         using (InternalCpu.DisableInterruptsScope())
         {
-            PerCpuState cpuState = _cpuStates[cpuId];
+            PerCpuState cpuState = s_cpuStates[cpuId];
 
             ulong timestamp = GetTimestamp();
             // WakeupTime is compared against GetTimestamp() — Stopwatch ticks —
@@ -582,7 +582,7 @@ public static class SchedulerManager
             ulong ticksPerMs = (ulong)Stopwatch.Frequency / 1000;
             thread.WakeupTime = timestamp + timeoutMs * ticksPerMs;
 
-            _currentScheduler.OnThreadBlocked(cpuState, thread);
+            s_currentScheduler.OnThreadBlocked(cpuState, thread);
             thread.State = ThreadState.Sleeping;
         }
     }
@@ -607,8 +607,8 @@ public static class SchedulerManager
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
-        var state = _cpuStates[cpuId];
-        return _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
+        var state = s_cpuStates[cpuId];
+        return s_currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
     }
 
     public static void Schedule(uint cpuId)
@@ -616,11 +616,11 @@ public static class SchedulerManager
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
-        var state = _cpuStates[cpuId];
+        var state = s_cpuStates[cpuId];
         state.Lock.Acquire();
 
         var prev = state.CurrentThread;
-        var next = _currentScheduler.PickNext(state) ?? state.IdleThread;
+        var next = s_currentScheduler.PickNext(state) ?? state.IdleThread;
 
         if (next == null)
         {
@@ -648,11 +648,11 @@ public static class SchedulerManager
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
-        var state = _cpuStates[cpuId];
+        var state = s_cpuStates[cpuId];
         state.Lock.Acquire();
         try
         {
-            _currentScheduler.SetPriority(state, thread, priority);
+            s_currentScheduler.SetPriority(state, thread, priority);
         }
         finally
         {
@@ -664,7 +664,7 @@ public static class SchedulerManager
     {
         ThrowIfSchedulerNotSet();
 
-        return _currentScheduler.GetPriority(thread);
+        return s_currentScheduler.GetPriority(thread);
     }
 
     // ========== Load Balancing ==========
@@ -673,7 +673,7 @@ public static class SchedulerManager
     {
         ThrowIfSchedulerNotSet();
 
-        return _currentScheduler.SelectCpu(thread, currentCpu, _cpuCount);
+        return s_currentScheduler.SelectCpu(thread, currentCpu, s_cpuCount);
     }
 
     public static void Balance(uint cpuId)
@@ -681,14 +681,14 @@ public static class SchedulerManager
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
-        var state = _cpuStates[cpuId];
-        _currentScheduler.Balance(state, _cpuStates);
+        var state = s_cpuStates[cpuId];
+        s_currentScheduler.Balance(state, s_cpuStates);
     }
 
     // ========== Timer Interrupt Handling ==========
 
     // Debug counter to avoid flooding serial output
-    private static uint _tickCount;
+    private static uint s_tickCount;
 
     /// <summary>
     /// Called from timer interrupt handler to process scheduling.
@@ -699,12 +699,12 @@ public static class SchedulerManager
     /// <param name="elapsedNs">Nanoseconds since last tick.</param>
     public static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
-        _tickCount++;
+        s_tickCount++;
 
         // Refresh the debug-live snapshot every 10 ticks (~100ms at 100Hz)
         // so the host-side QMP poller sees fresh thread state without
         // pausing the kernel.
-        if ((_tickCount % SnapshotRefreshTickInterval) == 0)
+        if ((s_tickCount % SnapshotRefreshTickInterval) == 0)
         {
             Cosmos.Kernel.Core.Runtime.DebugLiveSnapshot.Update();
             Cosmos.Kernel.Core.Runtime.DebugLiveGCSnapshot.Update();
@@ -712,26 +712,26 @@ public static class SchedulerManager
         }
 
         // Log first 10 ticks and then every 50 ticks
-        if (_tickCount <= InitialTickLogCount || _tickCount % TickLogInterval == 0)
+        if (s_tickCount <= InitialTickLogCount || s_tickCount % TickLogInterval == 0)
         {
             Serial.WriteString("[SCHED] Tick ");
-            Serial.WriteNumber(_tickCount);
+            Serial.WriteNumber(s_tickCount);
             Serial.WriteString(" enabled=");
-            Serial.WriteString(_enabled ? "1" : "0");
+            Serial.WriteString(s_enabled ? "1" : "0");
             Serial.WriteString("\n");
         }
 
-        if (!_enabled || _currentScheduler == null || _cpuStates == null)
+        if (!s_enabled || s_currentScheduler == null || s_cpuStates == null)
         {
             return;
         }
 
-        if (cpuId >= _cpuCount)
+        if (cpuId >= s_cpuCount)
         {
             return;
         }
 
-        var state = _cpuStates[cpuId];
+        var state = s_cpuStates[cpuId];
         if (state.CurrentThread == null)
         {
             return;
@@ -741,7 +741,7 @@ public static class SchedulerManager
         CheckSleepingThreads(elapsedNs);
 
         // Update timing and check if preemption needed
-        bool needsReschedule = _currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
+        bool needsReschedule = s_currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
 
         if (needsReschedule)
         {
@@ -756,16 +756,16 @@ public static class SchedulerManager
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CheckSleepingThreads(ulong elapsedNs)
     {
-        if (_allThreads == null)
+        if (s_allThreads == null)
         {
             return;
         }
 
         ulong currentTime = GetTimestamp();
 
-        for (int i = 0; i < _allThreads.Length; i++)
+        for (int i = 0; i < s_allThreads.Length; i++)
         {
-            Thread? thread = _allThreads[i];
+            Thread? thread = s_allThreads[i];
             if (thread == null || thread.State != ThreadState.Sleeping)
             {
                 continue;
@@ -799,18 +799,18 @@ public static class SchedulerManager
     /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
     public static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)
     {
-        if (!_enabled || _currentScheduler == null || _cpuStates == null || cpuId >= _cpuCount)
+        if (!s_enabled || s_currentScheduler == null || s_cpuStates == null || cpuId >= s_cpuCount)
         {
             return;
         }
 
-        PerCpuState state = _cpuStates[cpuId];
-        if (!state.NeedReschedule)
+        PerCpuState state = s_cpuStates[cpuId];
+        if (!state._needReschedule)
         {
             return;
         }
 
-        state.NeedReschedule = false;
+        state._needReschedule = false;
 
         if (ContextSwitchNative.GetContextSwitchSp() != 0)
         {
@@ -831,11 +831,11 @@ public static class SchedulerManager
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
-        var state = _cpuStates[cpuId];
+        var state = s_cpuStates[cpuId];
 
         // No lock needed - interrupts are already disabled in interrupt context
         var prev = state.CurrentThread;
-        var next = _currentScheduler.PickNext(state) ?? state.IdleThread;
+        var next = s_currentScheduler.PickNext(state) ?? state.IdleThread;
 
         if (next == null)
         {
@@ -868,7 +868,7 @@ public static class SchedulerManager
                 // Put previous thread back in run queue if still runnable
                 if (prev.State == ThreadState.Ready)
                 {
-                    _currentScheduler.OnThreadYield(state, prev);
+                    s_currentScheduler.OnThreadYield(state, prev);
                 }
             }
 

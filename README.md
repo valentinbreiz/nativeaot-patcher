@@ -12,13 +12,6 @@
   <a href="https://valentinbreiz.github.io/nativeaot-patcher/roadmap.html"><img src="https://img.shields.io/badge/gen3_release-90%25-yellow" /></a>
 </p>
 
-<hr/>
-
-<img width="546" height="538" alt="image" src="https://github.com/user-attachments/assets/7679c86d-68a3-4678-99c2-d5e1f3987eee" />
-
-> [Voted French law aimed at criminalizing free culture](https://www.assemblee-nationale.fr/dyn/17/textes/l17b1133_proposition-loi#). No to authoritarianism! No to fascism! Support your local sound systems!
-> ### 🇫🇷 French citizens — **[SIGN THE PETITION](https://petitions.assemblee-nationale.fr/initiatives/i-5428)**
-
 # Cosmos gen3
 
 A bare-metal C# kernel framework built on **NativeAOT**. Cosmos gen3 is the next generation of the [Cosmos](https://github.com/CosmosOS/Cosmos) operating system project, replacing the IL2CPU transpiler with the official .NET ahead-of-time compiler. The result is an ordinary `dotnet build` that produces a bootable kernel ELF for **x64 or ARM64**, linked with an integrated runtime, plugged with the Cosmos plug system, and packaged into an ISO with the Limine bootloader.
@@ -75,15 +68,6 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - [Scheduler](docs/articles/dev/scheduler.md)
 - [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
 - [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
-
-## Getting Help
-
-1. **Check the [documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html)** — installation, debugging, and subsystem guides
-2. **Search [existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)** — your problem may already be known
-3. **Ask on [Discord](https://discord.com/invite/kwtBwv6jhD)** — quickest way to get unblocked or sanity-check a setup problem
-4. **File a [new issue](https://github.com/valentinbreiz/nativeaot-patcher/issues/new/choose)** — the bug report template walks you through the details we need (versions, exact command, serial log, symbolicated stack trace)
-
-Reporting a kernel crash? [CONTRIBUTING.md](CONTRIBUTING.md#collecting-diagnostics) shows how to capture the serial log and turn the raw crash addresses into function names — with those two things most crashes can be diagnosed directly.
 
 ## Related resources
 

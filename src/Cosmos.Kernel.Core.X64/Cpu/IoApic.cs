@@ -28,15 +28,15 @@ public static class IoApic
     private const ulong ACTIVE_LOW = 1UL << 13;       // Active low (vs high)
     private const ulong LOGICAL_DEST = 1UL << 11;     // Logical (vs Physical) destination mode
 
-    private static ulong _baseAddress;
-    private static uint _gsiBase;
-    private static byte _maxRedirectionEntry;
-    private static bool _initialized;
+    private static ulong s_baseAddress;
+    private static uint s_gsiBase;
+    private static byte s_maxRedirectionEntry;
+    private static bool s_initialized;
 
     /// <summary>
     /// Gets whether the I/O APIC is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Initializes the I/O APIC with information from MADT.
@@ -44,8 +44,8 @@ public static class IoApic
     /// <param name="info">I/O APIC info from MADT.</param>
     public static void Initialize(IoApicInfo info)
     {
-        _baseAddress = info.Address;
-        _gsiBase = info.GsiBase;
+        s_baseAddress = info.Address;
+        s_gsiBase = info.GsiBase;
 
         Serial.Write("[IOAPIC] Initializing at 0x", info.Address.ToString("X"), "\n");
         Serial.Write("[IOAPIC] GSI base: ", info.GsiBase, "\n");
@@ -54,19 +54,19 @@ public static class IoApic
         uint id = Read(IOAPIC_ID);
         uint version = Read(IOAPIC_VER);
 
-        _maxRedirectionEntry = (byte)((version >> 16) & 0xFF);
+        s_maxRedirectionEntry = (byte)((version >> 16) & 0xFF);
 
         Serial.Write("[IOAPIC] ID: ", (id >> 24) & 0xF, "\n");
         Serial.Write("[IOAPIC] Version: ", version & 0xFF, "\n");
-        Serial.Write("[IOAPIC] Max redirection entries: ", _maxRedirectionEntry + 1, "\n");
+        Serial.Write("[IOAPIC] Max redirection entries: ", s_maxRedirectionEntry + 1, "\n");
 
         // Mask all interrupts initially
-        for (int i = 0; i <= _maxRedirectionEntry; i++)
+        for (int i = 0; i <= s_maxRedirectionEntry; i++)
         {
             SetRedirectionEntry((byte)i, 0, true);
         }
 
-        _initialized = true;
+        s_initialized = true;
         Serial.Write("[IOAPIC] Initialization complete\n");
     }
 
@@ -80,7 +80,7 @@ public static class IoApic
     /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
     public static void RouteIrq(byte irq, byte vector, byte targetApicId, IrqOverride? @override = null, bool startMasked = false)
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             return;
         }
@@ -96,8 +96,8 @@ public static class IoApic
             levelTriggered = @override.Value.IsLevelTriggered;
         }
 
-        uint redirIndex = gsi - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry)
+        uint redirIndex = gsi - s_gsiBase;
+        if (redirIndex > s_maxRedirectionEntry)
         {
             return;
         }
@@ -168,13 +168,13 @@ public static class IoApic
     /// </summary>
     public static ulong GetRedirectionEntry(byte irq)
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             return 0;
         }
 
-        uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry)
+        uint redirIndex = irq - s_gsiBase;
+        if (redirIndex > s_maxRedirectionEntry)
         {
             return 0;
         }
@@ -187,13 +187,13 @@ public static class IoApic
     /// </summary>
     public static void MaskIrq(byte irq)
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             return;
         }
 
-        uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry)
+        uint redirIndex = irq - s_gsiBase;
+        if (redirIndex > s_maxRedirectionEntry)
         {
             return;
         }
@@ -208,13 +208,13 @@ public static class IoApic
     /// </summary>
     public static void UnmaskIrq(byte irq)
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             return;
         }
 
-        uint redirIndex = irq - _gsiBase;
-        if (redirIndex > _maxRedirectionEntry)
+        uint redirIndex = irq - s_gsiBase;
+        if (redirIndex > s_maxRedirectionEntry)
         {
             return;
         }
@@ -229,8 +229,8 @@ public static class IoApic
     /// </summary>
     private static uint Read(byte reg)
     {
-        Native.MMIO.Write32(_baseAddress + IOREGSEL, reg);
-        return Native.MMIO.Read32(_baseAddress + IOWIN);
+        Native.MMIO.Write32(s_baseAddress + IOREGSEL, reg);
+        return Native.MMIO.Read32(s_baseAddress + IOWIN);
     }
 
     /// <summary>
@@ -238,7 +238,7 @@ public static class IoApic
     /// </summary>
     private static void Write(byte reg, uint value)
     {
-        Native.MMIO.Write32(_baseAddress + IOREGSEL, reg);
-        Native.MMIO.Write32(_baseAddress + IOWIN, value);
+        Native.MMIO.Write32(s_baseAddress + IOREGSEL, reg);
+        Native.MMIO.Write32(s_baseAddress + IOWIN, value);
     }
 }

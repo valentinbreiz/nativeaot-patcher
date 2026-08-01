@@ -16,6 +16,21 @@ trim_trailing_whitespace = true
 [*{_AssemblyInfo.cs,.notsupported.cs,AsmOffsets.cs}]
 generated_code = true
 
+# Vendored and upstream-mirroring code: keep diffable with its origin, skip style analysis
+[src/Cosmos.Kernel.System/IO/Compression/SharpZipLib/**.cs]
+generated_code = true
+
+[src/Cosmos.Kernel.System/Graphics/Images/Png/**.cs]
+generated_code = true
+
+# fdlibm port (via Cosmos Gen2)
+[src/Cosmos.Kernel.Core/Runtime/Math.cs]
+generated_code = true
+
+# Mirrors dotnet/runtime internals
+[src/Cosmos.Kernel.Core/Runtime/Internal/**.cs]
+generated_code = true
+
 # C# files
 [*.cs]
 # New line preferences
@@ -52,7 +67,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion
 
 # name all constant fields using PascalCase
-dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
 dotnet_naming_symbols.constant_fields.applicable_kinds = field
@@ -60,7 +75,7 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # static fields should have s_ prefix
-dotnet_naming_rule.static_fields_should_have_prefix.severity = warning
+dotnet_naming_rule.static_fields_should_have_prefix.severity = error
 dotnet_naming_rule.static_fields_should_have_prefix.symbols = static_fields
 dotnet_naming_rule.static_fields_should_have_prefix.style = static_prefix_style
 dotnet_naming_symbols.static_fields.applicable_kinds = field
@@ -70,7 +85,7 @@ dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization = camel_case
 
 # internal and private fields should be _camelCase
-dotnet_naming_rule.camel_case_for_private_internal_fields.severity = warning
+dotnet_naming_rule.camel_case_for_private_internal_fields.severity = error
 dotnet_naming_rule.camel_case_for_private_internal_fields.symbols = private_internal_fields
 dotnet_naming_rule.camel_case_for_private_internal_fields.style = camel_case_underscore_style
 dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
@@ -164,6 +179,36 @@ file_header_template = This code is licensed under MIT license (see LICENSE for 
 
 # CA2255: The 'ModuleInitializer' attribute should not be used in libraries
 dotnet_diagnostic.CA2255.severity = none
+
+# CA1051: Do not declare visible instance fields (structs excluded to preserve hardware layouts)
+dotnet_diagnostic.CA1051.severity = warning
+dotnet_code_quality.CA1051.exclude_structs = true
+
+# CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2211.severity = warning
+
+# IDE0002: Simplify member access (e.g. object.ReferenceEquals -> ReferenceEquals)
+dotnet_diagnostic.IDE0002.severity = warning
+
+# IDE0060: Flag unused parameters
+dotnet_code_quality_unused_parameters = all:warning
+
+# CA1065: Do not raise exceptions in unexpected locations (GetHashCode, Equals, ToString, ...)
+dotnet_diagnostic.CA1065.severity = warning
+
+# CA1819: Properties should not return arrays (prefer ImmutableArray/ReadOnlySpan)
+dotnet_diagnostic.CA1819.severity = warning
+
+# CA2201: Do not raise reserved exception types (e.g. bare System.Exception)
+dotnet_diagnostic.CA2201.severity = warning
+
+# MSBuild task contract requires array-typed properties (ITaskItem[], string[])
+[src/Cosmos.Build.*/**.cs]
+dotnet_diagnostic.CA1819.severity = none
+
+# Plug members are matched by name against their patch targets (BCL/runtime internals) - do not rename
+[src/Cosmos.Kernel.Plugs/**.cs]
+dotnet_diagnostic.IDE1006.severity = none
 
 [*.{cpp,h,in}]
 curly_bracket_next_line = true

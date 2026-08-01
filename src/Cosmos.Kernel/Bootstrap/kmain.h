@@ -27,6 +27,9 @@ extern int g_requiredCpuFeatures;
 // Cross-platform SIMD enable
 extern void _native_enable_simd(void);
 
+// Top of the bootloader-provided stack, captured at kmain entry
+extern uintptr_t __cosmos_get_boot_stack_top(void);
+
 #ifdef __aarch64__
 // ARM64-specific: Disable alignment checking
 extern void _native_arm64_disable_alignment_check(void);
