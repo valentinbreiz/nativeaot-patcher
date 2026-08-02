@@ -411,7 +411,7 @@ public unsafe class VMWareSVGAII3D
     public void DestroyShader(uint cid, uint shid, SVGA3dShaderType type)
     {
         SVGA3dCmdDestroyShader* cmd;
-        cmd = (SVGA3dCmdDestroyShader*)ReserveFIFO3D((uint)FIFOCommand.SETLIGHTENABLE, (uint)sizeof(SVGA3dCmdDestroyShader));
+        cmd = (SVGA3dCmdDestroyShader*)ReserveFIFO3D((uint)FIFOCommand.DESTROY_SHADER, (uint)sizeof(SVGA3dCmdDestroyShader));
         cmd->cid = cid;
         cmd->shid = shid;
         cmd->type = type;
