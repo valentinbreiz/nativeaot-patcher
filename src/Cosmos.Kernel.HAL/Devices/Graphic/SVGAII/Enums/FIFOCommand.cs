@@ -92,8 +92,12 @@ public enum FIFOCommand
     /// Define alpha cursor.
     /// </summary>
     DEFINE_ALPHA_CURSOR = 22,
+
     DEFINE_SURFACE = 1040,
     SURFACE_COPY = 1040 + 2,
+    SETMATERIAL = 1040 + 12,
+    SETLIGHTDATA = 1040 + 13,
+    SETLIGHTENABLE = 1040 + 14,
     SETVIEWPORT = 1040 + 15,
     SETZRANGE = 1040 + 8,
 
@@ -101,6 +105,7 @@ public enum FIFOCommand
     DESTROY_CONTEXT = 1040 + 6,
     DEFINE_SURFACE_V2 = 1040 + 30,  // Use V2 surface definition
     DESTROY_SURFACE = 1040 + 1,
+    DESTROY_SHADER = 1040 + 20,
     SET_RENDER_TARGET = 1040 + 10,
     CLEAR = 1040 + 17,
     SET_VIEWPORT = 1040 + 15,

@@ -375,6 +375,58 @@ public unsafe class VMWareSVGAII3D
         *states = (SVGA3dRenderState*)&cmd[1];
     }
 
+    public void SetLightEnable(uint cid, uint index, bool enabled)
+    {
+        SVGA3dCmdSetLightEnabled* cmd;
+        cmd = (SVGA3dCmdSetLightEnabled*)ReserveFIFO3D((uint)FIFOCommand.SETLIGHTENABLE, (uint)sizeof(SVGA3dCmdSetLightEnabled));
+        cmd->cid = cid;
+        cmd->index = index;
+        cmd->enabled = enabled ? 1u : 0u;
+    }
+
+    public void SetLightData(uint cid, uint index, SVGA3dLightData data)
+    {
+        SVGA3dCmdSetLightData* cmd;
+        cmd = (SVGA3dCmdSetLightData*)ReserveFIFO3D((uint)FIFOCommand.SETLIGHTDATA, (uint)sizeof(SVGA3dCmdSetLightData));
+        cmd->cid = cid;
+        cmd->index = index;
+
+        MemoryOp.MemCopy((byte*)&cmd->data, (byte*)&data, sizeof(SVGA3dLightData));
+    }
+
+    public void DestroyContext(uint cid)
+    {
+        uint* cmd;
+        cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.DESTROY_CONTEXT, sizeof(uint));
+        *cmd = cid;
+    }
+
+    public void DestroySurface(uint sid)
+    {
+        uint* cmd;
+        cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.DESTROY_SURFACE, sizeof(uint));
+        *cmd = sid;
+    }
+
+    public void DestroyShader(uint cid, uint shid, SVGA3dShaderType type)
+    {
+        SVGA3dCmdDestroyShader* cmd;
+        cmd = (SVGA3dCmdDestroyShader*)ReserveFIFO3D((uint)FIFOCommand.SETLIGHTENABLE, (uint)sizeof(SVGA3dCmdDestroyShader));
+        cmd->cid = cid;
+        cmd->shid = shid;
+        cmd->type = type;
+    }
+
+    public void SetMaterial(uint cid, Face face, SVGA3dMaterial material)
+    {
+        SVGA3dCmdSetMaterial* cmd;
+        cmd = (SVGA3dCmdSetMaterial*)ReserveFIFO3D((uint)FIFOCommand.SETMATERIAL, (uint)sizeof(SVGA3dCmdSetMaterial));
+        cmd->cid = cid;
+        cmd->face = face;
+
+        MemoryOp.MemCopy((byte*)&cmd->material, (byte*)&material, sizeof(SVGA3dMaterial));
+    }
+
     public void SetRenderState(uint cid, SVGA3dRenderState[] states)
     {
         SVGA3dRenderState* rs;
