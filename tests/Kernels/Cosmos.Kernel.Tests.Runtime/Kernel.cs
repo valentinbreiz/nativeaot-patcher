@@ -53,7 +53,7 @@
 // │ RhAllocateNewArray                                │ Mem │  3 │   1 │ real │   1   │  33  │ 100  │
 // │ RhAllocateNewObject                               │ Mem │  3 │   1 │ real │   1   │  33  │ 100  │
 // │ RhHandleFree                                      │ Mem │  1 │   0 │ real │   1   │  33  │  50  │
-// │ RhHandleSet                                       │ Mem │  1 │   1 │ stub │   1   │  33  │ 100  │
+// │ RhHandleSet                                       │ Mem │  1 │   0 │ real │   1   │  33  │ 100  │
 // │ RhNewArray                                        │ Mem │  2 │   1 │ real │   1   │  33  │ 100  │
 // │ RhNewString                                       │ Mem │  2 │   1 │ real │   1   │  33  │ 100  │
 // │ RhNewVariableSizeObject                           │ Mem │  2 │   1 │ real │   1   │  33  │ 100  │
@@ -611,6 +611,8 @@ public unsafe class Kernel : Sys.Kernel
 
         Assert.True(handle.Target == obj2, "Handle.Target should be obj2 after RhHandleSet");
     }
+
+
 
     // -- RhNewString --
     private static void Test_RhNewString_Length5()
