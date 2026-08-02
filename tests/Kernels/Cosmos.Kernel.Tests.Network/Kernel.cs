@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -194,7 +195,7 @@ public class Kernel : Sys.Kernel
         Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after DHCP");
 
         // Verify we got a valid IP (not 0.0.0.0)
-        Assert.True(_localIP.Hash != 0, "DHCP should assign a non-zero IP address");
+        Assert.True(_localIP.Id != 0, "DHCP should assign a non-zero IP address");
     }
 
     // ==================== ICMP Tests ====================
@@ -830,7 +831,7 @@ public class Kernel : Sys.Kernel
         for (int i = 0; i < DNSConfig.DNSNameservers.Count; i++)
         {
             var ns = DNSConfig.DNSNameservers[i];
-            var parts = ns.ToByteArray();
+            var parts = ns.Parts;
             if (parts[0] == 1 && parts[1] == 1 && parts[2] == 1 && parts[3] == 1)
             {
                 foundCloudflare = true;
@@ -895,7 +896,7 @@ public class Kernel : Sys.Kernel
             Serial.WriteString("\n");
 
             // Verify we got a valid IP (not 0.0.0.0)
-            Assert.True(resolvedIP.Hash != 0, "Resolved IP should not be 0.0.0.0");
+            Assert.True(resolvedIP.Id != 0, "Resolved IP should not be 0.0.0.0");
             Assert.True(true, "DNS resolution for valentin.bzh succeeded");
         }
         else
@@ -947,7 +948,7 @@ public class Kernel : Sys.Kernel
             Serial.WriteString("\n");
 
             Assert.True(addresses.Count > 0, "CNAME chain should yield at least one A record");
-            Assert.True(addresses[0].Hash != 0, "Resolved IP should not be 0.0.0.0");
+            Assert.True(addresses[0].Id != 0, "Resolved IP should not be 0.0.0.0");
         }
         else
         {
@@ -1001,7 +1002,7 @@ public class Kernel : Sys.Kernel
                 Serial.WriteString(addresses[i].ToString());
                 Serial.WriteString("\n");
 
-                byte[] bytes = addresses[i].ToByteArray();
+                ImmutableArray<byte> bytes = addresses[i].Parts;
                 bool isOneOneOneOne = bytes[0] == 1 && bytes[1] == 1 && bytes[2] == 1 && bytes[3] == 1;
                 bool isOneZeroZeroOne = bytes[0] == 1 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 1;
                 if (!isOneOneOneOne && !isOneZeroZeroOne)

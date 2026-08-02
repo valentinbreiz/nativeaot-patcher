@@ -15,8 +15,8 @@ public static class GICv2
     private const ulong QemuVirtGiccBase = 0x08010000;
 
     // Default QEMU virt machine GIC base addresses (overridable via Configure)
-    private static ulong _gicDistBase = GIC.QemuVirtGicdBase;
-    private static ulong _gicCpuBase = QemuVirtGiccBase;
+    private static ulong s_gicDistBase = GIC.QemuVirtGicdBase;
+    private static ulong s_gicCpuBase = QemuVirtGiccBase;
 
     // Distributor registers (offsets from GICD_BASE)
     private const uint GICD_CTLR = 0x000;        // Distributor Control
@@ -58,12 +58,12 @@ public static class GICv2
     /// <summary>Width in bits of one GICD_ICFGR configuration field.</summary>
     private const uint CfgBitsPerIrq = 2;
 
-    private static bool _initialized;
+    private static bool s_initialized;
 
     /// <summary>
     /// Whether the GIC has been initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Configures the GICv2 base addresses. Must be called before Initialize()
@@ -73,8 +73,8 @@ public static class GICv2
     /// <param name="cpuBase">GICC base address.</param>
     public static void Configure(ulong distBase, ulong cpuBase)
     {
-        _gicDistBase = distBase;
-        _gicCpuBase = cpuBase;
+        s_gicDistBase = distBase;
+        s_gicCpuBase = cpuBase;
         Serial.Write("[GIC] Configured GICD=0x");
         Serial.WriteHex(distBase);
         Serial.Write(" GICC=0x");
@@ -134,7 +134,7 @@ public static class GICv2
         // Initialize CPU interface
         InitializeCpuInterface();
 
-        _initialized = true;
+        s_initialized = true;
         Serial.Write("[GIC] GICv2 initialized\n");
     }
 
@@ -197,7 +197,7 @@ public static class GICv2
         // Write single byte at the correct offset
         unsafe
         {
-            byte* ptr = (byte*)(_gicDistBase + regOffset);
+            byte* ptr = (byte*)(s_gicDistBase + regOffset);
             *ptr = priority;
         }
     }
@@ -274,7 +274,7 @@ public static class GICv2
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicDistBase + offset);
+            uint* ptr = (uint*)(s_gicDistBase + offset);
             return System.Threading.Volatile.Read(ref *ptr);
         }
     }
@@ -284,7 +284,7 @@ public static class GICv2
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicDistBase + offset);
+            uint* ptr = (uint*)(s_gicDistBase + offset);
             System.Threading.Volatile.Write(ref *ptr, value);
         }
     }
@@ -294,7 +294,7 @@ public static class GICv2
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicCpuBase + offset);
+            uint* ptr = (uint*)(s_gicCpuBase + offset);
             return System.Threading.Volatile.Read(ref *ptr);
         }
     }
@@ -304,7 +304,7 @@ public static class GICv2
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicCpuBase + offset);
+            uint* ptr = (uint*)(s_gicCpuBase + offset);
             System.Threading.Volatile.Write(ref *ptr, value);
         }
     }

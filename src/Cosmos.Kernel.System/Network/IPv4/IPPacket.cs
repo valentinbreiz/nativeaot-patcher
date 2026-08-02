@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 public class IPPacket : EthernetPacket
 {
     protected byte ipHeaderLength;
-    private static ushort sNextFragmentID;
+    private static ushort s_sNextFragmentID;
 
     /// <summary>
     /// Handles a single IPv4 packet.
@@ -38,7 +38,7 @@ public class IPPacket : EthernetPacket
         bool isForUs = false;
         if (NetworkStack.AddressMap != null)
         {
-            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Hash);
+            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
         }
         bool isBroadcast = ipPacket.DestinationIP.Parts[3] == 255;
 
@@ -66,7 +66,7 @@ public class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the next IP fragment ID.
     /// </summary>
-    public static ushort NextIPFragmentID => sNextFragmentID++;
+    public static ushort NextIPFragmentID => s_sNextFragmentID++;
 
     /// <summary>
     /// Create new instance of the <see cref="IPPacket"/> class.
@@ -129,9 +129,9 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
         {
-            var device = NetworkStack.AddressMap[sourceIP.Hash];
+            var device = NetworkStack.AddressMap[sourceIP.Id];
             return device.MacAddress;
         }
         return MACAddress.None;

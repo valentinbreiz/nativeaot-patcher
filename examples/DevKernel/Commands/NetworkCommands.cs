@@ -266,7 +266,7 @@ internal static class NetworkCommands
 
         Address? resolvedIP = dnsClient.Receive(DnsReceiveTimeoutMs);
 
-        if (resolvedIP != null && resolvedIP.Hash != 0)
+        if (resolvedIP != null && resolvedIP.Id != 0)
         {
             Terminal.Success(domain + " -> " + resolvedIP.ToString());
         }

@@ -27,7 +27,7 @@ public class DnsClient : UdpClient
     /// <summary>
     /// Connects to a client.
     /// </summary>
-    /// <param name="address">The destination address.</param>
+    /// <param name="address">The _destination address.</param>
     public void Connect(Address address)
     {
         Connect(address, 53);
@@ -39,15 +39,15 @@ public class DnsClient : UdpClient
     /// <param name="url">The domain name string to query the DNS for.</param>
     public void SendAsk(string url)
     {
-        if (destination is null)
+        if (_destination is null)
         {
             throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         }
 
-        Address source = IPConfig.FindNetwork(destination)
+        Address source = IPConfig.FindNetwork(_destination)
             ?? throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         _queryUrl = url;
-        var askpacket = new DNSPacketAsk(source, destination!, url);
+        var askpacket = new DNSPacketAsk(source, _destination!, url);
 
         OutgoingBuffer.AddPacket(askpacket);
         NetworkStack.Update();

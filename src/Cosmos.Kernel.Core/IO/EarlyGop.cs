@@ -11,9 +11,9 @@ namespace Cosmos.Kernel.Core.IO;
 /// </summary>
 public static unsafe class EarlyGop
 {
-    private static int _col;
-    private static int _row;
-    private static bool _initialized;
+    private static int s_col;
+    private static int s_row;
+    private static bool s_initialized;
 
     /// <summary>Set to false to stop mirroring serial output to the screen.</summary>
     public static bool Enabled = true;
@@ -25,10 +25,10 @@ public static unsafe class EarlyGop
     // The inscribed rectangle of a circle with d=320 is ~226px,
     // so we inset by ~48px on each side to stay inside the visible area.
     // For rectangular screens these are effectively 0 (auto-computed in Initialize).
-    private static int _marginX;
-    private static int _marginY;
-    private static int _usableCols;
-    private static int _usableRows;
+    private static int s_marginX;
+    private static int s_marginY;
+    private static int s_usableCols;
+    private static int s_usableRows;
 
     // Hardcoded 8x8 bitmap font for printable ASCII 0x20 (' ') through 0x7E ('~').
     // Each character occupies 8 bytes (one per pixel row), bit 7 = leftmost pixel.
@@ -233,9 +233,9 @@ public static unsafe class EarlyGop
     /// </summary>
     public static void Initialize()
     {
-        _col = 0;
-        _row = 0;
-        _initialized = false;
+        s_col = 0;
+        s_row = 0;
+        s_initialized = false;
 
         if (Limine.Framebuffer.Response == null ||
             Limine.Framebuffer.Response->FramebufferCount == 0)
@@ -259,29 +259,29 @@ public static unsafe class EarlyGop
         {
             // Use ~70% of each axis → 15% margin on each side (in pixels).
             int marginPx = (int)(fb->Width * 15 / 100);
-            _marginX = (marginPx + CharW - 1) / CharW; // in character cells
-            _marginY = (marginPx + CharH - 1) / CharH;
+            s_marginX = (marginPx + CharW - 1) / CharW; // in character cells
+            s_marginY = (marginPx + CharH - 1) / CharH;
         }
         else
         {
-            _marginX = 0;
-            _marginY = 0;
+            s_marginX = 0;
+            s_marginY = 0;
         }
 
-        _usableCols = totalCols - 2 * _marginX;
-        _usableRows = totalRows - 2 * _marginY;
+        s_usableCols = totalCols - 2 * s_marginX;
+        s_usableRows = totalRows - 2 * s_marginY;
 
-        if (_usableCols < 1)
+        if (s_usableCols < 1)
         {
-            _usableCols = 1;
+            s_usableCols = 1;
         }
 
-        if (_usableRows < 1)
+        if (s_usableRows < 1)
         {
-            _usableRows = 1;
+            s_usableRows = 1;
         }
 
-        _initialized = true;
+        s_initialized = true;
     }
 
     /// <summary>
@@ -295,12 +295,12 @@ public static unsafe class EarlyGop
             return;
         }
 
-        if (!_initialized)
+        if (!s_initialized)
         {
             Initialize();
         }
 
-        if (!_initialized)
+        if (!s_initialized)
         {
             return;
         }
@@ -310,16 +310,16 @@ public static unsafe class EarlyGop
         switch (c)
         {
             case '\n':
-                _col = 0;
-                _row++;
-                if (_row >= _usableRows)
+                s_col = 0;
+                s_row++;
+                if (s_row >= s_usableRows)
                 {
                     ClearUsableRegion(fb);
-                    _row = 0;
+                    s_row = 0;
                 }
                 break;
             case '\r':
-                _col = 0;
+                s_col = 0;
                 break;
             default:
                 if (c < 0x20 || c > 0x7E)
@@ -327,16 +327,16 @@ public static unsafe class EarlyGop
                     c = '?';
                 }
 
-                DrawGlyph(fb, c, _col + _marginX, _row + _marginY);
-                _col++;
-                if (_col >= _usableCols)
+                DrawGlyph(fb, c, s_col + s_marginX, s_row + s_marginY);
+                s_col++;
+                if (s_col >= s_usableCols)
                 {
-                    _col = 0;
-                    _row++;
-                    if (_row >= _usableRows)
+                    s_col = 0;
+                    s_row++;
+                    if (s_row >= s_usableRows)
                     {
                         ClearUsableRegion(fb);
-                        _row = 0;
+                        s_row = 0;
                     }
                 }
                 break;
@@ -375,8 +375,8 @@ public static unsafe class EarlyGop
         ulong pitch = fb->Pitch;
         byte* addr = (byte*)fb->Address;
 
-        ulong topPx = (ulong)(_marginY * CharH);
-        ulong usableHeightPx = (ulong)(_usableRows * CharH);
+        ulong topPx = (ulong)(s_marginY * CharH);
+        ulong usableHeightPx = (ulong)(s_usableRows * CharH);
 
         ulong* clear = (ulong*)(addr + pitch * topPx);
         ulong count = pitch * usableHeightPx / 8;

@@ -20,23 +20,23 @@ public static class PlatformHAL
     /// </summary>
     public const ushort LegacyPostPort = 0x80;
 
-    private static IPortIO? _portIO;
-    private static ICpuOps? _cpuOps;
-    private static IPowerOps? _powerOps;
-    private static PlatformArchitecture _architecture;
-    private static string? _platformName;
-    private static IPlatformInitializer? _initializer;
+    private static IPortIO? s_portIO;
+    private static ICpuOps? s_cpuOps;
+    private static IPowerOps? s_powerOps;
+    private static PlatformArchitecture s_architecture;
+    private static string? s_platformName;
+    private static IPlatformInitializer? s_initializer;
 
-    public static IPortIO PortIO => _portIO!;
-    public static ICpuOps? CpuOps => _cpuOps;
-    public static IPowerOps? PowerOps => _powerOps;
-    public static PlatformArchitecture Architecture => _architecture;
-    public static string PlatformName => _platformName ?? "Unknown";
+    public static IPortIO PortIO => s_portIO!;
+    public static ICpuOps? CpuOps => s_cpuOps;
+    public static IPowerOps? PowerOps => s_powerOps;
+    public static PlatformArchitecture Architecture => s_architecture;
+    public static string PlatformName => s_platformName ?? "Unknown";
 
     /// <summary>
     /// Gets the registered platform initializer, if any.
     /// </summary>
-    public static IPlatformInitializer? Initializer => _initializer;
+    public static IPlatformInitializer? Initializer => s_initializer;
 
     /// <summary>
     /// Registers a platform initializer for later use by Kernel.Initialize().
@@ -45,7 +45,7 @@ public static class PlatformHAL
     /// <param name="initializer">Platform-specific initializer to register.</param>
     public static void SetInitializer(IPlatformInitializer initializer)
     {
-        _initializer = initializer;
+        s_initializer = initializer;
     }
 
     /// <summary>
@@ -54,11 +54,11 @@ public static class PlatformHAL
     /// <param name="initializer">Platform-specific initializer (X64 or ARM64).</param>
     public static void Initialize(IPlatformInitializer initializer)
     {
-        _initializer = initializer;
-        _platformName = initializer.PlatformName;
-        _architecture = initializer.Architecture;
-        _portIO = initializer.CreatePortIO();
-        _cpuOps = initializer.CreateCpuOps();
-        _powerOps = initializer.CreatePowerOps();
+        s_initializer = initializer;
+        s_platformName = initializer.PlatformName;
+        s_architecture = initializer.Architecture;
+        s_portIO = initializer.CreatePortIO();
+        s_cpuOps = initializer.CreateCpuOps();
+        s_powerOps = initializer.CreatePowerOps();
     }
 }

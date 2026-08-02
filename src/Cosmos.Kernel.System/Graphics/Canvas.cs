@@ -57,17 +57,17 @@ public unsafe class Canvas
     /// <summary>
     /// Bytes per pixel (4 in 32bit, 3 in 24bit).
     /// </summary>
-    internal int BytesPerPixel;
+    internal int _bytesPerPixel;
 
     /// <summary>
-    /// Stride.
+    /// _stride.
     /// </summary>
-    internal int Stride;
+    internal int _stride;
 
     /// <summary>
-    /// Pitch.
+    /// _pitch.
     /// </summary>
-    internal int Pitch;
+    internal int _pitch;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Canvas"/> class.
@@ -84,9 +84,9 @@ public unsafe class Canvas
     protected Canvas(Mode mode)
     {
         _mode = mode;
-        BytesPerPixel = (int)mode.ColorDepth / 8;
-        Stride = (int)mode.ColorDepth / 8;
-        Pitch = (int)mode.Width * BytesPerPixel;
+        _bytesPerPixel = (int)mode.ColorDepth / 8;
+        _stride = (int)mode.ColorDepth / 8;
+        _pitch = (int)mode.Width * _bytesPerPixel;
     }
 
     /// <summary>
@@ -114,9 +114,9 @@ public unsafe class Canvas
     public Canvas(int width, int height, ColorDepth colorDepth = ColorDepth.ColorDepth32)
     {
         _mode = new Mode((uint)width, (uint)height, colorDepth);
-        BytesPerPixel = (int)colorDepth / 8;
-        Stride = (int)colorDepth / 8;
-        Pitch = width * BytesPerPixel;
+        _bytesPerPixel = (int)colorDepth / 8;
+        _stride = (int)colorDepth / 8;
+        _pitch = width * _bytesPerPixel;
         Buffer = new int[width * height];
     }
 
@@ -291,7 +291,7 @@ public unsafe class Canvas
 
     internal int GetPointOffset(int x, int y)
     {
-        return (x * Stride) + (y * Pitch);
+        return (x * _stride) + (y * _pitch);
     }
 
     /// <summary>

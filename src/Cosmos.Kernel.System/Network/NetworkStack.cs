@@ -61,7 +61,7 @@ public static class NetworkStack
         }
 
         // Add new config
-        AddressMap!.Add(ipAddress.Hash, device);
+        AddressMap!.Add(ipAddress.Id, device);
         MACMap.Add(mac.Hash, device);
 
         // Register packet handler
@@ -106,7 +106,7 @@ public static class NetworkStack
     /// <summary>
     /// Flag to prevent recursive Update calls.
     /// </summary>
-    private static bool _updating = false;
+    private static bool s_updating = false;
 
     /// <summary>
     /// Updates the network stack (sends pending packets).
@@ -114,14 +114,14 @@ public static class NetworkStack
     public static void Update()
     {
         // Prevent recursive calls
-        if (_updating)
+        if (s_updating)
         {
             return;
         }
 
-        _updating = true;
+        s_updating = true;
         OutgoingBuffer.Send();
-        _updating = false;
+        s_updating = false;
     }
 
     /// <summary>

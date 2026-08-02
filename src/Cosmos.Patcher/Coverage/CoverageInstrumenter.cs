@@ -30,7 +30,7 @@ public class CoverageInstrumenter
     /// <summary>
     /// Assembly name prefixes to skip entirely (test infrastructure, framework, etc.).
     /// </summary>
-    private static readonly string[] ExcludeAssemblies =
+    private static readonly string[] s_excludeAssemblies =
     [
         "Cosmos.TestRunner",
     ];
@@ -38,7 +38,7 @@ public class CoverageInstrumenter
     /// <summary>
     /// Fully-qualified type names to always skip (avoids infinite recursion).
     /// </summary>
-    private static readonly string[] ExcludeTypes =
+    private static readonly string[] s_excludeTypes =
     [
         "Cosmos.TestRunner.Framework.CoverageTracker",
     ];
@@ -439,7 +439,7 @@ public class CoverageInstrumenter
         }
 
         // Skip excluded assembly name prefixes
-        foreach (string exclude in ExcludeAssemblies)
+        foreach (string exclude in s_excludeAssemblies)
         {
             if (assemblyName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase))
             {
@@ -464,7 +464,7 @@ public class CoverageInstrumenter
         }
 
         // Skip explicitly excluded types
-        foreach (string exclude in ExcludeTypes)
+        foreach (string exclude in s_excludeTypes)
         {
             if (type.FullName == exclude)
             {

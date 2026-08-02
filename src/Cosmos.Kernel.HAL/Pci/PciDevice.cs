@@ -350,13 +350,13 @@ public class PciDevice : Device
 #endif
     }
 
-    private static bool _firstAccessLogged = false;
+    private static bool s_firstAccessLogged = false;
 
     private static ushort ReadConfig16(ushort bus, ushort slot, ushort func, byte offset)
     {
 #if ARCH_ARM64
         ulong addr = GetEcamAddress(bus, slot, func, offset);
-        if (!_firstAccessLogged)
+        if (!s_firstAccessLogged)
         {
             Serial.WriteString("[PciDevice] First ECAM Read: Bus ");
             Serial.WriteNumber(bus);
@@ -369,7 +369,7 @@ public class PciDevice : Device
             Serial.WriteString(" -> Addr 0x");
             Serial.WriteHex(addr);
             Serial.WriteString("\n");
-            _firstAccessLogged = true;
+            s_firstAccessLogged = true;
         }
         return Native.MMIO.Read16(addr);
 #else

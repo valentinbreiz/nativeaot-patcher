@@ -16,8 +16,8 @@ public static class MouseManager
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.MouseEnabled;
 
-    private static List<IMouseDevice>? _mice;
-    private static bool _initialized;
+    private static List<IMouseDevice>? s_mice;
+    private static bool s_initialized;
 
     /// <summary>
     /// Current X position (screen coordinates).
@@ -87,16 +87,16 @@ public static class MouseManager
     {
         ThrowIfDisabled();
 
-        if (_initialized)
+        if (s_initialized)
         {
             return;
         }
 
-        _mice = new List<IMouseDevice>();
+        s_mice = new List<IMouseDevice>();
         X = ScreenWidth / 2;
         Y = ScreenHeight / 2;
 
-        _initialized = true;
+        s_initialized = true;
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public static class MouseManager
     /// </summary>
     public static void RegisterMouse(IMouseDevice mouse)
     {
-        if (_mice == null || mouse == null)
+        if (s_mice == null || mouse == null)
         {
             return;
         }
@@ -115,13 +115,13 @@ public static class MouseManager
             mouseDevice.OnMouseEvent = HandleMouseEvent;
         }
 
-        _mice.Add(mouse);
+        s_mice.Add(mouse);
 
         // Enable mouse after callback is set
         mouse.Enable();
 
         Cosmos.Kernel.Core.IO.Serial.Write("[MouseManager] Registered mouse, total: ");
-        Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)_mice.Count);
+        Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)s_mice.Count);
         Cosmos.Kernel.Core.IO.Serial.Write("\n");
     }
 
@@ -171,12 +171,12 @@ public static class MouseManager
     /// </summary>
     public static void Poll()
     {
-        if (_mice == null)
+        if (s_mice == null)
         {
             return;
         }
 
-        foreach (var mouse in _mice)
+        foreach (var mouse in s_mice)
         {
             mouse.Poll();
         }
