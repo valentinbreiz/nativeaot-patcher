@@ -107,6 +107,9 @@ public unsafe class SvgaIIDriver : GraphicDevice
         InitializeFIFO();
     }
 
+    const uint HWVERSION_WS65_B1 = (2u << 16) | (1u & 0xFFu);
+    const uint HWVERSION_WS8_B1 = (2u << 16) | (2u & 0xFFu);
+
     /// <summary>
     /// Initialize FIFO.
     /// </summary>
@@ -115,39 +118,67 @@ public unsafe class SvgaIIDriver : GraphicDevice
         // MemStart is the physical FIFO BAR — same HHDM story as the VRAM BAR.
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         _fifoMemory = new MemoryBlock(hhdmOffset + ReadRegister(Register.MemStart), ReadRegister(Register.MemSize));
-        _fifoMemory[(uint)FIFO.Min] = (uint)Register.FifoNumRegisters * sizeof(uint);
+
+        // Modern SVGA drivers check if an extended FIFO layout is supported by the device
+        // and resize the register block index boundaries dynamically.
+        uint minRegisters = (uint)Register.FifoNumRegisters;
+        
+        if ((Capabilities & (uint)Capability.ExtendedFifo) != 0)
+        {
+            // Read the device's preferred number of extended FIFO registers if available
+            uint numRegs = ReadRegister(Register.MemRegs);
+            if (numRegs > minRegisters)
+            {
+                minRegisters = numRegs;
+            }
+        }
+
+        _fifoMemory[(uint)FIFO.Min] = minRegisters * sizeof(uint);
         _fifoMemory[(uint)FIFO.Max] = _fifoMemory.Size;
         _fifoMemory[(uint)FIFO.NextCmd] = _fifoMemory[(uint)FIFO.Min];
         _fifoMemory[(uint)FIFO.Stop] = _fifoMemory[(uint)FIFO.Min];
 
-        // SVGA3D negotiation lives here (not in the 3D layer) because SetMode
-        // re-runs InitializeFIFO, which resets the FIFO registers the
-        // negotiation writes to.
-        if (((Capabilities & 0x00008000) != 0) &&
-            ((Capabilities & (uint)Capability.Cap3D) != 0) &&
-            (_fifoMemory[(uint)FIFO.Min] > ((uint)Register3D.SVGA_FIFO_3D_HWVERSION << 2)))
+        // Modern vs Legacy 3D negotiation path
+        Is3DEnabled = false;
+        HW3DVer = 0;
+
+        bool hasExtendedFifo = (Capabilities & (uint)Capability.ExtendedFifo) != 0;
+        bool hasCap3D = (Capabilities & (uint)Capability.Cap3D) != 0;
+
+        if (hasExtendedFifo && hasCap3D)
         {
-            WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, ((2u) << 16) | (1u & 0xFFu));
-
-            Is3DEnabled = true;
-
-            if ((Capabilities & (1 << 8)) != 0)
+            // Ensure the FIFO minimum boundary leaves enough space for the 3D HW version register
+            uint hwVersionOffset = (uint)Register3D.SVGA_FIFO_3D_HWVERSION << 2;
+            
+            if (_fifoMemory[(uint)FIFO.Min] > hwVersionOffset)
             {
-                HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
+                // Try negotiating modern hardware version first (WS8 / WS65 profiles)
+                WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, HWVERSION_WS8_B1);
 
-                if (HW3DVer < (((2u) << 16) | (0u & 0xFFu)))
+                // Check if the device exposes revised 3D capabilities
+                if ((Capabilities & (1 << 8)) != 0) // SVGA_CAP_GBOBJECTS / modern capabilities flag check
                 {
-                    Is3DEnabled = false;
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
+                }
+                else
+                {
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION);
+                }
+
+                // Fallback validation check against minimum threshold
+                if (HW3DVer >= HWVERSION_WS65_B1)
+                {
+                    Is3DEnabled = true;
+                }
+                else
+                {
+                    // Fallback attempt with older workstation profile version if revised version rejected
+                    WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, HWVERSION_WS65_B1);
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION);
+                    
+                    Is3DEnabled = (HW3DVer >= HWVERSION_WS65_B1);
                 }
             }
-            else
-            {
-                Is3DEnabled = false;
-            }
-        }
-        else
-        {
-            Is3DEnabled = false;
         }
 
         // No Register.Enable write here: the constructor runs InitializeFIFO

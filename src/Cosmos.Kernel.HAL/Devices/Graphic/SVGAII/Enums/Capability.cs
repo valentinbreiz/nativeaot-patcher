@@ -107,5 +107,6 @@ public enum Capability
     ScreenObject2 = 0x00800000,
     Cap3D = 0x00004000,
     SurfaceCopy = 0x00010000,
+    GuestBackedObjects = 0x08000000
 
 }
