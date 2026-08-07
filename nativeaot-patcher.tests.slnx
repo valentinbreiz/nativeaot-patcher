@@ -12,12 +12,21 @@
     </Folder>
     <Folder Name="/tests/Kernels/">
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.File/Cosmos.Kernel.Tests.File.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Fat/Cosmos.Kernel.Tests.Fat.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector/Cosmos.Kernel.Tests.GarbageCollector.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Graphic/Cosmos.Kernel.Tests.Graphic.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.HelloWorld/Cosmos.Kernel.Tests.HelloWorld.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Interrupts/Cosmos.Kernel.Tests.Interrupts.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Math/Cosmos.Kernel.Tests.Math.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Memory/Cosmos.Kernel.Tests.Memory.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Network/Cosmos.Kernel.Tests.Network.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Pci/Cosmos.Kernel.Tests.Pci.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Power/Cosmos.Kernel.Tests.Power.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Runtime/Cosmos.Kernel.Tests.Runtime.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Storage/Cosmos.Kernel.Tests.Storage.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Threading/Cosmos.Kernel.Tests.Threading.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Timer/Cosmos.Kernel.Tests.Timer.csproj" />
         <Project Path="tests/Kernels/Cosmos.Kernel.Tests.TypeCasting/Cosmos.Kernel.Tests.TypeCasting.csproj" />
+        <Project Path="tests/Kernels/Cosmos.Kernel.Tests.Virtio/Cosmos.Kernel.Tests.Virtio.csproj" />
     </Folder>
 </Solution>
