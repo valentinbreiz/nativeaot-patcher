@@ -5,9 +5,9 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 using SysThread = System.Threading.Thread;
 #if ARCH_X64
 using Cosmos.Kernel.Core.X64.Cpu;
@@ -347,23 +347,23 @@ public class Kernel : Sys.Kernel
     private const int MsiDestinationIdShift = 12;
     /// <summary>Width mask of the destination APIC ID field in the MSI message address (8 bits).</summary>
     private const int MsiDestinationIdMask = 0xFF;
-    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? _wakeEvent;
-    private static volatile bool _waiterReady;
-    private static volatile bool _waiterDone;
-    private static volatile bool _waiterExited;
-    private static long _wakeTimestamp;
+    private static Cosmos.Kernel.Core.Scheduler.InterruptEvent? s_wakeEvent;
+    private static volatile bool s_waiterReady;
+    private static volatile bool s_waiterDone;
+    private static volatile bool s_waiterExited;
+    private static long s_wakeTimestamp;
 
     private static void IpiSignalHandler(ref IRQContext context)
     {
-        _wakeEvent?.Signal();
+        s_wakeEvent?.Signal();
     }
 
     private static void TestIrqExitReschedulesSignaledWaiter()
     {
-        _wakeEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
-        _waiterReady = false;
-        _waiterDone = false;
-        _waiterExited = false;
+        s_wakeEvent = new Cosmos.Kernel.Core.Scheduler.InterruptEvent();
+        s_waiterReady = false;
+        s_waiterDone = false;
+        s_waiterExited = false;
         byte vector = InterruptManager.AllocateVector(IpiSignalHandler);
 
         var waiter = new SysThread(IrqLatencyWaiter);
@@ -373,12 +373,12 @@ public class Kernel : Sys.Kernel
         long worstTicks = 0;
         for (int round = 0; round < IrqLatencyRounds; round++)
         {
-            while (!_waiterReady)
+            while (!s_waiterReady)
             {
                 // waiter not yet at Wait()
             }
-            _waiterReady = false;
-            _waiterDone = false;
+            s_waiterReady = false;
+            s_waiterDone = false;
 
             // Give the waiter a few full quanta to actually park (Blocked):
             // a signal latched before it blocks would measure ~0 and mask
@@ -388,12 +388,12 @@ public class Kernel : Sys.Kernel
             long signalTicks = Stopwatch.GetTimestamp();
             LocalApic.SendSelfIpi(vector);
 
-            while (!_waiterDone)
+            while (!s_waiterDone)
             {
                 // the parked waiter records its wake timestamp
             }
 
-            long latency = _wakeTimestamp - signalTicks;
+            long latency = s_wakeTimestamp - signalTicks;
             if (latency * MicrosecondsPerSecond / Stopwatch.Frequency < IrqLatencyFastUs)
             {
                 fastRounds++;
@@ -408,7 +408,7 @@ public class Kernel : Sys.Kernel
         // Hermetic exit: don't leave the waiter's async thread-exit
         // bookkeeping (or a stale dynamic vector) to interleave with
         // whatever the next cell sets up.
-        while (!_waiterExited)
+        while (!s_waiterExited)
         {
             // waiter finishing its last round
         }
@@ -448,13 +448,13 @@ public class Kernel : Sys.Kernel
     {
         for (int round = 0; round < IrqLatencyRounds; round++)
         {
-            _waiterReady = true;
-            _wakeEvent!.Wait();
-            _wakeTimestamp = Stopwatch.GetTimestamp();
-            _waiterDone = true;
+            s_waiterReady = true;
+            s_wakeEvent!.Wait();
+            s_wakeTimestamp = Stopwatch.GetTimestamp();
+            s_waiterDone = true;
         }
 
-        _waiterExited = true;
+        s_waiterExited = true;
     }
 
     // The scheduler timer claims LocalApic.TIMER_VECTOR (0xEF) through

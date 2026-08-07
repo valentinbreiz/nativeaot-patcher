@@ -1,3 +1,5 @@
+using Cosmos.TestingFramework;
+
 namespace Cosmos.Kernel.Tests.File;
 
 // Using directives sit after the namespace declaration on purpose: the
@@ -11,9 +13,9 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Vfs;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = TestRunner;
 
 /// <summary>
 /// Exercises .NET's own System.IO surface (File, Directory, FileStream,

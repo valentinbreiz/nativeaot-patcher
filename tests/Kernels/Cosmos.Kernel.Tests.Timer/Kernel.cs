@@ -3,11 +3,11 @@ using System.Diagnostics;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using AlarmSystem = Cosmos.Kernel.Core.Scheduler.AlarmSystem;
 using BclTimer = System.Threading.Timer;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 #if ARCH_X64
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;

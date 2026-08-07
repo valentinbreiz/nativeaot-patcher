@@ -75,7 +75,7 @@ public class KernelGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("{");
         sourceBuilder.AppendLine("    protected override void BeforeRun()");
         sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Start(\"Generated Tests\", expectedTests: {totalMethods});");
+        sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.TestRunner.Start(\"Generated Tests\", expectedTests: {totalMethods});");
 
         foreach (var model in models)
         {
@@ -92,23 +92,23 @@ public class KernelGenerator : IIncrementalGenerator
                 var testId = $"{model.ReflectionTypeName}.{method.Name}";
                 if (method.IsStatic)
                 {
-                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
+                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
                 }
                 else
                 {
-                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {instanceVariableName}.{method.Name}());");
+                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.TestRunner.Run(\"{testId}\", () => {instanceVariableName}.{method.Name}());");
                 }
             }
         }
 
-        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.Framework.TestRunner.Finish();");
+        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.TestRunner.Finish();");
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine();
         sourceBuilder.AppendLine("    protected override void Run() => Stop();");
         sourceBuilder.AppendLine();
         sourceBuilder.AppendLine("    protected override void AfterRun()");
         sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.Framework.TestRunner.Complete();");
+        sourceBuilder.AppendLine("        global::Cosmos.TestingFramework.TestRunner.Complete();");
         sourceBuilder.AppendLine("        global::Cosmos.Kernel.System.Power.Halt();");
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine("}");
