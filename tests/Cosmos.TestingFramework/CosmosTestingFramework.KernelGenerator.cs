@@ -26,9 +26,9 @@ namespace Cosmos.TestingFramework
                 var testKernels = GetTestsMethodFromAssemblies()
                     .GroupBy(m => m.DeclaringType!)
                     .Select(g => new TestKernel(g.Key, g.Key.Assembly.GetTypes().First(t => {
-                        // We need to find the generated Kernel class for this test class, which is decorated with the GeneratedTestKernel attribute referencing the test class
+                        // We need to find the generated Kernel class for this test class, which is decorated with the GeneratedTestKernel attribute referencing the test class.
                         var generatedKernelAttribute = t.GetCustomAttribute<GeneratedTestKernelAttribute>();
-                        return generatedKernelAttribute != null && generatedKernelAttribute.TestClassType == g.Key;
+                        return generatedKernelAttribute != null && generatedKernelAttribute.TestClassTypes.Contains(g.Key);
                     }), g.ToList()))
                     .ToList();
 

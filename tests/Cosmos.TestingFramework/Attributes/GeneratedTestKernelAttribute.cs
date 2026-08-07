@@ -1,8 +1,8 @@
 namespace Cosmos.TestingFramework.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class GeneratedTestKernelAttribute(Type testClassType) : Attribute
+    public class GeneratedTestKernelAttribute(params Type[] testClassTypes) : Attribute
     {
-        public Type TestClassType { get; } = testClassType;
+        public Type[] TestClassTypes { get; } = testClassTypes;
     }
 }
