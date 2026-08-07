@@ -37,7 +37,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 7);
+        TR.Start("Graphic Tests", expectedTests: 15);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
@@ -46,7 +46,21 @@ public class Kernel : Sys.Kernel
         TR.Run("Canvas_Basic", TestCanvasDrawing);
         TR.Run("VirtualCanvas_Basic", TestVirtualCanvas);
 
-        Serial.WriteString("[TypeCasting Tests] All tests completed\n");
+        // ==================== SVGA3D command layer ====================
+        // Struct sizes are host-independent and run on every cell; the FIFO
+        // wire-format tests bind the SVGA II adapter and only run on the
+        // vmware-svga profile (they skip on bare and on arm64).
+        Svga3DTests.Discover();
+        TR.Run("Svga3D_CommandStructSizes", Svga3DTests.TestCommandStructSizes);
+        TR.RunIf(Svga3DTests.DevicePresent, "Svga3D_DriverBind", Svga3DTests.TestDriverBind, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_SetLightEnabled_Fifo", Svga3DTests.TestSetLightEnabled, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_SetLightData_Fifo", Svga3DTests.TestSetLightData, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_SetMaterial_Fifo", Svga3DTests.TestSetMaterial, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyContext_Fifo", Svga3DTests.TestDestroyContext, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroySurface_Fifo", Svga3DTests.TestDestroySurface, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyShader_Fifo", Svga3DTests.TestDestroyShader, Svga3DTests.SkipNoDevice);
+
+        Serial.WriteString("[Graphic Tests] All tests completed\n");
         TR.Finish();
     }
 
