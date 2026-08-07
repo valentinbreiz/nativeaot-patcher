@@ -42,7 +42,7 @@ public class EndPoint : IComparable
         return Address.ToString() + ":" + Port.ToString();
     }
 
-    public int CompareTo(object obj)
+    public int CompareTo(object? obj)
     {
         if (obj is EndPoint other)
         {

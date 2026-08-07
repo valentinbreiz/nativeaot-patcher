@@ -61,4 +61,11 @@
 
   <!-- Multi-arch packaging support -->
   <Import Project="../Directory.MultiArch.targets" />
+
+  <ItemGroup>
+    <!-- makes internal members visible to target project - unit tests -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cosmos.Kernel.Tests.System</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

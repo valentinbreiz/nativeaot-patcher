@@ -18,17 +18,17 @@ public class DHCPOption
     /// <summary>
     /// The type of the <see cref="DHCPOption"/>.
     /// </summary>
-    public byte Type { get; set; }
+    public required byte Type { get; init; }
 
     /// <summary>
     /// The length of the <see cref="DHCPOption"/>.
     /// </summary>
-    public byte Length { get; set; }
+    public byte Length => (byte)Data.Length;
 
     /// <summary>
     /// The raw data of the <see cref="DHCPOption"/>.
     /// </summary>
-    public byte[]? Data { get; set; }
+    public required byte[] Data { get; init; }
 }
 
 /// <summary>
@@ -37,7 +37,7 @@ public class DHCPOption
 public class DHCPPacket : UDPPacket
 {
     // Simple transaction ID generator
-    private static int idCounter = 1;
+    private static int s_idCounter = 1;
 
     /// <summary>
     /// Handles a single DHCP packet.
@@ -49,12 +49,6 @@ public class DHCPPacket : UDPPacket
         var receiver = UdpClient.GetClient(dhcpPacket.DestinationPort);
         receiver?.ReceiveData(dhcpPacket);
     }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
-    /// </summary>
-    internal DHCPPacket() : base()
-    { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
@@ -81,7 +75,7 @@ public class DHCPPacket : UDPPacket
         RawData[44] = 0x06; // Length mac
         RawData[45] = 0x00; // hops
 
-        int id = idCounter++;
+        int id = s_idCounter++;
         RawData[46] = (byte)((id >> 24) & 0xFF);
         RawData[47] = (byte)((id >> 16) & 0xFF);
         RawData[48] = (byte)((id >> 8) & 0xFF);
@@ -148,10 +142,11 @@ public class DHCPPacket : UDPPacket
 
             for (int i = 0; i < RawData.Length - 282 && RawData[282 + i] != 0xFF; i += 2) //0xFF is DHCP packet end
             {
-                var option = new DHCPOption();
-                option.Type = RawData[282 + i];
-                option.Length = RawData[282 + i + 1];
-                option.Data = new byte[option.Length];
+                var option = new DHCPOption
+                {
+                    Type = RawData[282 + i],
+                    Data = new byte[RawData[282 + i + 1]]
+                };
                 for (int j = 0; j < option.Length; j++)
                 {
                     option.Data[j] = RawData[282 + i + j + 2];
@@ -187,25 +182,25 @@ public class DHCPPacket : UDPPacket
     /// <summary>
     /// Gets the client IPv4 address.
     /// </summary>
-    internal Address Client { get; private set; }
+    internal Address? Client { get; private set; }
 
     /// <summary>
     /// Gets the DHCP options.
     /// </summary>
-    internal List<DHCPOption> Options { get; private set; }
+    internal List<DHCPOption>? Options { get; private set; }
 
     /// <summary>
     /// Get Subnet IPv4 Address
     /// </summary>
-    internal Address Subnet { get; private set; }
+    internal Address? Subnet { get; private set; }
 
     /// <summary>
     /// Get DNS IPv4 Address
     /// </summary>
-    internal Address DNS { get; private set; }
+    internal Address? DNS { get; private set; }
 
     /// <summary>
     /// Get DHCP Server IPv4 Address
     /// </summary>
-    internal Address Server { get; private set; }
+    internal Address? Server { get; private set; }
 }

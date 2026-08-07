@@ -55,7 +55,7 @@ public class Mutex : IDisposable
     public void Acquire()
     {
         SchedThread? currentThread = SchedulerManager.IsReady
-            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread
             : null;
 
         if (currentThread == null)
@@ -193,7 +193,7 @@ public class Mutex : IDisposable
     public bool TryAcquire()
     {
         SchedThread? currentThread = SchedulerManager.IsReady
-            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread
             : null;
 
         if (currentThread == null)
@@ -229,7 +229,7 @@ public class Mutex : IDisposable
     public void Release()
     {
         SchedThread? currentThread = SchedulerManager.IsReady
-            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
+            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread
             : null;
 
         if (currentThread == null)

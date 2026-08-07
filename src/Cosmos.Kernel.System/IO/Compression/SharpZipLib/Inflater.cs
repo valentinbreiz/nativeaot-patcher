@@ -141,9 +141,9 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
 
         private readonly StreamManipulator input;
         private OutputWindow outputWindow;
-        private InflaterDynHeader dynHeader;
-        private InflaterHuffmanTree litlenTree, distTree;
-        private Adler32 adler;
+        private InflaterDynHeader? dynHeader;
+        private InflaterHuffmanTree? litlenTree, distTree;
+        private Adler32? adler;
 
         #endregion Instance Fields
 
@@ -289,6 +289,10 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 switch (mode)
                 {
                     case DECODE_HUFFMAN:
+                        if (litlenTree is null)
+                        {
+                            throw new Exception($"{nameof(litlenTree)} is null");
+                        }
                         // This is the inner loop so it is optimized a bit
                         while (((symbol = litlenTree.GetSymbol(input)) & ~0xff) == 0)
                         {
@@ -342,6 +346,10 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                         goto case DECODE_HUFFMAN_DIST; // fall through
 
                     case DECODE_HUFFMAN_DIST:
+                        if (distTree is null)
+                        {
+                            throw new Exception($"{nameof(distTree)} is null");
+                        }
                         symbol = distTree.GetSymbol(input);
                         if (symbol < 0)
                         {
@@ -527,6 +535,8 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 }
 
                 case DECODE_DYN_HEADER:
+                    ArgumentNullException.ThrowIfNull(dynHeader);
+
                     if (!dynHeader.AttemptRead())
                     {
                         return false;

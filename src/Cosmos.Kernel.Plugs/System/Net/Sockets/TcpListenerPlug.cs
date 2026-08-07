@@ -21,10 +21,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] Ctor(localEP)\n");
 
-        if (localEP == null)
-        {
-            throw new ArgumentNullException(nameof(localEP));
-        }
+        ArgumentNullException.ThrowIfNull(localEP);
 
         int id = GetId(aThis);
         _serverSocketEPs[id] = localEP;
@@ -36,7 +33,7 @@ public static class TcpListenerPlug
     {
         Serial.WriteString("[TcpListenerPlug] Ctor(localaddr, port)\n");
 
-        if (localaddr == null)
+        if (localaddr is null)
         {
             Serial.WriteString("[TcpListenerPlug] localaddr is null!\n");
             throw new ArgumentNullException(nameof(localaddr));

@@ -3,9 +3,22 @@
 // CPU features definition
 int g_cpuFeatures = 0;
 
+// Top of the bootloader-provided stack, captured at kmain entry so every
+// managed frame lies below it (RhGetCurrentThreadStackBounds, GC stack scan).
+static uintptr_t g_bootStackTop = 0;
+
+uintptr_t __cosmos_get_boot_stack_top(void)
+{
+    return g_bootStackTop;
+}
+
 // Entry point
 void kmain()
 {
+    // Capture the boot stack top before anything else runs; kmain's own frame
+    // is the highest thing on the Limine-provided stack.
+    g_bootStackTop = (uintptr_t)__builtin_frame_address(0);
+
     // Enable SIMD/XMM FIRST before ANY code execution
     // Without optimizations (-O), ILC generates XMM instructions even in simple functions
     _native_enable_simd();

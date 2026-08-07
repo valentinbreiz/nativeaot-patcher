@@ -13,7 +13,8 @@ public abstract class Image
     /// The raw data of the image. This array holds all of the pixel
     /// values of the raster image.
     /// </summary>
-    public int[] RawData;
+    /// <remarks>Must be initialized in supertype.</remarks>
+    public int[] RawData = null!;
 
     /// <summary>
     /// The width of the image.

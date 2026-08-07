@@ -11,15 +11,15 @@ public static class Global
     /// <summary>
     /// The registered kernel instance that will be started.
     /// </summary>
-    private static Kernel? _kernel;
+    private static Kernel? s_kernel;
 
     /// <summary>
     /// Gets or sets the current kernel instance.
     /// </summary>
     public static Kernel? CurrentKernel
     {
-        get => _kernel;
-        set => _kernel = value;
+        get => s_kernel;
+        set => s_kernel = value;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public static class Global
     public static void RegisterKernel(Kernel kernel)
     {
         Serial.WriteString("[Global] Registering kernel\n");
-        _kernel = kernel;
+        s_kernel = kernel;
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public static class Global
     {
         Serial.WriteString("[Global] StartKernel called\n");
 
-        if (_kernel == null)
+        if (s_kernel == null)
         {
             Serial.WriteString("[Global] ERROR: No kernel registered!\n");
             Serial.WriteString("[Global] Check CosmosKernelClass property in your .csproj\n");
@@ -82,11 +82,10 @@ public static class Global
 
             // Halt
             while (true) { }
-            return;
         }
 
         Serial.WriteString("[Global] Starting kernel...\n");
-        _kernel.Start();
+        s_kernel.Start();
 
         // If kernel.Start() returns, halt the system
         Serial.WriteString("[Global] Kernel.Start() returned, halting...\n");

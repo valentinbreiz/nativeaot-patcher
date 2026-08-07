@@ -14,18 +14,19 @@ public static class NetworkStack
     /// <summary>
     /// Maps IP (Internet Protocol) addresses to network devices.
     /// </summary>
-    internal static Dictionary<uint, INetworkDevice>? AddressMap { get; private set; }
+    internal static Dictionary<uint, INetworkDevice> AddressMap { get; private set; } = new();
 
     /// <summary>
     /// Maps MAC addresses to network devices.
     /// </summary>
-    internal static Dictionary<uint, INetworkDevice>? MACMap { get; private set; }
+    internal static Dictionary<uint, INetworkDevice> MACMap { get; private set; } = new();
 
     /// <summary>
     /// Initializes the network stack.
     /// </summary>
     public static void Initialize()
     {
+        // TODO is it required to call initialize at all?
         AddressMap = new Dictionary<uint, INetworkDevice>();
         MACMap = new Dictionary<uint, INetworkDevice>();
     }
@@ -60,7 +61,7 @@ public static class NetworkStack
         }
 
         // Add new config
-        AddressMap!.Add(ipAddress.Hash, device);
+        AddressMap!.Add(ipAddress.Id, device);
         MACMap.Add(mac.Hash, device);
 
         // Register packet handler
@@ -105,7 +106,7 @@ public static class NetworkStack
     /// <summary>
     /// Flag to prevent recursive Update calls.
     /// </summary>
-    private static bool _updating = false;
+    private static bool s_updating = false;
 
     /// <summary>
     /// Updates the network stack (sends pending packets).
@@ -113,14 +114,14 @@ public static class NetworkStack
     public static void Update()
     {
         // Prevent recursive calls
-        if (_updating)
+        if (s_updating)
         {
             return;
         }
 
-        _updating = true;
+        s_updating = true;
         OutgoingBuffer.Send();
-        _updating = false;
+        s_updating = false;
     }
 
     /// <summary>
@@ -134,7 +135,7 @@ public static class NetworkStack
         Serial.WriteNumber((ulong)length);
         Serial.WriteString("\n");
 
-        if (packetData == null || length < 14)
+        if (length < 14)
         {
             Serial.WriteString("[NetworkStack] Error: Invalid packet data\n");
             return;

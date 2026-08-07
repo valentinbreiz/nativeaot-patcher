@@ -8,3 +8,4 @@
 
 libSystem.Native!SystemNative_SchedGetCpu
 libSystem.Native!SystemNative_GetCpuUtilization
+libSystem.Native!SystemNative_CreateThread

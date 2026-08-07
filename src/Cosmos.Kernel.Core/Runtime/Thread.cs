@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.Core.Runtime;
 public class Thread
 {
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    private static object[][] threadData;
+    private static object[][] s_threadData;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     [RuntimeExport("RhGetThreadStaticStorage")]
     internal static ref object[][] RhGetThreadStaticStorage()
@@ -22,15 +22,49 @@ public class Thread
         }
         else
         {
-            return ref threadData;
+            return ref s_threadData;
         }
     }
 
     [RuntimeExport("RhGetCurrentThreadStackBounds")]
     internal static void RhGetCurrentThreadStackBounds(out IntPtr pStackLow, out IntPtr pStackHigh)
     {
-        pStackLow = (nint)ContextSwitchNative.GetSp();
-        pStackHigh = pStackLow + (nint)Scheduler.Thread.DefaultStackSize;
+        if (CosmosFeatures.SchedulerEnabled)
+        {
+            Scheduler.Thread? current = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread;
+            if (current != null && current.StackBase != 0)
+            {
+                pStackLow = (nint)current.StackBase;
+                pStackHigh = (nint)(current.StackBase + current.StackSize);
+                return;
+            }
+        }
+
+        // Boot/idle thread: runs on the bootloader-provided stack.
+        pStackHigh = (nint)BootStack.Top;
+        pStackLow = pStackHigh - (nint)BootStack.Size;
+    }
+
+    /// <summary>
+    /// Default stack size CoreLib's Thread.CreateThread uses when the
+    /// constructor's maxStackSize is unset (&lt;= 0).
+    /// </summary>
+    [RuntimeExport("RhGetDefaultStackSize")]
+    internal static IntPtr RhGetDefaultStackSize()
+    {
+        return (nint)Scheduler.Thread.DefaultStackSize;
+    }
+
+    /// <summary>
+    /// Entry-point address CoreLib passes to SystemNative_CreateThread. Unused:
+    /// Cosmos threads start at ThreadNative.EntryPointStub and the scheduler's
+    /// InvokeCurrentThreadStart runs CoreLib's StartThread with the
+    /// GCHandle&lt;Thread&gt; parameter itself.
+    /// </summary>
+    [RuntimeExport("RhGetThreadEntryPointAddress")]
+    internal static IntPtr RhGetThreadEntryPointAddress()
+    {
+        return IntPtr.Zero;
     }
 
     [RuntimeExport("RhSetCurrentThreadName")]
@@ -57,7 +91,7 @@ public class Thread
         Serial.WriteString("RhYield Called\n");
         if (CosmosFeatures.SchedulerEnabled)
         {
-            Scheduler.Thread? thread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread;
+            Scheduler.Thread? thread = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread;
             if (thread != null)
             {
                 //TODO: Switch Threads (if possible)

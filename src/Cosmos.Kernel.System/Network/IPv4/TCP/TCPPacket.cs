@@ -12,6 +12,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.TCP;
 /// <summary>
 /// TCP Flags
 /// </summary>
+[Flags]
 public enum Flags : byte
 {
     /// <summary>
@@ -72,10 +73,7 @@ public class TCPPacket : IPPacket
         {
             var connection = Tcp.GetConnection(packet.DestinationPort, packet.SourcePort, packet.DestinationIP, packet.SourceIP);
 
-            if (connection != null)
-            {
-                connection.ReceiveData(packet);
-            }
+            connection?.ReceiveData(packet);
         }
         else
         {
@@ -83,12 +81,12 @@ public class TCPPacket : IPPacket
         }
     }
 
-    /// <summary>
-    /// Create new instance of the <see cref="TCPPacket"/> class.
-    /// </summary>
-    internal TCPPacket()
-        : base()
-    { }
+    // /// <summary>
+    // /// Create new instance of the <see cref="TCPPacket"/> class.
+    // /// </summary>
+    // internal TCPPacket()
+    //     : base()
+    // { }
 
     /// <summary>
     /// Create new instance of the <see cref="TCPPacket"/> class.
@@ -194,12 +192,12 @@ public class TCPPacket : IPPacket
         Checksum = (ushort)((RawData[DataOffset + 16] << 8) | RawData[DataOffset + 17]);
         UrgentPointer = (ushort)((RawData[DataOffset + 18] << 8) | RawData[DataOffset + 19]);
 
-        SYN = (RawData[47] & (byte)Flags.SYN) != 0;
-        ACK = (RawData[47] & (byte)Flags.ACK) != 0;
-        FIN = (RawData[47] & (byte)Flags.FIN) != 0;
-        PSH = (RawData[47] & (byte)Flags.PSH) != 0;
-        RST = (RawData[47] & (byte)Flags.RST) != 0;
-        URG = (RawData[47] & (byte)Flags.URG) != 0;
+        _syn = (RawData[47] & (byte)Flags.SYN) != 0;
+        _ack = (RawData[47] & (byte)Flags.ACK) != 0;
+        _fin = (RawData[47] & (byte)Flags.FIN) != 0;
+        _psh = (RawData[47] & (byte)Flags.PSH) != 0;
+        _rst = (RawData[47] & (byte)Flags.RST) != 0;
+        _urg = (RawData[47] & (byte)Flags.URG) != 0;
 
         if (TCPHeaderLength > 20) //options
         {
@@ -294,32 +292,32 @@ public class TCPPacket : IPPacket
     /// <summary>
     /// TCP Options
     /// </summary>
-    public List<TCPOption> Options { get; set; }
+    public List<TCPOption>? Options { get; set; }
 
     /// <summary>
     /// Is SYN Flag set.
     /// </summary>
-    internal bool SYN;
+    internal bool _syn;
     /// <summary>
     /// Is ACK Flag set.
     /// </summary>
-    internal bool ACK;
+    internal bool _ack;
     /// <summary>
     /// Is FIN Flag set.
     /// </summary>
-    internal bool FIN;
+    internal bool _fin;
     /// <summary>
     /// Is PSH Flag set.
     /// </summary>
-    internal bool PSH;
+    internal bool _psh;
     /// <summary>
     /// Is RST Flag set.
     /// </summary>
-    internal bool RST;
+    internal bool _rst;
     /// <summary>
     /// Is URG Flag set.
     /// </summary>
-    internal bool URG;
+    internal bool _urg;
 
     /// <summary>
     /// Get destination port.
@@ -388,32 +386,32 @@ public class TCPPacket : IPPacket
     {
         string flags = "";
 
-        if (FIN)
+        if (_fin)
         {
             flags += "FIN|";
         }
 
-        if (SYN)
+        if (_syn)
         {
             flags += "SYN|";
         }
 
-        if (RST)
+        if (_rst)
         {
             flags += "RST|";
         }
 
-        if (PSH)
+        if (_psh)
         {
             flags += "PSH|";
         }
 
-        if (ACK)
+        if (_ack)
         {
             flags += "ACK|";
         }
 
-        if (URG)
+        if (_urg)
         {
             flags += "URG|";
         }

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.X64.Cpu;
@@ -81,22 +82,22 @@ public static class LocalApic
     /// <summary>Period, in ticks, of the recurring timer-tick log message.</summary>
     private const uint TimerLogPeriodTicks = 100;
 
-    private static ulong _baseAddress;
-    private static bool _initialized;
-    private static uint _ticksPerMs;
-    private static bool _timerCalibrated;
-    private static uint _timerIntervalMs;
-    private static ulong _timerIntervalNs;
+    private static ulong s_baseAddress;
+    private static bool s_initialized;
+    private static uint s_ticksPerMs;
+    private static bool s_timerCalibrated;
+    private static uint s_timerIntervalMs;
+    private static ulong s_timerIntervalNs;
 
     /// <summary>
     /// Gets the base address of the Local APIC.
     /// </summary>
-    public static ulong BaseAddress => _baseAddress;
+    public static ulong BaseAddress => s_baseAddress;
 
     /// <summary>
     /// Gets whether the Local APIC is initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Initializes the Local APIC with the given base address from MADT.
@@ -104,7 +105,7 @@ public static class LocalApic
     /// <param name="baseAddress">The physical address of the Local APIC registers.</param>
     public static void Initialize(ulong baseAddress)
     {
-        _baseAddress = baseAddress;
+        s_baseAddress = baseAddress;
 
         Serial.Write("[LocalAPIC] Initializing at 0x", baseAddress.ToString("X"), "\n");
 
@@ -136,7 +137,7 @@ public static class LocalApic
         Write(LAPIC_TIMER_LVT, LVT_MASKED);  // Masked
         Write(LAPIC_ERROR_LVT, LVT_MASKED);  // Masked
 
-        _initialized = true;
+        s_initialized = true;
 
         // Register the x64 MSI binder for HAL-level PCI MSI-X code. Intel
         // SDM Vol 3 §10.11: address [31:20]=0xFEE, [19:12]=destination APIC
@@ -153,7 +154,7 @@ public static class LocalApic
     /// </summary>
     public static void SendEOI()
     {
-        if (_initialized)
+        if (s_initialized)
         {
             Write(LAPIC_EOI, 0);
         }
@@ -168,7 +169,7 @@ public static class LocalApic
     /// </summary>
     public static void SendSelfIpi(byte vector)
     {
-        if (_initialized)
+        if (s_initialized)
         {
             Write(LAPIC_ICR_LOW, vector | ICR_DEST_SHORTHAND_SELF);
         }
@@ -209,7 +210,7 @@ public static class LocalApic
     /// </summary>
     private static uint Read(uint offset)
     {
-        return Native.MMIO.Read32(_baseAddress + offset);
+        return Native.MMIO.Read32(s_baseAddress + offset);
     }
 
     /// <summary>
@@ -217,23 +218,23 @@ public static class LocalApic
     /// </summary>
     private static void Write(uint offset, uint value)
     {
-        Native.MMIO.Write32(_baseAddress + offset, value);
+        Native.MMIO.Write32(s_baseAddress + offset, value);
     }
 
     /// <summary>
     /// Gets whether the LAPIC timer has been calibrated.
     /// </summary>
-    public static bool IsTimerCalibrated => _timerCalibrated;
+    public static bool IsTimerCalibrated => s_timerCalibrated;
 
     /// <summary>
     /// Gets the calibrated ticks per millisecond.
     /// </summary>
-    public static uint TicksPerMs => _ticksPerMs;
+    public static uint TicksPerMs => s_ticksPerMs;
 
     /// <summary>
     /// Gets the current timer interval in nanoseconds.
     /// </summary>
-    public static ulong TimerIntervalNs => _timerIntervalNs;
+    public static ulong TimerIntervalNs => s_timerIntervalNs;
 
     /// <summary>
     /// Calibrates the LAPIC timer using the PIT as a reference.
@@ -241,7 +242,7 @@ public static class LocalApic
     /// </summary>
     public static void CalibrateTimer()
     {
-        if (!_initialized)
+        if (!s_initialized)
         {
             Serial.Write("[LocalAPIC] ERROR: Cannot calibrate timer - APIC not initialized\n");
             return;
@@ -293,10 +294,10 @@ public static class LocalApic
 
         // Calculate ticks per ms (we waited ~10ms)
         // Account for divide by 16
-        _ticksPerMs = lapicTicksElapsed / CalibrationDurationMs;
+        s_ticksPerMs = lapicTicksElapsed / CalibrationDurationMs;
 
-        _timerCalibrated = true;
-        Serial.Write("[LocalAPIC] Timer calibrated: ", _ticksPerMs, " ticks/ms\n");
+        s_timerCalibrated = true;
+        Serial.Write("[LocalAPIC] Timer calibrated: ", s_ticksPerMs, " ticks/ms\n");
     }
 
     /// <summary>
@@ -305,7 +306,7 @@ public static class LocalApic
     /// <param name="ms">Number of milliseconds to wait.</param>
     public static void Wait(uint ms)
     {
-        if (!_timerCalibrated)
+        if (!s_timerCalibrated)
         {
             Serial.Write("[LocalAPIC] ERROR: Timer not calibrated\n");
             return;
@@ -320,7 +321,7 @@ public static class LocalApic
         Write(LAPIC_TIMER_DIVIDE, TIMER_DIVIDE_BY_16);
 
         // Calculate ticks needed
-        uint ticks = _ticksPerMs * ms;
+        uint ticks = s_ticksPerMs * ms;
 
         // Set up one-shot timer (masked - we poll instead of interrupt)
         Write(LAPIC_TIMER_LVT, LVT_MASKED);
@@ -331,6 +332,15 @@ public static class LocalApic
         {
             // Busy wait
         }
+
+        // Re-arm the periodic scheduler tick this wait hijacked: the LVT was
+        // masked and switched to one-shot above, and without this the
+        // scheduler tick stays dead after the first Wait call.
+        if (s_timerIntervalMs != 0)
+        {
+            Write(LAPIC_TIMER_LVT, TIMER_PERIODIC | TIMER_VECTOR);
+            Write(LAPIC_TIMER_INIT, s_ticksPerMs * s_timerIntervalMs);
+        }
     }
 
     /// <summary>
@@ -340,18 +350,18 @@ public static class LocalApic
     /// <param name="intervalMs">Interval in milliseconds between interrupts.</param>
     public static void StartPeriodicTimer(uint intervalMs)
     {
-        if (!_timerCalibrated)
+        if (!s_timerCalibrated)
         {
             Serial.Write("[LocalAPIC] ERROR: Timer not calibrated\n");
             return;
         }
 
-        uint ticks = _ticksPerMs * intervalMs;
-        _timerIntervalMs = intervalMs;
-        _timerIntervalNs = (ulong)intervalMs * SchedulerManager.NanosecondsPerMillisecond;  // Convert ms to ns
+        uint ticks = s_ticksPerMs * intervalMs;
+        s_timerIntervalMs = intervalMs;
+        s_timerIntervalNs = (ulong)intervalMs * SchedulerManager.NanosecondsPerMillisecond;  // Convert ms to ns
 
         Serial.Write("[LocalAPIC] Starting periodic timer:\n");
-        Serial.Write("[LocalAPIC]   TicksPerMs: ", _ticksPerMs, "\n");
+        Serial.Write("[LocalAPIC]   TicksPerMs: ", s_ticksPerMs, "\n");
         Serial.Write("[LocalAPIC]   Interval: ", intervalMs, "ms\n");
         Serial.Write("[LocalAPIC]   Ticks: ", ticks, "\n");
         Serial.Write("[LocalAPIC]   Vector: 0x", TIMER_VECTOR.ToString("X"), "\n");
@@ -389,10 +399,10 @@ public static class LocalApic
     /// <summary>
     /// LAPIC timer interrupt handler - triggers scheduler for preemptive multitasking.
     /// </summary>
-    private static uint _timerTickCount;
+    private static uint s_timerTickCount;
     private static unsafe void HandleTimerInterrupt(ref IRQContext context)
     {
-        _timerTickCount++;
+        s_timerTickCount++;
 
         // Get current CPU ID from APIC
         uint cpuId = (uint)GetId();
@@ -402,24 +412,24 @@ public static class LocalApic
         nuint currentRsp = contextPtr - X64InterruptController.XmmSaveAreaSizeBytes;  // RSP points to start of XMM save area
 
         // Sanity check RSP - should be in kernel space (0xFFFF800000000000+)
-        if ((currentRsp & X64InterruptController.KernelSpaceCanonicalMask) != X64InterruptController.KernelSpaceCanonicalMask)
+        if ((currentRsp & AddressSpace.KernelSpaceCanonicalMask) != AddressSpace.KernelSpaceCanonicalMask)
         {
-            Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", _timerTickCount, ": ");
+            Serial.Write("[LAPIC] ERROR: Invalid RSP at tick ", s_timerTickCount, ": ");
             Serial.WriteHex((ulong)currentRsp);
             Serial.Write("\n");
             return;  // Don't call scheduler with bad RSP
         }
 
         // Log first few and then periodically
-        if (_timerTickCount <= TimerLogInitialTicks || _timerTickCount % TimerLogPeriodTicks == 0)
+        if (s_timerTickCount <= TimerLogInitialTicks || s_timerTickCount % TimerLogPeriodTicks == 0)
         {
-            Serial.Write("[LAPIC] Timer tick ", _timerTickCount, " RSP=");
+            Serial.Write("[LAPIC] Timer tick ", s_timerTickCount, " RSP=");
             Serial.WriteHex((ulong)currentRsp);
             Serial.Write("\n");
         }
 
         // Call scheduler with elapsed time
-        SchedulerManager.OnTimerInterrupt(cpuId, currentRsp, _timerIntervalNs);
+        SchedulerManager.OnTimerInterrupt(cpuId, currentRsp, s_timerIntervalNs);
 
         // EOI is sent by InterruptManager.Dispatch after handler returns
     }

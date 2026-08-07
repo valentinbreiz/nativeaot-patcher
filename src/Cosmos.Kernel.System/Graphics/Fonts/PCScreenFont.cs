@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.System.Graphics.Fonts;
 /// </summary>
 public class PCScreenFont : Font
 {
-    readonly List<UnicodeMapping> unicodeMappings; // Maps the fonts to the corresponding unicode characters
+    readonly List<UnicodeMapping> _unicodeMappings; // Maps the fonts to the corresponding unicode characters
 
     #region DefaultFontData
     // Credit to fcambus https://github.com/fcambus/spleen under BSD-2 License
@@ -47,12 +47,12 @@ public class PCScreenFont : Font
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
     }
 
-    static PCScreenFont? _Default = null;
+    static PCScreenFont? s_default = null;
     public static PCScreenFont DefaultFont
     {
         get
         {
-            if (_Default == null)
+            if (s_default == null)
             {
                 try
                 {
@@ -65,8 +65,8 @@ public class PCScreenFont : Font
                         Serial.WriteString("Loading default PSF font from resources...\n");
                         Serial.WriteString($"Font Key: {embeddedResourceName}");
                         Serial.WriteString($"Font size: {resourceSpan.Length.ToString()} bytes\n");
-                        _Default = LoadFont(resourceSpan.ToArray());
-                        return _Default;
+                        s_default = LoadFont(resourceSpan.ToArray());
+                        return s_default;
                     }
                 }
                 catch (Exception ex)
@@ -75,7 +75,7 @@ public class PCScreenFont : Font
                 }
 
                 Serial.WriteString("Loading built-in fallback font\n");
-                _Default = LoadFont(Convert.FromBase64String("NgQDEAAAAAAAZjxmZmY8ZgAAAAAAABgYGBgYAAAYGBgYGAAAAABsbAAAAAAAAAAAAAAAAAAAAHyCmqKiopqCfAAAAAAAAAB8grqqsqqqgnwAAAAAAHwAAAAAAAAAAAAAAAAAAAAcJgwGJhwAAAAAAAAAAAAAAAAAAAAYPDwYAAAAAAAAAAwYMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgYMAAAGDgYGBg8AAAAAAAAAAAAAGCQIBKWbBgwcNSUHgQEADAYAHzGxsb+xsbGxgAAAAAYMAB8xsbG/sbGxsYAAAAAOGwAfMbGxv7GxsbGAAAAADJMAHzGxsb+xsbGxgAAAAAwGAB+wMDA+MDAwH4AAAAAOGwAfsDAwPjAwMB+AAAAAGxsAH7AwMD4wMDAfgAAAAAwGAB+GBgYGBgYGH4AAAAAAAB+1tbWdhYWFhYWAAAAAAA8ZmAwPGZmZmY8DAZmPAAMGAB+GBgYGBgYGH4AAAAAOGwAfhgYGBgYGBh+AAAAAGZmAH4YGBgYGBgYfgAAAAAAAHxmZmb2ZmZmZnwAAAAAMBgAfMbGxsbGxsZ8AAAAABgwAHzGxsbGxsbGfAAAAAA4bAB8xsbGxsbGxnwAAAAAMkwAfMbGxsbGxsZ8AAAAAAAAAAAAxmw4OGzGAAAAAAAAAnzGzs7W1ubmxnyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGBgYGBgYGAAYGAAAAAAAZmZmZgAAAAAAAAAAAAAAAABsbP5sbGxs/mxsAAAAAAAQftDQ0HwWFhYW/BAAAAAAAAZmbAwYGDA2ZmAAAAAAAAA4bGxsOHDazMx6AAAAAAAYGBgYAAAAAAAAAAAAAAAADhgwMGBgYGBgYDAwGA4AAHAYDAwGBgYGBgYMDBhwAAAAAABmPBj/" +
+                s_default = LoadFont(Convert.FromBase64String("NgQDEAAAAAAAZjxmZmY8ZgAAAAAAABgYGBgYAAAYGBgYGAAAAABsbAAAAAAAAAAAAAAAAAAAAHyCmqKiopqCfAAAAAAAAAB8grqqsqqqgnwAAAAAAHwAAAAAAAAAAAAAAAAAAAAcJgwGJhwAAAAAAAAAAAAAAAAAAAAYPDwYAAAAAAAAAAwYMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgYMAAAGDgYGBg8AAAAAAAAAAAAAGCQIBKWbBgwcNSUHgQEADAYAHzGxsb+xsbGxgAAAAAYMAB8xsbG/sbGxsYAAAAAOGwAfMbGxv7GxsbGAAAAADJMAHzGxsb+xsbGxgAAAAAwGAB+wMDA+MDAwH4AAAAAOGwAfsDAwPjAwMB+AAAAAGxsAH7AwMD4wMDAfgAAAAAwGAB+GBgYGBgYGH4AAAAAAAB+1tbWdhYWFhYWAAAAAAA8ZmAwPGZmZmY8DAZmPAAMGAB+GBgYGBgYGH4AAAAAOGwAfhgYGBgYGBh+AAAAAGZmAH4YGBgYGBgYfgAAAAAAAHxmZmb2ZmZmZnwAAAAAMBgAfMbGxsbGxsZ8AAAAABgwAHzGxsbGxsbGfAAAAAA4bAB8xsbGxsbGxnwAAAAAMkwAfMbGxsbGxsZ8AAAAAAAAAAAAxmw4OGzGAAAAAAAAAnzGzs7W1ubmxnyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGBgYGBgYGAAYGAAAAAAAZmZmZgAAAAAAAAAAAAAAAABsbP5sbGxs/mxsAAAAAAAQftDQ0HwWFhYW/BAAAAAAAAZmbAwYGDA2ZmAAAAAAAAA4bGxsOHDazMx6AAAAAAAYGBgYAAAAAAAAAAAAAAAADhgwMGBgYGBgYDAwGA4AAHAYDAwGBgYGBgYMDBhwAAAAAABmPBj/" +
                 "GDxmAAAAAAAAAAAAABgYfhgYAAAAAAAAAAAAAAAAAAAAABgYMAAAAAAAAAAAAAB+AAAAAAAAAAAAAAAAAAAAAAAAGBgAAAAAAAMDBgYMDBgYMDBgYMDAAAAAfMbGzt725sbGfAAAAAAAABg4eFgYGBgYGH4AAAAAAAB8xgYGDBgwYMb+AAAAAAAAfMYGBjwGBgbGfAAAAAAAAMDAzMzMzP4MDAwAAAAAAAD+xsDA/AYGBsZ8AAAAAAAAfMbAwPzGxsbGfAAAAAAAAP7GBgYMGDAwMDAAAAAAAAB8xsbGfMbGxsZ8AAAAAAAAfMbGxsZ+BgbGfAAAAAAAAAAAABgYAAAAGBgAAAAAAAAAAAAYGAAAABgYMAAAAAAABgwYMGBgMBgMBgAAAAAAAAAAAH4AAH4AAAAAAAAAAABgMBgMBgYMGDBgAAAAAAAAfMYGDBgwMAAwMAAAAAAAAAB8wtra2trewHwAAAAAAAB8xsbG/sbGxsbGAAAAAAAA/MbGxvzGxsbG/AAAAAAAAH7AwMDAwMDAwH4AAAAAAAD8xsbGxsbGxsb8AAAAAAAAfsDAwPjAwMDAfgAAAAAAAH7AwMD4wMDAwMAAAAAAAAB+wMDA3sbGxsZ+AAAAAAAAxsbGxv7GxsbGxgAAAAAAAH4YGBgYGBgYGH4AAAAAAAB+GBgYGBgYGBjwAAAAAAAAxsbGzPjMxsbGxgAAAAAAAMDAwMDAwMDAwH4AAAAAAADG7v7WxsbGxsbGAAAAAAAAxsbm5tbWzs7GxgAAAAAAAHzGxsbGxsbGxnwAAAAAAAD8xsbG/MDAwMDAAAAAAAAAfMbGxsbGxtbWfBgMAAAAAPzGxsb8xsbGxsYAAAAAAAB+wMDAfAYGBgb8AAAAAAAA/xgYGBgYGBgYGAAAAAAAAMbGxsbGxsbGxn4AAAAAAADGxsbGxsbGbDgQAAAAAAAAxsbGxsbG1v7u" +
                 "xgAAAAAAAMbGxmw4bMbGxsYAAAAAAADGxsbGfgYGBgb8AAAAAAAA/gYGDBgwYMDA/gAAAAAAPjAwMDAwMDAwMDAwMD4AAMDAYGAwMBgYDAwGBgMDAAB8DAwMDAwMDAwMDAwMfAAAEDhsxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+AAAwGAwAAAAAAAAAAAAAAAAAAAAAAHwGfsbGxn4AAAAAAADAwMD8xsbGxsb8AAAAAAAAAAAAfsDAwMDAfgAAAAAAAAYGBn7GxsbGxn4AAAAAAAAAAAB+xsb+wMB+AAAAAAAAHjAwMHwwMDAwMAAAAAAAAAAAAH7GxsbGxnwGBvwAAADAwMD8xsbGxsbGAAAAAAAAGBgAOBgYGBgYHAAAAAAAABgYABgYGBgYGBgYGHAAAADAwMDM2PDw2MzGAAAAAAAAMDAwMDAwMDAwHAAAAAAAAAAAAOzW1tbWxsYAAAAAAAAAAAD8xsbGxsbGAAAAAAAAAAAAfMbGxsbGfAAAAAAAAAAAAPzGxsbGxvzAwMAAAAAAAAB+xsbGxsZ+BgYGAAAAAAAAfsbAwMDAwAAAAAAAAAAAAH7AwHwGBvwAAAAAAAAwMDB8MDAwMDAeAAAAAAAAAAAAxsbGxsbGfgAAAAAAAAAAAMbGxsZsOBAAAAAAAAAAAADGxtbW1tZuAAAAAAAAAAAAxmw4OGzGxgAAAAAAAAAAAMbGxsbGxn4GBvwAAAAAAAD+BgwYMGD+AAAAAAAOGBgYGBhwcBgYGBgYDgAAABgYGBgYGBgYGBgYGAAAAHAYGBgYGA4OGBgYGBhwAAAyfkwAAAAAAAAAAAAAAAAwGADGxsbGxsbGxn4AAAAAAAB+wMDAwMDAwMB+GBgwAAAAbGwAxsbGxsbGfgAAAAAADBgwAH7Gxv7AwH4AAAAAABA4bAB8Bn7GxsZ+AAAAAAAAbGwAfAZ+xsbGfgAA" +
                 "AAAAYDAYAHwGfsbGxn4AAAAAADhsOAB8Bn7GxsZ+AAAAAAAAAAAAfsDAwMDAfhgYMAAAEDhsAH7Gxv7AwH4AAAAAAABsbAB+xsb+wMB+AAAAAABgMBgAfsbG/sDAfgAAAAAAAGZmADgYGBgYGBwAAAAAABg8ZgA4GBgYGBgcAAAAAAAwGAwAOBgYGBgYHAAAAABsbAB8xsbG/sbGxsYAAAAAOGw4fMbGxv7GxsbGAAAAABgwAH7AwMD4wMDAfgAAAAAAAAAAAG4WFn7Q0G4AAAAAAAB+2NjY/tjY2NjeAAAAAAAQOGwAfMbGxsbGfAAAAAAAAGxsAHzGxsbGxnwAAAAAAGAwGAB8xsbGxsZ8AAAAAAAQOGwAxsbGxsbGfgAAAAAAYDAYAMbGxsbGxn4AAAAAAABsbADGxsbGxsZ+Bgb8AGxsAHzGxsbGxsbGfAAAAABsbADGxsbGxsbGxn4AAAAAAAAAAAh+yMjIyMh+CAAAAAAAOGxgYGD4YGDA/gAAAAAAAMPDZjwYPBg8GBgAAAAAGDAAxsbGxsbGxsZ+AAAAADhsAMbGxsbGxsbGfgAAAAAADBgwAHwGfsbGxn4AAAAAAAwYMAA4GBgYGBgcAAAAAAAMGDAAfMbGxsbGfAAAAAAADBgwAMbGxsbGxn4AAAAAADJ+TAD8xsbGxsbGAAAAADJMAMbm5tbWzs7GxgAAAAAAOAw8TDwAfAAAAAAAAAAAADhsbDgAAHwAAAAAAAAAAAAAGBgAGBgwYMDGfAAAAAAYMADGxsbGfgYGBvwAAAAAAAAAAAAA/gYGBgAAAAAAAABAwEBCRuwYMGzSggwQHgAAQMBAQkbsGDBw1JQeBAQAAAAYGAAYGBgYGBgYAAAAAAAAAAAAADNmzGYzAAAAAAAAAAAAAADMZjNmzAAAAAAAEUQRRBFEEUQRRBFEEUQRRFWqVapVqlWqVapVqlWqVardd9" +
@@ -92,7 +92,7 @@ public class PCScreenFont : Font
                 "////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////w=="));
             }
 
-            return _Default;
+            return s_default;
         }
     }
     #endregion
@@ -111,10 +111,10 @@ public class PCScreenFont : Font
     /// <param name="width">The width of a single character in pixels</param>
     /// <param name="height">The height of a single character in pixels</param>
     /// <param name="data">The PCF data.</param>
-    /// <param name="unicodeMappings">The mappings of Unicode characters to font indexes.</param>
-    public PCScreenFont(byte width, byte height, byte[] data, List<UnicodeMapping> unicodeMappings) : base(width, height, data)
+    /// <param name="_unicodeMappings">The mappings of Unicode characters to font indexes.</param>
+    public PCScreenFont(byte width, byte height, byte[] data, List<UnicodeMapping> _unicodeMappings) : base(width, height, data)
     {
-        this.unicodeMappings = unicodeMappings;
+        this._unicodeMappings = _unicodeMappings;
     }
 
     /// <summary>
@@ -312,9 +312,9 @@ public class PCScreenFont : Font
     private int FindASCIIOffset(byte i)
     {
         int offset;
-        for (offset = 0; offset < unicodeMappings.Count; offset++)
+        for (offset = 0; offset < _unicodeMappings.Count; offset++)
         {
-            UnicodeMapping mapping = unicodeMappings[offset];
+            UnicodeMapping mapping = _unicodeMappings[offset];
             if (mapping.ASCIICharacters.Contains(i))
             {
                 break;

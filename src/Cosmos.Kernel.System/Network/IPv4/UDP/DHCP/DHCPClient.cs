@@ -21,12 +21,12 @@ public class DHCPClient : UdpClient
     /// <summary>
     /// Is DHCP asked check variable
     /// </summary>
-    private bool applied = false;
+    private bool _applied = false;
 
     /// <summary>
     /// Gets the IP address of the DHCP server.
     /// </summary>
-    public static Address DHCPServerAddress(INetworkDevice networkDevice)
+    public static Address? DHCPServerAddress(INetworkDevice networkDevice)
     {
         return NetworkConfigManager.Get(networkDevice)?.DefaultGateway;
     }
@@ -65,11 +65,11 @@ public class DHCPClient : UdpClient
             if (packet.RawData[284] == 0x02) //Offer packet received
             {
                 Serial.WriteString("[DHCP] Offer received.\n");
-                return SendRequestPacket(packet.Client);
+                return SendRequestPacket(packet.Client ?? throw new Exception($"{nameof(packet.Client)} can not be null"));
             }
             else if (packet.RawData[284] == 0x05 || packet.RawData[284] == 0x06) //ACK or NAK DHCP packet received
             {
-                if (applied == false)
+                if (!_applied)
                 {
                     Apply(packet, true);
 
@@ -94,8 +94,10 @@ public class DHCPClient : UdpClient
                 continue;
             }
 
-            Address source = IPConfig.FindNetwork(DHCPServerAddress(networkDevice));
-            var dhcpRelease = new DHCPRelease(source, DHCPServerAddress(networkDevice), networkDevice.MacAddress);
+            var destIp = DHCPServerAddress(networkDevice) ?? throw new Exception($"IP can not be null");
+            Address source = IPConfig.FindNetwork(destIp)
+                ?? throw new Exception($"Address can not be null");
+            var dhcpRelease = new DHCPRelease(source, destIp, networkDevice.MacAddress);
 
             OutgoingBuffer.AddPacket(dhcpRelease);
             NetworkStack.Update();
@@ -131,7 +133,7 @@ public class DHCPClient : UdpClient
             OutgoingBuffer.AddPacket(dhcpDiscover);
             NetworkStack.Update();
 
-            applied = false;
+            _applied = false;
         }
 
         return Receive();
@@ -165,7 +167,7 @@ public class DHCPClient : UdpClient
     /// <param name="message">Enable/Disable the displaying of messages about DHCP applying and conf.</param>
     private void Apply(DHCPPacket packet, bool message = false)
     {
-        if (applied == false)
+        if (_applied == false)
         {
             NetworkStack.RemoveAllConfigIP();
 
@@ -195,19 +197,19 @@ public class DHCPClient : UdpClient
                         DNSConfig.Add(packet.DNS);
                     }
 
-                    Serial.WriteString("[DHCP CONFIG] IP configuration applied.\n");
+                    Serial.WriteString("[DHCP CONFIG] IP configuration _applied.\n");
 
-                    applied = true;
+                    _applied = true;
 
                     return;
                 }
             }
 
-            Serial.WriteString("[DHCP CONFIG] No DHCP Config applied!\n");
+            Serial.WriteString("[DHCP CONFIG] No DHCP Config _applied!\n");
         }
         else
         {
-            Serial.WriteString("[DHCP CONFIG] DHCP already applied.\n");
+            Serial.WriteString("[DHCP CONFIG] DHCP already _applied.\n");
         }
     }
 }

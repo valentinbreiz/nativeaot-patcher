@@ -138,6 +138,21 @@
     <PackageReference Include="Cosmos.Build.CC" />
   </ItemGroup>
 
+  <!-- Derive CosmosArch from RuntimeIdentifier here, in the Sdk itself.
+       The same derivation exists in Cosmos.ArchitecturePicker.props, but that file
+       ships inside the Cosmos.Build.Common NuGet package, and NuGet restore excludes
+       package-provided props/targets from evaluation (ExcludeRestorePackageImports).
+       Without this copy, CosmosArch is empty during restore, the conditional
+       PackageReferences below drop out of the restore graph, and the build later
+       fails at link time with undefined _native_*/Rhp* symbols because
+       Cosmos.Kernel.Native.<arch> was never restored (issue #382). -->
+  <PropertyGroup>
+    <CosmosArch Condition="'$(RuntimeIdentifier)' != '' AND '$(CosmosArch)' == ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[1])</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == ''">x64</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == 'x86_64'">x64</CosmosArch>
+    <CosmosArch Condition="'$(CosmosArch)' == 'aarch64'">arm64</CosmosArch>
+  </PropertyGroup>
+
   <!-- Architecture-specific kernel packages -->
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Cosmos.Kernel.Native.X64" Version="@CosmosPackageVersion@" Condition="'$(CosmosArch)' == 'x64'" />

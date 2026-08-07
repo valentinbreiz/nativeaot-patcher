@@ -1,6 +1,5 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
-using System;
 using Cosmos.Kernel.HAL.Vfs;
 
 namespace Cosmos.Kernel.System.Vfs;
@@ -103,12 +102,6 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public bool TryStat(out VfsStat stat)
     {
-        stat = default;
-        if (Inode.InodeOperations == null)
-        {
-            return false;
-        }
-
         return Inode.InodeOperations.GetAttr(Inode, out stat);
     }
 

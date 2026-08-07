@@ -181,7 +181,7 @@ public class ARM64InterruptController : IInterruptController
             }
             else
             {
-                InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
+                InterruptManager.IrqDelegate?[]? handlers = InterruptManager.s_irqHandlers;
                 if (handlers != null && intId < (uint)handlers.Length)
                 {
                     handler = handlers[(int)intId];
@@ -211,10 +211,10 @@ public class ARM64InterruptController : IInterruptController
 
         if (ctx.interrupt == ExceptionTypeSync)  // Synchronous exception
         {
-            InterruptManager.IrqDelegate[]? handlers = InterruptManager.s_irqHandlers;
+            InterruptManager.IrqDelegate?[]? handlers = InterruptManager.s_irqHandlers;
             if (handlers != null)
             {
-                InterruptManager.IrqDelegate handler = handlers[0];
+                InterruptManager.IrqDelegate? handler = handlers[0];
                 if (handler != null)
                 {
                     handler(ref ctx);

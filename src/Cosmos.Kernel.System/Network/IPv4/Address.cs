@@ -1,23 +1,25 @@
 ﻿/*
-* PROJECT:          Aura Operating System Development
-* CONTENT:          IP Address
-* PROGRAMMERS:      Valentin Charbonnier <valentinbreiz@gmail.com>
-*                   Port of Cosmos Code.
-*/
+ * PROJECT:          Aura Operating System Development
+ * CONTENT:          IP Address
+ * PROGRAMMERS:      Valentin Charbonnier <valentinbreiz@gmail.com>
+ *                   Port of Cosmos Code.
+ */
+
+using System.Collections.Immutable;
 
 namespace Cosmos.Kernel.System.Network.IPv4;
 
 /// <summary>
 /// Represents a IPv4 address.
 /// </summary>
-public class Address : IComparable
+public sealed class Address : IComparable<Address>
 {
-    private uint hash;
+    private uint _id;
 
     /// <summary>
     /// The parts of the address.
     /// </summary>
-    internal byte[] Parts = new byte[4];
+    public ImmutableArray<byte> Parts { get; }
 
     public bool IsIpv4 => Parts.Length == 4;
     public bool IsIpv6 => !IsIpv4;
@@ -35,13 +37,16 @@ public class Address : IComparable
     /// <summary>
     /// Create new instance of the <see cref="Address"/> class, with specified IP address.
     /// </summary>
-    /// <param name="address">Adress</param>
+    /// <param name="address">Address</param>
     public Address(uint address)
     {
-        Parts[0] = (byte)((address >> 24) & 0xFF);
-        Parts[1] = (byte)((address >> 16) & 0xFF);
-        Parts[2] = (byte)((address >> 8) & 0xFF);
-        Parts[3] = (byte)(address & 0xFF);
+        Parts =
+        [
+            (byte)((address >> 24) & 0xFF),
+            (byte)((address >> 16) & 0xFF),
+            (byte)((address >> 8) & 0xFF),
+            (byte)(address & 0xFF)
+        ];
     }
 
     /// <summary>
@@ -53,10 +58,7 @@ public class Address : IComparable
     /// <param name="aFourth">Fourth block of the address.</param>
     public Address(byte aFirst, byte aSecond, byte aThird, byte aFourth)
     {
-        Parts[0] = aFirst;
-        Parts[1] = aSecond;
-        Parts[2] = aThird;
-        Parts[3] = aFourth;
+        Parts = [aFirst, aSecond, aThird, aFourth];
     }
 
     /// <summary>
@@ -64,51 +66,51 @@ public class Address : IComparable
     /// </summary>
     /// <param name="buffer">Buffer.</param>
     /// <param name="offset">Offset.</param>
-    /// <exception cref="ArgumentException">Thrown if buffer is invalid or null.</exception>
-    public Address(byte[] buffer, int offset)
+    public Address(byte[] buffer, int offset) : this(new ReadOnlySpan<byte>(buffer, offset, 4))
     {
-        if (buffer == null || buffer.Length < offset + 4)
-        {
-            throw new ArgumentException("The buffer does not contain enough data starting at 'offset'.", nameof(buffer));
-        }
-
-        Parts[0] = buffer[offset];
-        Parts[1] = buffer[offset + 1];
-        Parts[2] = buffer[offset + 2];
-        Parts[3] = buffer[offset + 3];
     }
 
     /// <summary>
-    /// Parses a IP address in its string representation.
+    /// Creates a new <see cref="Address"/> instance, with the specified byte span.
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public Address(ReadOnlySpan<byte> buffer)
+    {
+        if (buffer.Length != 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(buffer), "Buffer has to be 4 bytes long");
+        }
+
+        Parts = [.. buffer[0..4]];
+
+    }
+
+    /// <summary>
+    /// Parses an IP address in its string representation.
     /// </summary>
     /// <param name="addr">The IP address as string.</param>
-    /// <returns>The parsed address value.</returns>
-    /// <exception cref="OverflowException">Thrown if addr is longer than <see cref="Int32.MaxValue"/>.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if addr is null.</exception>
-    /// <exception cref="FormatException">Thrown if addr is not in the right format.</exception>
-    /// <exception cref="OverflowException">Thrown if addr represents a number less than Byte.MinValue or greater than <see cref="Byte.MaxValue"/>.</exception>
-    public static Address? Parse(string addr)
+    /// <returns>The parsed address value or null when parsing fails.</returns>
+    public static Address? Parse(ReadOnlySpan<char> addr)
     {
-        string[] fragments = addr.Split('.');
-        if (fragments.Length == 4)
+        var fragments = addr.Split('.');
+        Span<byte> addressBytes = stackalloc byte[4];
+
+        int index = 0;
+        foreach (var fragment in fragments)
         {
-            try
-            {
-                byte first = byte.Parse(fragments[0]);
-                byte second = byte.Parse(fragments[1]);
-                byte third = byte.Parse(fragments[2]);
-                byte fourth = byte.Parse(fragments[3]);
-                return new Address(first, second, third, fourth);
-            }
-            catch
+            if (!byte.TryParse(addr[fragment], out byte value))
             {
                 return null;
             }
+            addressBytes[index++] = value;
+            if (index == 4)
+            {
+                return new Address(addressBytes);
+            }
         }
-        else
-        {
-            return null;
-        }
+
+        return null;
     }
 
     /// <summary>
@@ -149,24 +151,10 @@ public class Address : IComparable
 
     public override string ToString()
     {
-        return
-            Parts[0] +
-            "." +
-            Parts[1] +
-            "." +
-            Parts[2] +
-            "." +
-            Parts[3];
+        return $"{Parts[0]}.{Parts[1]}.{Parts[2]}.{Parts[3]}";
     }
 
-    /// <summary>
-    /// Returns the underlying parts array. Modifying the returned
-    /// array will also modify the address.
-    /// </summary>
-    public byte[] ToByteArray()
-    {
-        return Parts;
-    }
+    public ReadOnlySpan<byte> ToSpan() => Parts.AsSpan();
 
     /// <summary>
     /// Convert this address to a 32-bit number.
@@ -179,71 +167,38 @@ public class Address : IComparable
     /// <summary>
     /// The hash value for this IP. Used to uniquely identify each IP.
     /// </summary>
-    public uint Hash
+    public uint Id
     {
         get
         {
-            if (hash == 0)
+            if (_id == 0)
             {
-                hash = ToUInt32();
+                _id = ToUInt32();
             }
 
-            return hash;
+            return _id;
         }
     }
 
-    public int CompareTo(object obj)
+    public int CompareTo(Address? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        if (other.IsIpv4 ^ IsIpv4)
+        {
+            throw new Exception("Can't compare IPv6 and IPv4 addresses");
+        }
+        return Id.CompareTo(other.Id);
+    }
+
+    public override bool Equals(object? obj)
     {
         if (obj is Address other)
         {
-            if (other.hash != hash)
-            {
-                return -1;
-            }
-
-            return 0;
-        }
-        else
-        {
-            throw new ArgumentException("obj is not a IPv4Address", nameof(obj));
-        }
-    }
-
-    public override bool Equals(object obj)
-    {
-
-        if (obj == null && this == null)
-        {
-            return true;
-        }
-
-        if (obj == null)
-        {
-            return false;
-        }
-
-        if (this == null)
-        {
-            return false;
-        }
-
-        if (obj is Address address)
-        {
-            if (IsIpv4 != address.IsIpv4) // not same ip type so is false
-            {
-                return false;
-            }
-
-            for (int i = 0; i < Parts.Length; i++)
-            {
-                if (Parts[i] != address.Parts[i])
-                {
-                    return false; // ips dont match
-                }
-            }
-
-            return true; // ip type and value match
-
+            return Parts.SequenceEqual(other.Parts);
         }
 
         return false; // obj is not an Address
@@ -252,6 +207,6 @@ public class Address : IComparable
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return HashCode.Combine(Id);
     }
 }

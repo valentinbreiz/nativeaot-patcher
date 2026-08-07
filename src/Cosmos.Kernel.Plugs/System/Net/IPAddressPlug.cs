@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -141,7 +142,7 @@ public static class IPAddressPlug
     }
 
     [PlugMember]
-    public static bool TryParse(string ipString, out IPAddress address)
+    public static bool TryParse(string ipString, [NotNullWhen(true)] out IPAddress? address)
     {
         address = Parse(ipString);
         return address != null;

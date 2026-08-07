@@ -1,17 +1,19 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Cosmos.Kernel.Core.CPU;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 
 namespace Cosmos.Kernel.Core.Bridge.Interop;
 
-internal static class libSystemNative
+internal static unsafe partial class libSystemNative
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct ProcessCpuInformation
     {
-        internal ulong lastRecordedCurrentTime;
-        internal ulong lastRecordedKernelTime;
-        internal ulong lastRecordedUserTime;
+        internal ulong _lastRecordedCurrentTime;
+        internal ulong _lastRecordedKernelTime;
+        internal ulong _lastRecordedUserTime;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "SystemNative_GetCpuUtilization")]
@@ -25,15 +27,15 @@ internal static class libSystemNative
         ulong currentTime = GetMonotonicNs();
         ulong busyTime = SchedulerManager.GetBusyCpuTimeNs();
 
-        ulong lastTime = previousCpuInfo->lastRecordedCurrentTime;
-        ulong lastBusy = previousCpuInfo->lastRecordedUserTime;
+        ulong lastTime = previousCpuInfo->_lastRecordedCurrentTime;
+        ulong lastBusy = previousCpuInfo->_lastRecordedUserTime;
 
         // First call: seed snapshot only.
         if (lastTime == 0)
         {
-            previousCpuInfo->lastRecordedCurrentTime = currentTime;
-            previousCpuInfo->lastRecordedUserTime = busyTime;
-            previousCpuInfo->lastRecordedKernelTime = 0;
+            previousCpuInfo->_lastRecordedCurrentTime = currentTime;
+            previousCpuInfo->_lastRecordedUserTime = busyTime;
+            previousCpuInfo->_lastRecordedKernelTime = 0;
             return 0.0;
         }
 
@@ -59,9 +61,9 @@ internal static class libSystemNative
             }
         }
 
-        previousCpuInfo->lastRecordedCurrentTime = currentTime;
-        previousCpuInfo->lastRecordedUserTime = busyTime;
-        previousCpuInfo->lastRecordedKernelTime = 0;
+        previousCpuInfo->_lastRecordedCurrentTime = currentTime;
+        previousCpuInfo->_lastRecordedUserTime = busyTime;
+        previousCpuInfo->_lastRecordedKernelTime = 0;
         return utilization;
     }
 
@@ -69,6 +71,87 @@ internal static class libSystemNative
     internal static int SystemNative_SchedGetCpu()
     {
         return (int)SchedulerManager.GetCurrentCpuId();
+    }
+
+    /// <summary>
+    /// Smallest honored thread stack — CoreCLR's arbitrary minimum for
+    /// stack-size settings (RhConfig.cpp), standing in for PTHREAD_STACK_MIN
+    /// in upstream's pal_threading.c. Requests below CoreLib's 128KB
+    /// MinExecutionStackSize are still honored, like upstream on Linux:
+    /// EnsureSufficientExecutionStack then throws on that thread.
+    /// </summary>
+    private const nuint MinStackSize = 64 * 1024;
+
+    /// <summary>Stack sizes are rounded up to whole pages.</summary>
+    private const nuint StackSizeAlignment = 4096;
+
+#if ARCH_X64
+    [LibraryImport("*", EntryPoint = "_native_x64_get_code_selector")]
+    [SuppressGCTransition]
+    private static partial ulong GetCurrentCodeSelector();
+#endif
+
+    /// <summary>
+    /// Backs CoreLib's <c>Interop.Sys.CreateThread</c> P/Invoke. Upstream
+    /// <c>Thread.CreateThread</c> resolves the stack size itself — the
+    /// constructor's <c>maxStackSize</c>, or <c>RhGetDefaultStackSize</c> when
+    /// unset — and passes it here, so honoring
+    /// <c>new Thread(start, maxStackSize)</c> needs no access to Thread's
+    /// private StartHelper.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "SystemNative_CreateThread")]
+    internal static int SystemNative_CreateThread(IntPtr stackSize, delegate* unmanaged<IntPtr, IntPtr> startAddress, IntPtr parameter)
+    {
+        // startAddress (CoreLib's ThreadEntryPoint) is unused: threads start at
+        // ThreadNative.EntryPointStub and the scheduler's InvokeCurrentThreadStart
+        // runs CoreLib's StartThread with the GCHandle<Thread> parameter itself.
+        _ = startAddress;
+
+        if (!SchedulerManager.Enabled)
+        {
+            // Same behavior as before the scheduler existed: report success,
+            // the thread simply never runs.
+            return 1;
+        }
+
+        nuint size = ((nuint)stackSize + (StackSizeAlignment - 1)) & ~(StackSizeAlignment - 1);
+        if (size < MinStackSize)
+        {
+            size = MinStackSize;
+        }
+
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            // Create scheduler thread with ThreadFlags.Managed set.
+            // SchedulerManager.InvokeCurrentThreadStart evaluates it to
+            // call the managed startup or not.
+            Scheduler.Thread thread = new Scheduler.Thread
+            {
+                Id = SchedulerManager.AllocateThreadId(),
+                CpuId = 0,
+                State = Scheduler.ThreadState.Created,
+                Flags = ThreadFlags.Managed
+            };
+
+            nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)&ThreadNative.EntryPointStub;
+#if ARCH_X64
+            ushort cs = (ushort)GetCurrentCodeSelector();
+            thread.InitializeStack(entryPoint, cs, (nuint)parameter, size);
+#elif ARCH_ARM64
+            // ARM64: no code selector needed, use 0.
+            thread.InitializeStack(entryPoint, 0, (nuint)parameter, size);
+#endif
+            SchedulerManager.CreateThread(0, thread);
+            SchedulerManager.ReadyThread(0, thread);
+
+            Serial.WriteString("[libSystemNative] Thread ");
+            Serial.WriteNumber(thread.Id);
+            Serial.WriteString(" scheduled, stack ");
+            Serial.WriteNumber((ulong)size);
+            Serial.WriteString(" bytes\n");
+        }
+
+        return 1;
     }
 
     private static ulong GetMonotonicNs()

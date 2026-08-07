@@ -9,6 +9,8 @@ using Cosmos.Kernel.Core.X64;
 using Cosmos.Kernel.Core.X64.Cpu;
 using Cosmos.Kernel.Core.X64.IO;
 using Cosmos.Kernel.Core.X64.Power;
+using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Devices.Virtio;
 using Cosmos.Kernel.HAL.Interfaces;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
@@ -143,27 +145,61 @@ public class X64PlatformInitializer : IPlatformInitializer
 
     public IKeyboardDevice[] GetKeyboardDevices()
     {
-        if (!CosmosFeatures.KeyboardEnabled || _ps2Controller == null)
+        if (!CosmosFeatures.KeyboardEnabled)
         {
             return [];
         }
 
-        return PS2Controller.GetKeyboardDevices();
+        IKeyboardDevice[] ps2 = _ps2Controller != null ? PS2Controller.GetKeyboardDevices() : [];
+        return Concat(ps2, VirtioDevice.GetKeyboards());
     }
 
     public IMouseDevice[] GetMouseDevices()
     {
-        if (!CosmosFeatures.MouseEnabled || _ps2Controller == null)
+        if (!CosmosFeatures.MouseEnabled)
         {
             return [];
         }
 
-        return PS2Controller.GetMouseDevices();
+        IMouseDevice[] ps2 = _ps2Controller != null ? PS2Controller.GetMouseDevices() : [];
+        return Concat(ps2, VirtioDevice.GetMice());
     }
 
     public INetworkDevice? GetNetworkDevice()
     {
-        return _networkDevice;
+        if (_networkDevice != null)
+        {
+            return _networkDevice;
+        }
+
+        // Virtio-net over PCI, discovered by the shared virtio PCI scan.
+        return VirtioDevice.GetDevice<VirtioNet>();
+    }
+
+    private static T[] Concat<T>(T[] first, T[] second)
+    {
+        if (first.Length == 0)
+        {
+            return second;
+        }
+
+        if (second.Length == 0)
+        {
+            return first;
+        }
+
+        T[] combined = new T[first.Length + second.Length];
+        for (int i = 0; i < first.Length; i++)
+        {
+            combined[i] = first[i];
+        }
+
+        for (int i = 0; i < second.Length; i++)
+        {
+            combined[first.Length + i] = second[i];
+        }
+
+        return combined;
     }
 
     public unsafe uint GetCpuCount()

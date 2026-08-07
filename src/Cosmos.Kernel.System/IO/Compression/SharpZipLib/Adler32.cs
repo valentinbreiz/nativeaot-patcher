@@ -136,8 +136,8 @@ namespace ICSharpCode.SharpZipLib.Checksum
             //(By Per Bothner)
             uint s1 = checkValue & 0xFFFF;
             uint s2 = checkValue >> 16;
-            var count = segment.Count;
-            var offset = segment.Offset;
+            int count = segment.Count;
+            int offset = segment.Offset;
             while (count > 0)
             {
                 // We can defer the modulo operation:
@@ -151,7 +151,7 @@ namespace ICSharpCode.SharpZipLib.Checksum
                 count -= n;
                 while (--n >= 0)
                 {
-                    s1 = s1 + (uint)(segment.Array[offset++] & 0xff);
+                    s1 = s1 + (uint)(segment.Array![offset++] & 0xff);
                     s2 = s2 + s1;
                 }
                 s1 %= BASE;

@@ -49,9 +49,9 @@ public static class GIC
     /// <summary>Mask of the offset bits within a 2 MiB device block, used to align addresses down to a block boundary.</summary>
     private const ulong DeviceBlockOffsetMask = 0x1FFFFFUL;
 
-    private static bool _isV3;
-    private static bool _initialized;
-    private static ulong _distBase;
+    private static bool s_isV3;
+    private static bool s_initialized;
+    private static ulong s_distBase;
 
     /// <summary>
     /// Translates a physical address to a virtual address using Limine's HHDM offset.
@@ -83,12 +83,12 @@ public static class GIC
     /// <summary>
     /// Whether the GIC has been initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Whether GICv3 is being used (false = GICv2).
     /// </summary>
-    public static bool IsVersion3 => _isV3;
+    public static bool IsVersion3 => s_isV3;
 
     /// <summary>
     /// Brings the LPI/ITS path online if the platform reports an ITS, then
@@ -98,7 +98,7 @@ public static class GIC
     /// </summary>
     private static unsafe void InitializeMsi(ulong itsBase)
     {
-        if (!_isV3)
+        if (!s_isV3)
         {
             Serial.Write("[GIC] MSI/ITS only supported on GICv3, skipping\n");
             return;
@@ -158,10 +158,10 @@ public static class GIC
         var acpiGic = AcpiGic.GetGicInfo();
         if (acpiGic != null && acpiGic->Found != 0)
         {
-            _distBase = acpiGic->DistBase;
-            _isV3 = acpiGic->Version >= GicVersionV3;
+            s_distBase = acpiGic->DistBase;
+            s_isV3 = acpiGic->Version >= GicVersionV3;
 
-            if (_isV3 && acpiGic->RedistBase != 0)
+            if (s_isV3 && acpiGic->RedistBase != 0)
             {
                 // Default to sysreg-only (safe on hardware where GICD/GICR
                 // MMIO is inaccessible). When the firmware advertises an
@@ -214,13 +214,13 @@ public static class GIC
                     GICv3.Initialize(sysregOnly: false);
                 }
             }
-            else if (_isV3)
+            else if (s_isV3)
             {
                 // GICv3 but no GICR in MADT - still use sysreg-only
                 Serial.Write("[GIC] ACPI: GICv3 detected (no GICR in MADT, sysreg-only)\n");
                 GICv3.Initialize(sysregOnly: true);
             }
-            else if (!_isV3 && acpiGic->CpuIfBase != 0)
+            else if (!s_isV3 && acpiGic->CpuIfBase != 0)
             {
                 // GICv2 always needs MMIO
                 DeviceMapper.EnsureMapped(acpiGic->DistBase);
@@ -241,22 +241,22 @@ public static class GIC
                 GICv2.Initialize();
             }
 
-            _initialized = true;
+            s_initialized = true;
             InitializeMsi(acpiGic->ItsFound != 0 ? acpiGic->ItsBase : 0);
             return;
         }
 
         // Priority 3: Default QEMU virt machine addresses (no DTB, no ACPI)
         Serial.Write("[GIC] No DTB/ACPI, using default QEMU addresses\n");
-        _distBase = PhysToVirt(QemuVirtGicdBase);
+        s_distBase = PhysToVirt(QemuVirtGicdBase);
 
         // Map device MMIO into TTBR1 page tables before any MMIO access
         DeviceMapper.EnsureMapped(QemuVirtGicdBase);
 
         // Detect GIC version via distributor PIDR2.ArchRev
-        _isV3 = GICv3.IsGICv3Available(_distBase);
+        s_isV3 = GICv3.IsGICv3Available(s_distBase);
 
-        if (_isV3)
+        if (s_isV3)
         {
             Serial.Write("[GIC] Detected GICv3\n");
             GICv3.Initialize();
@@ -267,7 +267,7 @@ public static class GIC
             GICv2.Initialize();
         }
 
-        _initialized = true;
+        s_initialized = true;
 
         // No MADT means no authoritative ITS address. Probing QEMU's
         // default 0x08080000 blindly reads GITS_CTLR on whatever sits
@@ -275,7 +275,7 @@ public static class GIC
         // this fallback) that's unbacked address space and the read
         // faults or hangs the bus at boot. Without a safe probe, leave
         // MSI off and let the drivers take their polled fallback.
-        if (_isV3)
+        if (s_isV3)
         {
             Serial.Write("[GIC] No ACPI: ITS discovery unavailable, MSI path disabled\n");
         }
@@ -286,7 +286,7 @@ public static class GIC
     /// </summary>
     public static void InitializeCpuInterface()
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.InitializeCpuInterface();
         }
@@ -301,7 +301,7 @@ public static class GIC
     /// </summary>
     public static void EnableInterrupt(uint intId)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.EnableInterrupt(intId);
         }
@@ -316,7 +316,7 @@ public static class GIC
     /// </summary>
     public static void DisableInterrupt(uint intId)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.DisableInterrupt(intId);
         }
@@ -331,7 +331,7 @@ public static class GIC
     /// </summary>
     public static void SetPriority(uint intId, byte priority)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.SetPriority(intId, priority);
         }
@@ -346,7 +346,7 @@ public static class GIC
     /// </summary>
     public static uint AcknowledgeInterrupt()
     {
-        return _isV3
+        return s_isV3
             ? GICv3.AcknowledgeInterrupt()
             : GICv2.AcknowledgeInterrupt();
     }
@@ -356,7 +356,7 @@ public static class GIC
     /// </summary>
     public static void EndOfInterrupt(uint intId)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.EndOfInterrupt(intId);
         }
@@ -371,7 +371,7 @@ public static class GIC
     /// </summary>
     public static bool IsInterruptPending(uint intId)
     {
-        return _isV3
+        return s_isV3
             ? GICv3.IsInterruptPending(intId)
             : GICv2.IsInterruptPending(intId);
     }
@@ -381,7 +381,7 @@ public static class GIC
     /// </summary>
     public static void ClearPending(uint intId)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.ClearPending(intId);
         }
@@ -396,7 +396,7 @@ public static class GIC
     /// </summary>
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
-        if (_isV3)
+        if (s_isV3)
         {
             GICv3.ConfigureInterrupt(intId, edgeTriggered);
         }

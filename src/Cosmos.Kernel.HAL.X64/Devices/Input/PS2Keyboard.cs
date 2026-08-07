@@ -23,10 +23,10 @@ public class PS2Keyboard : KeyboardDevice
     }
 
     // Static reference to the first keyboard instance (for IRQ handler)
-    private static PS2Keyboard? _instance;
+    private static PS2Keyboard? s_instance;
 
     // Flag to prevent multiple IRQ registrations
-    private static bool _irqRegistered;
+    private static bool s_irqRegistered;
 
     /// <summary>
     /// Registers IRQ handler for keyboard interrupts.
@@ -106,9 +106,9 @@ public class PS2Keyboard : KeyboardDevice
         Serial.WriteString("[PS2Keyboard] Initialized (scanning will be enabled later)\n");
 
         // Store first keyboard instance for IRQ handler
-        if (_instance == null)
+        if (s_instance == null)
         {
-            _instance = this;
+            s_instance = this;
         }
 
         UpdateLeds();
@@ -136,9 +136,9 @@ public class PS2Keyboard : KeyboardDevice
         }
 
         // Use the instance's OnKeyPressed callback (set by KeyboardManager.RegisterKeyboard)
-        if (_instance?.OnKeyPressed != null)
+        if (s_instance?.OnKeyPressed != null)
         {
-            _instance.OnKeyPressed.Invoke(scanCode, released);
+            s_instance.OnKeyPressed.Invoke(scanCode, released);
         }
 
         // EOI is sent by InterruptManager.Dispatch after this handler returns
@@ -180,10 +180,10 @@ public class PS2Keyboard : KeyboardDevice
     public override void Enable()
     {
         // Register IRQ handler on first Enable() call (after callback is set)
-        if (!_irqRegistered)
+        if (!s_irqRegistered)
         {
             RegisterIRQHandler();
-            _irqRegistered = true;
+            s_irqRegistered = true;
             return;
         }
 

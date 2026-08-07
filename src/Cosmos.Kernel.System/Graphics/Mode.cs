@@ -45,7 +45,7 @@ public readonly struct Mode
         return Width == other.Width && Height == other.Height && ColorDepth == other.ColorDepth;
     }
 
-    public override bool Equals(object obj) => obj is Mode mode && Equals(mode);
+    public override bool Equals(object? obj) => obj is Mode mode && Equals(mode);
 
     public override int GetHashCode()
     {

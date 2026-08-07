@@ -26,7 +26,7 @@ public static class OutgoingBuffer
         public INetworkDevice NIC;
         public IPPacket Packet;
         public EntryStatus Status;
-        public Address NextHop;
+        public Address? NextHop;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BufferEntry"/> class.
@@ -50,17 +50,17 @@ public static class OutgoingBuffer
     }
 
     /// <summary>
-    /// The buffer queue. Initialized eagerly to avoid issues with interrupt context.
+    /// The buffer s_queue. Initialized eagerly to avoid issues with interrupt context.
     /// </summary>
-    private static List<BufferEntry> queue = new();
+    private static List<BufferEntry> s_queue = new();
 
     /// <summary>
-    /// Ensures the queue exists and is initialized.
+    /// Ensures the s_queue exists and is initialized.
     /// </summary>
     private static void EnsureQueueExists()
     {
         // Queue is now initialized at class load time, but keep this for safety
-        queue ??= new List<BufferEntry>();
+        s_queue ??= new List<BufferEntry>();
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public static class OutgoingBuffer
     {
         EnsureQueueExists();
         packet.SourceMAC = device.MacAddress;
-        queue.Add(new BufferEntry(device, packet));
+        s_queue.Add(new BufferEntry(device, packet));
     }
 
     /// <summary>
@@ -97,19 +97,19 @@ public static class OutgoingBuffer
         int iterations = 0;
         int maxIterations = 10000; // Spin-based timeout
 
-        while (queue.Count > 0)
+        while (s_queue.Count > 0)
         {
             iterations++;
             if (iterations >= maxIterations)
             {
                 Serial.WriteString("[OutgoingBuffer] ARP timeout\n");
-                queue.Clear();
+                s_queue.Clear();
                 break;
             }
 
-            for (int e = queue.Count - 1; e >= 0; e--)
+            for (int e = s_queue.Count - 1; e >= 0; e--)
             {
-                BufferEntry entry = queue[e];
+                BufferEntry entry = s_queue[e];
                 if (entry.Status == BufferEntry.EntryStatus.ADDED)
                 {
                     if (IPConfig.IsLocalAddress(entry.Packet.DestinationIP) == false)
@@ -117,15 +117,16 @@ public static class OutgoingBuffer
                         entry.NextHop = IPConfig.FindRoute(entry.Packet.DestinationIP);
                         if (entry.NextHop == null)
                         {
-                            queue.RemoveAt(e);
+                            s_queue.RemoveAt(e);
                             continue;
                         }
 
                         if (ARPCache.Contains(entry.NextHop))
                         {
-                            entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop);
+                            entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop ?? throw new Exception($"{nameof(entry.NextHop)} can not be null"))
+                                ?? throw new Exception("DestinationMAC can not be null");
                             entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
-                            queue.RemoveAt(e);
+                            s_queue.RemoveAt(e);
                         }
                         else
                         {
@@ -144,10 +145,11 @@ public static class OutgoingBuffer
 
                     if (ARPCache.Contains(entry.Packet.DestinationIP))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP);
+                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP)
+                                                      ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
                         Serial.WriteString("[OutgoingBuffer] Sent via ARP cache\n");
-                        queue.RemoveAt(e);
+                        s_queue.RemoveAt(e);
                     }
                     else
                     {
@@ -172,34 +174,36 @@ public static class OutgoingBuffer
                 {
                     if (ARPCache.Contains(entry.Packet.DestinationIP))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP);
+                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP)
+                            ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
-                        queue.RemoveAt(e);
+                        s_queue.RemoveAt(e);
                     }
                 }
                 else if (entry.Status == BufferEntry.EntryStatus.ROUTE_ARP_SENT)
                 {
-                    if (ARPCache.Contains(entry.NextHop))
+                    if (entry.NextHop is not null && ARPCache.Contains(entry.NextHop))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop);
+                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop)
+                                                      ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
-                        queue.RemoveAt(e);
+                        s_queue.RemoveAt(e);
                     }
                 }
                 else if (entry.Status == BufferEntry.EntryStatus.DHCP_REQUEST)
                 {
                     entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
-                    queue.RemoveAt(e);
+                    s_queue.RemoveAt(e);
                 }
                 else if (entry.Status == BufferEntry.EntryStatus.JUST_SEND)
                 {
                     entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
-                    queue.RemoveAt(e);
+                    s_queue.RemoveAt(e);
                 }
             }
 
             // Spin to allow interrupt processing (ARP replies)
-            if (queue.Count > 0)
+            if (s_queue.Count > 0)
             {
                 Thread.SpinWait(10000);
             }
@@ -213,9 +217,9 @@ public static class OutgoingBuffer
     internal static void UpdateARPCache(ARPReplyEthernet arpReply)
     {
         EnsureQueueExists();
-        for (int e = 0; e < queue.Count; e++)
+        for (int e = 0; e < s_queue.Count; e++)
         {
-            BufferEntry entry = queue[e];
+            BufferEntry entry = s_queue[e];
             if (entry.Status == BufferEntry.EntryStatus.ARP_SENT)
             {
                 if (entry.Packet.DestinationIP.CompareTo(arpReply.SenderIP) == 0)
@@ -226,7 +230,7 @@ public static class OutgoingBuffer
             }
             else if (entry.Status == BufferEntry.EntryStatus.ROUTE_ARP_SENT)
             {
-                if (entry.NextHop.CompareTo(arpReply.SenderIP) == 0)
+                if (entry.NextHop?.CompareTo(arpReply.SenderIP) == 0)
                 {
                     entry.Packet.DestinationMAC = arpReply.SenderMAC;
                     entry.Status = BufferEntry.EntryStatus.JUST_SEND;

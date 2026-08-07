@@ -17,19 +17,19 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
 
         #region Instance Fields
 
-        private short[] tree;
+        private short[] _tree = [];
 
         #endregion Instance Fields
 
         /// <summary>
         /// Literal length tree
         /// </summary>
-        public static InflaterHuffmanTree defLitLenTree;
+        public static readonly InflaterHuffmanTree defLitLenTree;
 
         /// <summary>
         /// Distance tree
         /// </summary>
-        public static InflaterHuffmanTree defDistTree;
+        public static readonly InflaterHuffmanTree defDistTree;
 
         static InflaterHuffmanTree()
         {
@@ -122,7 +122,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
             /* Now create and fill the extra tables from longest to shortest
 			* bit len.  This way the sub trees will be aligned.
 			*/
-            tree = new short[treeSize];
+            _tree = new short[treeSize];
             int treePtr = 512;
             for (int bits = MAX_BITLEN; bits >= 10; bits--)
             {
@@ -131,7 +131,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 int start = code & 0x1ff80;
                 for (int i = start; i < end; i += 1 << 7)
                 {
-                    tree[DeflaterHuffman.BitReverse(i)] = (short)((-treePtr << 4) | bits);
+                    _tree[DeflaterHuffman.BitReverse(i)] = (short)((-treePtr << 4) | bits);
                     treePtr += 1 << (bits - 9);
                 }
             }
@@ -149,18 +149,18 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 {
                     do
                     {
-                        tree[revcode] = (short)((i << 4) | bits);
+                        _tree[revcode] = (short)((i << 4) | bits);
                         revcode += 1 << bits;
                     } while (revcode < 512);
                 }
                 else
                 {
-                    int subTree = tree[revcode & 511];
+                    int subTree = _tree[revcode & 511];
                     int treeLen = 1 << (subTree & 15);
                     subTree = -(subTree >> 4);
                     do
                     {
-                        tree[subTree | (revcode >> 9)] = (short)((i << 4) | bits);
+                        _tree[subTree | (revcode >> 9)] = (short)((i << 4) | bits);
                         revcode += 1 << bits;
                     } while (revcode < treeLen);
                 }
@@ -183,7 +183,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
             int lookahead, symbol;
             if ((lookahead = input.PeekBits(9)) >= 0)
             {
-                symbol = tree[lookahead];
+                symbol = _tree[lookahead];
                 int bitlen = symbol & 15;
 
                 if (symbol >= 0)
@@ -198,7 +198,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 int subtree = -(symbol >> 4);
                 if ((lookahead = input.PeekBits(bitlen)) >= 0)
                 {
-                    symbol = tree[subtree | (lookahead >> 9)];
+                    symbol = _tree[subtree | (lookahead >> 9)];
                     input.DropBits(symbol & 15);
                     return symbol >> 4;
                 }
@@ -206,7 +206,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
                 {
                     int bits = input.AvailableBits;
                     lookahead = input.PeekBits(bits);
-                    symbol = tree[subtree | (lookahead >> 9)];
+                    symbol = _tree[subtree | (lookahead >> 9)];
                     if ((symbol & 15) <= bits)
                     {
                         input.DropBits(symbol & 15);
@@ -222,7 +222,7 @@ namespace ICSharpCode.SharpZipLib.Zip.Compression
             {
                 int bits = input.AvailableBits;
                 lookahead = input.PeekBits(bits);
-                symbol = tree[lookahead];
+                symbol = _tree[lookahead];
                 if (symbol >= 0 && (symbol & 15) <= bits)
                 {
                     input.DropBits(symbol & 15);
