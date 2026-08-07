@@ -39,6 +39,8 @@
     "globalMetadata": {
       "_appName": "Cosmos Gen 3",
       "_appTitle": "Cosmos Gen 3",
+      "_appLogoPath": "images/logo.png",
+      "_appFaviconPath": "images/favicon.ico",
       "_enableSearch": true,
       "pdf": false
     }
