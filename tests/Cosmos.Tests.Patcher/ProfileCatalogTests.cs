@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cosmos.TestRunner.Engine;
+using Cosmos.TestingFramework.Engine;
 
 namespace Cosmos.Tests.Patcher;
 
@@ -19,7 +19,7 @@ namespace Cosmos.Tests.Patcher;
 [Collection("PatcherTests")]
 public class ProfileCatalogTests
 {
-    private static readonly string[] Architectures = ["x64", "arm64"];
+    private static readonly string[] s_architectures = ["x64", "arm64"];
 
     /// <summary>Walks up from the test assembly to the repo root (the directory holding tests/profiles.json).</summary>
     private static string FindRepoRoot()
@@ -68,7 +68,7 @@ public class ProfileCatalogTests
     {
         string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", suiteName);
 
-        foreach (string architecture in Architectures)
+        foreach (string architecture in s_architectures)
         {
             IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, architecture);
             Assert.NotEmpty(cells);
@@ -85,7 +85,7 @@ public class ProfileCatalogTests
     {
         string suiteDir = Path.Combine(FindRepoRoot(), "tests", "Kernels", "Cosmos.Kernel.Tests." + suiteName);
 
-        foreach (string architecture in Architectures)
+        foreach (string architecture in s_architectures)
         {
             IReadOnlyList<TestProfile> cells = TestProfileLoader.LoadFor(suiteDir, architecture);
 
