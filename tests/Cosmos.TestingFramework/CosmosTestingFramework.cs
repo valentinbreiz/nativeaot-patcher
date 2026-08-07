@@ -18,6 +18,8 @@ namespace Cosmos.TestingFramework
 {
     internal partial class CosmosTestingFramework : ITestFramework, IDataProducer, IOutputDeviceDataProducer
     {
+        internal const string ProjectFileMetadataKey = "Cosmos.TestingFramework.ProjectFile";
+
         private readonly TestingFrameworkCapabilities _capabilities;
         private readonly ICommandLineOptions _commandLineOptions;
         private readonly IConfiguration _configuration;
@@ -48,6 +50,10 @@ namespace Cosmos.TestingFramework
             if (_commandLineOptions.TryGetOptionArgumentList(TestingFrameworkCommandLineOptions.TestProjectFileOption, out string[]? projectFile))
             {
                 _projectFile = projectFile[0];
+            }
+            else
+            {
+                _projectFile = ResolveProjectFileFromMetadata();
             }
 
             _testingConfiguration = _configuration.GetCosmosTestingFrameworkConfiguration();
@@ -89,6 +95,34 @@ namespace Cosmos.TestingFramework
             {
                 _testingConfiguration.KeepBuildArtifacts = true;
             }
+        }
+
+        internal static string? ResolveProjectFileFromMetadata(Assembly? assembly = null)
+        {
+            foreach (Assembly candidateAssembly in assembly is null
+                ? AppDomain.CurrentDomain.GetAssemblies()
+                : [assembly])
+            {
+                string? projectFile = candidateAssembly
+                    .GetCustomAttributes<AssemblyMetadataAttribute>()
+                    .FirstOrDefault(static metadata => string.Equals(metadata.Key, ProjectFileMetadataKey, StringComparison.Ordinal))?
+                    .Value;
+
+                if (!string.IsNullOrWhiteSpace(projectFile))
+                {
+                    return projectFile;
+                }
+            }
+
+            return null;
+        }
+
+        private string ResolveProjectFileFromMetadata()
+        {
+            string? projectFile = ResolveProjectFileFromMetadata(Assembly.GetEntryAssembly());
+            return !string.IsNullOrWhiteSpace(projectFile) && File.Exists(projectFile)
+                ? projectFile
+                : string.Empty;
         }
 
         public Task<bool> IsEnabledAsync() => Task.FromResult(true);

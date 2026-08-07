@@ -16,6 +16,9 @@
       <DisplayName>Cosmos.TestingFramework Testing Platform Builder Hook</DisplayName>
       <TypeFullName>Cosmos.TestingFramework.TestingPlatformBuilderHook</TypeFullName>
     </TestingPlatformBuilderHook>
+
+    <!-- We use this metadata to know where the project file is if the test kernel isn't launched from 'dotnet test' -->
+    <AssemblyMetadata Include="Cosmos.TestingFramework.ProjectFile" Value="$(MSBuildProjectFullPath)" />
   </ItemGroup>
   
   <Import Project="Sdk.props" Sdk="Cosmos.Sdk" Condition="$(COSUnit_BuildKernel) == 'true'" />
