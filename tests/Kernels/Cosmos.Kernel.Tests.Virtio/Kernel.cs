@@ -7,7 +7,7 @@ using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Virtio;
 

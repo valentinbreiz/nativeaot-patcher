@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Cosmos.Kernel.Core.IO;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.TypeCasting;
 

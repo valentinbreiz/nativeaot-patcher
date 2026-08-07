@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
 using Monitor = System.Threading.Monitor;
 using SysThread = System.Threading.Thread;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Threading;
 

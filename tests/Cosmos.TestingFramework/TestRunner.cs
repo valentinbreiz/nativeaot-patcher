@@ -3,8 +3,9 @@ using System.Diagnostics;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.TestingFramework.Framework;
 
-namespace Cosmos.TestingFramework.Framework
+namespace Cosmos.TestingFramework
 {
     /// <summary>
     /// Test runner for kernel-side test execution.
@@ -40,14 +41,14 @@ namespace Cosmos.TestingFramework.Framework
         /// <summary>QEMU kill marker byte 7 of the end sequence.</summary>
         private const byte QemuKillMarkerByte7 = 0xBE;
 
-        private static string? _currentSuite;
-        private static ushort _testCount;
-        private static ushort _expectedTestCount;
-        private static ushort _passedCount;
-        private static ushort _failedCount;
-        private static ushort _skippedCount;
-        private static ushort _currentTestNumber;
-        private static long _testStartTicks;
+        private static string? s_currentSuite;
+        private static ushort s_testCount;
+        private static ushort s_expectedTestCount;
+        private static ushort s_passedCount;
+        private static ushort s_failedCount;
+        private static ushort s_skippedCount;
+        private static ushort s_currentTestNumber;
+        private static long s_testStartTicks;
 
         /// <summary>
         /// Start a test suite
@@ -56,13 +57,13 @@ namespace Cosmos.TestingFramework.Framework
         /// <param name="expectedTests">Total number of tests that will be registered (0 = unknown)</param>
         public static void Start(string suiteName, ushort expectedTests = 0)
         {
-            _currentSuite = suiteName;
-            _testCount = 0;
-            _expectedTestCount = expectedTests;
-            _passedCount = 0;
-            _failedCount = 0;
-            _skippedCount = 0;
-            _currentTestNumber = 0;
+            s_currentSuite = suiteName;
+            s_testCount = 0;
+            s_expectedTestCount = expectedTests;
+            s_passedCount = 0;
+            s_failedCount = 0;
+            s_skippedCount = 0;
+            s_currentTestNumber = 0;
 
             // Send TestSuiteStart message with expected test count
             SendTestSuiteStart(suiteName, expectedTests);
@@ -73,17 +74,17 @@ namespace Cosmos.TestingFramework.Framework
         /// </summary>
         public static void Run(string testName, Action testAction)
         {
-            _currentTestNumber++;
-            _testCount++;
+            s_currentTestNumber++;
+            s_testCount++;
 
             // Send TestStart message
-            SendTestStart(_currentTestNumber, testName);
+            SendTestStart(s_currentTestNumber, testName);
 
             // Reset assertion state
             Assert.Reset();
 
             // Record start time
-            _testStartTicks = Stopwatch.GetTimestamp();
+            s_testStartTicks = Stopwatch.GetTimestamp();
 
             // Execute test
             testAction();
@@ -95,7 +96,7 @@ namespace Cosmos.TestingFramework.Framework
             // emit a UART warning with the raw inputs so the cause can be
             // debugged from the log.
             var endTicks = Stopwatch.GetTimestamp();
-            var elapsedTicks = endTicks - _testStartTicks;
+            var elapsedTicks = endTicks - s_testStartTicks;
             long freq = Stopwatch.Frequency;
             long rawMs = (freq > 0 && elapsedTicks > 0)
                 ? (elapsedTicks * MillisecondsPerSecond) / freq
@@ -107,7 +108,7 @@ namespace Cosmos.TestingFramework.Framework
                 Serial.WriteString("[TestRunner] WARN clamped durationMs=");
                 Serial.WriteNumber(rawMs);
                 Serial.WriteString(" startTicks=");
-                Serial.WriteNumber(_testStartTicks);
+                Serial.WriteNumber(s_testStartTicks);
                 Serial.WriteString(" endTicks=");
                 Serial.WriteNumber(endTicks);
                 Serial.WriteString(" elapsedTicks=");
@@ -125,13 +126,13 @@ namespace Cosmos.TestingFramework.Framework
             // Check if test failed via Assert
             if (Assert.Failed)
             {
-                _failedCount++;
-                SendTestFail(_currentTestNumber, Assert.FailureMessage ?? "Test failed");
+                s_failedCount++;
+                SendTestFail(s_currentTestNumber, Assert.FailureMessage ?? "Test failed");
             }
             else
             {
-                _passedCount++;
-                SendTestPass(_currentTestNumber, durationMs);
+                s_passedCount++;
+                SendTestPass(s_currentTestNumber, durationMs);
             }
         }
 
@@ -183,28 +184,28 @@ namespace Cosmos.TestingFramework.Framework
         /// </summary>
         public static void RunDestructive(string testName, Action testAction, string failureMessage)
         {
-            _currentTestNumber++;
-            _testCount++;
+            s_currentTestNumber++;
+            s_testCount++;
 
             // Pre-send TestStart + TestPass so a successful destructive op
             // (which never returns) still leaves a passing record in the log.
-            SendTestStart(_currentTestNumber, testName);
-            SendTestPass(_currentTestNumber, 0);
-            _passedCount++;
+            SendTestStart(s_currentTestNumber, testName);
+            SendTestPass(s_currentTestNumber, 0);
+            s_passedCount++;
 
             // Distinct sentinel for the engine's re-launch heuristic. A regular
             // TestPass alone is ambiguous (every passing test emits one), so
             // without this the engine would misread a mid-suite crash as a
             // destructive op and burn boot attempts on skip=N+1 re-launches.
-            SendTestDestructiveReached(_currentTestNumber);
+            SendTestDestructiveReached(s_currentTestNumber);
 
             testAction();
 
             // Action returned — destructive op didn't fire. Demote to fail
             // (last write wins in the parser).
-            _passedCount--;
-            _failedCount++;
-            SendTestFail(_currentTestNumber, failureMessage);
+            s_passedCount--;
+            s_failedCount++;
+            SendTestFail(s_currentTestNumber, failureMessage);
         }
 
         /// <summary>
@@ -361,12 +362,12 @@ namespace Cosmos.TestingFramework.Framework
         /// </summary>
         public static void Skip(string testName, string reason)
         {
-            _currentTestNumber++;
-            _testCount++;
+            s_currentTestNumber++;
+            s_testCount++;
 
-            _skippedCount++;
-            SendTestStart(_currentTestNumber, testName);
-            SendTestSkip(_currentTestNumber, reason);
+            s_skippedCount++;
+            SendTestStart(s_currentTestNumber, testName);
+            SendTestSkip(s_currentTestNumber, reason);
         }
 
         /// <summary>
@@ -377,25 +378,25 @@ namespace Cosmos.TestingFramework.Framework
         public static void Finish()
         {
             // Use expected count if provided, otherwise actual count
-            ushort totalToReport = _expectedTestCount > 0 ? _expectedTestCount : _testCount;
+            ushort totalToReport = s_expectedTestCount > 0 ? s_expectedTestCount : s_testCount;
 
-            SendTestSuiteEnd(totalToReport, _passedCount, _failedCount, _skippedCount);
+            SendTestSuiteEnd(totalToReport, s_passedCount, s_failedCount, s_skippedCount);
 
             // Also send a text message for fallback/debugging
             Serial.WriteString("\nTest Suite: ");
-            Serial.WriteString(_currentSuite ?? "Unknown");
+            Serial.WriteString(s_currentSuite ?? "Unknown");
             Serial.WriteString("\nTotal: ");
-            Serial.WriteNumber(_testCount);
-            if (_expectedTestCount > 0 && _expectedTestCount != _testCount)
+            Serial.WriteNumber(s_testCount);
+            if (s_expectedTestCount > 0 && s_expectedTestCount != s_testCount)
             {
                 Serial.WriteString(" / ");
-                Serial.WriteNumber(_expectedTestCount);
+                Serial.WriteNumber(s_expectedTestCount);
                 Serial.WriteString(" expected");
             }
             Serial.WriteString("  Passed: ");
-            Serial.WriteNumber(_passedCount);
+            Serial.WriteNumber(s_passedCount);
             Serial.WriteString("  Failed: ");
-            Serial.WriteNumber(_failedCount);
+            Serial.WriteNumber(s_failedCount);
             Serial.WriteString("\n");
         }
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Cosmos.Kernel.Core.Memory;
-using Cosmos.TestingFramework.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestingFramework.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Memory;
 
