@@ -19,6 +19,8 @@
     <!-- RunCommandTests exercises RunCommand.ParseDisks; the launcher/platform types
          it depends on come from Cosmos.TestingFramework, which compiles them in. -->
     <Compile Include="..\..\src\Cosmos.Tools\Commands\RunCommand.cs" />
+    <Compile Include="..\..\src\Cosmos.Tools\Update\UpdateNotifier.cs" />
+    <Compile Include="..\..\src\Cosmos.Tools\Update\NuGetVersions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit"/>
