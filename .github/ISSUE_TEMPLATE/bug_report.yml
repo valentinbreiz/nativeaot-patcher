@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for taking the time to report a bug! The more of this form you fill in, the faster it gets fixed — a report with a serial log and a symbolicated stack trace can often be diagnosed the same day.
 
-        Not sure how to collect logs or symbolicate a crash? See [Collecting diagnostics](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/CONTRIBUTING.md#collecting-diagnostics) — it's two commands.
+        Not sure how to collect logs or symbolicate a crash? See [Collecting diagnostics](https://github.com/CosmosOS/Cosmos/blob/gen3/CONTRIBUTING.md#collecting-diagnostics) — it's two commands.
 
   - type: textarea
     id: description
