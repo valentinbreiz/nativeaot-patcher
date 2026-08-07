@@ -26,14 +26,14 @@ namespace Cosmos.Kernel.Tests.Network;
 public class Kernel : Sys.Kernel
 {
     // Network configuration
-    private static Address? _localIP;
-    private static Address? _gatewayIP;
-    private static bool _networkConfigured = false;
-    private static bool _receivedPacket = false;
-    private static byte[]? _lastReceivedData;
-    private static ushort _lastReceivedPort;
-    private static Address? _lastReceivedSourceIP;
-    private static ushort _lastReceivedSourcePort;
+    private static Address? s_localIP;
+    private static Address? s_gatewayIP;
+    private static bool s_networkConfigured = false;
+    private static bool s_receivedPacket = false;
+    private static byte[]? s_lastReceivedData;
+    private static ushort s_lastReceivedPort;
+    private static Address? s_lastReceivedSourceIP;
+    private static ushort s_lastReceivedSourcePort;
 
     // UDP Test ports
     private const ushort TestPort = 5555;
@@ -180,22 +180,22 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        _localIP = netConfig.IPAddress;
-        _gatewayIP = netConfig.DefaultGateway;
-        _networkConfigured = true;
+        s_localIP = netConfig.IPAddress;
+        s_gatewayIP = netConfig.DefaultGateway;
+        s_networkConfigured = true;
 
         Serial.WriteString("[Test] DHCP assigned IP: ");
-        Serial.WriteString(_localIP.ToString());
+        Serial.WriteString(s_localIP.ToString());
         Serial.WriteString("\n");
         Serial.WriteString("[Test] Gateway: ");
-        Serial.WriteString(_gatewayIP.ToString());
+        Serial.WriteString(s_gatewayIP.ToString());
         Serial.WriteString("\n");
 
         // Verify device has packet handler registered
         Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after DHCP");
 
         // Verify we got a valid IP (not 0.0.0.0)
-        Assert.True(_localIP.Id != 0, "DHCP should assign a non-zero IP address");
+        Assert.True(s_localIP.Id != 0, "DHCP should assign a non-zero IP address");
     }
 
     // ==================== ICMP Tests ====================
@@ -209,7 +209,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -257,7 +257,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -333,7 +333,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -436,7 +436,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -521,7 +521,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -619,7 +619,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -735,7 +735,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -858,7 +858,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -918,7 +918,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
@@ -969,7 +969,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        if (!_networkConfigured)
+        if (!s_networkConfigured)
         {
             TestDHCPConfiguration();
         }
