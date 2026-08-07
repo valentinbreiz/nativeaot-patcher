@@ -9,7 +9,10 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    # ubuntu, not windows: the deploy_key mode of peaceiris/actions-gh-pages
+    # cannot reach the Windows ssh-agent service (ssh-add exits with
+    # "Error connecting to agent").
+    runs-on: ubuntu-latest
 
     permissions:
       contents: write
@@ -24,10 +27,9 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Install DocFX
-      shell: pwsh
       run: |
         dotnet tool update -g docfx
-        echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+        echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
     # Restore only what DocFX consumes (the src/Cosmos.Kernel.* projects).
     # Restoring nativeaot-patcher.slnx pulls in examples/DevKernel, whose
@@ -36,18 +38,15 @@ jobs:
     # NU1301. Cosmos.Kernel transitively project-references everything DocFX
     # needs, so restoring it alone is sufficient and avoids the local source.
     - name: Restore docs projects
-      shell: pwsh
       run: dotnet restore src/Cosmos.Kernel/Cosmos.Kernel.csproj
 
     - name: Build Docs
-      shell: pwsh
       run: |
         cd docs
         docfx docfx.json
 
     - name: Verify output
-      shell: pwsh
-      run: Get-ChildItem -Recurse docs/_site
+      run: find docs/_site -type f | head -50
 
     - name: Publish to GitHub Pages
       if: github.repository == 'valentinbreiz/nativeaot-patcher'
