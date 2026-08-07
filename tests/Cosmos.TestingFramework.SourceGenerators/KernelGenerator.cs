@@ -1,7 +1,5 @@
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +16,7 @@ public class KernelGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var kernelBuilderProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
+        var testClassProvider = context.SyntaxProvider.ForAttributeWithMetadataName(
             TestClassAttributeName,
             static (node, cancellationToken) => node is ClassDeclarationSyntax,
             static (context, cancellationToken) =>
@@ -45,65 +43,61 @@ public class KernelGenerator : IIncrementalGenerator
                     return null;
                 }
 
-                var namespaceName = typeSymbol.ContainingNamespace.IsGlobalNamespace
-                    ? string.Empty
-                    : typeSymbol.ContainingNamespace.ToDisplayString();
-
-                var generatedKernelClassName = GetGeneratedKernelClassName(typeSymbol);
                 var typeReference = GetFullyQualifiedTypeReference(typeSymbol);
                 var reflectionTypeName = GetReflectionTypeFullName(typeSymbol);
 
                 return new Model(
                     typeSymbol.ToDisplayString(),
-                    namespaceName,
-                    generatedKernelClassName,
                     typeReference,
                     reflectionTypeName,
                     methods);
-            });
+            })
+            .Where(static model => model is not null)
+            .Select(static (model, _) => model!);
 
-        context.RegisterSourceOutput(kernelBuilderProvider, GenerateKernel);
+        context.RegisterSourceOutput(testClassProvider.Collect(), GenerateKernel);
     }
 
-    private static void GenerateKernel(SourceProductionContext context, Model? model)
+    private static void GenerateKernel(SourceProductionContext context, ImmutableArray<Model> models)
     {
-        if (model is null)
+        if (models.IsDefaultOrEmpty)
         {
             return;
         }
 
-        var namespaceDeclaration = string.IsNullOrEmpty(model.Namespace)
-            ? string.Empty
-            : $"namespace {model.Namespace};\n\n";
-
-        var usesInstance = model.Methods.Any(m => !m.IsStatic);
         var sourceBuilder = new StringBuilder();
+        var totalMethods = models.Sum(static model => model.Methods.Count);
 
         sourceBuilder.AppendLine("// Auto-generated");
         sourceBuilder.AppendLine($"[global::System.CodeDom.Compiler.GeneratedCode(\"{typeof(KernelGenerator).FullName}\", \"{typeof(KernelGenerator).Assembly.GetName().Version}\")]");
-        sourceBuilder.AppendLine($"[global::Cosmos.TestingFramework.Attributes.GeneratedTestKernel(typeof({model.FullyQualifiedName}))]");
-        sourceBuilder.AppendLine($"public sealed class {model.GeneratedKernelClassName} : global::Cosmos.Kernel.System.Kernel");
+        sourceBuilder.AppendLine($"[global::Cosmos.TestingFramework.Attributes.GeneratedTestKernel({string.Join(", ", models.Select(static model => $"typeof({model.FullyQualifiedName})"))})]");
+        sourceBuilder.AppendLine("public sealed class CosmosTestKernel : global::Cosmos.Kernel.System.Kernel");
         sourceBuilder.AppendLine("{");
         sourceBuilder.AppendLine("    protected override void BeforeRun()");
         sourceBuilder.AppendLine("    {");
+        sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Start(\"Generated Tests\", expectedTests: {totalMethods});");
 
-        if (usesInstance)
+        foreach (var model in models)
         {
-            sourceBuilder.AppendLine($"        var instance = new {model.TypeReference}();");
-        }
-
-        sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Start(\"{model.FullyQualifiedName} Tests\", expectedTests: {model.Methods.Count});");
-
-        foreach (var method in model.Methods)
-        {
-            var testId = $"{model.ReflectionTypeName}.{method.Name}";
-            if (method.IsStatic)
+            string? instanceVariableName = null;
+            var usesInstance = model.Methods.Any(static method => !method.IsStatic);
+            if (usesInstance)
             {
-                sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
+                instanceVariableName = GetInstanceVariableName(model);
+                sourceBuilder.AppendLine($"        var {instanceVariableName} = new {model.TypeReference}();");
             }
-            else
+
+            foreach (var method in model.Methods)
             {
-                sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => instance.{method.Name}());");
+                var testId = $"{model.ReflectionTypeName}.{method.Name}";
+                if (method.IsStatic)
+                {
+                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {model.TypeReference}.{method.Name}());");
+                }
+                else
+                {
+                    sourceBuilder.AppendLine($"        global::Cosmos.TestingFramework.Framework.TestRunner.Run(\"{testId}\", () => {instanceVariableName}.{method.Name}());");
+                }
             }
         }
 
@@ -119,8 +113,8 @@ public class KernelGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine("}");
 
-        var sourceText = SourceText.From(namespaceDeclaration + sourceBuilder.ToString(), Encoding.UTF8);
-        var sanitizedSourceName = SanitizeFileName(model.FullyQualifiedName) + ".Kernel.g.cs";
+        var sourceText = SourceText.From(sourceBuilder.ToString(), Encoding.UTF8);
+        var sanitizedSourceName = "CosmosGeneratedTestKernel.Kernel.g.cs";
         context.AddSource(sanitizedSourceName, sourceText);
     }
 
@@ -128,11 +122,8 @@ public class KernelGenerator : IIncrementalGenerator
         => symbol.GetAttributes().Any(attribute =>
             string.Equals(attribute.AttributeClass?.ToDisplayString(), attributeFullName, StringComparison.Ordinal));
 
-    private static string GetGeneratedKernelClassName(INamedTypeSymbol typeSymbol)
-    {
-        var fullyQualifiedName = SanitizeFileName(typeSymbol.ToDisplayString());
-        return $"{fullyQualifiedName}GeneratedKernel";
-    }
+    private static string GetInstanceVariableName(Model model)
+        => $"instance_{SanitizeIdentifier(model.FullyQualifiedName)}";
 
     private static string GetFullyQualifiedTypeReference(INamedTypeSymbol typeSymbol)
     {
@@ -155,16 +146,13 @@ public class KernelGenerator : IIncrementalGenerator
             ? typeName
             : $"{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeName}";
     }
-
-    private static string SanitizeFileName(string input)
+    private static string SanitizeIdentifier(string input)
         => input.Replace("+", "_").Replace('.', '_').Replace('<', '_').Replace('>', '_').Replace(',', '_').Replace(' ', '_');
 
     private record MethodModel(string Name, bool IsStatic);
 
     private record Model(
         string FullyQualifiedName,
-        string Namespace,
-        string GeneratedKernelClassName,
         string TypeReference,
         string ReflectionTypeName,
         List<MethodModel> Methods);
