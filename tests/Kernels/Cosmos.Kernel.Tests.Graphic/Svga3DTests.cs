@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 using Cosmos.Kernel.HAL.Pci;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework;
 
 namespace Cosmos.Kernel.Tests.Graphic;
 

@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeMultiTargetRoslynComponentTargets>true</IncludeMultiTargetRoslynComponentTargets>
+    <IsPackable>true</IsPackable>
+    <PackageId>Cosmos.TestingFramework</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>NativeAOT-Patcher Contributors</Authors>
+    <Description>Test framework for NativeAOT kernel tests</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport.Abstractions" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="TestingPlatformServer" />
+    <AnalyzerReference Include="..\Cosmos.TestingFramework.SourceGenerators\Cosmos.TestingFramework.SourceGenerators.csproj" Pack="true" ReferenceAnalyzer="false" />
+    <AnalyzerReference Include="..\Cosmos.TestingFramework.SourceGenerators\Cosmos.TestingFramework.SourceGenerators.csproj" PackAsAnalyzer="true" ReferenceAnalyzer="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Compile sources from Cosmos.Tools for QEMU launcher and tool resolver -->
+    <Compile Include="../../src/Cosmos.Tools/Launcher/*.cs" />
+    <Compile Include="../../src/Cosmos.Tools/Platform/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Cosmos.Tests.Patcher exercises internal QemuLauncher argument builders -->
+    <InternalsVisibleTo Include="Cosmos.Tests.Patcher" />
+  </ItemGroup>
+</Project>

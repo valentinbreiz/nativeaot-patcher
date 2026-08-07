@@ -1,80 +1,20 @@
 using System;
 using System.Collections.Generic;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.TestRunner.Framework;
-using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using Cosmos.TestingFramework;
+using Cosmos.TestingFramework.Attributes;
 
 namespace Cosmos.Kernel.Tests.TypeCasting;
 
-public class Kernel : Sys.Kernel
+#pragma warning disable CA2201 // Do not raise reserved exception types
+
+[TestClass]
+public class Tests
 {
-    protected override void BeforeRun()
-    {
-        Serial.WriteString("[TypeCasting Tests] Starting test suite\n");
-        TR.Start("TypeCasting Tests", expectedTests: 17);
-
-        // Class hierarchy type checks (RhTypeCast_IsInstanceOfClass)
-        TR.Run("IsInstanceOfClass_AnimalIsDog", TestIsInstanceOfClass);
-
-        // Interface type checks (RhTypeCast_IsInstanceOfInterface)
-        TR.Run("IsInstanceOfInterface_IFlyable", TestIsInstanceOfInterface);
-
-        // Interface explicit cast checks (RhTypeCast_CheckCastInterface)
-        TR.Run("CheckCastInterface_ValidAndInvalid", TestCheckCastInterface);
-
-        // Multi-type pattern matching (RhTypeCast_IsInstanceOfAny)
-        TR.Run("IsInstanceOfAny_MultiPattern", TestIsInstanceOfAny);
-
-        // Generic invariance and covariance
-        TR.Run("Generics_InvarianceCovariance", TestGenericsInvarianceCovariance);
-
-        // Delegate contravariance
-        TR.Run("Delegate_Contravariance", TestDelegateContravariance);
-
-        // Array covariance
-        TR.Run("Array_Covariance", TestArrayCovariance);
-
-        // Custom generic variance
-        TR.Run("CustomVariance_ProducerConsumer", TestCustomGenericVariance);
-
-        // IEnumerable covariance
-        TR.Run("IEnumerable_Covariance", TestIEnumerableCovariance);
-
-        // Exception handling tests
-        TR.Run("TryCatch_Basic", TestTryCatchBasic);
-        TR.Run("TryCatch_BaseType", TestTryCatchBaseType);
-        TR.Run("TryCatch_Message", TestTryCatchMessage);
-        TR.Run("TryCatch_Filter_When", TestTryCatchFilterWhen);
-        TR.Run("TryCatch_Filter_WhenFalse", TestTryCatchFilterWhenFalse);
-        TR.Run("TryFinally", TestTryFinally);
-        TR.Run("FilterAndCatchResume", TestFilterAndCatchResume);
-        TR.Run("TryCatch_ConsoleWriteLineExMessage", TestTryCatchConsoleWriteLineExMessage);
-
-        Serial.WriteString("[TypeCasting Tests] All tests completed\n");
-        TR.Finish();
-    }
-
-    protected override void Run()
-    {
-        // All tests ran in BeforeRun; stop the main loop after one iteration
-        Stop();
-    }
-
-    protected override void AfterRun()
-    {
-        // Flush coverage data and signal QEMU to terminate
-        TR.Complete();
-        Cosmos.Kernel.System.Power.Halt();
-    }
-
-    // ==================== Class Hierarchy Tests ====================
-
-    private static void TestIsInstanceOfClass()
+    [TestMethod]
+    public static void TestIsInstanceOfClass_AnimalIsDog()
     {
         Animal animal = new Dog();
 
-        // Deliberate type check against the static type: exercises the runtime isinst path.
 #pragma warning disable IDE0150
         bool isAnimal = animal is Animal;
 #pragma warning restore IDE0150
@@ -86,9 +26,8 @@ public class Kernel : Sys.Kernel
         Assert.True(!isBird, "Dog instance is not Bird");
     }
 
-    // ==================== Interface Tests ====================
-
-    private static void TestIsInstanceOfInterface()
+    [TestMethod]
+    public static void TestIsInstanceOfInterface_IFlyable()
     {
         Bird bird = new Bird();
         Dog dog = new Dog();
@@ -96,10 +35,9 @@ public class Kernel : Sys.Kernel
         bool birdCanFly = bird is IFlyable;
         bool dogCanFly = dog is IFlyable;
 
-        // Value type implementing interface
         TestPoint tp = new TestPoint { X = 2, Y = 3 };
         ITestPoint? itp = tp;
-        // Deliberate type check against the static type: exercises isinst on a boxed value type.
+
 #pragma warning disable IDE0150
         bool pointIsTestPoint = itp is ITestPoint;
 #pragma warning restore IDE0150
@@ -109,7 +47,8 @@ public class Kernel : Sys.Kernel
         Assert.True(pointIsTestPoint, "TestPoint implements ITestPoint");
     }
 
-    private static void TestCheckCastInterface()
+    [TestMethod]
+    public static void TestCheckCastInterface_ValidAndInvalid()
     {
         TestPoint tp = new TestPoint { X = 2, Y = 3 };
         Dog dog = new Dog();
@@ -117,26 +56,23 @@ public class Kernel : Sys.Kernel
         bool validCastWorked;
         bool invalidCastThrew;
 
-        // Valid cast: value type to its interface (Add exception handling when implemented)
         ITestPoint castOk = tp;
         validCastWorked = castOk.Value == 5;
 
-        // Invalid cast: should throw InvalidCastException (For now do a safe cast until exception handling is implemented)
         invalidCastThrew = (dog as IFlyable) == null;
 
         Assert.True(validCastWorked, "Valid interface cast works");
         Assert.True(invalidCastThrew, "Invalid interface cast throws InvalidCastException");
     }
 
-    // ==================== Multi-type Pattern Tests ====================
-
-    private static void TestIsInstanceOfAny()
+    [TestMethod]
+    public static void TestIsInstanceOfAny_MultiPattern()
     {
         static bool MatchIntStringAnimal(object o) => o is int or string or Dog;
 
         object o1 = 123;
         object o2 = new Dog();
-        object o3 = 3.1415; // double
+        object o3 = 3.1415;
 
         bool matchesInt = MatchIntStringAnimal(o1);
         bool matchesDog = MatchIntStringAnimal(o2);
@@ -147,20 +83,22 @@ public class Kernel : Sys.Kernel
         Assert.True(!matchesDouble, "Pattern does not match double");
     }
 
-    // ==================== Generic Variance Tests ====================
-
-    private static void TestGenericsInvarianceCovariance()
+    [TestMethod]
+    public static void TestGenerics_InvarianceCovariance()
     {
         List<Dog> dogList = new() { new Dog(), new Dog() };
 
+#pragma warning disable CS0184 // 'is' expression's given expression is never of the provided type
         bool isListAnimal = dogList is List<Animal>;
+#pragma warning restore CS0184 // 'is' expression's given expression is never of the provided type
         bool isIEnumerableAnimal = dogList is IEnumerable<Animal>;
 
         Assert.True(!isListAnimal, "List<T> is invariant - List<Dog> is not List<Animal>");
         Assert.True(isIEnumerableAnimal, "IEnumerable<out T> is covariant - List<Dog> is IEnumerable<Animal>");
     }
 
-    private static void TestDelegateContravariance()
+    [TestMethod]
+    public static void TestDelegate_Contravariance()
     {
         Action<Animal> actAnimal = delegate { };
         bool isActionDog = actAnimal is Action<Dog>;
@@ -168,7 +106,8 @@ public class Kernel : Sys.Kernel
         Assert.True(isActionDog, "Action<in T> is contravariant - Action<Animal> is Action<Dog>");
     }
 
-    private static void TestArrayCovariance()
+    [TestMethod]
+    public static void TestArray_Covariance()
     {
         Dog[] dogArray = new[] { new Dog(), new Dog() };
         bool isAnimalArray = dogArray is Animal[];
@@ -177,14 +116,14 @@ public class Kernel : Sys.Kernel
 
         if (isAnimalArray)
         {
-            // Also verify assignment via base-typed array reference works
             Animal[] animalArrayRef = dogArray;
             animalArrayRef[0] = new Dog();
             Assert.True(true, "Assignment via base-typed array reference works");
         }
     }
 
-    private static void TestCustomGenericVariance()
+    [TestMethod]
+    public static void TestCustomVariance_ProducerConsumer()
     {
         DogProducer producer = new();
         AnimalConsumer consumer = new();
@@ -196,7 +135,8 @@ public class Kernel : Sys.Kernel
         Assert.True(consumerIsDogConsumer, "IConsumer<in T> contravariance - AnimalConsumer is IConsumer<Dog>");
     }
 
-    private static void TestIEnumerableCovariance()
+    [TestMethod]
+    public static void TestIEnumerable_Covariance()
     {
         string[] strArray = new[] { "a", "b", "c" };
         bool isIEnumerableObject = strArray is IEnumerable<object>;
@@ -204,9 +144,8 @@ public class Kernel : Sys.Kernel
         Assert.True(isIEnumerableObject, "string[] is IEnumerable<object> (covariance)");
     }
 
-    // ==================== Exception Handling Tests ====================
-
-    private static void TestTryCatchBasic()
+    [TestMethod]
+    public static void TestTryCatch_Basic()
     {
         bool caughtException = false;
         try
@@ -221,7 +160,8 @@ public class Kernel : Sys.Kernel
         Assert.True(caughtException, "Exception should have been caught");
     }
 
-    private static void TestTryCatchBaseType()
+    [TestMethod]
+    public static void TestTryCatch_BaseType()
     {
         bool caughtException = false;
         try
@@ -236,7 +176,8 @@ public class Kernel : Sys.Kernel
         Assert.True(caughtException, "Base Exception type should catch derived exceptions");
     }
 
-    private static void TestTryCatchMessage()
+    [TestMethod]
+    public static void TestTryCatch_Message()
     {
         string? caughtMessage = null;
         try
@@ -251,7 +192,8 @@ public class Kernel : Sys.Kernel
         Assert.Equal("Expected message", caughtMessage);
     }
 
-    private static void TestTryCatchFilterWhen()
+    [TestMethod]
+    public static void TestTryCatch_Filter_When()
     {
         bool caughtWithFilter = false;
         string? caughtMessage = null;
@@ -269,7 +211,8 @@ public class Kernel : Sys.Kernel
         Assert.Equal("FilterMatch", caughtMessage);
     }
 
-    private static void TestTryCatchFilterWhenFalse()
+    [TestMethod]
+    public static void TestTryCatch_Filter_WhenFalse()
     {
         bool caughtSpecific = false;
         bool caughtGeneral = false;
@@ -290,12 +233,12 @@ public class Kernel : Sys.Kernel
         Assert.True(caughtGeneral, "General catch should handle exception when filter doesn't match");
     }
 
-    private static void TestTryFinally()
+    [TestMethod]
+    public static void TestTryFinally()
     {
         bool finallyExecuted = false;
         try
         {
-            // No exception
         }
         finally
         {
@@ -305,7 +248,8 @@ public class Kernel : Sys.Kernel
         Assert.True(finallyExecuted, "Finally block should always execute");
     }
 
-    private static void TestFilterAndCatchResume()
+    [TestMethod]
+    public static void TestFilterAndCatchResume()
     {
         bool filterRan = false;
         bool catchRan = false;
@@ -333,7 +277,8 @@ public class Kernel : Sys.Kernel
         return true;
     }
 
-    private static void TestTryCatchConsoleWriteLineExMessage()
+    [TestMethod]
+    public static void TestTryCatch_ConsoleWriteLineExMessage()
     {
         const string expectedMessage = "hello world!";
         string? caughtMessage = null;
@@ -360,8 +305,6 @@ public class Kernel : Sys.Kernel
             "Execution must resume after the catch funclet exits");
     }
 }
-
-// ==================== Helper Types ====================
 
 internal struct TestPoint : ITestPoint
 {

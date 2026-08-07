@@ -10,10 +10,10 @@ using Cosmos.Kernel.HAL.Pci.Enums;
 using Cosmos.Kernel.HAL.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Storage;
+using Cosmos.TestingFramework;
 using Cosmos.Kernel.System.Vfs;
-using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Storage;
 

@@ -41,7 +41,7 @@
 
 namespace Cosmos.Tests.BuildCache;
 [Collection("BuildCache")]
-[TestCaseOrderer("Cosmos.Tests.BuildCache.PriorityOrderer", "Cosmos.Tests.BuildCache")]
+[TestCaseOrderer(typeof(PriorityOrderer))]
 public class BuildCacheTests : IClassFixture<BuildFixture>
 {
     private readonly BuildFixture _fixture;

@@ -1,26 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <Sdk Name="Cosmos.Sdk" />
+  <Import Project="../../Cosmos.TestingFramework/build/Cosmos.TestingFramework.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- Core kernel packages (using project references for development) -->
+
+  <!-- Core kernel packages (From Local Feed) -->
   <ItemGroup>
-    <ProjectReference Include="../../../src/Cosmos.Kernel/Cosmos.Kernel.csproj" />
-    <ProjectReference Include="../../../src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj" />
-    <ProjectReference Include="../../Cosmos.TestRunner.Framework/Cosmos.TestRunner.Framework.csproj" />
+    <PackageReference Include="Cosmos.Kernel" />
+    <PackageReference Include="Cosmos.Kernel.System" />
+    <ProjectReference Include="../../Cosmos.TestingFramework/Cosmos.TestingFramework.csproj" />
   </ItemGroup>
 
-  <!-- Architecture-specific HAL (using project references for development) -->
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_X64'))">
-    <ProjectReference Include="../../../src/Cosmos.Kernel.HAL.X64/Cosmos.Kernel.HAL.X64.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(DefineConstants)' != '' AND $(DefineConstants.Contains('ARCH_ARM64'))">
-    <ProjectReference Include="../../../src/Cosmos.Kernel.HAL.ARM64/Cosmos.Kernel.HAL.ARM64.csproj" />
-  </ItemGroup>
-
+  <Import Project="../../Cosmos.TestingFramework/build/Cosmos.TestingFramework.targets" />
 </Project>

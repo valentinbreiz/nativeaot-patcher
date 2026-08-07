@@ -5,5 +5,8 @@
     },
     "msbuild-sdks": {
         "Cosmos.Sdk": "3.0.81"
+    },
+    "test": {
+        "runner": "Microsoft.Testing.Platform"
     }
 }

@@ -1,9 +1,9 @@
 using System;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 namespace Cosmos.Kernel.Tests.Power;
 
