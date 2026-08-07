@@ -21,10 +21,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Authenticated with a write deploy key of CosmosOS/Cosmos: deploy keys
+      # need no org approval, never expire, and may push workflow files.
       - name: 🪞 Force-push to CosmosOS/Cosmos
         env:
-          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+          MIRROR_DEPLOY_KEY: ${{ secrets.MIRROR_DEPLOY_KEY }}
         run: |
-          git push --force "https://x-access-token:${MIRROR_TOKEN}@github.com/CosmosOS/Cosmos.git" \
+          mkdir -p ~/.ssh
+          printf '%s\n' "$MIRROR_DEPLOY_KEY" > ~/.ssh/mirror_key
+          chmod 600 ~/.ssh/mirror_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key" \
+            git push --force git@github.com:CosmosOS/Cosmos.git \
             HEAD:refs/heads/gen3 \
             HEAD:refs/heads/gen3-dev
