@@ -112,7 +112,6 @@ jobs:
         run: dotnet build ./tests/Cosmos.Tests.Tools/Cosmos.Tests.Tools.csproj --configuration Debug --no-restore
 
       - name: 🚀 Run Tests
-        run: dotnet test ./tests/Cosmos.Tests.Tools/Cosmos.Tests.Tools.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Tools.trx"
         run: dotnet test ./tests/Cosmos.Tests.Tools/Cosmos.Tests.Tools.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Tools.trx
 
       - name: 📤 Upload Test Results
