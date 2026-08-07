@@ -53,6 +53,9 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     private uint _depth;
 
+    private uint _fifonext;
+    private uint _fifoReservedBytes;
+
     /// <summary>
     /// Capabilities.
     /// </summary>
@@ -77,6 +80,8 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     public uint HW3DVer { get; private set; }
 
+    public uint FbPhys { get; private set; }
+
     public SvgaIIDriver(PciDevice device)
     {
         _device = device;
@@ -92,14 +97,14 @@ public unsafe class SvgaIIDriver : GraphicDevice
         // FrameBufferStart is the physical VRAM BAR; Limine base revision >= 1
         // has no lower-half identity map, so CPU access goes through the HHDM.
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        uint fbPhys = ReadRegister(Register.FrameBufferStart);
-        VideoMemory = new MemoryBlock(hhdmOffset + fbPhys, ReadRegister(Register.VRamSize));
+        FbPhys = ReadRegister(Register.FrameBufferStart);
+        VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, ReadRegister(Register.VRamSize));
         Capabilities = ReadRegister(Register.Capabilities);
 
         Serial.WriteString("[SVGAII] Init: ports 0x");
         Serial.WriteHex(_basePort);
         Serial.WriteString(", fb 0x");
-        Serial.WriteHex(fbPhys);
+        Serial.WriteHex(FbPhys);
         Serial.WriteString(", caps 0x");
         Serial.WriteHex(Capabilities);
         Serial.WriteString("\n");
@@ -304,53 +309,71 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// Reserve a contiguous command area in the FIFO.
     /// </summary>
     public void* ReserveFIFO(uint bytes)
-    {
-        uint next = GetFIFO(FIFO.NextCmd);
-        uint stop = GetFIFO(FIFO.Stop);
-        uint min = GetFIFO(FIFO.Min);
-        uint max = GetFIFO(FIFO.Max);
+{
+    uint min = GetFIFO(FIFO.Min);
+    uint max = GetFIFO(FIFO.Max);
+    
+    // Ensure bytes is aligned if your architecture/device requires it (e.g., 4-byte alignment)
+    bytes = (bytes + 3u) & ~3u;
 
-        uint space;
+    uint next, stop, space;
+
+    while (true)
+    {
+        next = GetFIFO(FIFO.NextCmd);
+        stop = GetFIFO(FIFO.Stop);
+
+        // Calculate contiguous space available from 'next' to the end of the buffer ('max')
         if (next >= stop)
         {
-            space = (max - next) + (stop - min);
+            space = (max - next);
+            // If it doesn't fit contiguously at the end, can it wrap around?
+            if (space < bytes)
+            {
+                // Check total space including the wrap-around part (min to stop)
+                uint totalSpace = (max - next) + (stop - min);
+                if (totalSpace >= bytes)
+                {
+                    // It fits by wrapping, but we must handle the end-of-buffer wrap
+                    // 1. Fill remainder of buffer from 'next' to 'max' with NOPs (0)
+                    // (Implementation detail: write NOPs to pointer region [next, max])
+                    
+                    // 2. Wrap next to min
+                    next = min;
+                    break;
+                }
+            }
+            else
+            {
+                // Fits contiguously without wrapping
+                break;
+            }
         }
         else
         {
             space = stop - next;
-        }
-
-        // Wait if not enough contiguous space
-        while (space < bytes)
-        {
-            WaitForFifo(); // give the SVGA device time to consume FIFO
-            next = GetFIFO(FIFO.NextCmd);
-            stop = GetFIFO(FIFO.Stop);
-            if (next >= stop)
+            if (space >= bytes)
             {
-                space = (max - next) + (stop - min);
-            }
-            else
-            {
-                space = stop - next;
+                break;
             }
         }
 
-        // Make sure contiguous region fits before end of buffer
-        if (next + bytes > max)
-        {
-            // wrap to beginning of buffer
-            SetFIFO(FIFO.NextCmd, min);
-            next = min;
-        }
+        WaitForFifo();
+    }
 
-        void* ptr = (void*)(_fifoMemory.Base + next);
+    void* ptr = (void*)(_fifoMemory.Base + next);
+    _fifonext = next + bytes; // Store locally until commit
+    _fifoReservedBytes = bytes; // Track for potential NOP padding if needed
+    
+    return ptr;
+}
 
-        // Advance NEXT_CMD
-        uint newNext = next + bytes;
-        SetFIFO(FIFO.NextCmd, (newNext == max ? min : newNext));
+    public void CommitFIFOCommand()
+    {
+        uint min = GetFIFO(FIFO.Min);
+        uint max = GetFIFO(FIFO.Max);
 
-        return ptr;
+        SetFIFO(FIFO.NextCmd, _fifonext);
     }
 
     /// <summary>
