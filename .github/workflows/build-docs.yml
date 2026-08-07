@@ -57,13 +57,14 @@ jobs:
         publish_branch: gh-pages
         publish_dir: ./docs/_site
 
-    # Same mechanism as the gen2 docs CD: the GH_PAGES PAT pushes the built
-    # site to the org Pages repository, served at https://cosmosos.github.io/.
+    # Same mechanism as the gen2 docs CD, but authenticated with a write
+    # deploy key of the org Pages repository instead of the expired GH_PAGES
+    # PAT. The site is served at https://cosmosos.github.io/.
     - name: Publish to cosmosos.github.io
       if: github.repository == 'CosmosOS/Cosmos'
       uses: peaceiris/actions-gh-pages@v3
       with:
-        personal_token: ${{ secrets.GH_PAGES }}
+        deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
         external_repository: CosmosOS/cosmosos.github.io
         publish_branch: master
         publish_dir: ./docs/_site
