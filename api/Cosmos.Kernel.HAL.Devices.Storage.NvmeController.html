@@ -7,7 +7,7 @@
       <meta name="title" content="Class NvmeController | Cosmos Gen 3 ">
       
       <meta name="description" content="One initialized NVMe controller. Owns its admin and a single IO queue pair, and the namespaces it discovered. The admin queue is polled (it only runs once at init); the I/O queue is interrupt-driven via MSI-X so callers of  /  can yield instead of burning a CPU on a spinloop, and up to -1 commands can be in flight concurrently because every slot owns its own 4 KiB DMA bounce buffer. If MSI-X is unavailable (e.g. ARM64 today, or a pathological PCI device with no MSI-X capability) the controller falls back to polled completion, but in that mode commands are serialized through an internal mutex. Limitations: One IO submission and one IO completion queue (qid=1), depth 8. At most depth-1 commands are in flight (NVMe queue-full rule: a depth-N SQ holds N-1 entries, or the wrapped tail is indistinguishable from an empty queue).Single-PRP transfers — every command moves at most one 4 KiB page through the slot&#39;s bounce buffer, so PRP2 is always 0. Namespaces whose LBA format exceeds one page (or carries metadata) are skipped at discovery.">
-      <link rel="icon" href="../favicon.ico">
+      <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
       <meta name="docfx:navrel" content="../toc.html">
@@ -44,7 +44,7 @@
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
           <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">

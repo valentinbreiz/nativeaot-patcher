@@ -7,7 +7,7 @@
       <meta name="title" content="Class MsiRouting | Cosmos Gen 3 ">
       
       <meta name="description" content="Architecture-neutral PCI MSI / MSI-X binding. Both x64 (LAPIC Fixed-mode messages) and ARM64 (GICv3 ITS GITS_TRANSLATER writes) ultimately program the same shape into a device&#39;s MSI-X table — a 64-bit address plus a 32-bit data dword — but the routing model differs: x64: data = IDT vector chosen by the kernel; address encodes the destination LAPIC ID. No per-device prep.ARM64 ITS: data = EventID (per-device index); address = the shared GITS_TRANSLATER doorbell. The ITS must be told the (DeviceID, EventID) → LPI mapping out of band before the device fires.  This file abstracts both behind : each platform initializer registers a binder, then HAL-level PCI MSI-X code calls  once per device and  per MSI-X table entry. The binder owns vector / LPI allocation and any device-specific bookkeeping (ITT allocation, MAPD, MAPTI on ARM64). PCI device identity is passed in raw (bus, slot, function) form to keep this file free of HAL/Pci dependencies — Core can&#39;t reference HAL upstream.">
-      <link rel="icon" href="../favicon.ico">
+      <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
       <meta name="docfx:navrel" content="../toc.html">
@@ -44,7 +44,7 @@
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
           <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">

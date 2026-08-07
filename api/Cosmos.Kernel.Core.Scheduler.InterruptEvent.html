@@ -7,7 +7,7 @@
       <meta name="title" content="Class InterruptEvent | Cosmos Gen 3 ">
       
       <meta name="description" content="One-shot binary completion event with auto-reset semantics, designed to be signaled from an ISR and waited on from a normal thread.  blocks the caller via  until  is called.  only walks internal state with the spinlock held and calls  — no allocation, no interface dispatch — so it is safe from interrupt context. Modeled after  but reduced to the surface drivers actually need (a producer ISR and a consumer thread). Multiple consumers can wait;  wakes one. Signals are counted, not latched as a single bit: two s with two parked waiters wake both, and signals arriving while no consumer waits are consumed one per subsequent .">
-      <link rel="icon" href="../favicon.ico">
+      <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
       <meta name="docfx:navrel" content="../toc.html">
@@ -44,7 +44,7 @@
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
           <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">

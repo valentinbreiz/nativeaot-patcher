@@ -7,7 +7,7 @@
       <meta name="title" content="Class Inflater | Cosmos Gen 3 ">
       
       <meta name="description" content="Inflater is used to decompress data that has been compressed according  to the &amp;quot;deflate&amp;quot; standard described in rfc1951.   By default Zlib (rfc1950) headers and footers are expected in the input.  You can use constructor   public Inflater(bool noHeader) passing true if there is no Zlib header information  The usage is as following.  First you have to set some input with   &amp;lt;pre&amp;gt;&amp;lt;code class=&amp;quot;lang-csharp&amp;quot;&amp;gt;SetInput()&amp;lt;/code&amp;gt;&amp;lt;/pre&amp;gt;  , then Inflate() it.  If inflate doesn&#39;t inflate any bytes there may be three reasons:  &amp;lt;ul&amp;gt;  &amp;lt;li&amp;gt;IsNeedingInput() returns true because the input buffer is empty.  You have to provide more input with   SetInput() . NOTE: IsNeedingInput() also returns true when, the stream is finished.  IsNeedingDictionary() returns true, you have to provide a preset dictionary with SetDictionary() . IsFinished returns true, the inflater has finished.   Once the first output byte is produced, a dictionary will not be  needed at a later stage.   author of the original java version : John Leuner, Jochen Hoenicke">
-      <link rel="icon" href="../favicon.ico">
+      <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
       <meta name="docfx:navrel" content="../toc.html">
@@ -44,7 +44,7 @@
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
           <a class="navbar-brand" href="../index.html">
-            <img id="logo" class="svg" src="../logo.svg" alt="Cosmos Gen 3">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
