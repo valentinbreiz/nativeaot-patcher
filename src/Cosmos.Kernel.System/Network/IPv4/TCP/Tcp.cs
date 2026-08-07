@@ -927,7 +927,7 @@ public class Tcp : IDisposable
     internal bool Equals(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)
     {
         return LocalEndPoint.Port.Equals(localPort) && RemoteEndPoint.Port.Equals(remotePort) &&
-               LocalEndPoint.Address.Id.Equals(localIp.Id) && RemoteEndPoint.Address.Id.Equals(remoteIp.Id);
+               LocalEndPoint.Address.Equals(localIp) && RemoteEndPoint.Address.Equals(remoteIp);
     }
 
     #endregion

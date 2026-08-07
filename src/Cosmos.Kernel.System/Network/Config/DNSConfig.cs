@@ -27,7 +27,7 @@ public class DNSConfig
     {
         for (int i = 0; i < DNSNameservers.Count; i++)
         {
-            if (DNSNameservers[i].Id == nameserver.Id)
+            if (Equals(DNSNameservers[i], nameserver))
             {
                 return;
             }
@@ -44,7 +44,7 @@ public class DNSConfig
         Address? toRemove = null;
         for (int i = 0; i < DNSNameservers.Count; i++)
         {
-            if (DNSNameservers[i].Id == nameserver.Id)
+            if (Equals(DNSNameservers[i], nameserver))
             {
                 toRemove = DNSNameservers[i];
                 break;

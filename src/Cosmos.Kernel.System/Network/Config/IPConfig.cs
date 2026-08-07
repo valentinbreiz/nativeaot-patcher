@@ -45,12 +45,12 @@ public class IPConfig
 
         foreach (IPConfig ipConfig in s_ipConfigs)
         {
-            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
-                (destIP.Id & ipConfig.SubnetMask.Id))
+            if ((ipConfig.IPAddress & ipConfig.SubnetMask) ==
+                (destIP & ipConfig.SubnetMask))
             {
                 return ipConfig.IPAddress;
             }
-            if (defaultGw == null && ipConfig.DefaultGateway.CompareTo(Address.Zero) != 0)
+            if (defaultGw == null && !ipConfig.DefaultGateway.IsZero)
             {
                 defaultGw = ipConfig.IPAddress;
             }
@@ -92,8 +92,8 @@ public class IPConfig
     {
         for (int c = 0; c < s_ipConfigs.Count; c++)
         {
-            if ((s_ipConfigs[c].IPAddress.Id & s_ipConfigs[c].SubnetMask.Id) ==
-                (destIP.Id & s_ipConfigs[c].SubnetMask.Id))
+            if ((s_ipConfigs[c].IPAddress & s_ipConfigs[c].SubnetMask) ==
+                (destIP & s_ipConfigs[c].SubnetMask))
             {
                 return true;
             }
@@ -108,9 +108,9 @@ public class IPConfig
     /// <param name="sourceIP">Source IP.</param>
     internal static INetworkDevice? FindInterface(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP))
         {
-            return NetworkStack.AddressMap[sourceIP.Id];
+            return NetworkStack.AddressMap[sourceIP];
         }
         return null;
     }
@@ -137,7 +137,7 @@ public class IPConfig
     /// <param name="ip">IP Address</param>
     /// <param name="subnet">Subnet Mask</param>
     public IPConfig(Address ip, Address subnet)
-        : this(ip, subnet, Address.Zero)
+        : this(ip, subnet, Address4.Zero)
     {
     }
 

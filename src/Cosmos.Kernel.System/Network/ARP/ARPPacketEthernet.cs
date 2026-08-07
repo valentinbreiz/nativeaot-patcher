@@ -47,9 +47,9 @@ internal abstract class ARPPacketEthernet : ARPPacket
     {
         base.InitializeFields();
         senderMAC = new MACAddress(RawData, 22);
-        senderIP = new Address(RawData, 28);
+        senderIP = new Address4(RawData, 28);
         targetMAC = new MACAddress(RawData, 32);
-        targetIP = new Address(RawData, 38);
+        targetIP = new Address4(RawData, 38);
     }
 
     /// <summary>
@@ -72,6 +72,7 @@ internal abstract class ARPPacketEthernet : ARPPacket
             RawData[22 + i] = senderMAC.bytes[i];
             RawData[32 + i] = arpTargetMAC.bytes[i];
         }
+
         for (int i = 0; i < 4; i++)
         {
             RawData[28 + i] = senderIP.Parts[i];

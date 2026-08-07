@@ -38,7 +38,7 @@ public class IPPacket : EthernetPacket
         bool isForUs = false;
         if (NetworkStack.AddressMap != null)
         {
-            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
+            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP);
         }
         bool isBroadcast = ipPacket.DestinationIP.Parts[3] == 255;
 
@@ -94,8 +94,8 @@ public class IPPacket : EthernetPacket
         TTL = RawData[22];
         Protocol = RawData[23];
         IPCRC = (ushort)((RawData[24] << 8) | RawData[25]);
-        SourceIP = new Address(RawData, 26);
-        DestinationIP = new Address(RawData, 30);
+        SourceIP = new Address4(RawData, 26);
+        DestinationIP = new Address4(RawData, 30);
         DataOffset = (ushort)(14 + HeaderLength);
     }
 
@@ -129,9 +129,9 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP))
         {
-            var device = NetworkStack.AddressMap[sourceIP.Id];
+            var device = NetworkStack.AddressMap[sourceIP];
             return device.MacAddress;
         }
         return MACAddress.None;

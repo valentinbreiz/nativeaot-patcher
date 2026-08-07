@@ -148,7 +148,7 @@ public class DnsClient : UdpClient
                 record.ResolvedName != null &&
                 string.Equals(record.ResolvedName, current, StringComparison.OrdinalIgnoreCase))
             {
-                results.Add(new Address(record.Address, 0));
+                results.Add(new Address4(record.Address, 0));
             }
         }
 

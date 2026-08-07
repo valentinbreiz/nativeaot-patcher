@@ -61,7 +61,7 @@ public class DHCPPacket : UDPPacket
     /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
     /// </summary>
     internal DHCPPacket(MACAddress mac_src, ushort dhcpDataSize)
-        : this(Address.Zero, Address.Broadcast, mac_src, dhcpDataSize)
+        : this(Address4.Zero, Address4.Broadcast, mac_src, dhcpDataSize)
     { }
 
     /// <summary>
@@ -133,7 +133,7 @@ public class DHCPPacket : UDPPacket
 
         if (RawData[58] != 0)
         {
-            Client = new Address(RawData, 58);
+            Client = new Address4(RawData, 58);
         }
 
         if (RawData[282] != 0)
@@ -160,15 +160,15 @@ public class DHCPPacket : UDPPacket
             {
                 if (option.Type == 1) //Mask
                 {
-                    Subnet = new Address(option.Data, 0);
+                    Subnet = new Address4(option.Data, 0);
                 }
                 else if (option.Type == 3) //Router
                 {
-                    Server = new Address(option.Data, 0);
+                    Server = new Address4(option.Data, 0);
                 }
                 else if (option.Type == 6) //DNS
                 {
-                    DNS = new Address(option.Data, 0);
+                    DNS = new Address4(option.Data, 0);
                 }
             }
         }

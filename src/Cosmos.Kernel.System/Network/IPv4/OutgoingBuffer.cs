@@ -38,7 +38,7 @@ public static class OutgoingBuffer
             this.NIC = nic;
             this.Packet = packet;
 
-            if (Packet.DestinationIP.IsBroadcastAddress())
+            if (Packet.DestinationIP.IsBroadcastAddress)
             {
                 this.Status = EntryStatus.DHCP_REQUEST;
             }

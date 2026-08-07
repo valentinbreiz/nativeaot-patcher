@@ -214,7 +214,7 @@ public static class SocketPlug
             throw new InvalidOperationException("Socket not bound");
         }
 
-        var sm = Tcp.CreateConnection((ushort)ep.Port, 0, Address.Zero, Address.Zero);
+        var sm = Tcp.CreateConnection((ushort)ep.Port, 0, Address4.Zero, Address4.Zero);
         sm.LocalEndPoint.Port = (ushort)ep.Port;
         sm.Status = Status.LISTEN;
 
@@ -245,8 +245,8 @@ public static class SocketPlug
             ;
         }
 
-        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToSpan()), sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToSpan()), sm.LocalEndPoint.Port);
+        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToBytes().AsSpan()), sm.RemoteEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes().AsSpan()), sm.LocalEndPoint.Port);
 
         return aThis;
     }
@@ -321,7 +321,7 @@ public static class SocketPlug
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToSpan()), sm.LocalEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes().AsSpan()), sm.LocalEndPoint.Port);
 
         // Simple sequence number generation
         uint sequenceNumber = (uint)(1000 + id);
@@ -548,7 +548,7 @@ public static class SocketPlug
 
         // Use GetAddressBytes directly to avoid string parsing (byte.Parse can trigger resource loading)
         byte[] addrBytes = ipep.Address.GetAddressBytes();
-        var destAddr = new Address(addrBytes[0], addrBytes[1], addrBytes[2], addrBytes[3]);
+        var destAddr = new Address4(addrBytes[0], addrBytes[1], addrBytes[2], addrBytes[3]);
 
         Serial.WriteString("[SocketPlug] SendTo destAddr=");
         Serial.WriteNumber(addrBytes[0]); Serial.WriteString(".");
@@ -614,7 +614,7 @@ public static class SocketPlug
             return 0;
         }
 
-        var ep = new KernelEndPoint(Address.Zero, 0);
+        var ep = new KernelEndPoint(Address4.Zero, 0);
         byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
@@ -715,7 +715,7 @@ public static class SocketPlug
             return 0;
         }
 
-        var ep = new KernelEndPoint(Address.Zero, 0);
+        var ep = new KernelEndPoint(Address4.Zero, 0);
         byte[]? data = client.NonBlockingReceive(ref ep);
 
         if (data == null)
@@ -724,7 +724,7 @@ public static class SocketPlug
         }
 
         // Update the remote endpoint (use byte array to avoid endianness issues)
-        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToSpan()), ep.Port);
+        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToBytes().AsSpan()), ep.Port);
 
         int bytesToCopy = Math.Min(data.Length, size);
         Buffer.BlockCopy(data, 0, buffer, offset, bytesToCopy);
