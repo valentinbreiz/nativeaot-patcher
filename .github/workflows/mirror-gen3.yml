@@ -1,0 +1,29 @@
+name: Mirror to CosmosOS/Cosmos
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-gen3
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Push main to gen3 and gen3-dev
+    runs-on: ubuntu-latest
+    if: github.repository == 'valentinbreiz/nativeaot-patcher'
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🪞 Force-push to CosmosOS/Cosmos
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          git push --force "https://x-access-token:${MIRROR_TOKEN}@github.com/CosmosOS/Cosmos.git" \
+            HEAD:refs/heads/gen3 \
+            HEAD:refs/heads/gen3-dev
