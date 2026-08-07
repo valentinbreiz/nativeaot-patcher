@@ -210,6 +210,20 @@ Returns the kernel command line set via <code>cmdline:</code> in limine.conf.</p
       <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineRsdpResponse.html">LimineRsdpResponse</a></dt>
       <dd></dd>
     </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html">LimineStackSizeRequest</a></dt>
+      <dd><p>Limine Stack Size request.
+Asks the bootloader to provide at least <a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_StackSize">StackSize</a> bytes of
+stack to the kernel entry point instead of the 64 KiB protocol default.
+The boot stack hosts the whole main kernel thread, and
+<code>RuntimeHelpers.EnsureSufficientExecutionStack</code> requires stacks larger
+than 128 KiB on 64-bit to ever succeed.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.html">LimineStackSizeResponse</a></dt>
+      <dd></dd>
+    </dl>
     <h3 id="enums">
 Enums
 </h3>

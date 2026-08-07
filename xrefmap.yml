@@ -269,6 +269,12 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   fullName: Cosmos.Kernel.Boot.Limine.Limine.Rsdp
   nameWithType: Limine.Rsdp
+- uid: Cosmos.Kernel.Boot.Limine.Limine.StackSize
+  name: StackSize
+  href: api/Cosmos.Kernel.Boot.Limine.Limine.html#Cosmos_Kernel_Boot_Limine_Limine_StackSize
+  commentId: F:Cosmos.Kernel.Boot.Limine.Limine.StackSize
+  fullName: Cosmos.Kernel.Boot.Limine.Limine.StackSize
+  nameWithType: Limine.StackSize
 - uid: Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest
   name: LimineBootTimeRequest
   href: api/Cosmos.Kernel.Boot.Limine.LimineBootTimeRequest.html
@@ -998,6 +1004,73 @@ references:
   commentId: F:Cosmos.Kernel.Boot.Limine.LimineRsdpResponse.Revision
   fullName: Cosmos.Kernel.Boot.Limine.LimineRsdpResponse.Revision
   nameWithType: LimineRsdpResponse.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest
+  name: LimineStackSizeRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest
+  nameWithType: LimineStackSizeRequest
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.#ctor(System.UInt64)
+  name: LimineStackSizeRequest(ulong)
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest__ctor_System_UInt64_
+  commentId: M:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.#ctor(System.UInt64)
+  name.vb: New(ULong)
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.LimineStackSizeRequest(ulong)
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.New(ULong)
+  nameWithType: LimineStackSizeRequest.LimineStackSizeRequest(ulong)
+  nameWithType.vb: LimineStackSizeRequest.New(ULong)
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.#ctor*
+  name: LimineStackSizeRequest
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest__ctor_
+  commentId: Overload:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.LimineStackSizeRequest
+  fullName.vb: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.New
+  nameWithType: LimineStackSizeRequest.LimineStackSizeRequest
+  nameWithType.vb: LimineStackSizeRequest.New
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.DefaultRequestedSize
+  name: DefaultRequestedSize
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_DefaultRequestedSize
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.DefaultRequestedSize
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.DefaultRequestedSize
+  nameWithType: LimineStackSizeRequest.DefaultRequestedSize
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.ID
+  name: ID
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_ID
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.ID
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.ID
+  nameWithType: LimineStackSizeRequest.ID
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Response
+  name: Response
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_Response
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Response
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Response
+  nameWithType: LimineStackSizeRequest.Response
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.Revision
+  nameWithType: LimineStackSizeRequest.Revision
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.StackSize
+  name: StackSize
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeRequest_StackSize
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.StackSize
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.StackSize
+  nameWithType: LimineStackSizeRequest.StackSize
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse
+  name: LimineStackSizeResponse
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.html
+  commentId: T:Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse
+  nameWithType: LimineStackSizeResponse
+- uid: Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.Revision
+  name: Revision
+  href: api/Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.html#Cosmos_Kernel_Boot_Limine_LimineStackSizeResponse_Revision
+  commentId: F:Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.Revision
+  fullName: Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.Revision
+  nameWithType: LimineStackSizeResponse.Revision
 - uid: Cosmos.Kernel.Core
   name: Cosmos.Kernel.Core
   href: api/Cosmos.Kernel.Core.html
@@ -1058,6 +1131,24 @@ references:
   commentId: Overload:Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
   fullName: Cosmos.Kernel.Core.Bridge.AcpiPmNative.Shutdown
   nameWithType: AcpiPmNative.Shutdown
+- uid: Cosmos.Kernel.Core.Bridge.BootNative
+  name: BootNative
+  href: api/Cosmos.Kernel.Core.Bridge.BootNative.html
+  commentId: T:Cosmos.Kernel.Core.Bridge.BootNative
+  fullName: Cosmos.Kernel.Core.Bridge.BootNative
+  nameWithType: BootNative
+- uid: Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop
+  name: GetBootStackTop()
+  href: api/Cosmos.Kernel.Core.Bridge.BootNative.html#Cosmos_Kernel_Core_Bridge_BootNative_GetBootStackTop
+  commentId: M:Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop
+  fullName: Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop()
+  nameWithType: BootNative.GetBootStackTop()
+- uid: Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop*
+  name: GetBootStackTop
+  href: api/Cosmos.Kernel.Core.Bridge.BootNative.html#Cosmos_Kernel_Core_Bridge_BootNative_GetBootStackTop_
+  commentId: Overload:Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop
+  fullName: Cosmos.Kernel.Core.Bridge.BootNative.GetBootStackTop
+  nameWithType: BootNative.GetBootStackTop
 - uid: Cosmos.Kernel.Core.Bridge.ContextSwitchNative
   name: ContextSwitchNative
   href: api/Cosmos.Kernel.Core.Bridge.ContextSwitchNative.html
@@ -6690,6 +6781,38 @@ references:
   fullName.vb: Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.New
   nameWithType: AmbiguousImplementationException.AmbiguousImplementationException
   nameWithType.vb: AmbiguousImplementationException.New
+- uid: Cosmos.Kernel.Core.Runtime.BootStack
+  name: BootStack
+  href: api/Cosmos.Kernel.Core.Runtime.BootStack.html
+  commentId: T:Cosmos.Kernel.Core.Runtime.BootStack
+  fullName: Cosmos.Kernel.Core.Runtime.BootStack
+  nameWithType: BootStack
+- uid: Cosmos.Kernel.Core.Runtime.BootStack.Size
+  name: Size
+  href: api/Cosmos.Kernel.Core.Runtime.BootStack.html#Cosmos_Kernel_Core_Runtime_BootStack_Size
+  commentId: P:Cosmos.Kernel.Core.Runtime.BootStack.Size
+  fullName: Cosmos.Kernel.Core.Runtime.BootStack.Size
+  nameWithType: BootStack.Size
+- uid: Cosmos.Kernel.Core.Runtime.BootStack.Size*
+  name: Size
+  href: api/Cosmos.Kernel.Core.Runtime.BootStack.html#Cosmos_Kernel_Core_Runtime_BootStack_Size_
+  commentId: Overload:Cosmos.Kernel.Core.Runtime.BootStack.Size
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Runtime.BootStack.Size
+  nameWithType: BootStack.Size
+- uid: Cosmos.Kernel.Core.Runtime.BootStack.Top
+  name: Top
+  href: api/Cosmos.Kernel.Core.Runtime.BootStack.html#Cosmos_Kernel_Core_Runtime_BootStack_Top
+  commentId: P:Cosmos.Kernel.Core.Runtime.BootStack.Top
+  fullName: Cosmos.Kernel.Core.Runtime.BootStack.Top
+  nameWithType: BootStack.Top
+- uid: Cosmos.Kernel.Core.Runtime.BootStack.Top*
+  name: Top
+  href: api/Cosmos.Kernel.Core.Runtime.BootStack.html#Cosmos_Kernel_Core_Runtime_BootStack_Top_
+  commentId: Overload:Cosmos.Kernel.Core.Runtime.BootStack.Top
+  isSpec: "True"
+  fullName: Cosmos.Kernel.Core.Runtime.BootStack.Top
+  nameWithType: BootStack.Top
 - uid: Cosmos.Kernel.Core.Runtime.Cpu
   name: Cpu
   href: api/Cosmos.Kernel.Core.Runtime.Cpu.html
@@ -11580,6 +11703,12 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_CONTEXT
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_CONTEXT
   nameWithType: FIFOCommand.DESTROY_CONTEXT
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_SHADER
+  name: DESTROY_SHADER
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_DESTROY_SHADER
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_SHADER
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_SHADER
+  nameWithType: FIFOCommand.DESTROY_SHADER
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.DESTROY_SURFACE
   name: DESTROY_SURFACE
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_DESTROY_SURFACE
@@ -11688,6 +11817,24 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.RECT_ROP_PIXMAP_FILL
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.RECT_ROP_PIXMAP_FILL
   nameWithType: FIFOCommand.RECT_ROP_PIXMAP_FILL
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTDATA
+  name: SETLIGHTDATA
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_SETLIGHTDATA
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTDATA
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTDATA
+  nameWithType: FIFOCommand.SETLIGHTDATA
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTENABLE
+  name: SETLIGHTENABLE
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_SETLIGHTENABLE
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTENABLE
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETLIGHTENABLE
+  nameWithType: FIFOCommand.SETLIGHTENABLE
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETMATERIAL
+  name: SETMATERIAL
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_SETMATERIAL
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETMATERIAL
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETMATERIAL
+  nameWithType: FIFOCommand.SETMATERIAL
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.SETRENDERSTATE
   name: SETRENDERSTATE
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_FIFOCommand_SETRENDERSTATE
@@ -11772,6 +11919,48 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.Update
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.FIFOCommand.Update
   nameWithType: FIFOCommand.Update
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face
+  name: Face
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face
+  nameWithType: Face
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_BACK
+  name: SVGA3D_FACE_BACK
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_BACK
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_BACK
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_BACK
+  nameWithType: Face.SVGA3D_FACE_BACK
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT
+  name: SVGA3D_FACE_FRONT
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_FRONT
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT
+  nameWithType: Face.SVGA3D_FACE_FRONT
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT_BACK
+  name: SVGA3D_FACE_FRONT_BACK
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_FRONT_BACK
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT_BACK
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_FRONT_BACK
+  nameWithType: Face.SVGA3D_FACE_FRONT_BACK
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_INVALID
+  name: SVGA3D_FACE_INVALID
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_INVALID
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_INVALID
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_INVALID
+  nameWithType: Face.SVGA3D_FACE_INVALID
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_MAX
+  name: SVGA3D_FACE_MAX
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_MAX
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_MAX
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_MAX
+  nameWithType: Face.SVGA3D_FACE_MAX
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_NONE
+  name: SVGA3D_FACE_NONE
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_SVGA3D_FACE_NONE
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_NONE
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.SVGA3D_FACE_NONE
+  nameWithType: Face.SVGA3D_FACE_NONE
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ID
   name: ID
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ID.html
@@ -11838,6 +12027,48 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.IOPortOffset.Value
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.IOPortOffset.Value
   nameWithType: IOPortOffset.Value
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType
+  name: LightType
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType
+  nameWithType: LightType
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_DIRECTIONAL
+  name: SVGA3D_LIGHTTYPE_DIRECTIONAL
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_DIRECTIONAL
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_DIRECTIONAL
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_DIRECTIONAL
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_DIRECTIONAL
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_INVALID
+  name: SVGA3D_LIGHTTYPE_INVALID
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_INVALID
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_INVALID
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_INVALID
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_INVALID
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_MAX
+  name: SVGA3D_LIGHTTYPE_MAX
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_MAX
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_MAX
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_MAX
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_MAX
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_POINT
+  name: SVGA3D_LIGHTTYPE_POINT
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_POINT
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_POINT
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_POINT
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_POINT
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT1
+  name: SVGA3D_LIGHTTYPE_SPOT1
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_SPOT1
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT1
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT1
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_SPOT1
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT2
+  name: SVGA3D_LIGHTTYPE_SPOT2
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_LightType_SVGA3D_LIGHTTYPE_SPOT2
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT2
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.SVGA3D_LIGHTTYPE_SPOT2
+  nameWithType: LightType.SVGA3D_LIGHTTYPE_SPOT2
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Register
   name: Register
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Register.html
@@ -12366,6 +12597,30 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDefineSurface.sid
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDefineSurface.sid
   nameWithType: SVGA3dCmdDefineSurface.sid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader
+  name: SVGA3dCmdDestroyShader
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader
+  nameWithType: SVGA3dCmdDestroyShader
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.cid
+  name: cid
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdDestroyShader_cid
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.cid
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.cid
+  nameWithType: SVGA3dCmdDestroyShader.cid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.shid
+  name: shid
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdDestroyShader_shid
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.shid
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.shid
+  nameWithType: SVGA3dCmdDestroyShader.shid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.type
+  name: type
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdDestroyShader_type
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.type
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.type
+  nameWithType: SVGA3dCmdDestroyShader.type
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDrawPrimitives
   name: SVGA3dCmdDrawPrimitives
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDrawPrimitives.html
@@ -12420,6 +12675,78 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdPresent.sid
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdPresent.sid
   nameWithType: SVGA3dCmdPresent.sid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData
+  name: SVGA3dCmdSetLightData
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData
+  nameWithType: SVGA3dCmdSetLightData
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.cid
+  name: cid
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightData_cid
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.cid
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.cid
+  nameWithType: SVGA3dCmdSetLightData.cid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.data
+  name: data
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightData_data
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.data
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.data
+  nameWithType: SVGA3dCmdSetLightData.data
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.index
+  name: index
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightData_index
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.index
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.index
+  nameWithType: SVGA3dCmdSetLightData.index
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled
+  name: SVGA3dCmdSetLightEnabled
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled
+  nameWithType: SVGA3dCmdSetLightEnabled
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.cid
+  name: cid
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightEnabled_cid
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.cid
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.cid
+  nameWithType: SVGA3dCmdSetLightEnabled.cid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.enabled
+  name: enabled
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightEnabled_enabled
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.enabled
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.enabled
+  nameWithType: SVGA3dCmdSetLightEnabled.enabled
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.index
+  name: index
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetLightEnabled_index
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.index
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.index
+  nameWithType: SVGA3dCmdSetLightEnabled.index
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial
+  name: SVGA3dCmdSetMaterial
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial
+  nameWithType: SVGA3dCmdSetMaterial
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.cid
+  name: cid
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetMaterial_cid
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.cid
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.cid
+  nameWithType: SVGA3dCmdSetMaterial.cid
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.face
+  name: face
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetMaterial_face
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.face
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.face
+  nameWithType: SVGA3dCmdSetMaterial.face
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.material
+  name: material
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dCmdSetMaterial_material
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.material
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.material
+  nameWithType: SVGA3dCmdSetMaterial.material
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetRenderState
   name: SVGA3dCmdSetRenderState
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetRenderState.html
@@ -12990,6 +13317,120 @@ references:
   commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dGuestImage.ptr
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dGuestImage.ptr
   nameWithType: SVGA3dGuestImage.ptr
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData
+  name: SVGA3dLightData
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData
+  nameWithType: SVGA3dLightData
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.ambient
+  name: ambient
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_ambient
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.ambient
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.ambient
+  nameWithType: SVGA3dLightData.ambient
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.attenuation
+  name: attenuation
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_attenuation
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.attenuation
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.attenuation
+  nameWithType: SVGA3dLightData.attenuation
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.diffuse
+  name: diffuse
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_diffuse
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.diffuse
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.diffuse
+  nameWithType: SVGA3dLightData.diffuse
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.direction
+  name: direction
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_direction
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.direction
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.direction
+  nameWithType: SVGA3dLightData.direction
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.falloff
+  name: falloff
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_falloff
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.falloff
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.falloff
+  nameWithType: SVGA3dLightData.falloff
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.inWorldSpace
+  name: inWorldSpace
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_inWorldSpace
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.inWorldSpace
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.inWorldSpace
+  nameWithType: SVGA3dLightData.inWorldSpace
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.phi
+  name: phi
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_phi
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.phi
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.phi
+  nameWithType: SVGA3dLightData.phi
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.position
+  name: position
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_position
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.position
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.position
+  nameWithType: SVGA3dLightData.position
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.range
+  name: range
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_range
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.range
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.range
+  nameWithType: SVGA3dLightData.range
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.specular
+  name: specular
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_specular
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.specular
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.specular
+  nameWithType: SVGA3dLightData.specular
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.theta
+  name: theta
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_theta
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.theta
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.theta
+  nameWithType: SVGA3dLightData.theta
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.type
+  name: type
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_type
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.type
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.type
+  nameWithType: SVGA3dLightData.type
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial
+  name: SVGA3dMaterial
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html
+  commentId: T:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial
+  nameWithType: SVGA3dMaterial
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.ambient
+  name: ambient
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_ambient
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.ambient
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.ambient
+  nameWithType: SVGA3dMaterial.ambient
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.diffuse
+  name: diffuse
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_diffuse
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.diffuse
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.diffuse
+  nameWithType: SVGA3dMaterial.diffuse
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.emissive
+  name: emissive
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_emissive
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.emissive
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.emissive
+  nameWithType: SVGA3dMaterial.emissive
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.shininess
+  name: shininess
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_shininess
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.shininess
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.shininess
+  nameWithType: SVGA3dMaterial.shininess
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.specular
+  name: specular
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_specular
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.specular
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.specular
+  nameWithType: SVGA3dMaterial.specular
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange
   name: SVGA3dPrimitiveRange
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange.html
@@ -15366,6 +15807,54 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DefineSurfaceFromImage
   nameWithType: VMWareSVGAII3D.DefineSurfaceFromImage
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext(System.UInt32)
+  name: DestroyContext(uint)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroyContext_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext(System.UInt32)
+  name.vb: DestroyContext(UInteger)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext(uint)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext(UInteger)
+  nameWithType: VMWareSVGAII3D.DestroyContext(uint)
+  nameWithType.vb: VMWareSVGAII3D.DestroyContext(UInteger)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext*
+  name: DestroyContext
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroyContext_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyContext
+  nameWithType: VMWareSVGAII3D.DestroyContext
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType)
+  name: DestroyShader(uint, uint, SVGA3dShaderType)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroyShader_System_UInt32_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dShaderType_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType)
+  name.vb: DestroyShader(UInteger, UInteger, SVGA3dShaderType)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader(uint, uint, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader(UInteger, UInteger, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dShaderType)
+  nameWithType: VMWareSVGAII3D.DestroyShader(uint, uint, SVGA3dShaderType)
+  nameWithType.vb: VMWareSVGAII3D.DestroyShader(UInteger, UInteger, SVGA3dShaderType)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader*
+  name: DestroyShader
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroyShader_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroyShader
+  nameWithType: VMWareSVGAII3D.DestroyShader
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface(System.UInt32)
+  name: DestroySurface(uint)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroySurface_System_UInt32_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface(System.UInt32)
+  name.vb: DestroySurface(UInteger)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface(uint)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface(UInteger)
+  nameWithType: VMWareSVGAII3D.DestroySurface(uint)
+  nameWithType.vb: VMWareSVGAII3D.DestroySurface(UInteger)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface*
+  name: DestroySurface
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DestroySurface_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DestroySurface
+  nameWithType: VMWareSVGAII3D.DestroySurface
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.DrawPrimitives(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dVertexDecl[],Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dPrimitiveRange[])
   name: DrawPrimitives(uint, SVGA3dVertexDecl[], SVGA3dPrimitiveRange[])
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_DrawPrimitives_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dVertexDecl___Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dPrimitiveRange___
@@ -15408,6 +15897,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Is3DEnabled
   nameWithType: VMWareSVGAII3D.Is3DEnabled
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer
+  name: PopDMABuffer()
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_PopDMABuffer
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer()
+  nameWithType: VMWareSVGAII3D.PopDMABuffer()
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer*
+  name: PopDMABuffer
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_PopDMABuffer_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.PopDMABuffer
+  nameWithType: VMWareSVGAII3D.PopDMABuffer
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.Present(Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dSurfaceImageId,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRect)
   name: Present(SVGA3dSurfaceImageId, SVGA3dRect)
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_Present_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dSurfaceImageId_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRect_
@@ -15482,6 +15984,54 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetDepthRange
   nameWithType: VMWareSVGAII3D.SetDepthRange
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData)
+  name: SetLightData(uint, uint, SVGA3dLightData)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetLightData_System_UInt32_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dLightData_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData(System.UInt32,System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData)
+  name.vb: SetLightData(UInteger, UInteger, SVGA3dLightData)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData(uint, uint, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData(UInteger, UInteger, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData)
+  nameWithType: VMWareSVGAII3D.SetLightData(uint, uint, SVGA3dLightData)
+  nameWithType.vb: VMWareSVGAII3D.SetLightData(UInteger, UInteger, SVGA3dLightData)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData*
+  name: SetLightData
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetLightData_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightData
+  nameWithType: VMWareSVGAII3D.SetLightData
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable(System.UInt32,System.UInt32,System.Boolean)
+  name: SetLightEnable(uint, uint, bool)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetLightEnable_System_UInt32_System_UInt32_System_Boolean_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable(System.UInt32,System.UInt32,System.Boolean)
+  name.vb: SetLightEnable(UInteger, UInteger, Boolean)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable(uint, uint, bool)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable(UInteger, UInteger, Boolean)
+  nameWithType: VMWareSVGAII3D.SetLightEnable(uint, uint, bool)
+  nameWithType.vb: VMWareSVGAII3D.SetLightEnable(UInteger, UInteger, Boolean)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable*
+  name: SetLightEnable
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetLightEnable_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetLightEnable
+  nameWithType: VMWareSVGAII3D.SetLightEnable
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial)
+  name: SetMaterial(uint, Face, SVGA3dMaterial)
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetMaterial_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_Face_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dMaterial_
+  commentId: M:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial)
+  name.vb: SetMaterial(UInteger, Face, SVGA3dMaterial)
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial(uint, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial)
+  fullName.vb: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial(UInteger, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face, Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial)
+  nameWithType: VMWareSVGAII3D.SetMaterial(uint, Face, SVGA3dMaterial)
+  nameWithType.vb: VMWareSVGAII3D.SetMaterial(UInteger, Face, SVGA3dMaterial)
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial*
+  name: SetMaterial
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetMaterial_
+  commentId: Overload:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial
+  isSpec: "True"
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetMaterial
+  nameWithType: VMWareSVGAII3D.SetMaterial
 - uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.SetRenderState(System.UInt32,Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dRenderState[])
   name: SetRenderState(uint, SVGA3dRenderState[])
   href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D_SetRenderState_System_UInt32_Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_SVGA3dRenderState___
@@ -15607,6 +16157,12 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.TestDebugBuffer
   nameWithType: VMWareSVGAII3D.TestDebugBuffer
+- uid: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D._lastDMASize
+  name: _lastDMASize
+  href: api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D.html#Cosmos_Kernel_HAL_Devices_Graphic_SVGAII_VMWareSVGAII3D__lastDMASize
+  commentId: F:Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D._lastDMASize
+  fullName: Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D._lastDMASize
+  nameWithType: VMWareSVGAII3D._lastDMASize
 - uid: Cosmos.Kernel.HAL.Devices.Input
   name: Cosmos.Kernel.HAL.Devices.Input
   href: api/Cosmos.Kernel.HAL.Devices.Input.html
@@ -30288,22 +30844,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawArray
   nameWithType: SVGAII3DCanvas.DrawArray
-- uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar(System.Char,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)
-  name: DrawChar(char, Font, Color, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_DrawChar_System_Char_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar(System.Char,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)
-  name.vb: DrawChar(Char, Font, Color, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar(char, Cosmos.Kernel.System.Graphics.Fonts.Font, System.Drawing.Color, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar(Char, Cosmos.Kernel.System.Graphics.Fonts.Font, System.Drawing.Color, Integer, Integer)
-  nameWithType: SVGAII3DCanvas.DrawChar(char, Font, Color, int, int)
-  nameWithType.vb: SVGAII3DCanvas.DrawChar(Char, Font, Color, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar*
-  name: DrawChar
-  href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_DrawChar_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawChar
-  nameWithType: SVGAII3DCanvas.DrawChar
 - uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawFilledRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)
   name: DrawFilledRectangle(Color, int, int, int, int, bool)
   href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_
@@ -30386,22 +30926,6 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawRectangle
   nameWithType: SVGAII3DCanvas.DrawRectangle
-- uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)
-  name: DrawString(string, Font, Color, int, int)
-  href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_
-  commentId: M:Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)
-  name.vb: DrawString(String, Font, Color, Integer, Integer)
-  fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString(string, Cosmos.Kernel.System.Graphics.Fonts.Font, System.Drawing.Color, int, int)
-  fullName.vb: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString(String, Cosmos.Kernel.System.Graphics.Fonts.Font, System.Drawing.Color, Integer, Integer)
-  nameWithType: SVGAII3DCanvas.DrawString(string, Font, Color, int, int)
-  nameWithType.vb: SVGAII3DCanvas.DrawString(String, Font, Color, Integer, Integer)
-- uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString*
-  name: DrawString
-  href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_DrawString_
-  commentId: Overload:Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString
-  isSpec: "True"
-  fullName: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawString
-  nameWithType: SVGAII3DCanvas.DrawString
 - uid: Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Driver
   name: Driver
   href: api/Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html#Cosmos_Kernel_System_Graphics_SVGAII3DCanvas_Driver
@@ -33324,6 +33848,15 @@ references:
   fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.New(Byte(), Integer)
   nameWithType: Address.Address(byte[], int)
   nameWithType.vb: Address.New(Byte(), Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.#ctor(System.ReadOnlySpan{System.Byte})
+  name: Address(ReadOnlySpan<byte>)
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address__ctor_System_ReadOnlySpan_System_Byte__
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.#ctor(System.ReadOnlySpan{System.Byte})
+  name.vb: New(ReadOnlySpan(Of Byte))
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Address(System.ReadOnlySpan<byte>)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.New(System.ReadOnlySpan(Of Byte))
+  nameWithType: Address.Address(ReadOnlySpan<byte>)
+  nameWithType.vb: Address.New(ReadOnlySpan(Of Byte))
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.#ctor(System.UInt32)
   name: Address(uint)
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address__ctor_System_UInt32_
@@ -33365,15 +33898,15 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress
   nameWithType: Address.CIDRToAddress
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(System.Object)
-  name: CompareTo(object?)
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_CompareTo_System_Object_
-  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(System.Object)
-  name.vb: CompareTo(Object)
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(object?)
-  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Object)
-  nameWithType: Address.CompareTo(object?)
-  nameWithType.vb: Address.CompareTo(Object)
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Cosmos.Kernel.System.Network.IPv4.Address)
+  name: CompareTo(Address?)
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_CompareTo_Cosmos_Kernel_System_Network_IPv4_Address_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Cosmos.Kernel.System.Network.IPv4.Address)
+  name.vb: CompareTo(Address)
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Cosmos.Kernel.System.Network.IPv4.Address?)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo(Cosmos.Kernel.System.Network.IPv4.Address)
+  nameWithType: Address.CompareTo(Address?)
+  nameWithType.vb: Address.CompareTo(Address)
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo*
   name: CompareTo
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_CompareTo_
@@ -33410,19 +33943,19 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.GetHashCode
   nameWithType: Address.GetHashCode
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.Hash
-  name: Hash
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Hash
-  commentId: P:Cosmos.Kernel.System.Network.IPv4.Address.Hash
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Hash
-  nameWithType: Address.Hash
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.Hash*
-  name: Hash
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Hash_
-  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.Address.Hash
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Id
+  name: Id
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Id
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.Address.Id
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Id
+  nameWithType: Address.Id
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Id*
+  name: Id
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Id_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.Address.Id
   isSpec: "True"
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Hash
-  nameWithType: Address.Hash
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Id
+  nameWithType: Address.Id
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.IsAPIPA
   name: IsAPIPA()
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_IsAPIPA
@@ -33488,15 +34021,15 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.IsLoopbackAddress
   nameWithType: Address.IsLoopbackAddress
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.String)
-  name: Parse(string)
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Parse_System_String_
-  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.String)
-  name.vb: Parse(String)
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Parse(string)
-  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.Parse(String)
-  nameWithType: Address.Parse(string)
-  nameWithType.vb: Address.Parse(String)
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan{System.Char})
+  name: Parse(ReadOnlySpan<char>)
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Parse_System_ReadOnlySpan_System_Char__
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan{System.Char})
+  name.vb: Parse(ReadOnlySpan(Of Char))
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan<char>)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan(Of Char))
+  nameWithType: Address.Parse(ReadOnlySpan<char>)
+  nameWithType.vb: Address.Parse(ReadOnlySpan(Of Char))
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.Parse*
   name: Parse
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Parse_
@@ -33504,19 +34037,32 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.Parse
   nameWithType: Address.Parse
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray
-  name: ToByteArray()
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_ToByteArray
-  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray()
-  nameWithType: Address.ToByteArray()
-- uid: Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray*
-  name: ToByteArray
-  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_ToByteArray_
-  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Parts
+  name: Parts
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Parts
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.Address.Parts
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Parts
+  nameWithType: Address.Parts
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Parts*
+  name: Parts
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Parts_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.Address.Parts
   isSpec: "True"
-  fullName: Cosmos.Kernel.System.Network.IPv4.Address.ToByteArray
-  nameWithType: Address.ToByteArray
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Parts
+  nameWithType: Address.Parts
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.ToSpan
+  name: ToSpan()
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_ToSpan
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.ToSpan
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.ToSpan()
+  nameWithType: Address.ToSpan()
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.ToSpan*
+  name: ToSpan
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_ToSpan_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.Address.ToSpan
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.ToSpan
+  nameWithType: Address.ToSpan
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.ToString
   name: ToString()
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_ToString
@@ -34413,31 +34959,54 @@ references:
   commentId: T:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp
   nameWithType: Tcp
-- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)
-  name: Tcp(ushort, ushort, Address, Address)
-  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp__ctor_System_UInt16_System_UInt16_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_
-  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)
-  name.vb: New(UShort, UShort, Address, Address)
-  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Tcp(ushort, ushort, Cosmos.Kernel.System.Network.IPv4.Address, Cosmos.Kernel.System.Network.IPv4.Address)
-  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.New(UShort, UShort, Cosmos.Kernel.System.Network.IPv4.Address, Cosmos.Kernel.System.Network.IPv4.Address)
-  nameWithType: Tcp.Tcp(ushort, ushort, Address, Address)
-  nameWithType.vb: Tcp.New(UShort, UShort, Address, Address)
-- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor*
-  name: Tcp
-  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp__ctor_
-  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset(System.Int32)
+  name: AdvanceDataOffset(int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AdvanceDataOffset_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset(System.Int32)
+  name.vb: AdvanceDataOffset(Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset(int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset(Integer)
+  nameWithType: Tcp.AdvanceDataOffset(int)
+  nameWithType.vb: Tcp.AdvanceDataOffset(Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset*
+  name: AdvanceDataOffset
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AdvanceDataOffset_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset
   isSpec: "True"
-  name.vb: New
-  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Tcp
-  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.New
-  nameWithType: Tcp.Tcp
-  nameWithType.vb: Tcp.New
-- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Connections
-  name: Connections
-  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Connections
-  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Connections
-  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Connections
-  nameWithType: Tcp.Connections
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset
+  nameWithType: Tcp.AdvanceDataOffset
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData(System.ReadOnlySpan{System.Byte},System.Int32,System.Int32,System.Int32)
+  name: AssignData(ReadOnlySpan<byte>, int, int, int)
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AssignData_System_ReadOnlySpan_System_Byte__System_Int32_System_Int32_System_Int32_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData(System.ReadOnlySpan{System.Byte},System.Int32,System.Int32,System.Int32)
+  name.vb: AssignData(ReadOnlySpan(Of Byte), Integer, Integer, Integer)
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData(System.ReadOnlySpan<byte>, int, int, int)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData(System.ReadOnlySpan(Of Byte), Integer, Integer, Integer)
+  nameWithType: Tcp.AssignData(ReadOnlySpan<byte>, int, int, int)
+  nameWithType.vb: Tcp.AssignData(ReadOnlySpan(Of Byte), Integer, Integer, Integer)
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData*
+  name: AssignData
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AssignData_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData
+  nameWithType: Tcp.AssignData
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)
+  name: CreateConnection(ushort, ushort, Address, Address)
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_CreateConnection_System_UInt16_System_UInt16_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)
+  name.vb: CreateConnection(UShort, UShort, Address, Address)
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection(ushort, ushort, Cosmos.Kernel.System.Network.IPv4.Address, Cosmos.Kernel.System.Network.IPv4.Address)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection(UShort, UShort, Cosmos.Kernel.System.Network.IPv4.Address, Cosmos.Kernel.System.Network.IPv4.Address)
+  nameWithType: Tcp.CreateConnection(ushort, ushort, Address, Address)
+  nameWithType.vb: Tcp.CreateConnection(UShort, UShort, Address, Address)
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection*
+  name: CreateConnection
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_CreateConnection_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection
+  nameWithType: Tcp.CreateConnection
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Data
   name: Data
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Data
@@ -34454,9 +35023,29 @@ references:
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
   name: Detached
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached
-  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
   nameWithType: Tcp.Detached
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached*
+  name: Detached
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached
+  nameWithType: Tcp.Detached
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose
+  name: Dispose()
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Dispose
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose()
+  nameWithType: Tcp.Dispose()
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose*
+  name: Dispose
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Dispose_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose
+  isSpec: "True"
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose
+  nameWithType: Tcp.Dispose
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.DynamicPortStart
   name: DynamicPortStart
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_DynamicPortStart
@@ -34482,7 +35071,14 @@ references:
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
   name: LocalEndPoint
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_LocalEndPoint
-  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
+  nameWithType: Tcp.LocalEndPoint
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint*
+  name: LocalEndPoint
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_LocalEndPoint_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
+  isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint
   nameWithType: Tcp.LocalEndPoint
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.ProcessCloseWait(Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket)
@@ -34592,7 +35188,14 @@ references:
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
   name: RemoteEndPoint
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_RemoteEndPoint
-  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
+  nameWithType: Tcp.RemoteEndPoint
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint*
+  name: RemoteEndPoint
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_RemoteEndPoint_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
+  isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint
   nameWithType: Tcp.RemoteEndPoint
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoveConnection(Cosmos.Kernel.System.Network.IPv4.TCP.Tcp)
@@ -34633,7 +35236,14 @@ references:
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
   name: Status
   href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Status
-  commentId: F:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
+  commentId: P:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
+  fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
+  nameWithType: Tcp.Status
+- uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status*
+  name: Status
+  href: api/Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Status_
+  commentId: Overload:Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
+  isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status
   nameWithType: Tcp.Status
 - uid: Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.TCB

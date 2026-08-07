@@ -376,6 +376,34 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.yml\" sourcestartlinenumber=\"1\">Limine Stack Size request.\nAsks the bootloader to provide at least <xref href=\"Cosmos.Kernel.Boot.Limine.LimineStackSizeRequest.StackSize\" data-throw-if-not-resolved=\"false\"></xref> bytes of\nstack to the kernel entry point instead of the 64 KiB protocol default.\nThe boot stack hosts the whole main kernel thread, and\n<code>RuntimeHelpers.EnsureSufficientExecutionStack</code> requires stacks larger\nthan 128 KiB on 64-bit to ever succeed.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Boot.Limine.LimineStackSizeResponse",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Boot.Limine.yml",
       "output": {
         ".html": {
@@ -415,6 +443,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.Core.Bridge.AcpiPmNative",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Bridge.BootNative.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Bridge.BootNative.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Bridge.BootNative",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Bridge.BootNative.yml\" sourcestartlinenumber=\"1\">Native imports for boot-time facts recorded by the C bootstrap (kmain.c).</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1496,6 +1538,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.BootStack.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.Core.Runtime.BootStack.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.Core.Runtime.BootStack",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.Core.Runtime.BootStack.yml\" sourcestartlinenumber=\"1\">Bounds of the bootloader-provided stack that the boot/idle thread runs on.\nThe top is captured by kmain before any managed code executes; the size is\nthe Limine stack-size request when honored, else the 64 KiB protocol default.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.Core.Runtime.Cpu.yml",
       "output": {
         ".html": {
@@ -2448,6 +2504,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.Face.yml\" sourcestartlinenumber=\"1\">ID values.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.ID.yml",
       "output": {
         ".html": {
@@ -2473,6 +2543,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.IOPortOffset",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.IOPortOffset.yml\" sourcestartlinenumber=\"1\">IO port offset.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.LightType.yml\" sourcestartlinenumber=\"1\">ID values.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -2588,6 +2672,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDestroyShader",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdDrawPrimitives.yml",
       "output": {
         ".html": {
@@ -2626,6 +2724,48 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdPresent",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightData",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetLightEnabled",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dCmdSetMaterial",
       "Summary": null
     },
     {
@@ -2836,6 +2976,34 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dGuestImage",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dLightData",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SVGA3dMaterial",
       "Summary": null
     },
     {

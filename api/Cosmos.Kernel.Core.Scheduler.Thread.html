@@ -196,12 +196,16 @@ Class Thread
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Default stack size for new threads (64KB).</p>
+  <div class="markdown level1 summary"><p>Default stack size for new threads (256KB). Must stay above CoreLib's
+128KB MinExecutionStackSize (64-bit) or
+RuntimeHelpers.EnsureSufficientExecutionStack — called by generated
+record ToString/PrintMembers among others — throws
+InsufficientExecutionStackException on every call (#433).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public const nuint DefaultStackSize = 65536</code></pre>
+    <pre><code class="lang-csharp hljs">public const nuint DefaultStackSize = 262144</code></pre>
   </div>
 
 
@@ -709,7 +713,7 @@ After this call, the thread is ready to be scheduled.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void InitializeStack(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackSize = 65536)</code></pre>
+    <pre><code class="lang-csharp hljs">public void InitializeStack(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackSize = 262144)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>

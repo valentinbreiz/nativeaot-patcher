@@ -103,7 +103,7 @@ Handle received packets according to current TCP connection Status. Also contain
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class Tcp</code></pre>
+    <pre><code class="lang-csharp hljs">public class Tcp : IDisposable</code></pre>
   </div>
 
 
@@ -117,6 +117,12 @@ Handle received packets according to current TCP connection Status. Also contain
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
@@ -153,115 +159,8 @@ Handle received packets according to current TCP connection Status. Also contain
 </div>
 
 
-  <h2 class="section" id="constructors">Constructors
-</h2>
-
-
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp__ctor_System_UInt16_System_UInt16_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.#ctor(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)">
-  Tcp(ushort, ushort, Address, Address)
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Tcp(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>localPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-    <dt><code>remotePort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-    <dt><code>localIp</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
-    <dd></dd>
-    <dt><code>remoteIp</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <h2 class="section" id="fields">Fields
 </h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Connections" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Connections">
-  Connections
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>A list of currently active connections.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static List&lt;Tcp&gt; Connections</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html">Tcp</a>&gt;</dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached">
-  Detached
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Whether the connection has been detached from its owning socket:
-Close() already returned but the peer has not finished the FIN
-handshake yet. A detached state machine keeps processing packets in
-the background and is removed from <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html#Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Connections">Connections</a> as soon
-as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html#Cosmos_Kernel_System_Network_IPv4_TCP_Status_CLOSED">CLOSED</a>.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Detached</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
 
 
 
@@ -274,7 +173,7 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static ushort DynamicPortStart</code></pre>
+    <pre><code class="lang-csharp hljs">public static readonly ushort DynamicPortStart</code></pre>
   </div>
 
 
@@ -283,99 +182,6 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_LocalEndPoint" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint">
-  LocalEndPoint
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The local end-point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public EndPoint LocalEndPoint</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_RemoteEndPoint" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint">
-  RemoteEndPoint
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The remote end-point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public EndPoint RemoteEndPoint</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Status" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status">
-  Status
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The connection status.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Status Status</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html">Status</a></dt>
     <dd></dd>
   </dl>
 
@@ -460,12 +266,11 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The received data buffer.</p>
-</div>
+  <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte[]? Data { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public ReadOnlySpan&lt;byte&gt; Data { get; }</code></pre>
   </div>
 
 
@@ -474,7 +279,139 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Detached" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Detached">
+  Detached
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the connection has been detached from its owning socket:
+Close() already returned but the peer has not finished the FIN
+handshake yet. A detached state machine keeps processing packets in
+the background and is removed from <span class="xref">Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Connections</span> as soon
+as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html#Cosmos_Kernel_System_Network_IPv4_TCP_Status_CLOSED">CLOSED</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Detached { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_LocalEndPoint_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_LocalEndPoint" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.LocalEndPoint">
+  LocalEndPoint
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The local end-point.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EndPoint LocalEndPoint { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_RemoteEndPoint_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_RemoteEndPoint" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.RemoteEndPoint">
+  RemoteEndPoint
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The remote end-point.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EndPoint RemoteEndPoint { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Status_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Status" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Status">
+  Status
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The connection status.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Status Status { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html">Status</a></dt>
     <dd></dd>
   </dl>
 
@@ -497,7 +434,7 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public TransmissionControlBlock TCB { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public TransmissionControlBlock TCB { get; }</code></pre>
   </div>
 
 
@@ -519,6 +456,143 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
 
   <h2 class="section" id="methods">Methods
 </h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AdvanceDataOffset_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AdvanceDataOffset_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AdvanceDataOffset(System.Int32)">
+  AdvanceDataOffset(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AdvanceDataOffset(int offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AssignData_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_AssignData_System_ReadOnlySpan_System_Byte__System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.AssignData(System.ReadOnlySpan{System.Byte},System.Int32,System.Int32,System.Int32)">
+  AssignData(ReadOnlySpan&lt;byte&gt;, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void AssignData(ReadOnlySpan&lt;byte&gt; source, int offset, int count, int length)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_CreateConnection_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_CreateConnection_System_UInt16_System_UInt16_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.CreateConnection(System.UInt16,System.UInt16,Cosmos.Kernel.System.Network.IPv4.Address,Cosmos.Kernel.System.Network.IPv4.Address)">
+  CreateConnection(ushort, ushort, Address, Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Tcp CreateConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>localPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>remotePort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+    <dt><code>localIp</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+    <dt><code>remoteIp</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html">Tcp</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Dispose_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_Dispose" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.Dispose">
+  Dispose()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Dispose()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
 
 
   <a id="Cosmos_Kernel_System_Network_IPv4_TCP_Tcp_GetDynamicPort_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.GetDynamicPort*"></a>
@@ -826,7 +900,7 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RemoveConnection(Tcp connection)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool RemoveConnection(Tcp connection)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -835,6 +909,12 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
     <dd></dd>
   </dl>
 
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True when connection was removed, false when one was not found and removed.</p>
+</dd>
+  </dl>
 
 
 
@@ -858,7 +938,7 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RemoveConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool RemoveConnection(ushort localPort, ushort remotePort, Address localIp, Address remoteIp)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -873,6 +953,12 @@ as it reaches <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status
     <dd></dd>
   </dl>
 
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True when connection was removed, false when one was not found and removed.</p>
+</dd>
+  </dl>
 
 
 
