@@ -113,12 +113,13 @@ jobs:
 
       - name: 🚀 Run Tests
         run: dotnet test ./tests/Cosmos.Tests.Tools/Cosmos.Tests.Tools.csproj --no-build --configuration Debug --logger "trx;LogFileName=Cosmos.Tests.Tools.trx"
+        run: dotnet test ./tests/Cosmos.Tests.Tools/Cosmos.Tests.Tools.csproj --no-build --configuration Debug --results-directory ./TestResults --report-xunit-trx --report-xunit-trx-filename Cosmos.Tests.Tools.trx
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: Cosmos.Tests.Tools-Results
-          path: ./tests/Cosmos.Tests.Tools/TestResults/Cosmos.Tests.Tools.trx
+          path: ./TestResults/Cosmos.Tests.Tools.trx
 
   analyzer-tests:
     name: Run Cosmos.Tests.Build.Analyzer.Patcher
