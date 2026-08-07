@@ -52,14 +52,24 @@ public unsafe struct ThreadContext
     /// </summary>
     public const int Size = 256 + (15 * 8) + (3 * 8) + 8 + (5 * 8);  // XMM + GPRs + info + temp + full CPU frame
 
-    /// <summary>
+/// <summary>
     /// Sets up initial context for a new thread.
     /// </summary>
-    /// <param name="entryPoint">Thread entry point address.</param>
-    /// <param name="codeSegment">Code segment selector.</param>
+    /// <param name="entryPoint">Thread entry point function address.</param>
+    /// <param name="codeSegment">
+    /// Ignored when <paramref name="ring"/> is 3. Kept on the ring-0 path for
+    /// legacy callers that pass the running CS; new code should pass 0 and
+    /// let the ring select the selector.
+    /// </param>
     /// <param name="arg">Optional argument passed in RDI.</param>
     /// <param name="stackTop">Top of the usable stack (for RSP after iretq).</param>
-    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackTop = 0)
+    /// <param name="ring">
+    /// Privilege level: 0 = kernel (ring 0), 3 = user (ring 3). Ring-3 builds
+    /// a CPU frame the IRQ-stub exit path drops CPL with via iretq: CS=0x1B,
+    /// SS=0x23, RSP=<paramref name="stackTop"/>. Ring-0 keeps CS=0x08 and the
+    /// manual RSP+jmp exit path.
+    /// </param>
+    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackTop = 0, byte ring = 0)
     {
         // Clear everything
         R15 = R14 = R13 = R12 = R11 = R10 = R9 = R8 = 0;
@@ -72,13 +82,29 @@ public unsafe struct ThreadContext
 
         // Set up entry point and flags
         Rip = entryPoint;
-        Cs = codeSegment;
         Rflags = 0x202;  // IF=1 (interrupts enabled), bit 1 always set
 
         // Set up stack for the new thread
         // RSP should be 16-byte aligned, then 8 off for call convention
         Rsp = (stackTop & ~(nuint)0xF) - 8;  // Align and subtract 8 for call ABI
         Ss = 0;  // Unused
+
+        // Ring selection: ring-3 selectors must match the custom GDT installed
+        // by CPU/Gdt.s (0x1B user code, 0x23 user data). The IRQ stub exit
+        // path discriminates on CS RPL (see Interrupts.s .Lnew_thread_iretq):
+        // a ring-3 frame (CS.RPL=3, RSP/SS present) is returned from via
+        // iretq, dropping CPL; a ring-0 frame uses the manual RSP+jmp path.
+        if (ring == 3)
+        {
+            Cs = 0x1B;  // ring-3 64-bit code selector (RPL=3)
+            Ss = 0x23;  // ring-3 64-bit data selector
+        }
+        else
+        {
+            Cs = codeSegment == 0 ? (ushort)0x08 : codeSegment;
+            // Ss stays 0 - the ring-0 exit path pops RIP/CS/RFLAGS only and
+            // loads RSP separately, so SS is never consumed.
+        }
 
         // Set RBP to 0 (clean frame pointer for new thread)
         Rbp = 0;

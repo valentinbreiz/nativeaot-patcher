@@ -4,9 +4,11 @@ using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
+using Cosmos.Kernel.Core.Memory.VAS;
 using Cosmos.Kernel.Core.Runtime;
 using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.Core.Scheduler.Stride;
+using Cosmos.Kernel.Core.SysCalls;
 using Cosmos.Kernel.HAL;
 using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Devices.Virtio;
@@ -41,6 +43,14 @@ namespace Internal.Runtime.CompilerHelpers
             // Initialize platform-specific HAL
             Serial.WriteString("[KERNEL]   - Initializing HAL...\n");
             PlatformHAL.Initialize(initializer);
+
+            // Capture the kernel address space from the bootloader page tables.
+            // Only needed when paging/user-land features are enabled.
+            if (CosmosFeatures.PagingEnabled || CosmosFeatures.UserLandEnabled)
+            {
+                Serial.WriteString("[KERNEL]   - Capturing kernel address space...\n");
+                AddressSpace.InitializeKernelSpace();
+            }
 
             // Initialize interrupts (skipped if CosmosEnableInterrupts=false)
             if (InterruptManager.IsEnabled)
@@ -82,6 +92,19 @@ namespace Internal.Runtime.CompilerHelpers
                     Serial.WriteString("[KERNEL]   - Initializing NVMe...\n");
                     Nvme.Initialize();
                 }
+            }
+
+            // Arm the syscall dispatch surface (gated by CosmosEnableSysCalls,
+            // which only fires when UserLand is on). Allocate the handler table
+            // first, then let the platform initializer wire the arch trap
+            // (x64 SYSCALL MSRs / per-CPU GS block; ARM64 SVC is routed by the
+            // exception vectors already installed above). Done after the
+            // interrupt/exception vectors are up so ARM64 SVC can fire.
+            if (CosmosFeatures.SysCallsEnabled)
+            {
+                Serial.WriteString("[KERNEL]   - Initializing syscall dispatch...\n");
+                SysCallDispatcher.Initialize();
+                initializer.InitializeSysCalls();
             }
         }
     }

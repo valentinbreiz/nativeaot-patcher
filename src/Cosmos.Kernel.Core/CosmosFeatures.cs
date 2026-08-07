@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.Core.Bridge.Export;
 
 namespace Cosmos.Kernel.Core;
 
@@ -65,6 +66,34 @@ public static class CosmosFeatures
     [FeatureSwitchDefinition("Cosmos.Kernel.Core.Scheduler.Enabled")]
     public static bool SchedulerEnabled =>
         AppContext.TryGetSwitch("Cosmos.Kernel.Core.Scheduler.Enabled", out bool enabled) ? enabled : true;
+
+    /// <summary>
+    /// Controls kernel-owned paging and virtual address spaces.
+    /// Set via CosmosEnablePaging property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.Paging.Enabled")]
+    public static bool PagingEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.Paging.Enabled", out bool enabled) ? enabled : false;
+
+    /// <summary>
+    /// Controls ring-0 user land process support.
+    /// Set via CosmosEnableUserLand property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.UserLand.Enabled")]
+    public static bool UserLandEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.UserLand.Enabled", out bool enabled) ? enabled : false;
+
+    /// <summary>
+    /// Controls the kernel-side syscall dispatch surface (the
+    /// <see cref="SysCallNative"/> entry, the handler table, and
+    /// the trap-stub wiring it drives). Requires UserLand to actually
+    /// receive traps — when UserLand is off this defaults to false so ILC
+    /// trims the entire subsystem away. Set via CosmosEnableSysCalls
+    /// property in csproj.
+    /// </summary>
+    [FeatureSwitchDefinition("Cosmos.Kernel.Core.SysCalls.Enabled")]
+    public static bool SysCallsEnabled =>
+        AppContext.TryGetSwitch("Cosmos.Kernel.Core.SysCalls.Enabled", out bool enabled) ? enabled : false;
 
     /// <summary>
     /// Controls graphics support initialization.

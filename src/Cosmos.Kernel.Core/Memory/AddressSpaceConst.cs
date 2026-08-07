@@ -5,7 +5,7 @@ namespace Cosmos.Kernel.Core.Memory;
 /// <summary>
 /// Virtual address-space layout constants shared across the kernel.
 /// </summary>
-public static class AddressSpace
+public static class AddressSpaceConst
 {
     /// <summary>
     /// Lowest canonical higher-half address (48-bit virtual addressing) — the start of
