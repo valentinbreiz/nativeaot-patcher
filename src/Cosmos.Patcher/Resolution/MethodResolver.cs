@@ -1,3 +1,4 @@
+using Cosmos.Patcher.Debug;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 
@@ -66,7 +67,7 @@ public class MethodResolver
         }
 
         _log.Warn($"No matching constructor found for {plugMethod.FullName}");
-        LogPlugParameters(plugMethod);
+        _log.Debug($"Plug parameters: {DebugHelpers.FormatParameters(plugMethod.Parameters)}");
         return null;
     }
 
@@ -100,7 +101,7 @@ public class MethodResolver
 
         _log.Warn($"Target method not found: {targetMethodName}");
         _log.Debug($"Expected parameters: {expectedParamCount}");
-        LogExpectedParameterTypes(plugMethod, isInstance);
+        _log.Debug($"Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstance ? 1 : 0).Select(p => p.ParameterType.FullName))}");
         return null;
     }
 
@@ -123,22 +124,6 @@ public class MethodResolver
     }
 
     /// <summary>
-    /// Logs the plug method's parameters for debugging.
-    /// </summary>
-    private void LogPlugParameters(MethodDefinition plugMethod)
-    {
-        _log.Debug($"Plug parameters: {string.Join(", ", plugMethod.Parameters.Select(p => p.ParameterType + " " + p.Name))}");
-    }
-
-    /// <summary>
-    /// Logs the expected parameter types for debugging.
-    /// </summary>
-    private void LogExpectedParameterTypes(MethodDefinition plugMethod, bool isInstance)
-    {
-        _log.Debug($"Expected parameter types: {string.Join(", ", plugMethod.Parameters.Skip(isInstance ? 1 : 0).Select(p => p.ParameterType.FullName))}");
-    }
-
-    /// <summary>
     /// Dumps all overloads of a method for debugging purposes.
     /// </summary>
     public void DumpOverloads(TypeDefinition targetType, string methodName, MethodDefinition plugMethod)
@@ -148,32 +133,19 @@ public class MethodResolver
 
         _log.Debug($"Available overloads in type: {targetType.FullName}, name: {methodName}");
 
-        var overloads = targetType.Methods.Where(m => m.Name == methodName).ToArray();
+        MethodDefinition[] overloads = targetType.Methods.Where(m => m.Name == methodName).ToArray();
         if (overloads.Length == 0)
         {
             _log.Debug("  (none)");
             return;
         }
 
-        foreach (var m in overloads)
+        foreach (MethodDefinition? m in overloads)
         {
             bool countOk = m.Parameters.Count == expectedCount;
             bool instOk = !isInstancePlug || !m.IsStatic;
-            string signature = FormatMethodSignature(m);
+            string signature = DebugHelpers.FormatMethodSignature(m);
             _log.Debug($"  - {signature}  [params:{m.Parameters.Count} {(countOk ? "OK" : "NO")}, instance:{(!m.IsStatic)} {(instOk ? "OK" : "NO")}]");
         }
-    }
-
-    /// <summary>
-    /// Formats a method signature for display.
-    /// </summary>
-    public static string FormatMethodSignature(MethodDefinition m)
-    {
-        string owner = m.DeclaringType?.FullName ?? "?";
-        string ret = m.ReturnType?.FullName ?? "void";
-        string name = m.IsConstructor ? (m.IsStatic ? ".cctor" : ".ctor") : m.Name;
-        string inst = m.IsStatic ? "static" : "instance";
-        string parameters = "(" + string.Join(", ", m.Parameters.Select(p => p.ParameterType?.FullName ?? "?")) + ")";
-        return $"{inst} {ret} {owner}::{name}{parameters}";
     }
 }

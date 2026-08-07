@@ -19,12 +19,20 @@ public static class GICv3
     private const ulong QemuVirtGicrBase = 0x080A0000;
 
     // Default QEMU virt machine GICv3 base addresses (overridable via Configure)
-    private static ulong _gicDistBase = GIC.QemuVirtGicdBase;
-    private static ulong _gicReDistBase = QemuVirtGicrBase;
+    private static ulong s_gicDistBase = GIC.QemuVirtGicdBase;
+    private static ulong s_gicReDistBase = QemuVirtGicrBase;
 
     // Discovered redistributor base for the current CPU (found by TYPER walk)
-    private static ulong _currentCpuRdBase;
-    private static ulong _currentCpuSgiBase;
+    private static ulong s_currentCpuRdBase;
+    private static ulong s_currentCpuSgiBase;
+
+    /// <summary>
+    /// Physical address field (bits [51:12], 4 KiB aligned) shared by GITS_CBASER and
+    /// GICR_PROPBASER (ARM IHI 0069G §11.10). Not valid for GICR_PENDBASER (bits [51:16])
+    /// or GITS_BASER (bits [47:12]), which keep their own masks.
+    /// Internal: shared with the ITS and LPI configuration code.
+    /// </summary>
+    internal const ulong BASER_PHYS_ADDR_MASK = 0x000FFFFFFFFFF000UL;
 
     // Distributor registers (offsets from GICD_BASE)
     private const uint GICD_CTLR = 0x000;        // Distributor Control
@@ -125,26 +133,26 @@ public static class GICv3
     /// <summary>Spin iterations allowed for GICD_CTLR.RWP to clear after a distributor write.</summary>
     private const uint RwpTimeoutIterations = 1000000;
 
-    private static bool _initialized;
-    private static bool _mmioAvailable;
+    private static bool s_initialized;
+    private static bool s_mmioAvailable;
 
     /// <summary>
     /// Whether the GICv3 has been initialized.
     /// </summary>
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_initialized;
 
     /// <summary>
     /// Whether GICD/GICR MMIO is accessible. False on devices where
     /// the GIC bus doesn't respond (e.g., Qualcomm wearable SoCs).
     /// </summary>
-    public static bool IsMmioAvailable => _mmioAvailable;
+    public static bool IsMmioAvailable => s_mmioAvailable;
 
     /// <summary>
     /// RD_base of the redistributor for the current (boot) CPU, discovered
     /// via TYPER walk. Exposed so the LPI / ITS drivers can program
     /// PROPBASER/PENDBASER and the ITS collection-mapping target.
     /// </summary>
-    public static ulong CurrentCpuRdBase => _currentCpuRdBase;
+    public static ulong CurrentCpuRdBase => s_currentCpuRdBase;
 
     /// <summary>
     /// Configures the GICv3 base addresses. Must be called before Initialize()
@@ -158,8 +166,8 @@ public static class GICv3
     /// <param name="redistBase">GICR base address (virtual).</param>
     public static void Configure(ulong distBase, ulong redistBase)
     {
-        _gicDistBase = distBase;
-        _gicReDistBase = redistBase;
+        s_gicDistBase = distBase;
+        s_gicReDistBase = redistBase;
         Serial.Write("[GIC] Configured GICD=0x");
         Serial.WriteHex(distBase);
         Serial.Write(" GICR=0x");
@@ -179,9 +187,9 @@ public static class GICv3
     {
         Serial.Write("[GIC] Initializing GICv3...\n");
         Serial.Write("[GIC] GICD base: 0x");
-        Serial.WriteHex(_gicDistBase);
+        Serial.WriteHex(s_gicDistBase);
         Serial.Write(" GICR base: 0x");
-        Serial.WriteHex(_gicReDistBase);
+        Serial.WriteHex(s_gicReDistBase);
         Serial.Write("\n");
 
         // Step 1: Enable system register access (critical for real hardware)
@@ -190,11 +198,11 @@ public static class GICv3
         if (sysregOnly)
         {
             Serial.Write("[GIC] Sysreg-only mode: skipping GICD/GICR MMIO\n");
-            _mmioAvailable = false;
+            s_mmioAvailable = false;
             InitializeSysregOnly();
             return;
         }
-        _mmioAvailable = true;
+        s_mmioAvailable = true;
 
         // Step 3: Read GIC type to get number of interrupt lines
         uint typer = ReadDistributor(GICD_TYPER);
@@ -270,15 +278,15 @@ public static class GICv3
         {
             Serial.Write("[GIC] WARNING: Failed to find redistributor, trying index 0\n");
             // Fallback: assume first redistributor
-            _currentCpuRdBase = _gicReDistBase;
-            _currentCpuSgiBase = _gicReDistBase + GICR_SGI_OFFSET;
-            InitializeRedistributorAt(_currentCpuRdBase, _currentCpuSgiBase);
+            s_currentCpuRdBase = s_gicReDistBase;
+            s_currentCpuSgiBase = s_gicReDistBase + GICR_SGI_OFFSET;
+            InitializeRedistributorAt(s_currentCpuRdBase, s_currentCpuSgiBase);
         }
 
         // Step 9: Initialize CPU interface via system registers
         InitializeCpuInterface();
 
-        _initialized = true;
+        s_initialized = true;
         Serial.Write("[GIC] GICv3 initialized (full MMIO)\n");
     }
 
@@ -299,7 +307,7 @@ public static class GICv3
         // We just need to set up the CPU interface for our EL1 context.
         InitializeCpuInterface();
 
-        _initialized = true;
+        s_initialized = true;
         Serial.Write("[GIC] GICv3 initialized (sysreg-only)\n");
     }
 
@@ -360,7 +368,7 @@ public static class GICv3
     private static bool FindAndInitRedistributor(ulong mpidr)
     {
         ulong cpuAff = ExtractAffinity(mpidr);
-        ulong rdBase = _gicReDistBase;
+        ulong rdBase = s_gicReDistBase;
 
         // Walk redistributor frames using GICR_TYPER.Last bit
         for (int i = 0; i < MaxRedistFrames; i++) // safety limit
@@ -392,8 +400,8 @@ public static class GICv3
                 Serial.WriteHex(rdBase);
                 Serial.Write("\n");
 
-                _currentCpuRdBase = rdBase;
-                _currentCpuSgiBase = rdBase + GICR_SGI_OFFSET;
+                s_currentCpuRdBase = rdBase;
+                s_currentCpuSgiBase = rdBase + GICR_SGI_OFFSET;
                 InitializeRedistributorAt(rdBase, rdBase + GICR_SGI_OFFSET);
                 return true;
             }
@@ -489,7 +497,7 @@ public static class GICv3
     /// <param name="intId">Interrupt ID (0-1019).</param>
     public static void EnableInterrupt(uint intId)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             Serial.Write("[GIC] EnableInterrupt(");
             Serial.WriteNumber(intId);
@@ -501,7 +509,7 @@ public static class GICv3
         {
             // SGI/PPI: use redistributor SGI_base frame
             uint bit = 1u << (int)(intId % IntsPerBitmapReg);
-            WriteRedistributor(_currentCpuSgiBase, GICR_ISENABLER0, bit);
+            WriteRedistributor(s_currentCpuSgiBase, GICR_ISENABLER0, bit);
         }
         else
         {
@@ -523,7 +531,7 @@ public static class GICv3
     /// <param name="intId">Interrupt ID.</param>
     public static void DisableInterrupt(uint intId)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             return;
         }
@@ -531,7 +539,7 @@ public static class GICv3
         if (intId < GIC.SPI_START)
         {
             uint bit = 1u << (int)(intId % IntsPerBitmapReg);
-            WriteRedistributor(_currentCpuSgiBase, GICR_ICENABLER0, bit);
+            WriteRedistributor(s_currentCpuSgiBase, GICR_ICENABLER0, bit);
         }
         else
         {
@@ -549,7 +557,7 @@ public static class GICv3
     /// <param name="priority">Priority (0 = highest, 0xFF = lowest).</param>
     public static void SetPriority(uint intId, byte priority)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             Serial.Write("[GIC] SetPriority(");
             Serial.WriteNumber(intId);
@@ -564,7 +572,7 @@ public static class GICv3
             // SGI/PPI: use redistributor SGI_base frame
             unsafe
             {
-                byte* ptr = (byte*)(_currentCpuSgiBase + GICR_IPRIORITYR + intId);
+                byte* ptr = (byte*)(s_currentCpuSgiBase + GICR_IPRIORITYR + intId);
                 *ptr = priority;
             }
         }
@@ -574,7 +582,7 @@ public static class GICv3
             uint regOffset = GICD_IPRIORITYR + intId;
             unsafe
             {
-                byte* ptr = (byte*)(_gicDistBase + regOffset);
+                byte* ptr = (byte*)(s_gicDistBase + regOffset);
                 *ptr = priority;
             }
         }
@@ -610,7 +618,7 @@ public static class GICv3
     /// <returns>True if pending.</returns>
     public static bool IsInterruptPending(uint intId)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             // Best effort: check if the highest pending interrupt matches
             uint hppir = GICv3Native.ReadHppir1() & Hppir1IntIdMask;
@@ -620,7 +628,7 @@ public static class GICv3
         if (intId < GIC.SPI_START)
         {
             uint bit = 1u << (int)(intId % IntsPerBitmapReg);
-            return (ReadRedistributor(_currentCpuSgiBase, GICR_ISPENDR0) & bit) != 0;
+            return (ReadRedistributor(s_currentCpuSgiBase, GICR_ISPENDR0) & bit) != 0;
         }
         else
         {
@@ -637,7 +645,7 @@ public static class GICv3
     /// <param name="intId">Interrupt ID.</param>
     public static void ClearPending(uint intId)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             return;
         }
@@ -645,7 +653,7 @@ public static class GICv3
         if (intId < GIC.SPI_START)
         {
             uint bit = 1u << (int)(intId % IntsPerBitmapReg);
-            WriteRedistributor(_currentCpuSgiBase, GICR_ICPENDR0, bit);
+            WriteRedistributor(s_currentCpuSgiBase, GICR_ICPENDR0, bit);
         }
         else
         {
@@ -663,7 +671,7 @@ public static class GICv3
     /// <param name="edgeTriggered">True for edge-triggered, false for level-triggered.</param>
     public static void ConfigureInterrupt(uint intId, bool edgeTriggered)
     {
-        if (!_mmioAvailable)
+        if (!s_mmioAvailable)
         {
             return;
         }
@@ -675,7 +683,7 @@ public static class GICv3
             uint regOffset = (regIdx == 0) ? GICR_ICFGR0 : GICR_ICFGR1;
             uint localId = intId - (regIdx * IntsPerCfgReg);
             uint shift = localId * CfgBitsPerInt;
-            uint value = ReadRedistributor(_currentCpuSgiBase, regOffset);
+            uint value = ReadRedistributor(s_currentCpuSgiBase, regOffset);
 
             if (edgeTriggered)
             {
@@ -686,7 +694,7 @@ public static class GICv3
                 value &= ~(GicArch.IcfgrEdgeTriggered << (int)shift);
             }
 
-            WriteRedistributor(_currentCpuSgiBase, regOffset, value);
+            WriteRedistributor(s_currentCpuSgiBase, regOffset, value);
         }
         else
         {
@@ -798,13 +806,13 @@ public static class GICv3
         }
     }
 
-    // Distributor MMIO access (uses runtime _gicDistBase)
+    // Distributor MMIO access (uses runtime s_gicDistBase)
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoInlining)]
     private static uint ReadDistributor(uint offset)
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicDistBase + offset);
+            uint* ptr = (uint*)(s_gicDistBase + offset);
             return System.Threading.Volatile.Read(ref *ptr);
         }
     }
@@ -814,7 +822,7 @@ public static class GICv3
     {
         unsafe
         {
-            uint* ptr = (uint*)(_gicDistBase + offset);
+            uint* ptr = (uint*)(s_gicDistBase + offset);
             System.Threading.Volatile.Write(ref *ptr, value);
         }
     }
@@ -824,7 +832,7 @@ public static class GICv3
     {
         unsafe
         {
-            ulong* ptr = (ulong*)(_gicDistBase + offset);
+            ulong* ptr = (ulong*)(s_gicDistBase + offset);
             System.Threading.Volatile.Write(ref *ptr, value);
         }
     }

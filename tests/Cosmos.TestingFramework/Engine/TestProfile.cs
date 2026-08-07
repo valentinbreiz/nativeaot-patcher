@@ -25,6 +25,37 @@ public sealed record TestProfile
     /// <summary>Disks to attach for this profile, with any modifier options already merged in.</summary>
     public IReadOnlyList<TestProfileDisk> Disks { get; init; } = Array.Empty<TestProfileDisk>();
 
+    /// <summary>
+    /// NIC model to attach (e.g. <c>e1000e</c>, <c>virtio-net-pci</c>), or null
+    /// to leave the architecture default in place. Lets a suite run its whole
+    /// test list against more than one driver.
+    /// </summary>
+    public string? NetworkCard { get; init; }
+
+    /// <summary>Keyboard model to attach (e.g. <c>virtio-keyboard-pci</c>), or null for none.</summary>
+    public string? KeyboardDevice { get; init; }
+
+    /// <summary>Mouse model to attach (e.g. <c>virtio-mouse-pci</c>), or null for none.</summary>
+    public string? MouseDevice { get; init; }
+
+    /// <summary>
+    /// VGA adapter to swap in for the architecture default, as a QEMU
+    /// <c>-vga</c> backend name (e.g. <c>vmware</c>), or null to leave the
+    /// default in place. Replaces rather than adds — a second display adapter
+    /// would leave firmware free to pick either one as primary.
+    /// </summary>
+    public string? VgaAdapter { get; init; }
+
+    /// <summary>
+    /// Architectures this profile applies to; null means any. Mirrors the
+    /// modifier filter, for hardware that only one architecture can present
+    /// (PS/2 on x64, virtio-mmio on the ARM64 virt machine).
+    /// </summary>
+    public IReadOnlyList<string>? Architectures { get; init; }
+
+    public bool AppliesTo(string architecture) =>
+        Architectures == null || Architectures.Contains(architecture, StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Extra <c>-M</c> machine properties (e.g. <c>{"gic-version", "2"}</c>). Merged from base profile + applied modifier.</summary>
     public IReadOnlyDictionary<string, string> MachineOptions { get; init; } = new Dictionary<string, string>();
 
@@ -132,7 +163,10 @@ internal sealed record TestModifier
             mergedMachine[kv.Key] = kv.Value;
         }
 
-        return new TestProfile
+        // `with` rather than a fresh record: everything a modifier does not
+        // touch (NIC, input devices, VGA adapter, arch filter) has to survive
+        // the overlay.
+        return baseProfile with
         {
             Name = $"{baseProfile.Name}+{Name}",
             Disks = newDisks,
@@ -188,7 +222,36 @@ public static class TestProfileLoader
                     $"Suite at '{kernelProjectPath}' requested profile '{name}' which is not defined in '{catalogPath}'. " +
                     $"Known profiles: {string.Join(", ", catalog.Profiles.Keys)}.");
             }
-            resolvedProfiles.Add(profile);
+
+            // A profile pinned to another architecture drops out silently —
+            // that is how one suite declares per-arch hardware (virtio-mmio is
+            // arm64-only) in a single csproj.
+            if (!profile.AppliesTo(architecture))
+            {
+                continue;
+            }
+
+            // Now that the architecture is fixed, collapse the profile's
+            // per-arch machine options down to the ones this cell gets.
+            if (catalog.ProfileMachineOptions.TryGetValue(name, out IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? perArch)
+                && perArch.TryGetValue(architecture, out IReadOnlyDictionary<string, string>? forThisArch))
+            {
+                resolvedProfiles.Add(profile with { MachineOptions = forThisArch });
+            }
+            else
+            {
+                resolvedProfiles.Add(profile);
+            }
+        }
+
+        if (resolvedProfiles.Count == 0)
+        {
+            // Running zero cells would report a green suite that tested
+            // nothing, so a suite whose every profile is pinned elsewhere is
+            // a configuration error rather than a silent skip.
+            throw new InvalidOperationException(
+                $"Suite at '{kernelProjectPath}' requested profiles [{string.Join(", ", optIn.Profiles)}], " +
+                $"none of which apply to architecture '{architecture}'. Add a profile that covers it.");
         }
 
         var resolvedModifiers = new List<TestModifier>(optIn.Modifiers.Count);
@@ -345,18 +408,45 @@ public static class TestProfileLoader
 
     private sealed record Catalog(
         IReadOnlyDictionary<string, TestProfile> Profiles,
-        IReadOnlyDictionary<string, TestModifier> Modifiers);
+        IReadOnlyDictionary<string, TestModifier> Modifiers,
+        // Profile name → architecture → -M options that only apply there.
+        // Kept out of TestProfile because a TestProfile is a *resolved* cell:
+        // by the time one exists the architecture is known and its machine
+        // options are already final.
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>> ProfileMachineOptions);
+
+    /// <summary>Architectures a profile may scope machine options to.</summary>
+    private static readonly string[] KnownArchitectures = ["x64", "arm64"];
 
     private static Catalog LoadCatalog(string path)
     {
         string json = File.ReadAllText(path);
-        ProfilesFile? parsed = JsonSerializer.Deserialize<ProfilesFile>(json, JsonOpts);
+
+        ProfilesFile? parsed;
+        try
+        {
+            parsed = JsonSerializer.Deserialize<ProfilesFile>(json, JsonOpts);
+        }
+        catch (JsonException ex)
+        {
+            // Raw JsonExceptions name neither the file nor the likely cause.
+            // The common one is writing a profile's machineOptions flat
+            // ({"gic-version": "3"}) instead of keyed by architecture, which
+            // fails here because the value is a string where an object is
+            // expected.
+            throw new InvalidOperationException(
+                $"{path}: could not be parsed. Note that a profile's 'machineOptions' is keyed by architecture " +
+                $"({string.Join(", ", KnownArchitectures)}), e.g. \"machineOptions\": {{ \"arm64\": {{ \"gic-version\": \"3\" }} }}. " +
+                $"Parser error: {ex.Message}", ex);
+        }
         if (parsed?.Profiles == null || parsed.Profiles.Count == 0)
         {
             throw new InvalidOperationException($"{path}: 'profiles' array is missing or empty.");
         }
 
         var profiles = new Dictionary<string, TestProfile>(parsed.Profiles.Count, StringComparer.Ordinal);
+        var profileMachineOptions =
+            new Dictionary<string, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(StringComparer.Ordinal);
         foreach (ProfileEntry entry in parsed.Profiles)
         {
             if (string.IsNullOrWhiteSpace(entry.Name))
@@ -382,7 +472,47 @@ public static class TestProfileLoader
                 }
             }
 
-            profiles[entry.Name] = new TestProfile { Name = entry.Name, Disks = disks };
+            profiles[entry.Name] = new TestProfile
+            {
+                Name = entry.Name,
+                Disks = disks,
+                NetworkCard = NullIfBlank(entry.Nic),
+                KeyboardDevice = NullIfBlank(entry.Keyboard),
+                MouseDevice = NullIfBlank(entry.Mouse),
+                VgaAdapter = NullIfBlank(entry.Vga),
+                Architectures = entry.Architectures
+            };
+
+            // A machine property can be part of the hardware shape itself, not
+            // just an overlay: virtio-pci needs MSI-X, which on arm64 needs a
+            // GICv3 ITS, which only exists with gic-version=3. Expressing that
+            // as a modifier would cross-product it onto every other profile the
+            // suite declares.
+            //
+            // Scoped per architecture so ONE profile can span both: gic-version
+            // is a virt property that q35 would reject, and without the scoping
+            // the same hardware shape needs two profile names — which shows up
+            // as two half-empty rows in the results matrix.
+            var perArch = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+            if (entry.MachineOptions != null)
+            {
+                foreach (KeyValuePair<string, Dictionary<string, string>> kv in entry.MachineOptions)
+                {
+                    // Catches the flat {"gic-version": "3"} spelling, which
+                    // would otherwise parse as an architecture named
+                    // "gic-version" with no options and silently do nothing.
+                    if (Array.IndexOf(KnownArchitectures, kv.Key) < 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"{path}: profile '{entry.Name}' scopes machineOptions to unknown architecture '{kv.Key}'. " +
+                            $"Profile machine options are keyed by architecture ({string.Join(", ", KnownArchitectures)}), " +
+                            $"e.g. \"machineOptions\": {{ \"arm64\": {{ \"gic-version\": \"3\" }} }}.");
+                    }
+
+                    perArch[kv.Key] = kv.Value;
+                }
+            }
+            profileMachineOptions[entry.Name] = perArch;
         }
 
         var modifiers = new Dictionary<string, TestModifier>(StringComparer.Ordinal);
@@ -427,8 +557,11 @@ public static class TestProfileLoader
             }
         }
 
-        return new Catalog(profiles, modifiers);
+        return new Catalog(profiles, modifiers, profileMachineOptions);
     }
+
+    private static string? NullIfBlank(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static DiskKind ParseDiskKind(string path, string context, string? type)
     {
@@ -449,7 +582,18 @@ public static class TestProfileLoader
     };
 
     private sealed record ProfilesFile(List<ProfileEntry>? Profiles, List<ModifierEntry>? Modifiers);
-    private sealed record ProfileEntry(string? Name, List<DiskEntry>? Disks);
+    private sealed record ProfileEntry(
+        string? Name,
+        List<DiskEntry>? Disks,
+        string? Nic,
+        string? Keyboard,
+        string? Mouse,
+        string? Vga,
+        List<string>? Architectures,
+        // Keyed by architecture, unlike a modifier's flat map: a modifier is
+        // already scoped by its own "architectures" list, while a profile
+        // describes one hardware shape that may span several.
+        Dictionary<string, Dictionary<string, string>>? MachineOptions);
     private sealed record DiskEntry(string? Type, Dictionary<string, string>? Options);
     private sealed record ModifierEntry(
         string? Name,

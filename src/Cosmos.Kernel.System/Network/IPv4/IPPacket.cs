@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 public class IPPacket : EthernetPacket
 {
     protected byte ipHeaderLength;
-    private static ushort sNextFragmentID;
+    private static ushort s_sNextFragmentID;
 
     /// <summary>
     /// Handles a single IPv4 packet.
@@ -23,12 +23,6 @@ public class IPPacket : EthernetPacket
         Serial.WriteString("[IP] IPv4Handler called\n");
 
         var ipPacket = new IPPacket(packetData);
-
-        if (ipPacket.SourceIP == null)
-        {
-            Serial.WriteString("[IP] SourceIP null in IPv4Handler!\n");
-            return;
-        }
 
         Serial.WriteString("[IP] From ");
         Serial.WriteString(ipPacket.SourceIP.ToString());
@@ -44,7 +38,7 @@ public class IPPacket : EthernetPacket
         bool isForUs = false;
         if (NetworkStack.AddressMap != null)
         {
-            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Hash);
+            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
         }
         bool isBroadcast = ipPacket.DestinationIP.Parts[3] == 255;
 
@@ -52,6 +46,9 @@ public class IPPacket : EthernetPacket
         {
             switch (ipPacket.Protocol)
             {
+                case 1: // ICMP
+                    ICMPPacket.ICMPHandler(packetData);
+                    break;
                 case 6: // TCP
                     TCPPacket.TCPHandler(packetData);
                     break;
@@ -69,14 +66,7 @@ public class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the next IP fragment ID.
     /// </summary>
-    public static ushort NextIPFragmentID => sNextFragmentID++;
-
-    /// <summary>
-    /// Create new instance of the <see cref="IPPacket"/> class.
-    /// </summary>
-    internal IPPacket()
-    {
-    }
+    public static ushort NextIPFragmentID => s_sNextFragmentID++;
 
     /// <summary>
     /// Create new instance of the <see cref="IPPacket"/> class.
@@ -139,14 +129,9 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (sourceIP == null)
+        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
         {
-            return MACAddress.None;
-        }
-
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Hash))
-        {
-            var device = NetworkStack.AddressMap[sourceIP.Hash];
+            var device = NetworkStack.AddressMap[sourceIP.Id];
             return device.MacAddress;
         }
         return MACAddress.None;
@@ -160,7 +145,7 @@ public class IPPacket : EthernetPacket
     /// <param name="dataLength">Data length.</param>
     /// <param name="protocol">Protocol.</param>
     /// <param name="source">Source address.</param>
-    /// <param name="dest">Destionation address.</param>
+    /// <param name="dest">Destination address.</param>
     /// <param name="Flags">Flags.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
     public IPPacket(MACAddress srcMAC, MACAddress destMAC, ushort dataLength, byte protocol,
@@ -294,12 +279,12 @@ public class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the source IP address.
     /// </summary>
-    public Address SourceIP { get; private set; }
+    public Address SourceIP { get; private set; } = null!;
 
     /// <summary>
     /// Gets the destination IP address.
     /// </summary>
-    public Address DestinationIP { get; private set; }
+    public Address DestinationIP { get; private set; } = null!;
 
     /// <summary>
     /// Gets the offset of the data.

@@ -74,7 +74,10 @@ public class Kernel : Sys.Kernel
     {
         Animal animal = new Dog();
 
+        // Deliberate type check against the static type: exercises the runtime isinst path.
+#pragma warning disable IDE0150
         bool isAnimal = animal is Animal;
+#pragma warning restore IDE0150
         bool isDog = animal is Dog;
         bool isBird = animal is Bird;
 
@@ -96,7 +99,10 @@ public class Kernel : Sys.Kernel
         // Value type implementing interface
         TestPoint tp = new TestPoint { X = 2, Y = 3 };
         ITestPoint? itp = tp;
+        // Deliberate type check against the static type: exercises isinst on a boxed value type.
+#pragma warning disable IDE0150
         bool pointIsTestPoint = itp is ITestPoint;
+#pragma warning restore IDE0150
 
         Assert.True(birdCanFly, "Bird implements IFlyable");
         Assert.True(!dogCanFly, "Dog does not implement IFlyable");

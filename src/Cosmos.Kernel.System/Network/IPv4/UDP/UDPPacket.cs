@@ -15,7 +15,7 @@ public delegate void UDPDataReceivedHandler(UDPPacket packet);
 /// </summary>
 public class UDPPacket : IPPacket
 {
-    private ushort udpCRC;
+    private ushort _udpCRC;
 
     /// <summary>
     /// Callback for receiving UDP data.
@@ -50,30 +50,17 @@ public class UDPPacket : IPPacket
             DNSPacket.DNSHandler(packetData);
             // Also route to UdpClient (DnsClient) if listening on the destination port
             var client = UdpClient.GetClient(udpPacket.DestinationPort);
-            if (client != null)
-            {
-                client.ReceiveData(udpPacket);
-            }
+            client?.ReceiveData(udpPacket);
         }
         else
         {
             // Route to UdpClient if available
             var client = UdpClient.GetClient(udpPacket.DestinationPort);
-            if (client != null)
-            {
-                client.ReceiveData(udpPacket);
-            }
+            client?.ReceiveData(udpPacket);
         }
 
         // Call the registered callback if any
         OnUDPDataReceived?.Invoke(udpPacket);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UDPPacket"/> class.
-    /// </summary>
-    internal UDPPacket()
-    {
     }
 
     /// <summary>
@@ -159,7 +146,7 @@ public class UDPPacket : IPPacket
         SourcePort = (ushort)((RawData[DataOffset] << 8) | RawData[DataOffset + 1]);
         DestinationPort = (ushort)((RawData[DataOffset + 2] << 8) | RawData[DataOffset + 3]);
         UDPLength = (ushort)((RawData[DataOffset + 4] << 8) | RawData[DataOffset + 5]);
-        udpCRC = (ushort)((RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
+        _udpCRC = (ushort)((RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
     }
 
     /// <summary>

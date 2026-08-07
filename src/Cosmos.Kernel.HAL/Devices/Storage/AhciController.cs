@@ -35,7 +35,7 @@ public unsafe class AhciController
     /// <summary>Command-region size: 0x4A000 (296 KiB) covers CLB + FB + 32 command-table slots for all 32 possible port indices.</summary>
     private const ulong CommandRegionBytes = 0x4A000;
     /// <summary>Command-region size in 4 KiB pages (74).</summary>
-    private const ulong CommandRegionPages = (CommandRegionBytes + 4095) / 4096;
+    private const ulong CommandRegionPages = (CommandRegionBytes + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
 
     /// <summary>Bytes zeroed for one port's command list: 32 headers × 32 B (AHCI 1.3.1 s4.2.2).</summary>
     private const int CommandListBytes = 1024;

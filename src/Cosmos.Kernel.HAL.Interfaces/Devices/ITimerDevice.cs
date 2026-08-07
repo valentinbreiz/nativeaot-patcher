@@ -35,6 +35,18 @@ public interface ITimerDevice
     void Wait(uint ms);
 
     /// <summary>
+    /// Registers a software timer driven by this device's periodic tick.
+    /// </summary>
+    /// <param name="timer">Timer to register.</param>
+    void RegisterTimer(SoftwareTimer timer);
+
+    /// <summary>
+    /// Unregisters a previously registered software timer.
+    /// </summary>
+    /// <param name="timer">Timer to unregister.</param>
+    void UnregisterTimer(SoftwareTimer timer);
+
+    /// <summary>
     /// Event handler for timer tick events.
     /// </summary>
     TimerTickHandler? OnTick { get; set; }

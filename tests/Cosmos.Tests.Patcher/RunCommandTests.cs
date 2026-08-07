@@ -89,4 +89,28 @@ public class RunCommandTests
     {
         Assert.Throws<ArgumentException>(() => RunCommand.ParseDisks([",nvme"]));
     }
+
+    [Fact]
+    public void ResolveInputDevice_DefaultsToVirtioOnArm64()
+    {
+        // The virt machine has no built-in PS/2 controller, so an unspecified
+        // input device must fall back to the virtio model (#383).
+        Assert.Equal("virtio-keyboard-device",
+            RunCommand.ResolveInputDevice("arm64", null, "virtio-keyboard-device"));
+    }
+
+    [Fact]
+    public void ResolveInputDevice_AddsNothingByDefaultOnX64()
+    {
+        Assert.Null(RunCommand.ResolveInputDevice("x64", null, "virtio-keyboard-device"));
+    }
+
+    [Theory]
+    [InlineData("none")]
+    [InlineData("usb-kbd")]
+    public void ResolveInputDevice_ExplicitValueWinsOnArm64(string requested)
+    {
+        Assert.Equal(requested,
+            RunCommand.ResolveInputDevice("arm64", requested, "virtio-keyboard-device"));
+    }
 }

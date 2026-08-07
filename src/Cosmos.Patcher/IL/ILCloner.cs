@@ -1,3 +1,4 @@
+using Cosmos.Patcher.Extensions;
 using Cosmos.Patcher.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -8,20 +9,13 @@ namespace Cosmos.Patcher.IL;
 /// <summary>
 /// Handles IL instruction cloning, operand remapping, and branch target fixing.
 /// </summary>
-public class ILCloner
+public static class ILCloner
 {
-    private readonly IBuildLogger _log;
-
-    public ILCloner(IBuildLogger log)
-    {
-        _log = log;
-    }
-
     /// <summary>
     /// Clones all instructions from the source method to the target method.
     /// Handles operand importing and parameter remapping.
     /// </summary>
-    public Dictionary<Instruction, Instruction> CloneInstructions(
+    public static Dictionary<Instruction, Instruction> CloneInstructions(
         MethodDefinition sourceMethod,
         MethodDefinition targetMethod,
         ILProcessor processor,
@@ -35,7 +29,6 @@ public class ILCloner
             clone.Operand = RemapOperand(instruction.Operand, sourceMethod, targetMethod, isInstancePlug);
             processor.Append(clone);
             instructionMap[instruction] = clone;
-            _log.Debug($"Cloned instruction {instruction} -> {clone}");
         }
 
         return instructionMap;
@@ -44,7 +37,7 @@ public class ILCloner
     /// <summary>
     /// Remaps an instruction operand to the target method's context.
     /// </summary>
-    public object? RemapOperand(object? operand, MethodDefinition sourceMethod, MethodDefinition targetMethod, bool isInstancePlug)
+    private static object? RemapOperand(object? operand, MethodDefinition sourceMethod, MethodDefinition targetMethod, bool isInstancePlug)
     {
         return operand switch
         {
@@ -62,7 +55,7 @@ public class ILCloner
     /// </summary>
     public static void FixBranchTargets(Dictionary<Instruction, Instruction> instructionMap)
     {
-        foreach (var kvp in instructionMap)
+        foreach (KeyValuePair<Instruction, Instruction> kvp in instructionMap)
         {
             Instruction clone = kvp.Value;
             if (clone.Operand is Instruction branchTarget && instructionMap.TryGetValue(branchTarget, out Instruction? mappedTarget))
@@ -88,7 +81,7 @@ public class ILCloner
     /// - plug param[0] (aThis) maps to target's implicit 'this' (arg 0, not a parameter)
     /// - plug param[N] (N > 0) maps to target param[N-1]
     /// </summary>
-    public static object RemapParameter(ParameterDefinition plugParam, MethodDefinition plugMethod,
+    private static object RemapParameter(ParameterDefinition plugParam, MethodDefinition plugMethod,
         MethodDefinition targetMethod, bool isInstancePlug)
     {
         int plugIndex = plugParam.Index;

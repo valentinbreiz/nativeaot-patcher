@@ -29,10 +29,10 @@ flowchart LR;
 | Project | Purpose |
 |---------|---------|
 | **Cosmos.Kernel.System** | High-level OS APIs: Console, Graphics, Network, Timer, Mouse. The layer user kernels interact with. |
-| **Cosmos.Kernel.HAL** | Hardware Abstraction Layer — shared logic, platform registration (`PlatformHAL`), device managers. |
+| **Cosmos.Kernel.HAL** | Hardware Abstraction Layer — shared logic, platform registration (`PlatformHAL`), device managers, arch-independent drivers (AHCI, NVMe, virtio). |
 | **Cosmos.Kernel.HAL.Interfaces** | Pure interfaces (`IPlatformInitializer`, `ICpuOps`, `IKeyboardDevice`, etc.). No implementations. |
 | **Cosmos.Kernel.HAL.X64** | x86-64 HAL implementations (PCI, APIC, PS/2, ACPI, etc.). |
-| **Cosmos.Kernel.HAL.ARM64** | ARM64 HAL implementations (GIC, PL011, virtio, etc.). |
+| **Cosmos.Kernel.HAL.ARM64** | ARM64 HAL implementations (GIC, PL011, generic timer, etc.). |
 | **Cosmos.Kernel.Core** | Low-level runtime: memory management, GC, scheduler, serial I/O, panic handler. |
 | **Cosmos.Kernel.Native.X64** | x86-64 assembly files (`.s`, GAS syntax) — interrupt stubs, context switching, SIMD. |
 | **Cosmos.Kernel.Native.ARM64** | ARM64 assembly files (`.s`, GAS syntax) — exception vectors, context switching. |

@@ -8,15 +8,16 @@ namespace Cosmos.Kernel.System.Network;
 // For more info, refer to http://standards.ieee.org/about/get/802/802.3.html
 public class EthernetPacket
 {
-    protected MACAddress srcMAC;
-    protected MACAddress destMAC;
+    protected MACAddress srcMAC = null!;
+    protected MACAddress destMAC = null!;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EthernetPacket"/> class.
-    /// </summary>
-    protected EthernetPacket()
-    {
-    }
+    // /// <summary>
+    // /// Initializes a new instance of the <see cref="EthernetPacket"/> class.
+    // /// </summary>
+    // protected EthernetPacket()
+    // {
+    //     RawData = [];
+    // }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EthernetPacket"/> class, with specified raw data.

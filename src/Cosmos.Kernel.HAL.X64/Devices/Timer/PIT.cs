@@ -5,103 +5,16 @@ using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Timer;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.HAL.X64.Devices.Timer;
 
 /// <summary>
-/// Handles the Programmable Interval Timer (PIT).
+/// Handles the Programmable Interval Timer (PIT). Software timers registered
+/// via <see cref="TimerDevice.RegisterTimer"/> are driven by the channel 0 IRQ.
 /// </summary>
 public class PIT : TimerDevice
 {
-    /// <summary>
-    /// Represents a virtual timer that can be handled using the
-    /// Programmable Interrupt Timer (PIT).
-    /// </summary>
-    public class PITTimer : IDisposable
-    {
-        internal ulong NSRemaining;
-        internal int ID = -1;
-
-        /// <summary>
-        /// The delay between each timer cycle.
-        /// </summary>
-        public ulong NanosecondsTimeout;
-
-        /// <summary>
-        /// Whether this timer will fire once, or will fire indefinetly until unregistered.
-        /// </summary>
-        public bool Recurring;
-
-        /// <summary>
-        /// The ID of the timer.
-        /// </summary>
-        public int TimerID => ID;
-
-        /// <summary>
-        /// The method to invoke for each cycle of the timer.
-        /// </summary>
-        public OnTrigger HandleTrigger;
-
-        /// <summary>
-        /// Represents the trigger handler for a <see cref="PITTimer"/>.
-        /// </summary>
-        /// <param name="irqContext">The state of the CPU when the PIT interrupt has occured.</param>
-        public delegate void OnTrigger(ref IRQContext irqContext);
-
-        /// <summary>
-        /// Initializes a new <see cref="PITTimer"/>, with the specified
-        /// callback method and properties.
-        /// </summary>
-        /// <param name="callback">The method to invoke for each timer cycle.</param>
-        /// <param name="nanosecondsTimeout">The delay between timer cycles.</param>
-        /// <param name="recurring">Whether this timer will fire once, or will fire indefinetly until unregistered.</param>
-        public PITTimer(OnTrigger callback, ulong nanosecondsTimeout, bool recurring)
-        {
-            HandleTrigger = callback;
-            NanosecondsTimeout = nanosecondsTimeout;
-            NSRemaining = NanosecondsTimeout;
-            Recurring = recurring;
-        }
-
-        /// <inheritdoc cref="PITTimer(OnTrigger, ulong, bool)"/>
-        public PITTimer(Action callback, ulong nanosecondsTimeout, bool recurring)
-            : this((ref IRQContext _) => callback(), nanosecondsTimeout, recurring)
-        { }
-
-        /// <summary>
-        /// Initializes a new recurring <see cref="PITTimer"/>, with the specified
-        /// callback method and amount of nanoseconds left until the next timer cycle.
-        /// </summary>
-        /// <param name="callback">The method to invoke for each timer cycle.</param>
-        /// <param name="nanosecondsTimeout">The delay between timer cycles.</param>
-        /// <param name="nanosecondsLeft">The amount of time left before the first timer cycle is fired.</param>
-        public PITTimer(OnTrigger callback, ulong nanosecondsTimeout, ulong nanosecondsLeft)
-        {
-            HandleTrigger = callback;
-            NanosecondsTimeout = nanosecondsTimeout;
-            NSRemaining = nanosecondsLeft;
-            Recurring = true;
-        }
-
-        /// <inheritdoc cref="PITTimer(OnTrigger, ulong, ulong)"/>
-        public PITTimer(Action callback, ulong nanosecondsTimeout, ulong nanosecondsLeft)
-            : this((ref IRQContext _) => callback(), nanosecondsTimeout, nanosecondsLeft)
-        { }
-
-        ~PITTimer()
-        {
-            Dispose();
-        }
-
-        public void Dispose()
-        {
-            if (ID != -1)
-            {
-                Instance?.UnregisterTimer(ID);
-            }
-        }
-    }
-
     /// <summary>
     /// Singleton instance of the PIT.
     /// </summary>
@@ -112,10 +25,8 @@ public class PIT : TimerDevice
 
     public bool T0RateGen = false;
 
-    private readonly List<PITTimer> activeHandlers = new();
-    private ushort t0Countdown = 65535;
-    private ushort t2Countdown = 65535;
-    private int timerCounter;
+    private ushort _t0Countdown = 65535;
+    private ushort _t2Countdown = 65535;
 
     /// <summary>
     /// Channel 0 data port.
@@ -164,10 +75,10 @@ public class PIT : TimerDevice
 
     public ushort T0Countdown
     {
-        get => t0Countdown;
+        get => _t0Countdown;
         set
         {
-            t0Countdown = value;
+            _t0Countdown = value;
 
             Native.IO.Write8(Command, (byte)(T0RateGen ? 0x34 : 0x30));
             Native.IO.Write8(Data0, (byte)(value & 0xFF));
@@ -178,11 +89,11 @@ public class PIT : TimerDevice
     /// <summary>
     /// Gets the timer frequency in Hz.
     /// </summary>
-    public override uint Frequency => PITFrequency / t0Countdown;
+    public override uint Frequency => PITFrequency / _t0Countdown;
 
     public uint T0Frequency
     {
-        get => PITFrequency / t0Countdown;
+        get => PITFrequency / _t0Countdown;
         set
         {
             if (value < 19 || value > 1193180)
@@ -206,7 +117,7 @@ public class PIT : TimerDevice
 
     public uint T0DelayNS
     {
-        get => PITDelayNS * t0Countdown;
+        get => PITDelayNS * _t0Countdown;
         set
         {
             if (value > 54918330)
@@ -221,10 +132,10 @@ public class PIT : TimerDevice
 
     public ushort T2Countdown
     {
-        get => t2Countdown;
+        get => _t2Countdown;
         set
         {
-            t2Countdown = value;
+            _t2Countdown = value;
 
             Native.IO.Write8(Command, 0xB6);
             Native.IO.Write8(Data2, (byte)(value & 0xFF));
@@ -234,7 +145,7 @@ public class PIT : TimerDevice
 
     public uint T2Frequency
     {
-        get => PITFrequency / t2Countdown;
+        get => PITFrequency / _t2Countdown;
         set
         {
             if (value < 19 || value > 1193180)
@@ -249,7 +160,7 @@ public class PIT : TimerDevice
 
     public uint T2DelayNS
     {
-        get => PITDelayNS * t2Countdown;
+        get => PITDelayNS * _t2Countdown;
         set
         {
             if (value > 54918330)
@@ -263,128 +174,30 @@ public class PIT : TimerDevice
     }
 
     /// <summary>
-    /// Halts the CPU for the specified amount of milliseconds.
+    /// Registers a software timer and reprograms channel 0 to ensure the tick is running.
     /// </summary>
-    /// <param name="timeoutMs">The amount of milliseconds to halt the CPU for.</param>
-    public override void Wait(uint timeoutMs)
+    /// <param name="timer">Timer to register.</param>
+    public override void RegisterTimer(SoftwareTimer timer)
     {
-        // Register timer and wait for THIS specific timer to complete
-        int timerId = RegisterTimer(new PITTimer((ref IRQContext _) => { }, timeoutMs * 1000000UL, false));
-
-        // Wait until our timer is removed from the list (fires and gets cleaned up)
-        while (IsTimerActive(timerId))
-        {
-            PlatformHAL.CpuOps?.Halt();
-        }
+        base.RegisterTimer(timer);
+        T0Countdown = _t0Countdown;
     }
 
-    /// <summary>
-    /// Halts the CPU for the specified amount of nanoseconds.
-    /// </summary>
-    /// <param name="timeoutNs">The amount of nanoseconds to halt the CPU for.</param>
-    public void WaitNS(ulong timeoutNs)
-    {
-        int timerId = RegisterTimer(new PITTimer((ref IRQContext _) => { }, timeoutNs, false));
-
-        while (IsTimerActive(timerId))
-        {
-            PlatformHAL.CpuOps?.Halt();
-        }
-    }
-
-    /// <summary>
-    /// Check if a timer with the given ID is still active.
-    /// </summary>
-    private bool IsTimerActive(int timerId)
-    {
-        for (int i = 0; i < activeHandlers.Count; i++)
-        {
-            if (activeHandlers[i].ID == timerId)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static unsafe void HandleIRQ(ref IRQContext aContext)
+    private static void HandleIRQ(ref IRQContext aContext)
     {
         if (Instance == null)
         {
             return;
         }
 
-        ulong T0Delay = Instance.T0DelayNS;
+        ulong t0Delay = Instance.T0DelayNS;
 
         // In one-shot mode, must reload after each interrupt
         if (!Instance.T0RateGen)
         {
-            Instance.T0Countdown = Instance.t0Countdown;
+            Instance.T0Countdown = Instance._t0Countdown;
         }
 
-        for (int i = Instance.activeHandlers.Count - 1; i >= 0; i--)
-        {
-            var handler = Instance.activeHandlers[i];
-
-            if (handler.NSRemaining <= T0Delay)
-            {
-                if (handler.Recurring)
-                {
-                    handler.NSRemaining = handler.NanosecondsTimeout;
-                }
-                else
-                {
-                    handler.ID = -1;
-                    Instance.activeHandlers.RemoveAt(i);
-                }
-
-                handler.HandleTrigger(ref aContext);
-            }
-            else
-            {
-                handler.NSRemaining -= T0Delay;
-            }
-        }
-
-        // Invoke OnTick handler
-        Instance.OnTick?.Invoke();
-    }
-
-    /// <summary>
-    /// Registers a timer to this <see cref="PIT"/> object.
-    /// </summary>
-    /// <param name="timer">The target timer.</param>
-    /// <returns>The newly assigned ID to the timer.</returns>
-    public int RegisterTimer(PITTimer timer)
-    {
-        if (timer.ID != -1)
-        {
-            Serial.Write("[PIT] ERROR: Timer has already been registered!\n");
-            return -1;
-        }
-
-        timer.ID = timerCounter++;
-        activeHandlers.Add(timer);
-        // Reprogram the PIT to ensure it's running
-        T0Countdown = t0Countdown;
-        return timer.ID;
-    }
-
-    /// <summary>
-    /// Unregisters a timer that has been previously registered to this
-    /// <see cref="PIT"/> object.
-    /// </summary>
-    /// <param name="timerId">The ID of the timer to unregister.</param>
-    public void UnregisterTimer(int timerId)
-    {
-        for (int i = 0; i < activeHandlers.Count; i++)
-        {
-            if (activeHandlers[i].ID == timerId)
-            {
-                activeHandlers[i].ID = -1;
-                activeHandlers.RemoveAt(i);
-                return;
-            }
-        }
+        Instance.HandleTick(t0Delay);
     }
 }

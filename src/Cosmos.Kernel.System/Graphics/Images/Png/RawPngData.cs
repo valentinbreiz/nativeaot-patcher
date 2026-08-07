@@ -10,7 +10,7 @@
         private readonly byte[] data;
         private readonly int bytesPerPixel;
         private readonly int width;
-        private readonly Palette palette;
+        private readonly Palette? palette;
         private readonly ColorType colorType;
         private readonly int rowOffset;
         private readonly int bitDepth;
@@ -22,7 +22,7 @@
         /// <param name="bytesPerPixel">The number of bytes in each pixel.</param>
         /// <param name="palette">The palette for the image.</param>
         /// <param name="imageHeader">The image header.</param>
-        public RawPngData(byte[] data, int bytesPerPixel, Palette palette, ImageHeader imageHeader)
+        public RawPngData(byte[] data, int bytesPerPixel, Palette? palette, ImageHeader imageHeader)
         {
             if (width < 0)
             {
@@ -121,7 +121,7 @@
                     return new Pixel(first, data[pixelStartIndex + 2], data[pixelStartIndex + 4], data[pixelStartIndex + 6], false);
 
                 default:
-                    throw new InvalidOperationException($"Unreconized number of bytes per pixel: {bytesPerPixel}.");
+                    throw new InvalidOperationException($"Unrecognized number of bytes per pixel: {bytesPerPixel}.");
             }
         }
 

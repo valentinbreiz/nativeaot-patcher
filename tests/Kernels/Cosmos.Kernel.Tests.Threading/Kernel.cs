@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Cosmos.Kernel.Core.IO;
@@ -15,7 +16,7 @@ namespace Cosmos.Kernel.Tests.Threading;
 public class Kernel : Sys.Kernel
 {
     /// <summary>Total number of tests announced to the test runner for this suite.</summary>
-    private const int ExpectedTestCount = 53;
+    private const int ExpectedTestCount = 58;
 
     /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
     private const int LockIterationsPerThread = 100;
@@ -116,6 +117,11 @@ public class Kernel : Sys.Kernel
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
+        TR.Run("Thread_EnsureSufficientExecutionStack_Passes", TestEnsureSufficientStackInThread);
+        TR.Run("Thread_RecordToString_Works", TestRecordToStringInThread);
+        TR.Run("MainThread_RecordToString_Works", TestRecordToStringOnMainThread);
+        TR.Run("Thread_MaxStackSize_IsHonored", TestThreadMaxStackSizeHonored);
+        TR.Run("Thread_MaxStackSize_TinyRequestIsFloored", TestThreadTinyStackSizeFloored);
         TR.Run("Mutex_IdleThreadContention_KeepsTicketAccounting", TestMutexIdleThreadContention);
         TR.Run("InterruptEvent_TwoWaiters_BothWake", TestInterruptEventTwoWaiters);
         TR.Run("Mutex_ThreeContenders_AllAcquire", TestMutexThreeContenders);
@@ -376,6 +382,174 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Thread] Delegate executing!\n");
         _threadExecuted = true;
         Serial.WriteString("[Thread] Delegate completed!\n");
+    }
+
+    // ===== EnsureSufficientExecutionStack in spawned threads (#433) =====
+    // The generated ToString/PrintMembers of a record calls
+    // RuntimeHelpers.EnsureSufficientExecutionStack, which sizes the thread's
+    // stack via RhGetCurrentThreadStackBounds. Bounds narrower than CoreLib's
+    // 128KB MinExecutionStackSize (or bounds fabricated from the current SP)
+    // make every call throw InsufficientExecutionStackException.
+
+    /// <summary>Record whose generated ToString exercises EnsureSufficientExecutionStack (#433).</summary>
+    private record StackProbeRecord(int Answer, string Label);
+
+    private static volatile bool _stackProbeDone;
+    private static volatile bool _stackProbeSufficient;
+    private static string? _stackProbeError;
+    private static string? _stackProbeToString;
+
+    private static void TestEnsureSufficientStackInThread()
+    {
+        _stackProbeDone = false;
+        _stackProbeSufficient = false;
+        _stackProbeError = null;
+
+        var thread = new SysThread(EnsureSufficientStackWorker);
+        thread.Start();
+
+        for (int i = 0; i < TaskPollRetries && !_stackProbeDone; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(_stackProbeDone, "EnsureSufficientExecutionStack worker should finish");
+        Assert.True(_stackProbeError == null, "EnsureSufficientExecutionStack should not throw in a spawned thread");
+        Assert.True(_stackProbeSufficient, "TryEnsureSufficientExecutionStack should report sufficient stack in a spawned thread");
+    }
+
+    private static void EnsureSufficientStackWorker()
+    {
+        _stackProbeSufficient = RuntimeHelpers.TryEnsureSufficientExecutionStack();
+        try
+        {
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+        }
+        catch (InsufficientExecutionStackException e)
+        {
+            _stackProbeError = e.Message;
+            Serial.WriteString("[StackProbe] EnsureSufficientExecutionStack threw: ");
+            Serial.WriteString(e.Message);
+            Serial.WriteString("\n");
+        }
+        _stackProbeDone = true;
+    }
+
+    private static void TestRecordToStringInThread()
+    {
+        _stackProbeDone = false;
+        _stackProbeToString = null;
+        _stackProbeError = null;
+
+        var thread = new SysThread(RecordToStringWorker);
+        thread.Start();
+
+        for (int i = 0; i < TaskPollRetries && !_stackProbeDone; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+
+        Assert.True(_stackProbeDone, "record ToString worker should finish");
+        Assert.True(_stackProbeError == null, "record ToString should not throw in a spawned thread");
+        Assert.True(_stackProbeToString != null && _stackProbeToString.Contains("42"),
+            "record ToString should contain the property value");
+    }
+
+    private static void RecordToStringWorker()
+    {
+        try
+        {
+            _stackProbeToString = new StackProbeRecord(42, "yuki").ToString();
+            Serial.WriteString("[StackProbe] record ToString: ");
+            Serial.WriteString(_stackProbeToString);
+            Serial.WriteString("\n");
+        }
+        catch (InsufficientExecutionStackException e)
+        {
+            _stackProbeError = e.Message;
+            Serial.WriteString("[StackProbe] record ToString threw: ");
+            Serial.WriteString(e.Message);
+            Serial.WriteString("\n");
+        }
+        _stackProbeDone = true;
+    }
+
+    private static void TestRecordToStringOnMainThread()
+    {
+        // The main kernel thread is the scheduler's idle thread and runs on the
+        // bootloader-provided stack, so this exercises the boot-stack branch of
+        // RhGetCurrentThreadStackBounds (Limine stack-size request + captured top).
+        try
+        {
+            string s = new StackProbeRecord(7, "root").ToString();
+            Assert.True(s.Contains("7"), "record ToString on the main thread should contain the property value");
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            Assert.Fail("record ToString should not throw InsufficientExecutionStackException on the main thread");
+        }
+    }
+
+    // ===== Thread constructor maxStackSize (#435) =====
+    // Upstream Thread.CreateThread resolves the constructor's maxStackSize
+    // (<= 0 means RhGetDefaultStackSize) and passes it to the exported
+    // SystemNative_CreateThread, which page-aligns it and floors it at 64KB.
+    // The worker reads its own scheduler thread's StackSize to observe what
+    // was actually allocated.
+
+    /// <summary>Requested stack size for the honored-request test (512KB, above the default).</summary>
+    private const int LargeRequestedStackSize = 512 * 1024;
+    /// <summary>Requested stack size for the floored-request test (16KB, below the 64KB floor).</summary>
+    private const int TinyRequestedStackSize = 16 * 1024;
+    /// <summary>Smallest stack SystemNative_CreateThread allocates for a managed thread.</summary>
+    private const int MinThreadStackSize = 64 * 1024;
+
+    private static volatile bool _stackSizeProbeDone;
+    private static ulong _observedStackSize;
+    private static volatile bool _observedStackSufficient;
+
+    private static void StackSizeProbeWorker()
+    {
+        _observedStackSize = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!.CurrentThread!.StackSize;
+        _observedStackSufficient = RuntimeHelpers.TryEnsureSufficientExecutionStack();
+        _stackSizeProbeDone = true;
+    }
+
+    private static void RunStackSizeProbe(int requestedStackSize)
+    {
+        _stackSizeProbeDone = false;
+        _observedStackSize = 0;
+        _observedStackSufficient = false;
+
+        var thread = new SysThread(StackSizeProbeWorker, requestedStackSize);
+        thread.Start();
+
+        for (int i = 0; i < TaskPollRetries && !_stackSizeProbeDone; i++)
+        {
+            TimerManager.Wait(TaskPollIntervalMs);
+        }
+    }
+
+    private static void TestThreadMaxStackSizeHonored()
+    {
+        RunStackSizeProbe(LargeRequestedStackSize);
+
+        Assert.True(_stackSizeProbeDone, "stack-size probe worker should finish");
+        Assert.True(_observedStackSize == LargeRequestedStackSize,
+            "scheduler thread should get the requested 512KB stack");
+        Assert.True(_observedStackSufficient,
+            "a 512KB stack should pass TryEnsureSufficientExecutionStack");
+    }
+
+    private static void TestThreadTinyStackSizeFloored()
+    {
+        RunStackSizeProbe(TinyRequestedStackSize);
+
+        Assert.True(_stackSizeProbeDone, "floored stack-size probe worker should finish");
+        Assert.True(_observedStackSize == MinThreadStackSize,
+            "a 16KB request should be floored to the 64KB minimum");
+        Assert.False(_observedStackSufficient,
+            "a 64KB stack sits below CoreLib's 128KB reserve, so TryEnsureSufficientExecutionStack reports false (upstream-faithful)");
     }
 
     // ===== Mutex idle-thread contention (scheduler Mutex, not System.Threading) =====

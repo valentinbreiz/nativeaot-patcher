@@ -18,12 +18,6 @@ internal class DHCPRelease : DHCPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="DHCPRelease"/> class.
     /// </summary>
-    internal DHCPRelease() : base()
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRelease"/> class.
-    /// </summary>
     internal DHCPRelease(byte[] rawData) : base(rawData)
     { }
 

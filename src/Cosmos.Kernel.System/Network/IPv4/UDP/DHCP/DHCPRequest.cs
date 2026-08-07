@@ -18,12 +18,6 @@ internal class DHCPRequest : DHCPPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="DHCPRequest"/> class.
     /// </summary>
-    internal DHCPRequest() : base()
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRequest"/> class.
-    /// </summary>
     internal DHCPRequest(byte[] rawData) : base(rawData)
     { }
 

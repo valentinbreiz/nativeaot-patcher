@@ -7,8 +7,11 @@ using Cosmos.Kernel.HAL.Devices.Storage;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
+using Cosmos.Kernel.HAL.Vfs;
+using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.TestingFramework.Framework;
+using Cosmos.Kernel.System.Vfs;
 using Sys = Cosmos.Kernel.System;
 using TR = Cosmos.TestingFramework.Framework.TestRunner;
 
@@ -33,7 +36,7 @@ public class Kernel : Sys.Kernel
     private const string SkipNoHost = "no block device bound for partition-table tests";
 
     /// <summary>Total tests this suite reports per profile; the breakdown is at the TR.Start call site.</summary>
-    private const ushort ExpectedTestCount = 67;
+    private const ushort ExpectedTestCount = 68;
 
     /// <summary>Block devices the engine attaches per QEMU profile; any other count is a bind or double-registration regression.</summary>
     private const int AttachedDisksPerProfile = 1;
@@ -293,6 +296,27 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector delta of the refused attempt to move the extended container.</summary>
     private const uint ExtendedMoveProbeDeltaSectors = 64;
 
+    /// <summary>Sectors wiped ahead of the superfloppy format: the MBR sector (LBA 0) and the primary GPT header (LBA 1), the two signatures the partition scanner probes.</summary>
+    private const ulong SuperfloppyWipeHeadSectors = 2;
+
+    /// <summary>VFS driver name the superfloppy cell registers its FAT driver under.</summary>
+    private const string SuperfloppyDriverName = "fat-superfloppy";
+
+    /// <summary>Mount point of the superfloppy volume.</summary>
+    private const string SuperfloppyMountPoint = "/superfloppy";
+
+    /// <summary>Name of the superfloppy round-trip file (8.3 so the cell does not also depend on LFN handling).</summary>
+    private const string SuperfloppyFileName = "SFD410.TXT";
+
+    /// <summary>VFS path of the superfloppy round-trip file.</summary>
+    private const string SuperfloppyFilePath = SuperfloppyMountPoint + "/" + SuperfloppyFileName;
+
+    /// <summary>Payload bytes of the superfloppy round-trip file (two sectors).</summary>
+    private const int SuperfloppyPayloadBytes = 1024;
+
+    /// <summary>XOR seed of the superfloppy round-trip payload.</summary>
+    private const byte SuperfloppyXorSeed = 0x77;
+
     /// <summary>Forward delta of the deliberately legal MovePartition calls (post-adjacency and signature-restamp cells).</summary>
     private const uint LegalMoveDeltaSectors = 100;
 
@@ -306,9 +330,10 @@ public class Kernel : Sys.Kernel
     {
         Serial.WriteString("[Storage] BeforeRun() reached!\n");
 
-        // 3 manager + 1 boot-scan + 2 profile + 13 device + 9 partition
-        // + 23 partition-lifecycle (MBR mutation, EBR chain, PartitionManager)
-        // + 2 mmio/pci + 1 boot-reboot = 54 tests per profile.
+        // 3 manager + 1 boot-scan + 2 profile + 13 device + 7 partition
+        // + 37 partition-lifecycle (MBR mutation, EBR chain, PartitionManager,
+        // superfloppy) + 2 bounds probes + 2 mmio/pci + 1 boot-reboot
+        // = 68 tests per profile.
         TR.Start("Storage Block Device Tests", expectedTests: ExpectedTestCount);
 
         bool hasDevice = StorageManager.DeviceCount > 0;
@@ -453,6 +478,7 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_MoveWithData_OnLogical", TestPartitionManager_MoveOnLogical, SkipNoHost);
+        TR.RunIf(dev, "Partition_Superfloppy_MountsByIndex",   TestPartition_SuperfloppyMountsByIndex, SkipNoHost);
 
         // Overflow-safety of the bounds check is hardware-independent (in-memory
         // probe host), so it runs unconditionally, even on cells where no disk bound.
@@ -1060,6 +1086,93 @@ public class Kernel : Sys.Kernel
             }
         }
         Assert.Equal(2, matches);
+    }
+
+    // Issue #410: a FAT volume laid straight onto an unpartitioned disk
+    // (a "superfloppy" — what mkfs.vfat / Windows format produce on a raw
+    // image attached via --disk) carries the MBR's 0xAA55 boot signature in
+    // its BPB sector, so the scanner claimed the disk as an MBR with zero
+    // partitions and surfaced nothing. VfsManager.TryMount/TryFormat by
+    // partition index could then never reach the volume, despite the
+    // Partitions contract covering "GPT-, MBR-, or unpartitioned" hosts.
+    private static void TestPartition_SuperfloppyMountsByIndex()
+    {
+        // Kill the signatures earlier cells left behind (MBR at LBA 0, GPT
+        // primary header at LBA 1), then format the raw device the way host
+        // tools format an image file: filesystem at LBA 0, no partition table.
+        Span<byte> zero = new byte[(int)s_dev!.BlockSize];
+        for (ulong lba = 0; lba < SuperfloppyWipeHeadSectors; lba++)
+        {
+            s_dev.WriteBlock(lba, 1, zero);
+        }
+        FatFilesystemType rawDriver = new(s_dev);
+        Assert.True(rawDriver.TryFormat(string.Empty, null), "FAT format of the raw device must succeed");
+
+        StorageManager.RescanPartitions(s_dev);
+
+        int index = -1;
+        int matches = 0;
+        for (int i = 0; i < StorageManager.Partitions.Count; i++)
+        {
+            if (ReferenceEquals(StorageManager.Partitions[i].Host, s_dev))
+            {
+                index = i;
+                matches++;
+            }
+        }
+        Assert.Equal(1, matches, "superfloppy disk must surface exactly one whole-disk partition");
+        if (matches != 1)
+        {
+            // Asserts record failure without throwing; without the partition
+            // every later step would dereference a missing entry and take
+            // the whole suite down instead of failing this one cell.
+            return;
+        }
+        Partition whole = StorageManager.Partitions[index];
+        Assert.Equal<ulong>(0, whole.StartSector, "whole-disk partition must start at LBA 0");
+        Assert.Equal<ulong>(s_dev.BlockCount, whole.BlockCount, "whole-disk partition must span the device");
+
+        // The issue's exact call shape: mount by StorageManager partition index.
+        Assert.True(VfsManager.RegisterFilesystem(SuperfloppyDriverName, new FatFilesystemType()));
+        Assert.True(VfsManager.TryMount(SuperfloppyDriverName, index.ToString(), MountFlags.None, SuperfloppyMountPoint, out VfsManager.VfsMount? mount),
+            "mount by partition index must succeed on a superfloppy volume");
+        Assert.NotNull(mount);
+        Assert.Equal<long>((long)SectorSizeBytes, mount!.Superblock.BlockSize);
+
+        // Prove the mount is usable end to end: file round-trip through the VFS.
+        Assert.True(VfsManager.TryOpenDirectory(SuperfloppyMountPoint, out IVfsDirectoryHandle? root));
+        Assert.True(root!.TryCreateFile(SuperfloppyFileName, ModeEnum.RegularFile, out _));
+
+        byte[] payload = new byte[SuperfloppyPayloadBytes];
+        for (int i = 0; i < payload.Length; i++)
+        {
+            payload[i] = (byte)(i ^ SuperfloppyXorSeed);
+        }
+        using (IVfsFileHandle? writer = OpenVfsFile(SuperfloppyFilePath))
+        {
+            Assert.NotNull(writer);
+            Assert.Equal<long>(payload.Length, writer!.Write(payload));
+            Assert.True(writer.Flush());
+        }
+        using (IVfsFileHandle? reader = OpenVfsFile(SuperfloppyFilePath))
+        {
+            Assert.NotNull(reader);
+            byte[] readBack = new byte[payload.Length];
+            Assert.Equal<long>(payload.Length, reader!.Read(readBack));
+            for (int i = 0; i < payload.Length; i++)
+            {
+                Assert.Equal(payload[i], readBack[i]);
+            }
+        }
+
+        // Drop the superblock before later cells (and the reboot cell's GPT
+        // stamp) rewrite the disk underneath it.
+        Assert.True(VfsManager.TryUnmount(SuperfloppyMountPoint));
+    }
+
+    private static IVfsFileHandle? OpenVfsFile(string path)
+    {
+        return VfsManager.TryOpenFile(path, out IVfsFileHandle? file) ? file : null;
     }
 
     // Attach a partition starting at an arbitrary LBA, write to its LBA 0,
