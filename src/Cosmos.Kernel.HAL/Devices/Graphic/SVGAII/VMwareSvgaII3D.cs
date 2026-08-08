@@ -201,7 +201,9 @@ public unsafe class VMWareSVGAII3D
             {
                 SurfaceID = new() { sid = sid, face = 0, mipmap = 0 },
                 MobID = mobid,
-                MobPtr = mobPtr
+                MobPtr = mobPtr,
+                Flags = flags,
+                Resolution = new(0,0,0,width,height,depth)
             };
 
             SyncToFence(InsertFence());
@@ -238,7 +240,9 @@ public unsafe class VMWareSVGAII3D
             {
                 SurfaceID = new() { sid = sid, face = 0, mipmap = 0 },
                 MobID = 0,
-                MobPtr = null
+                MobPtr = null,
+                Flags = flags,
+                Resolution = new(0,0,0,width,height,depth)
             };
         }
     }
@@ -394,6 +398,23 @@ public unsafe class VMWareSVGAII3D
 
     public void SetRenderTarget(SVGA3dRenderTargetType type, GBSurface target)
     {
+        bool isColorTarget = (uint)type >= 2; 
+
+        if (isColorTarget)
+        {
+            if (!target.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_RENDERTARGET))
+            {
+                throw new ArgumentException($"Tried to bind an invalid surface to {type}. The SVGA3D_SURFACE_HINT_RENDERTARGET flag is required for color targets.");
+            }
+        }
+        else
+        {
+            if (!target.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_DEPTHSTENCIL))
+            {
+                throw new ArgumentException($"Tried to bind an invalid surface to {type}. The SVGA3D_SURFACE_HINT_DEPTHSTENCIL flag is required for depth/stencil targets.");
+            }
+        }
+
         BindSurface(target);
 
         SVGA3dCmdSetRenderTarget* cmd = (SVGA3dCmdSetRenderTarget*)ReserveFIFO3D((uint)FIFOCommand.SET_RENDER_TARGET, (uint)sizeof(SVGA3dCmdSetRenderTarget));
@@ -404,18 +425,33 @@ public unsafe class VMWareSVGAII3D
         _driver.CommitFIFOCommand();
 
         SyncToFence(InsertFence());
+
+        if (CheckGBCached() && type == SVGA3dRenderTargetType.Color0)
+        {
+            MemoryOp.MemSet((uint*)target.MobPtr, 0xff00ff, (int)(target.Resolution.w * target.Resolution.h * target.Resolution.d));
+
+            SVGA3dCmdUpdateGBImage* cmd2 = (SVGA3dCmdUpdateGBImage*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_UPDATE_GB_IMAGE, (uint)sizeof(SVGA3dCmdUpdateGBImage));
+            cmd2->image = target.SurfaceID;
+            cmd2->box = target.Resolution;
+
+            _driver.CommitFIFOCommand();
+
+            SyncToFence(InsertFence());
+        }
     }
 
-    public void SetViewport(SVGA3dRect rect)
+    public void SetViewport(SVGA3dRect rect,float minDepth = 0,float maxDepth = 1)
     {
         SVGA3dCmdSetViewport* cmd = (SVGA3dCmdSetViewport*)ReserveFIFO3D((uint)FIFOCommand.SET_VIEWPORT, (uint)sizeof(SVGA3dCmdSetViewport));
         cmd->cid = CurrentContextId;
         cmd->rect = rect;
 
         _driver.CommitFIFOCommand();
+
+        SetDepthRange(minDepth,maxDepth);
     }
 
-    public void SetDepthRange(float min, float max)
+    void SetDepthRange(float min, float max)
     {
         SVGA3dCmdSetZRange* cmd = (SVGA3dCmdSetZRange*)ReserveFIFO3D((uint)FIFOCommand.SET_ZRANGE, (uint)sizeof(SVGA3dCmdSetZRange));
         cmd->cid = CurrentContextId;
@@ -434,8 +470,6 @@ public unsafe class VMWareSVGAII3D
         cmd->depth = depth;
         cmd->stencil = stencil;
         *rects = (SVGA3dRect*)&cmd[1];
-
-        _driver.CommitFIFOCommand();
     }
 
     public void Clear3D(ClearFlags flags, SVGA3dRect ClearRect, uint color = 0, float depth = 1, uint stencil = 0)
@@ -446,6 +480,8 @@ public unsafe class VMWareSVGAII3D
         rect->y = ClearRect.y;
         rect->w = ClearRect.w;
         rect->h = ClearRect.h;
+
+        _driver.CommitFIFOCommand();
     }
 
     private void BeginSetRenderState(SVGA3dRenderState** states, uint numstates)
@@ -453,8 +489,6 @@ public unsafe class VMWareSVGAII3D
         SVGA3dCmdSetRenderState* cmd = (SVGA3dCmdSetRenderState*)ReserveFIFO3D((uint)FIFOCommand.SETRENDERSTATE, (uint)(sizeof(SVGA3dCmdSetRenderState) + sizeof(SVGA3dRenderState) * numstates));
         cmd->cid = CurrentContextId;
         *states = (SVGA3dRenderState*)&cmd[1];
-
-        _driver.CommitFIFOCommand();
     }
 
     public void SetRenderState(SVGA3dRenderState[] states)
@@ -466,6 +500,8 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)rs, (byte*)statesPtr, sizeof(SVGA3dRenderState) * states.Length);
         }
+
+        _driver.CommitFIFOCommand();
     }
 
     private void BeginSetTextureState(SVGA3dTextureState** states, uint numStates)
@@ -473,8 +509,6 @@ public unsafe class VMWareSVGAII3D
         SVGA3dCmdSetTextureState* cmd = (SVGA3dCmdSetTextureState*)ReserveFIFO3D((uint)FIFOCommand.SETTEXTURESTATE, (uint)(sizeof(SVGA3dCmdSetTextureState) + sizeof(SVGA3dTextureState) * numStates));
         cmd->cid = CurrentContextId;
         *states = (SVGA3dTextureState*)&cmd[1];
-
-        _driver.CommitFIFOCommand();
     }
 
     public void SetTextureState(SVGA3dTextureState[] states)
@@ -486,6 +520,8 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)ts, (byte*)statesPtr, sizeof(SVGA3dTextureState) * states.Length);
         }
+
+        _driver.CommitFIFOCommand();
     }
 
     private void BeginDrawPrimitives(SVGA3dVertexDecl** decls, uint numVertexDecls, SVGA3dPrimitiveRange** ranges, uint numRanges)
@@ -506,8 +542,6 @@ public unsafe class VMWareSVGAII3D
 
         *decls = declArray;
         *ranges = rangeArray;
-
-        _driver.CommitFIFOCommand();
     }
 
     public void DrawPrimitives(SVGA3dVertexDecl[] decls, SVGA3dPrimitiveRange[] ranges)
@@ -524,6 +558,8 @@ public unsafe class VMWareSVGAII3D
         {
             MemoryOp.MemCopy((byte*)pranges, (byte*)statesPtr, sizeof(SVGA3dPrimitiveRange) * ranges.Length);
         }
+
+        _driver.CommitFIFOCommand();
     }
 
     public void SetTransform<T>(SVGA3dTransformType type, T matrix4x4) where T : unmanaged
@@ -681,8 +717,6 @@ public unsafe class VMWareSVGAII3D
         SVGA3dCmdPresent* cmd = (SVGA3dCmdPresent*)ReserveFIFO3D((uint)FIFOCommand.PRESENT, (uint)sizeof(SVGA3dCmdPresent) + (uint)(numRects * sizeof(SVGA3dCopyRect)));
         cmd->sid = sid;
         *rects = (SVGA3dCopyRect*)&cmd[1];
-
-        _driver.CommitFIFOCommand();
     }
 
     public void Present(SVGA3dSurfaceImageId image, SVGA3dRect PresentRect,uint screenTargetId = 0)
@@ -717,6 +751,8 @@ public unsafe class VMWareSVGAII3D
             rect->y = PresentRect.y;
             rect->w = PresentRect.w;
             rect->h = PresentRect.h;
+
+            _driver.CommitFIFOCommand();
         }
 
         _lastFence = InsertFence();
@@ -774,6 +810,8 @@ public unsafe class VMWareSVGAII3D
             boxes[0].h = height;
             boxes[0].d = 1;
 
+            _driver.CommitFIFOCommand();
+
             SyncToFence(InsertFence());
 
             fixed (int* pDest = &_imagebuffer[0])
@@ -808,8 +846,6 @@ public unsafe class VMWareSVGAII3D
         *boxes = (SVGA3dCopyBox*)&cmd[1];
 
         MemoryOp.MemSet((byte*)*boxes, 0, (int)boxesSize);
-
-        _driver.CommitFIFOCommand();
     }
 
     private void SurfaceDMA2D(
@@ -830,6 +866,8 @@ public unsafe class VMWareSVGAII3D
         boxes[0].w = width;
         boxes[0].h = height;
         boxes[0].d = 1;
+
+        _driver.CommitFIFOCommand();
     }
 
     private static SVGAGuestPtr s_nextPtr = new SVGAGuestPtr { gmrId = 0, offset = 0 };
