@@ -122,9 +122,6 @@ jobs:
       - name: 🔍 Verify Tools Installation
         run: cosmos check
 
-      - name: 🔨 Build Test Runner Engine
-        run: dotnet build tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj -c Debug --verbosity normal
-
       - name: 🧪 Run ${{ inputs.suite_name }} Kernel Tests
         id: run-tests
         run: |
@@ -138,14 +135,12 @@ jobs:
             COVERAGE_ARG="--coverage"
           fi
           echo "Running ${{ inputs.suite_name }} kernel tests for ${{ matrix.arch }}..."
-          dotnet run --project tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj \
-            --no-build \
-            -- ${{ inputs.kernel_path }} \
-            ${{ matrix.arch }} \
-            $TIMEOUT \
-            test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
-            ci \
-            $COVERAGE_ARG
+          dotnet test --project ${{ inputs.kernel_path }} \
+            --report-xml --report-xml-filename test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml \
+            --uartlog --uartlog-filename uart-output.log \
+            --kernel-timeout $TIMEOUT --kernel-arch ${{ matrix.arch }} \
+            --results-directory ./TestResults --keep-output \
+            $COVERAGE_ARG 
         timeout-minutes: ${{ inputs.step_timeout_minutes }}
         continue-on-error: false
 
@@ -154,7 +149,7 @@ jobs:
         if: always()
         with:
           name: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}
-          path: test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml
+          path: ./TestResults/test-results-${{ inputs.suite_id }}-${{ matrix.arch }}.xml
           retention-days: 30
 
       - name: 📤 Upload Coverage JSON
@@ -162,7 +157,7 @@ jobs:
         if: always() && inputs.coverage
         with:
           name: coverage-${{ inputs.suite_id }}-${{ matrix.arch }}
-          path: coverage-${{ matrix.arch }}.json
+          path: ./TestResults/coverage-${{ matrix.arch }}.json
           if-no-files-found: warn
           retention-days: 30
 
@@ -171,7 +166,7 @@ jobs:
         if: always()
         with:
           name: uart-log-${{ inputs.suite_id }}-${{ matrix.arch }}
-          path: uart-output.log
+          path: ./TestResults/uart-output.log
           retention-days: 7
 
       - name: 📤 Upload Test Kernel ISO

@@ -16,7 +16,9 @@
     <!--pack as nuget-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!--pack as nuget-->
-
+    
+    <!-- Test Projects should now use MTP -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <!--

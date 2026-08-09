@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
-using Cosmos.TestRunner.Engine;
-using Cosmos.TestRunner.Engine.Protocol;
-using Cosmos.TestRunner.Protocol;
+using Cosmos.TestingFramework.Engine;
+using Cosmos.TestingFramework.Engine.Protocol;
+using Cosmos.TestingFramework.Protocol;
 
 namespace Cosmos.Tests.Patcher;
 

@@ -8,10 +8,10 @@ using Cosmos.Kernel.Core.Memory.GarbageCollector.GcInfo;
 using Cosmos.Kernel.Core.Memory.Heap;
 using Cosmos.Kernel.Core.Runtime.GcInfo;
 using Cosmos.Kernel.System.Timer;
-using Cosmos.TestRunner.Framework;
+using Cosmos.TestingFramework;
 using CoreGC = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
 using Sys = Cosmos.Kernel.System;
-using TR = Cosmos.TestRunner.Framework.TestRunner;
+using TR = Cosmos.TestingFramework.TestRunner;
 
 // Note: the enclosing namespace name "GarbageCollector" would shadow the core
 // GarbageCollector type via parent-namespace lookup, so we alias it as CoreGC.
