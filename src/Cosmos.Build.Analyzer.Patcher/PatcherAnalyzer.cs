@@ -473,10 +473,46 @@ namespace Cosmos.Build.Analyzer.Patcher
                                  .Any(m => m.HasAttribute("PlugMemberAttribute")) ??
                              false;
 
-            bool hasSpecialAttributes =
-                symbol.HasAttribute("MethodImplAttribute", "DllImportAttribute", "LibraryImportAttribute");
-            DebugLog($"[DEBUG] hasMethodInPlugClass: {hasMethod}, hasSpecialAttributes: {hasSpecialAttributes}");
-            return !hasMethod && hasSpecialAttributes;
+            if (hasMethod)
+            {
+                return false;
+            }
+
+            AttributeData? pInvoke = symbol.GetAttributes().FirstOrDefault(a =>
+                a.AttributeClass?.Name is "DllImportAttribute" or "LibraryImportAttribute");
+
+            if (pInvoke != null)
+            {
+                // Module "*" is a direct P/Invoke resolved by the kernel link step
+                // (GCCProject objects, native libraries) — no plug involved. Imports
+                // from a real library file can never load on bare metal, so those
+                // still need a plug.
+                bool isStaticallyLinked = pInvoke.ConstructorArguments.FirstOrDefault().Value is "*";
+                DebugLog($"[DEBUG] P/Invoke on {symbol.Name}, staticallyLinked: {isStaticallyLinked}");
+                return !isStaticallyLinked;
+            }
+
+            // [MethodImpl] marks a plug candidate only for runtime-provided icalls;
+            // flags like AggressiveInlining sit on ordinary managed bodies.
+            AttributeData? methodImpl = symbol.GetAttributes()
+                .FirstOrDefault(a => a.AttributeClass?.Name == "MethodImplAttribute");
+
+            return methodImpl != null && IsInternalCall(methodImpl);
+        }
+
+        /// <summary>
+        /// Checks if a [MethodImpl] attribute carries MethodImplOptions.InternalCall.
+        /// </summary>
+        private static bool IsInternalCall(AttributeData methodImpl)
+        {
+            int options = methodImpl.ConstructorArguments.FirstOrDefault().Value switch
+            {
+                short shortOptions => shortOptions,
+                int intOptions => intOptions,
+                _ => 0
+            };
+
+            return (options & (int)MethodImplOptions.InternalCall) != 0;
         }
 
         /// <summary>

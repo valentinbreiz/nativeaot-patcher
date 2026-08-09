@@ -6,7 +6,7 @@ This document covers how to report issues, collect the diagnostics a report need
 
 ## Reporting Issues
 
-Open issues through the [issue templates](https://github.com/valentinbreiz/nativeaot-patcher/issues/new/choose). An actionable report contains three things: the **exact command** that was run, the **versions** involved, and the **full output** — a build log or serial log, not a screenshot of the last line.
+Open issues through the [issue templates](https://github.com/CosmosOS/Cosmos/issues/new/choose). An actionable report contains three things: the **exact command** that was run, the **versions** involved, and the **full output** — a build log or serial log, not a screenshot of the last line.
 
 ### Build or publish failures
 
@@ -118,6 +118,6 @@ Before submitting a PR, run the suites relevant to the change. CI runs both arch
 
 ## Getting Help
 
-- [Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — User Guide and Developer Docs
+- [Documentation site](https://cosmosos.github.io/index.html) — User Guide and Developer Docs
 - [Discord](https://discord.com/invite/kwtBwv6jhD)
-- [Existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)
+- [Existing issues](https://github.com/CosmosOS/Cosmos/issues)
