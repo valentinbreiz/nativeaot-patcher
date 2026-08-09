@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
@@ -43,6 +44,9 @@ public unsafe class VMWareSVGAII3D
 
     private uint GetNextSurfaceId() => ++_surfaceId;
 
+    private uint _viewId;
+    private uint GetNextViewId() => ++_viewId;
+
     private uint _mobIdCounter = 0;
     private uint GetNextMobId() => ++_mobIdCounter;
 
@@ -58,6 +62,9 @@ public unsafe class VMWareSVGAII3D
 
     private uint _shaderIdVS = 0;
     private uint _shaderIdPS = 0;
+
+    private GBDepthStencilView _gBDepthStencilViewTarget = GBDepthStencilView.Unbound;
+    private List<GBColorView> _gBColorViewTargets = new();
 
     private uint GetNextShaderId(SVGA3dShaderType type)
     {
@@ -114,12 +121,18 @@ public unsafe class VMWareSVGAII3D
     {
         uint cid = GetNextContextId();
 
+        uint cmdid = (uint)(
+            CheckDXCached() ? FIFOCommand.SVGA_3D_CMD_DX_DEFINE_CONTEXT :
+            CheckGBCached() ? FIFOCommand.SVGA_3D_CMD_DEFINE_GB_CONTEXT :
+            FIFOCommand.DEFINE_CONTEXT
+        );
+
         void* mobPtr = (void*)0;
 
-        var mobid = CheckGBCached() ? DefineGBMob(4096, out mobPtr, out _) : 0;
+        var mobid = CheckModernCached() ? DefineGBMob((uint)sizeof(SVGADXContextMobFormat), out mobPtr, out _) : 0;
 
         SVGA3dCmdDefineContext* cmd;
-        cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D((uint)(CheckGBCached() ? FIFOCommand.SVGA_3D_CMD_DEFINE_GB_CONTEXT : FIFOCommand.DEFINE_CONTEXT), (uint)sizeof(SVGA3dCmdDefineContext));
+        cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdDefineContext));
         cmd->cid = cid;
 
         _driver.CommitFIFOCommand();
@@ -142,8 +155,13 @@ public unsafe class VMWareSVGAII3D
 
         if (CheckGBCached())
         {
+            uint cmdid = (uint)(
+                CheckDXCached() ? FIFOCommand.SVGA_3D_CMD_DX_BIND_CONTEXT :
+                FIFOCommand.SVGA_3D_CMD_BIND_GB_CONTEXT
+            );
+
             SVGA3dCmdBindGBContext* cmd;
-            cmd = (SVGA3dCmdBindGBContext*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_BIND_GB_CONTEXT, (uint)sizeof(SVGA3dCmdBindGBContext));
+            cmd = (SVGA3dCmdBindGBContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdBindGBContext));
             cmd->cid = context.ContextID;
             cmd->mobid = context.MobID;
             cmd->validContents = 0;
@@ -157,7 +175,13 @@ public unsafe class VMWareSVGAII3D
 
     public void DestroyContext(GBContext context)
     {
-        uint* cmd = (uint*)ReserveFIFO3D((uint)(CheckGBCached() ? FIFOCommand.SVGA_3D_CMD_DESTROY_GB_CONTEXT : FIFOCommand.DESTROY_CONTEXT), sizeof(uint));
+        uint cmdid = (uint)(
+            CheckDXCached() ? FIFOCommand.SVGA_3D_CMD_DX_DESTROY_CONTEXT :
+            CheckGBCached() ? FIFOCommand.SVGA_3D_CMD_DESTROY_GB_CONTEXT :
+            FIFOCommand.DESTROY_CONTEXT
+        );
+
+        uint* cmd = (uint*)ReserveFIFO3D(cmdid, sizeof(uint));
         *cmd = context.ContextID;
 
         _driver.CommitFIFOCommand();
@@ -203,7 +227,8 @@ public unsafe class VMWareSVGAII3D
                 MobID = mobid,
                 MobPtr = mobPtr,
                 Flags = flags,
-                Resolution = new(0,0,0,width,height,depth)
+                Resolution = new(0,0,0,width,height,depth),
+                Format = format
             };
 
             SyncToFence(InsertFence());
@@ -242,7 +267,8 @@ public unsafe class VMWareSVGAII3D
                 MobID = 0,
                 MobPtr = null,
                 Flags = flags,
-                Resolution = new(0,0,0,width,height,depth)
+                Resolution = new(0,0,0,width,height,depth),
+                Format = format
             };
         }
     }
@@ -396,59 +422,194 @@ public unsafe class VMWareSVGAII3D
     #endregion
     #region  State & Render Commands
 
-    public void SetRenderTarget(SVGA3dRenderTargetType type, GBSurface target)
+    public GBColorView CreateColorView(GBSurface color,uint viewDimensions = 2,uint mipSlice = 0,uint firstArraySlice = 0,uint arraySize = 1)
     {
-        bool isColorTarget = (uint)type >= 2; 
-
-        if (isColorTarget)
+        if (!color.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_RENDERTARGET))
         {
-            if (!target.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_RENDERTARGET))
+            throw new ArgumentException("Surface must have SVGA3D_SURFACE_HINT_RENDERTARGET to back a render target view.");
+        }
+
+        uint vid = GetNextViewId();
+
+        if (CheckDXCached())
+        {
+            SVGA3dCmdDXDefineRenderTargetView* cmd = (SVGA3dCmdDXDefineRenderTargetView*)ReserveFIFO3D(
+                (uint)FIFOCommand.SVGA_3D_CMD_DX_DEFINE_RENDERTARGET_VIEW, 
+                (uint)sizeof(SVGA3dCmdDXDefineRenderTargetView)
+            );
+
+            cmd->renderTargetViewId = vid;
+            cmd->sid = color.SurfaceID.sid;
+            cmd->format = color.Format;
+            cmd->resourceDimension = viewDimensions + 1;
+            cmd->desc.tex.mipSlice = mipSlice;
+            cmd->desc.tex.firstArraySlice = firstArraySlice;
+            cmd->desc.tex.arraySize = arraySize;
+            cmd->desc.buffer = new();
+            cmd->desc.tex3D = new();
+
+            _driver.CommitFIFOCommand();
+            SyncToFence(InsertFence());
+        }
+
+        return new()
+        {
+            Surface = color,
+            ViewID = vid
+        };
+    }
+
+    public GBDepthStencilView CreateDepthstencilView(GBSurface surface, bool useDepth = true,bool useStencil = false,uint viewDimensions = 2,uint mipSlice = 0,uint firstArraySlice = 0,uint arraySize = 1)
+    {
+        if (!surface.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_DEPTHSTENCIL))
+        {
+            throw new ArgumentException("Surface must have SVGA3D_SURFACE_HINT_DEPTHSTENCIL to back a render target view.");
+        }
+
+        uint vid = GetNextViewId();
+
+        if (CheckDXCached())
+        {
+            SVGA3dCmdDXDefineDepthStencilView* cmd = (SVGA3dCmdDXDefineDepthStencilView*)ReserveFIFO3D(
+                (uint)FIFOCommand.SVGA_3D_CMD_DX_DEFINE_DEPTHSTENCIL_VIEW, 
+                (uint)sizeof(SVGA3dCmdDXDefineDepthStencilView)
+            );
+
+            cmd->depthStencilViewId = vid;
+            cmd->sid = surface.SurfaceID.sid;
+            cmd->format = surface.Format;
+            cmd->resourceDimension = viewDimensions + 1;
+            cmd->mipSlice = mipSlice;
+            cmd->firstArraySlice = firstArraySlice;
+            cmd->arraySize = arraySize;
+            cmd->flags = 0;
+
+            _driver.CommitFIFOCommand();
+            SyncToFence(InsertFence());
+        }
+
+        return new()
+        {
+            DepthPresent = useDepth,
+            StencilPresent = useStencil,
+            Surface = surface,
+            ViewID = vid
+        };
+    }
+
+    public void DestroyView(GBColorView view)
+    {
+        if (CheckDXCached())
+        {
+            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_DESTROY_RENDERTARGET_VIEW, sizeof(uint));
+            *cmd = view.ViewID;
+
+            _driver.CommitFIFOCommand();
+        }
+    }
+
+    public void DestroyView(GBDepthStencilView view)
+    {
+        if (CheckDXCached())
+        {
+            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_DESTROY_DEPTHSTENCIL_VIEW, sizeof(uint));
+            *cmd = view.ViewID;
+            
+            _driver.CommitFIFOCommand();
+        }
+    }
+
+    public void SetRenderTargets(GBDepthStencilView depthstencil, params GBColorView[] color)
+    {
+        if (depthstencil.DepthPresent && !depthstencil.Surface.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_DEPTHSTENCIL))
+        {
+            throw new ArgumentException($"Tried to bind an invalid surface to Depth/Stencil. The SVGA3D_SURFACE_HINT_DEPTHSTENCIL flag is required for depth/stencil targets.");
+        }
+
+        _gBColorViewTargets.Clear();
+        _gBDepthStencilViewTarget = depthstencil;
+
+        foreach (var target in color)
+        {
+            if (!target.Surface.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_RENDERTARGET))
             {
-                throw new ArgumentException($"Tried to bind an invalid surface to {type}. The SVGA3D_SURFACE_HINT_RENDERTARGET flag is required for color targets.");
+                throw new ArgumentException($"Tried to bind an invalid surface to Color. The SVGA3D_SURFACE_HINT_RENDERTARGET flag is required for color targets.");
             }
+
+            _gBColorViewTargets.Add(target);
+        }
+
+        if (CheckDXCached())
+        {
+            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_SET_RENDERTARGETS, (uint)((color.Length + 1) * sizeof(uint)));
+            *cmd = depthstencil.ViewID;
+
+            for (int i = 0; i < color.Length; i++)
+            {
+                *(cmd + i + 1) = color[i].ViewID;
+            }
+
+            _driver.CommitFIFOCommand();
         }
         else
         {
-            if (!target.Flags.HasFlag(SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_DEPTHSTENCIL))
+            for (int i = 0; i < color.Length; i++)
             {
-                throw new ArgumentException($"Tried to bind an invalid surface to {type}. The SVGA3D_SURFACE_HINT_DEPTHSTENCIL flag is required for depth/stencil targets.");
+                SVGA3dCmdSetRenderTarget* cmd = (SVGA3dCmdSetRenderTarget*)ReserveFIFO3D((uint)FIFOCommand.SET_RENDER_TARGET, (uint)sizeof(SVGA3dCmdSetRenderTarget));
+                cmd->cid = CurrentContextId;
+                cmd->type = (SVGA3dRenderTargetType)((uint)SVGA3dRenderTargetType.Color0 + i);
+                cmd->target = color[i].Surface.SurfaceID;
+
+                _driver.CommitFIFOCommand();
+            }
+
+            if (depthstencil.DepthPresent)
+            {
+                SVGA3dCmdSetRenderTarget* cmd = (SVGA3dCmdSetRenderTarget*)ReserveFIFO3D((uint)FIFOCommand.SET_RENDER_TARGET, (uint)sizeof(SVGA3dCmdSetRenderTarget));
+                cmd->cid = CurrentContextId;
+                cmd->type = SVGA3dRenderTargetType.Depth;
+                cmd->target = depthstencil.Surface.SurfaceID;
+                
+                _driver.CommitFIFOCommand();
+            }
+
+            if (depthstencil.StencilPresent)
+            {
+                SVGA3dCmdSetRenderTarget* cmd = (SVGA3dCmdSetRenderTarget*)ReserveFIFO3D((uint)FIFOCommand.SET_RENDER_TARGET, (uint)sizeof(SVGA3dCmdSetRenderTarget));
+                cmd->cid = CurrentContextId;
+                cmd->type = SVGA3dRenderTargetType.stencil;
+                cmd->target = depthstencil.Surface.SurfaceID;
+
+                _driver.CommitFIFOCommand();
             }
         }
 
-        BindSurface(target);
-
-        SVGA3dCmdSetRenderTarget* cmd = (SVGA3dCmdSetRenderTarget*)ReserveFIFO3D((uint)FIFOCommand.SET_RENDER_TARGET, (uint)sizeof(SVGA3dCmdSetRenderTarget));
-        cmd->cid = CurrentContextId;
-        cmd->type = type;
-        cmd->target = target.SurfaceID;
-
-        _driver.CommitFIFOCommand();
-
         SyncToFence(InsertFence());
-
-        if (CheckGBCached() && type == SVGA3dRenderTargetType.Color0)
-        {
-            MemoryOp.MemSet((uint*)target.MobPtr, 0xff00ff, (int)(target.Resolution.w * target.Resolution.h * target.Resolution.d));
-
-            SVGA3dCmdUpdateGBImage* cmd2 = (SVGA3dCmdUpdateGBImage*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_UPDATE_GB_IMAGE, (uint)sizeof(SVGA3dCmdUpdateGBImage));
-            cmd2->image = target.SurfaceID;
-            cmd2->box = target.Resolution;
-
-            _driver.CommitFIFOCommand();
-
-            SyncToFence(InsertFence());
-        }
     }
 
     public void SetViewport(SVGA3dRect rect,float minDepth = 0,float maxDepth = 1)
     {
-        SVGA3dCmdSetViewport* cmd = (SVGA3dCmdSetViewport*)ReserveFIFO3D((uint)FIFOCommand.SET_VIEWPORT, (uint)sizeof(SVGA3dCmdSetViewport));
-        cmd->cid = CurrentContextId;
-        cmd->rect = rect;
+        if (CheckDXCached())
+        {
+            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_SET_VIEWPORTS, (uint)(sizeof(SVGA3dViewport) + sizeof(uint)));
+            *cmd = 0;
 
-        _driver.CommitFIFOCommand();
+            var vp = new SVGA3dViewport(rect.x,rect.y,rect.w,rect.h,minDepth,maxDepth);
 
-        SetDepthRange(minDepth,maxDepth);
+            MemoryOp.MemCopy((byte*)(cmd + 1), (byte*)&vp, sizeof(SVGA3dViewport));
+            
+            _driver.CommitFIFOCommand();
+        }
+        else
+        {
+            SVGA3dCmdSetViewport* cmd = (SVGA3dCmdSetViewport*)ReserveFIFO3D((uint)FIFOCommand.SET_VIEWPORT, (uint)sizeof(SVGA3dCmdSetViewport));
+            cmd->cid = CurrentContextId;
+            cmd->rect = rect;
+
+            _driver.CommitFIFOCommand();
+
+            SetDepthRange(minDepth,maxDepth);
+        }
     }
 
     void SetDepthRange(float min, float max)
@@ -457,6 +618,33 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = CurrentContextId;
         cmd->range.min = min;
         cmd->range.max = max;
+
+        _driver.CommitFIFOCommand();
+    }
+
+    private void ClearRT(Vector4 color,uint id)
+    {
+        SVGA3dCmdDXClearRenderTargetView* cmd = (SVGA3dCmdDXClearRenderTargetView*)ReserveFIFO3D(
+            (uint)FIFOCommand.SVGA_3D_CMD_DX_CLEAR_RENDERTARGET_VIEW,
+            (uint)sizeof(SVGA3dCmdDXClearRenderTargetView)
+        );
+        
+        cmd->renderTargetViewId = id;
+        cmd->rgba = color;
+
+        _driver.CommitFIFOCommand();
+    }
+    private void ClearDST(ushort stencil,float depth,uint id,ushort flags)
+    {
+        SVGA3dCmdDXClearDepthStencilView* cmd = (SVGA3dCmdDXClearDepthStencilView*)ReserveFIFO3D(
+            (uint)FIFOCommand.SVGA_3D_CMD_DX_CLEAR_DEPTHSTENCIL_VIEW,
+            (uint)sizeof(SVGA3dCmdDXClearDepthStencilView)
+        );
+        
+        cmd->depthStencilViewId = id;
+        cmd->stencil = stencil;
+        cmd->depth = depth;
+        cmd->flags = flags;
 
         _driver.CommitFIFOCommand();
     }
@@ -472,16 +660,57 @@ public unsafe class VMWareSVGAII3D
         *rects = (SVGA3dRect*)&cmd[1];
     }
 
-    public void Clear3D(ClearFlags flags, SVGA3dRect ClearRect, uint color = 0, float depth = 1, uint stencil = 0)
+    public void Clear3D(ClearFlags flags, Vector4 color = new(), float depth = 1, uint stencil = 0)
     {
-        SVGA3dRect* rect;
-        BeginClear3D(flags, color, depth, stencil, &rect, 1);
-        rect->x = ClearRect.x;
-        rect->y = ClearRect.y;
-        rect->w = ClearRect.w;
-        rect->h = ClearRect.h;
+        if (CheckDXCached())
+        {
+            if (flags.HasFlag(ClearFlags.Color))
+            {
+                foreach (var item in _gBColorViewTargets)
+                {
+                    ClearRT(color,item.ViewID);
+                }
+            }
 
-        _driver.CommitFIFOCommand();
+            if (
+                (flags.HasFlag(ClearFlags.Depth) || flags.HasFlag(ClearFlags.Stencil)) && 
+                (_gBDepthStencilViewTarget.DepthPresent || _gBDepthStencilViewTarget.StencilPresent)
+            )
+            {
+                ClearFlags dflags = flags & (ClearFlags.Depth | ClearFlags.Stencil);
+                ClearDST((ushort)stencil,depth,_gBDepthStencilViewTarget.ViewID,(ushort)dflags);
+            }
+        }
+        else
+        {
+            var ClearRect = (
+                _gBColorViewTargets.Count > 0 ? _gBColorViewTargets[0].Surface.Resolution : 
+                (
+                    _gBDepthStencilViewTarget.DepthPresent || 
+                    _gBDepthStencilViewTarget.StencilPresent
+                ) ? _gBDepthStencilViewTarget.Surface.Resolution : 
+                throw new ArgumentNullException("No target bound for 3D clear")
+            );
+
+            SVGA3dRect* rect;
+            BeginClear3D(flags, ColToUint(color), depth, stencil, &rect, 1);
+            rect->x = ClearRect.x;
+            rect->y = ClearRect.y;
+            rect->w = ClearRect.w;
+            rect->h = ClearRect.h;
+
+            _driver.CommitFIFOCommand();
+        }
+    }
+
+    private uint ColToUint(Vector4 col)
+    {
+        uint a = (uint)(Math.Clamp(col.W, 0f, 1f) * 255f + 0.5f);
+        uint r = (uint)(Math.Clamp(col.X, 0f, 1f) * 255f + 0.5f);
+        uint g = (uint)(Math.Clamp(col.Y, 0f, 1f) * 255f + 0.5f);
+        uint b = (uint)(Math.Clamp(col.Z, 0f, 1f) * 255f + 0.5f);
+
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     private void BeginSetRenderState(SVGA3dRenderState** states, uint numstates)
@@ -985,6 +1214,26 @@ public unsafe class VMWareSVGAII3D
         }
 
         return _gbcache.Value;
+    }
+
+    bool? _dxcache = null;
+    public bool CheckDXCached()
+    {
+        if (!_dxcache.HasValue)
+        {
+            _dxcache = _driver.QueryCapDev(95) != 0;
+        }
+        return _dxcache.Value;
+    }
+
+    bool? _mdcache = null;
+    public bool CheckModernCached()
+    {
+        if (!_mdcache.HasValue)
+        {
+            _mdcache = CheckGBCached() && CheckDXCached();
+        }
+        return _mdcache.Value;
     }
 
     public static uint GetBytesPerPixel(SVGA3dSurfaceFormat format)

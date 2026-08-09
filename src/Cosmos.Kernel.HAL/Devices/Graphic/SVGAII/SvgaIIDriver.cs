@@ -309,64 +309,64 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// Reserve a contiguous command area in the FIFO.
     /// </summary>
     public void* ReserveFIFO(uint bytes)
-{
-    uint min = GetFIFO(FIFO.Min);
-    uint max = GetFIFO(FIFO.Max);
-    
-    // Ensure bytes is aligned if your architecture/device requires it (e.g., 4-byte alignment)
-    bytes = (bytes + 3u) & ~3u;
-
-    uint next, stop, space;
-
-    while (true)
     {
-        next = GetFIFO(FIFO.NextCmd);
-        stop = GetFIFO(FIFO.Stop);
+        uint min = GetFIFO(FIFO.Min);
+        uint max = GetFIFO(FIFO.Max);
+        
+        // Ensure bytes is aligned if your architecture/device requires it (e.g., 4-byte alignment)
+        bytes = (bytes + 3u) & ~3u;
 
-        // Calculate contiguous space available from 'next' to the end of the buffer ('max')
-        if (next >= stop)
+        uint next, stop, space;
+
+        while (true)
         {
-            space = (max - next);
-            // If it doesn't fit contiguously at the end, can it wrap around?
-            if (space < bytes)
+            next = GetFIFO(FIFO.NextCmd);
+            stop = GetFIFO(FIFO.Stop);
+
+            // Calculate contiguous space available from 'next' to the end of the buffer ('max')
+            if (next >= stop)
             {
-                // Check total space including the wrap-around part (min to stop)
-                uint totalSpace = (max - next) + (stop - min);
-                if (totalSpace >= bytes)
+                space = (max - next);
+                // If it doesn't fit contiguously at the end, can it wrap around?
+                if (space < bytes)
                 {
-                    // It fits by wrapping, but we must handle the end-of-buffer wrap
-                    // 1. Fill remainder of buffer from 'next' to 'max' with NOPs (0)
-                    // (Implementation detail: write NOPs to pointer region [next, max])
-                    
-                    // 2. Wrap next to min
-                    next = min;
+                    // Check total space including the wrap-around part (min to stop)
+                    uint totalSpace = (max - next) + (stop - min);
+                    if (totalSpace >= bytes)
+                    {
+                        // It fits by wrapping, but we must handle the end-of-buffer wrap
+                        // 1. Fill remainder of buffer from 'next' to 'max' with NOPs (0)
+                        // (Implementation detail: write NOPs to pointer region [next, max])
+                        
+                        // 2. Wrap next to min
+                        next = min;
+                        break;
+                    }
+                }
+                else
+                {
+                    // Fits contiguously without wrapping
                     break;
                 }
             }
             else
             {
-                // Fits contiguously without wrapping
-                break;
+                space = stop - next;
+                if (space >= bytes)
+                {
+                    break;
+                }
             }
-        }
-        else
-        {
-            space = stop - next;
-            if (space >= bytes)
-            {
-                break;
-            }
+
+            WaitForFifo();
         }
 
-        WaitForFifo();
+        void* ptr = (void*)(_fifoMemory.Base + next);
+        _fifonext = next + bytes; // Store locally until commit
+        _fifoReservedBytes = bytes; // Track for potential NOP padding if needed
+        
+        return ptr;
     }
-
-    void* ptr = (void*)(_fifoMemory.Base + next);
-    _fifonext = next + bytes; // Store locally until commit
-    _fifoReservedBytes = bytes; // Track for potential NOP padding if needed
-    
-    return ptr;
-}
 
     public void CommitFIFOCommand()
     {
@@ -661,5 +661,21 @@ public unsafe class SvgaIIDriver : GraphicDevice
         WriteRegister(Register.CursorX, x);
         WriteRegister(Register.CursorY, y);
         WriteRegister(Register.CursorOn, (uint)(visible ? 1 : 0));
+    }
+
+    public uint QueryCapDev(uint cap)
+    {
+        WriteRegister(Register.DevCap, cap);
+        return ReadRegister(Register.DevCap);
+    }
+    public uint QueryCap(uint cap)
+    {
+        WriteRegister(Register.Capabilities, cap);
+        return ReadRegister(Register.Capabilities);
+    }
+    public uint QueryCap3D(uint cap)
+    {
+        WriteRegister(Register.Capabilities3D, cap);
+        return ReadRegister(Register.Capabilities3D);
     }
 }

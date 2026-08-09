@@ -11,4 +11,5 @@ public unsafe struct GBSurface
 
     public SVGA3dSurfaceFlags Flags;
     public SVGA3dBox Resolution;
+    public SVGA3dSurfaceFormat Format;
 }
