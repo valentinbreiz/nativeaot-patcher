@@ -110,7 +110,7 @@ public unsafe struct SVGADXContextMobFormat
 
     public fixed uint pad6[26];
 
-    public fixed uint queryID[SVGA3dDXLimits.MAX_QUERY]; // SVGA3dQueryId = uint
+    public fixed uint queryID[SVGA3dDXLimits.MAX_QUERY];
 
     public fixed byte cotablesRaw[SVGA3dDXLimits.COTABLE_MAX * 8];
 
@@ -120,4 +120,83 @@ public unsafe struct SVGADXContextMobFormat
     public fixed uint csuaViewIds[8];
 
     public fixed uint pad8[188];
+}
+
+public static class SVGA3dContextLimits
+{
+    public const int RT_MAX = 10;
+    public const int RS_MAX = 99;
+    public const int MAX_CLIP_PLANES = 6;
+    public const int TRANSFORM_MAX = 15;
+    public const int NUM_LIGHTS = 8;
+    public const int NUM_SHADERTYPE_PREDX = 2;
+    public const int CONSTINTREG_MAX = 16;
+    public const int MAX_VERTEX_ARRAYS = 32;
+    public const int NUM_TEXTURE_UNITS = 32;
+    public const int TS_CONSTANT_PLUS_1 = 31;
+    public const int CONSTREG_MAX = 256;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public unsafe struct SVGAGBContextData
+{
+    public uint viewportX, viewportY, viewportW, viewportH;
+
+    public uint scissorX, scissorY, scissorW, scissorH;
+
+    public float zRangeMin, zRangeMax;
+
+    public fixed uint renderTargets[SVGA3dContextLimits.RT_MAX * 3];
+
+    public fixed byte decl1Raw[4 * 6];
+
+    public fixed uint renderStates[SVGA3dContextLimits.RS_MAX];
+
+    public fixed byte decl2Raw[18 * 6];
+
+    public fixed uint pad0[2];
+
+    public fixed byte materialRaw[72];
+
+    public fixed float clipPlanes[SVGA3dContextLimits.MAX_CLIP_PLANES * 4];
+
+    public fixed float matrices[SVGA3dContextLimits.TRANSFORM_MAX * 16];
+
+    public fixed uint lightEnabled[SVGA3dContextLimits.NUM_LIGHTS];
+
+    public fixed byte lightDataRaw[SVGA3dContextLimits.NUM_LIGHTS * 116];
+
+    public fixed uint shaders[SVGA3dContextLimits.NUM_SHADERTYPE_PREDX];
+
+    public fixed byte decl3Raw[10 * 6];
+
+    public fixed uint pad1[3];
+
+    public uint occQueryActive;
+    public uint occQueryValue;
+
+    public fixed int pShaderIValues[SVGA3dContextLimits.CONSTINTREG_MAX * 4];
+    public fixed int vShaderIValues[SVGA3dContextLimits.CONSTINTREG_MAX * 4];
+
+    public ushort pShaderBValues;
+    public ushort vShaderBValues;
+
+    public fixed byte streamsRaw[SVGA3dContextLimits.MAX_VERTEX_ARRAYS * 10];
+
+    public fixed uint divisors[SVGA3dContextLimits.MAX_VERTEX_ARRAYS];
+
+    public uint numVertexDecls;
+    public uint numVertexStreams;
+    public uint numVertexDivisors;
+
+    public fixed uint pad2[30];
+
+    public fixed uint tsColorKey[SVGA3dContextLimits.NUM_TEXTURE_UNITS];
+
+    public fixed uint textureStages[SVGA3dContextLimits.NUM_TEXTURE_UNITS * SVGA3dContextLimits.TS_CONSTANT_PLUS_1];
+
+    public fixed uint tsColorKeyEnable[SVGA3dContextLimits.NUM_TEXTURE_UNITS];
+
+    public fixed float pShaderFValues[SVGA3dContextLimits.CONSTREG_MAX * 4];
+    public fixed float vShaderFValues[SVGA3dContextLimits.CONSTREG_MAX * 4];
 }

@@ -66,6 +66,22 @@ public unsafe class VMWareSVGAII3D
     private GBDepthStencilView _gBDepthStencilViewTarget = GBDepthStencilView.Unbound;
     private List<GBColorView> _gBColorViewTargets = new();
 
+    private static readonly (uint MaxEntries, uint EntrySize)[] s_coInfo =
+    [
+        (1, (uint)sizeof(SVGACOTableDXRTViewEntry)),
+        (1, (uint)sizeof(SVGACOTableDXDSViewEntry)),
+        (1, (uint)sizeof(SVGACOTableDXRTViewEntry)),
+        (4096 / (uint)sizeof(SVGACOTableDXElementLayoutEntry) + 1, (uint)sizeof(SVGACOTableDXElementLayoutEntry)),
+        (4096 / (uint)sizeof(SVGACOTableDXBlendStateEntry) + 1, (uint)sizeof(SVGACOTableDXBlendStateEntry)),
+        (1, (uint)sizeof(SVGACOTableDXDepthStencilEntry)),
+        (1, (uint)sizeof(SVGACOTableDXRasterizerStateEntry)),
+        (1, (uint)sizeof(SVGACOTableDXSamplerEntry)),
+        (1, (uint)sizeof(SVGACOTableDXStreamOutputEntry)),
+        (1, (uint)sizeof(SVGACOTableDXQueryEntry)),
+        (1, (uint)sizeof(SVGACOTableDXShaderEntry)),
+        (1, (uint)sizeof(SVGACOTableDXUAViewEntry))
+    ];
+
     private uint GetNextShaderId(SVGA3dShaderType type)
     {
         switch (type)
@@ -129,7 +145,11 @@ public unsafe class VMWareSVGAII3D
 
         void* mobPtr = (void*)0;
 
-        var mobid = CheckModernCached() ? DefineGBMob((uint)sizeof(SVGADXContextMobFormat), out mobPtr, out _) : 0;
+        var mobid = CheckModernCached() ? DefineGBMob(
+            CheckDXCached() ? (uint)sizeof(SVGADXContextMobFormat) : 
+            (uint)sizeof(SVGAGBContextData), 
+            out mobPtr, out _
+        ) : 0;
 
         SVGA3dCmdDefineContext* cmd;
         cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdDefineContext));
@@ -143,7 +163,92 @@ public unsafe class VMWareSVGAII3D
 
         BindContext(ctx);
 
+        if (CheckDXCached())
+        {
+            uint cotmax = (uint)(CheckSM5Cached() ? SVGACOTableType.SVGA_COTABLE_MAX : SVGACOTableType.SVGA_COTABLE_DX10_MAX);
+
+            for (uint i = 0; i < cotmax; i++)
+            {
+                var entry = s_coInfo[(int)i];
+
+                BindCOTable(ctx.ContextID, (SVGACOTableType)i, entry.MaxEntries * entry.EntrySize);
+            }
+        }
+
+        SyncToFence(InsertFence());
+
         return ctx;
+    }
+
+    private void* _rtviewCOTableMobPtr;
+
+
+    private void BindCOTable(uint cid, SVGACOTableType type, uint sizeInBytes)
+    {
+        uint mobid = DefineGBMob(sizeInBytes, out void* mobPtr, out _);
+
+        if (type == SVGACOTableType.SVGA_COTABLE_RTVIEW)
+        {
+            _rtviewCOTableMobPtr = mobPtr;
+        }
+
+        var cmd = (SVGA3dCmdDXSetCOTable*)ReserveFIFO3D(
+            (uint)FIFOCommand.SVGA_3D_CMD_DX_SET_COTABLE,
+            (uint)sizeof(SVGA3dCmdDXSetCOTable)
+        );
+
+        cmd->cid = cid;
+        cmd->mobid = mobid;
+        cmd->type = type;
+        cmd->validSizeInBytes = sizeInBytes;
+
+        _driver.CommitFIFOCommand();
+        SyncToFence(InsertFence());
+    }
+
+    private void GrowCOTable(uint cid, SVGACOTableType type, uint mobid, uint sizeInBytes)
+    {
+        var cmd = (SVGA3dCmdDXSetCOTable*)ReserveFIFO3D(
+            (uint)FIFOCommand.SVGA_3D_CMD_DX_GROW_COTABLE,
+            (uint)sizeof(SVGA3dCmdDXSetCOTable)
+        );
+
+        cmd->cid = cid;
+        cmd->mobid = mobid;
+        cmd->type = type;
+        cmd->validSizeInBytes = sizeInBytes;
+
+        _driver.CommitFIFOCommand();
+        SyncToFence(InsertFence());
+    }
+
+    public void DebugContextMob(GBContext ctx)
+    {
+        byte* p = (byte*)ctx.MobPtr;
+        uint dsvId = *(uint*)(p + 444);
+        uint rtv0Id = *(uint*)(p + 448);
+        Console.WriteLine($"ctx mob: depthStencilViewId={dsvId} renderTargetViewIds[0]={rtv0Id}");
+    }
+    public void DebugCOTables()
+    {
+        byte* p = (byte*)_rtviewCOTableMobPtr;
+        for (int i = 0; i < 64; i++)
+        {
+            Console.Write(p[i].ToString("X2") + " ");
+        }
+    }
+
+    public void ReadbackContext(GBContext ctx)
+    {
+        var cmd = (uint*)ReserveFIFO3D(
+            (uint)FIFOCommand.SVGA_3D_CMD_DX_READBACK_CONTEXT,
+            sizeof(uint)
+        );
+
+        *cmd = ctx.ContextID;
+
+        _driver.CommitFIFOCommand();
+        SyncToFence(InsertFence());
     }
 
     public GBContext BindContext(GBContext context)
@@ -1234,6 +1339,16 @@ public unsafe class VMWareSVGAII3D
             _mdcache = CheckGBCached() && CheckDXCached();
         }
         return _mdcache.Value;
+    }
+
+    bool? _sm5cache = null;
+    public bool CheckSM5Cached()
+    {
+        if (!_sm5cache.HasValue)
+        {
+            _sm5cache = _driver.QueryCapDev(258) != 0;
+        }
+        return _sm5cache.Value;
     }
 
     public static uint GetBytesPerPixel(SVGA3dSurfaceFormat format)
