@@ -13,5 +13,7 @@ public struct SVGA3dCmdDXDefineDepthStencilView
     public uint mipSlice;
     public uint firstArraySlice;
     public uint arraySize;
-    public uint flags;
+    public byte flags;
+    byte _pad0;
+    ushort _pad1;
 }

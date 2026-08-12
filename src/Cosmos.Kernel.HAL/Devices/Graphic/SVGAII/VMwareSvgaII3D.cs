@@ -204,7 +204,7 @@ public unsafe class VMWareSVGAII3D
         cmd->cid = ctx;
         cmd->mobid = table.MobID;
         cmd->type = table.Type;
-        cmd->validSizeInBytes = table.Size;
+        cmd->validSizeInBytes = 0;
 
         _driver.CommitFIFOCommand();
     }
@@ -256,7 +256,7 @@ public unsafe class VMWareSVGAII3D
         SyncToFence(InsertFence());
     }
 
-    public GBContext BindContext(GBContext context)
+    public GBContext BindContext(GBContext context,bool invalidate = false)
     {
         if (_boundContextId.HasValue && _boundContextId.Value.ContextID == context.ContextID)
         {
@@ -274,7 +274,7 @@ public unsafe class VMWareSVGAII3D
             cmd = (SVGA3dCmdBindGBContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdBindGBContext));
             cmd->cid = context.ContextID;
             cmd->mobid = context.MobID;
-            cmd->validContents = 0;
+            cmd->validContents = invalidate ? 0u : 1u;
 
             _driver.CommitFIFOCommand();
 
@@ -315,7 +315,7 @@ public unsafe class VMWareSVGAII3D
     #endregion
     #region Surface Management
 
-    public GBSurface DefineSurface(uint width, uint height, uint depth, SVGA3dSurfaceFormat format,SVGA3dSurfaceFlags flags = SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_TEXTURE, uint mips = 1)
+    public GBSurface DefineSurface(uint width, uint height, uint depth, SVGA3dSurfaceFormat format,SVGA3dSurfaceFlags flags = SVGA3dSurfaceFlags.SVGA3D_SURFACE_HINT_TEXTURE, uint mips = 1, uint arraySize = 1)
     {
         uint sid = GetNextSurfaceId();
 
@@ -325,7 +325,7 @@ public unsafe class VMWareSVGAII3D
             uint mobid = DefineGBMob(mobSize, out void* mobPtr, out _);
 
             SVGA3dCmdDefineGBSurface* cmd = (SVGA3dCmdDefineGBSurface*)ReserveFIFO3D(
-                (uint)FIFOCommand.SVGA_3D_CMD_DEFINE_GB_SURFACE,
+                (uint)FIFOCommand.SVGA_3D_CMD_DEFINE_GB_SURFACE_V2,
                 (uint)sizeof(SVGA3dCmdDefineGBSurface)
             );
 
@@ -338,6 +338,7 @@ public unsafe class VMWareSVGAII3D
             cmd->size.width = width;
             cmd->size.height = height;
             cmd->size.depth = depth;
+            cmd->arraySize = arraySize;
 
             _driver.CommitFIFOCommand();
 
@@ -565,8 +566,6 @@ public unsafe class VMWareSVGAII3D
             cmd->desc.tex.mipSlice = mipSlice;
             cmd->desc.tex.firstArraySlice = firstArraySlice;
             cmd->desc.tex.arraySize = arraySize;
-            cmd->desc.buffer = new();
-            cmd->desc.tex3D = new();
 
             _driver.CommitFIFOCommand();
             SyncToFence(InsertFence());
@@ -711,12 +710,16 @@ public unsafe class VMWareSVGAII3D
     {
         if (CheckDXCached())
         {
-            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_SET_VIEWPORTS, (uint)(sizeof(SVGA3dViewport) + sizeof(uint)));
-            *cmd = 0;
+            uint* cmd = (uint*)ReserveFIFO3D((uint)FIFOCommand.SVGA_3D_CMD_DX_SET_VIEWPORTS, (uint)(16 * sizeof(SVGA3dViewport) + sizeof(uint)));
+            *cmd = CurrentContextId;
 
-            var vp = new SVGA3dViewport(rect.x,rect.y,rect.w,rect.h,minDepth,maxDepth);
+            SVGA3dViewport* viewports = (SVGA3dViewport*)(cmd + 1);
 
-            MemoryOp.MemCopy((byte*)(cmd + 1), (byte*)&vp, sizeof(SVGA3dViewport));
+            SVGA3dViewport vp = new SVGA3dViewport(rect.x, rect.y, rect.w, rect.h, minDepth, maxDepth);
+            for (int i = 0; i < 16; i++)
+            {
+                viewports[i] = vp;
+            }
             
             _driver.CommitFIFOCommand();
         }

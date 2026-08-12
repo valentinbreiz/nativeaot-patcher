@@ -27,10 +27,13 @@ public struct SVGA3dTVT3D
     public uint wSize;
 }
 
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Explicit, Pack = 1)]
 public struct SVGA3dRenderTargetViewDesc
 {
+    [FieldOffset(0)]
     public SVGA3dTVB buffer;
+    [FieldOffset(0)]
     public SVGA3dTVT tex;
+    [FieldOffset(0)]
     public SVGA3dTVT3D tex3D;
 }
