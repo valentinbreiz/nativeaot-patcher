@@ -229,3 +229,11 @@ public unsafe struct SVGACOTableDXUAViewEntry
 	public uint structureCount;
 	public fixed uint pad[7];
 }
+
+public unsafe struct CoTable
+{
+	public uint Size;
+	public uint MobID;
+	public void* DataPtr;
+	public SVGACOTableType Type;
+}

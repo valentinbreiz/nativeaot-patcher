@@ -8,4 +8,6 @@ public unsafe struct GBContext
     public uint ContextID;
     public uint MobID;
     public void* MobPtr;
+
+    public List<CoTable> CoTables;
 }

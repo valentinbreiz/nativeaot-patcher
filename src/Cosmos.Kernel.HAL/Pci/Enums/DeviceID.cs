@@ -5,6 +5,7 @@ namespace Cosmos.Kernel.HAL.Pci.Enums;
 public enum DeviceId
 {
     SvgaiiAdapter = 0x0405,
+    SvgaiiiAdapter = 0x0403,
     Pcnetii = 0x2000,
     Bga = 0x1111,
     Vbvga = 0xBEEF,

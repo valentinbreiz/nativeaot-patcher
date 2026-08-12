@@ -56,10 +56,12 @@ public static class FullScreenCanvas
     {
         if (CosmosFeatures.PCIEnabled)
         {
-            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiiAdapter);
+            svgaDevice ??= PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
+
             if (svgaDevice is not null)
             {
-                return new SVGAII3DCanvas(svgaDevice);
+                return new SVGAII3DCanvas(svgaDevice,mode);
             }
         }
 

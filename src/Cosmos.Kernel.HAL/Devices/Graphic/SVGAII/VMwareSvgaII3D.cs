@@ -157,11 +157,9 @@ public unsafe class VMWareSVGAII3D
 
         _driver.CommitFIFOCommand();
 
-        var ctx = new GBContext { ContextID = cid, MobID = mobid, MobPtr = mobPtr };
+        var ctx = new GBContext { ContextID = cid, MobID = mobid, MobPtr = mobPtr, CoTables = new() };
 
-        SyncToFence(InsertFence());
-
-        BindContext(ctx);
+        _driver.WaitForFifo();
 
         if (CheckDXCached())
         {
@@ -170,40 +168,45 @@ public unsafe class VMWareSVGAII3D
             for (uint i = 0; i < cotmax; i++)
             {
                 var entry = s_coInfo[(int)i];
+                var size = entry.MaxEntries * entry.EntrySize;
 
-                BindCOTable(ctx.ContextID, (SVGACOTableType)i, entry.MaxEntries * entry.EntrySize);
+                uint comob = DefineGBMob(size, out void* coPtr, out _);
+
+                if (i == (uint)SVGACOTableType.SVGA_COTABLE_RTVIEW)
+                {
+                    _rtviewCOTableMobPtr = coPtr;
+                }
+
+                ctx.CoTables.Add(new()
+                {
+                    Type = (SVGACOTableType)i,
+                    MobID = comob,
+                    Size = size,
+                    DataPtr = coPtr
+                });
             }
         }
 
-        SyncToFence(InsertFence());
+        BindContext(ctx);
 
         return ctx;
     }
 
     private void* _rtviewCOTableMobPtr;
 
-
-    private void BindCOTable(uint cid, SVGACOTableType type, uint sizeInBytes)
+    private void BindCOTable(uint ctx,CoTable table)
     {
-        uint mobid = DefineGBMob(sizeInBytes, out void* mobPtr, out _);
-
-        if (type == SVGACOTableType.SVGA_COTABLE_RTVIEW)
-        {
-            _rtviewCOTableMobPtr = mobPtr;
-        }
-
         var cmd = (SVGA3dCmdDXSetCOTable*)ReserveFIFO3D(
             (uint)FIFOCommand.SVGA_3D_CMD_DX_SET_COTABLE,
             (uint)sizeof(SVGA3dCmdDXSetCOTable)
         );
 
-        cmd->cid = cid;
-        cmd->mobid = mobid;
-        cmd->type = type;
-        cmd->validSizeInBytes = sizeInBytes;
+        cmd->cid = ctx;
+        cmd->mobid = table.MobID;
+        cmd->type = table.Type;
+        cmd->validSizeInBytes = table.Size;
 
         _driver.CommitFIFOCommand();
-        SyncToFence(InsertFence());
     }
 
     private void GrowCOTable(uint cid, SVGACOTableType type, uint mobid, uint sizeInBytes)
@@ -224,10 +227,12 @@ public unsafe class VMWareSVGAII3D
 
     public void DebugContextMob(GBContext ctx)
     {
-        byte* p = (byte*)ctx.MobPtr;
-        uint dsvId = *(uint*)(p + 444);
-        uint rtv0Id = *(uint*)(p + 448);
-        Console.WriteLine($"ctx mob: depthStencilViewId={dsvId} renderTargetViewIds[0]={rtv0Id}");
+        var dxctx = (SVGADXContextMobFormat*)ctx.MobPtr;
+        Console.WriteLine($"ctx mob: {dxctx->depthStencilViewId} {dxctx->renderTargetViewIds[0]} ");
+        
+        Console.WriteLine($"viewports: {dxctx->numViewports} ");
+        var vp0 = (SVGA3dViewport*)dxctx->viewportsRaw[0];
+        Console.WriteLine($"viewport 0: {vp0->x} {vp0->y} {vp0->w} {vp0->h} {vp0->dmin} {vp0->dmax} ");
     }
     public void DebugCOTables()
     {
@@ -258,7 +263,7 @@ public unsafe class VMWareSVGAII3D
             return _boundContextId.Value;
         }
 
-        if (CheckGBCached())
+        if (CheckModernCached())
         {
             uint cmdid = (uint)(
                 CheckDXCached() ? FIFOCommand.SVGA_3D_CMD_DX_BIND_CONTEXT :
@@ -272,6 +277,11 @@ public unsafe class VMWareSVGAII3D
             cmd->validContents = 0;
 
             _driver.CommitFIFOCommand();
+
+            foreach (var item in context.CoTables)
+            {
+                BindCOTable(context.ContextID,item);
+            }
         }
 
         _boundContextId = context;
@@ -291,8 +301,13 @@ public unsafe class VMWareSVGAII3D
 
         _driver.CommitFIFOCommand();
 
-        if (context.MobID != 0)
+        if (CheckModernCached())
         {
+            foreach (var item in context.CoTables)
+            {
+                DestroyGBMob(item.MobID);
+            }
+
             DestroyGBMob(context.MobID);
         }
     }

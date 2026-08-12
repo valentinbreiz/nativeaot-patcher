@@ -334,11 +334,10 @@ public unsafe class SvgaIIDriver : GraphicDevice
                     uint totalSpace = (max - next) + (stop - min);
                     if (totalSpace >= bytes)
                     {
-                        // It fits by wrapping, but we must handle the end-of-buffer wrap
-                        // 1. Fill remainder of buffer from 'next' to 'max' with NOPs (0)
-                        // (Implementation detail: write NOPs to pointer region [next, max])
-                        
-                        // 2. Wrap next to min
+                        for (uint p = next; p < max; p += 4)
+                        {
+                            _fifoMemory[p] = 0;
+                        }
                         next = min;
                         break;
                     }
