@@ -16,8 +16,9 @@
 
   <!-- Hardware matrix (tests/profiles.json): `bare` keeps the default-adapter
        run (GOP over stdvga VBE on x64, ramfb on arm64); `vmware-svga` swaps in
-       the VMware SVGA II adapter — still GOP, over the device's embedded
-       Bochs VBE core, until an SVGAII driver exists for the suite to drive. -->
+       the VMware SVGA II adapter — the display still runs GOP over the
+       device's embedded Bochs VBE core, and the Svga3D_* FIFO tests bind the
+       SvgaIIDriver to the adapter without enabling it. -->
   <ItemGroup>
     <CosmosTestProfile Include="bare" />
     <CosmosTestProfile Include="vmware-svga" />
