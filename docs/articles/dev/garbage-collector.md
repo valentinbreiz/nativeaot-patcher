@@ -1,212 +1,195 @@
+![A 212-hour exposure of the Orion constellation](images/orion-gc.jpg)
+
+*OrionGC's namesake. Image credit & copyright: [Stanislav Volskiy](https://apod.nasa.gov/apod/ap151123.html), APOD 2015 November 23.*
+
 ## Overview
 
-The garbage collector is a **mark-and-sweep** collector. It manages object lifetimes across multiple GC-managed heaps (including the GC heap, GC handles, pinned heap, and frozen segments), tracks roots through stack scanning (precise from NativeAOT GCInfo for the GC-triggering thread, conservative for threads parked in the scheduler — see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)) and GC handles, and runs with interrupts disabled as a stop-the-world collection.
+The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a stop-the-world, non-moving, mark-and-sweep collector with a single generation. It manages four kinds of memory:
 
-All GC code lives in the `GarbageCollector` partial class split across eight files:
+- the regular GC heap, a linked list of bump-allocated segments,
+- the pinned object heap, a second segment list for objects that must not move,
+- the GC handle store, per-type segmented tables of `GCHandle` slots,
+- frozen segments, pre-initialized read-only data registered by the runtime and never collected.
 
-| File | Responsibility |
-|------|----------------|
-| [`GarbageCollector.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) | Core types, constants, fields, public API (Initialize, Collect, GetStats), AllocObject |
-| [`GarbageCollector.Alloc.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) | Private allocation (segments, bump alloc, free lists) |
-| [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | Mark phase (root scanning, reference enumeration, mark stack) |
-| [`GarbageCollector.PreciseStack.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) | Precise GCInfo-driven stack scan of the GC-triggering thread (incl. exception-funclet frames) |
-| [`GarbageCollector.Sweep.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) | Sweep phase (segment sweep, heap sweepers, helpers) |
-| [`GarbageCollector.GCHandler.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) | GC handle table (Weak, Normal, Pinned handles) |
-| [`GarbageCollector.Frozen.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) | Frozen segment registration (pre-initialized read-only data) |
-| [`GarbageCollector.PinnedHeap.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) | Pinned object allocation and sweeping |
+Allocation goes through per-thread TLABs (thread-local allocation buffers). A collection runs when a TLAB refill fails even after growing the heap, or when `Collect()` is called explicitly. The whole collection runs inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
+
+Roots come from three places: the GC-triggering thread's stack, scanned precisely from NativeAOT GCInfo (see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)); every other registered thread's stack and saved registers, scanned conservatively; and strong GC handles. Static fields need no separate scan pass: module initialization parks every module's GC-statics base objects in a spine array behind a strong handle, so the handle scan reaches them.
+
+The code lives in `src/Cosmos.Kernel.Core/Memory/GarbageCollector/`. The `GarbageCollector` class itself is a static partial class split by phase (`.Alloc`, `.Tlab`, `.Mark`, `.Sweep`, and so on); segments, handles, and the TLAB struct sit in their own types, and the `GcInfo/` folder holds the decoder for the precise stack scan. The full file map is in [Source files](#source-files) at the end of this article.
+
+Two `GCSegmentManager` instances exist: `s_segmentManager` for the regular heap and `s_pinnedSegmentManager` for the pinned heap. The handle store is `s_gCHandleManager`, a `GCHandleManager`.
 
 ---
 
-### MethodTable struct
+## Core structures
 
-Every managed type compiled by the NativeAOT compiler (ILC) has a `MethodTable`, a type descriptor struct that lives in the kernel's code/data sections (never on the GC heap). The GC relies on several of its fields:
+### MethodTable
+
+Every managed type compiled by ILC has a `MethodTable`, a type descriptor that lives in the kernel's data sections, never on the GC heap. The GC reads a handful of its fields:
 
 | Field | Purpose |
 |-------|---------|
-| `RawBaseSize` / `BaseSize` | Size of a fixed-size object (in bytes) |
-| `ComponentSize` | Size of each element for arrays/strings |
+| `RawBaseSize` | Size of a fixed-size object in bytes |
+| `BaseSize` / `ComponentSize` | Base size plus per-element size for arrays and strings |
 | `HasComponentSize` | True for arrays and strings |
-| `ContainsGCPointers` | True if the type has reference-type fields the GC must trace |
+| `ContainsGCPointers` | True if instances contain references the GC must trace |
 
-Because `MethodTable` pointers always reside in kernel code sections, the GC uses `IsInGCHeap((nint)mt)` as a validity check. If a `MethodTable*` points inside the heap, it cannot be a real type descriptor and the candidate object is rejected.
+Because `MethodTable` pointers always live in kernel space, outside the heap, the GC uses that as a validity filter: a candidate object whose first word is null, points inside the GC heap, or sits below `AddressSpace.KernelSpaceStart` cannot be a real object.
 
-### Object struct
+### Object header
 
-Every managed object on the GC heap starts with a [`GCObject`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) header:
+Every object on the GC heap starts with a [`GCObject`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) header:
 
-```
-              ┌──────────────────────────────────┐
-              │  MethodTable*  (8 bytes on x64)  │  ← bit 0 used as mark bit
-              ├──────────────────────────────────┤
-              │  Length         (4 bytes)        │  ← element count for arrays/strings
-              ├──────────────────────────────────┤
-              │  ... object fields / elements ...│
-              └──────────────────────────────────┘
-```
+| Offset | Size (x64) | Contents | Notes |
+|--------|------------|----------|-------|
+| 0 | 8 bytes | `MethodTable*` | Bit 0 doubles as the mark bit |
+| 8 | 4 bytes | `Length` | Element count for arrays and strings |
+| 12 | rest of the object | Fields or elements | |
 
-**Mark bit encoding**: The least significant bit of the `MethodTable` pointer doubles as the mark flag. Since `MethodTable` pointers are always aligned, bit 0 is normally zero. `Mark()` sets it to 1, `Unmark()` clears it. Any code that needs the real `MethodTable*` calls `GetMethodTable()` which masks off bit 0.
+`MethodTable` pointers are aligned, so bit 0 is normally zero. `Mark()` sets it, `Unmark()` clears it, and `GetMethodTable()` masks it off before dereferencing. `ComputeSize()` returns `BaseSize + Length * ComponentSize` for arrays and strings, `RawBaseSize` for everything else.
 
-### FreeBlock struct
+### FreeBlock
 
-Dead objects discovered during sweep are converted into `FreeBlock` entries. A `FreeBlock` is deliberately laid out to be walkable like a `GCObject` so the sweep can iterate through a segment linearly without distinguishing between live objects, dead objects, and free blocks until it inspects the `MethodTable`:
+Dead space is described by `FreeBlock` entries linked into size-class free lists. A `FreeBlock` is laid out so the sweep can walk over it like an object, with the marker `MethodTable` at offset 0 and `Size` where `GCObject.Length` sits:
 
-```
-              ┌──────────────────────────────────┐
-              │  MethodTable*  (8 bytes on x64)  │  ← points to _freeMethodTable marker
-              ├──────────────────────────────────┤
-              │  Size           (4 bytes)        │  ← total size of this free block
-              ├──────────────────────────────────┤
-              │  Next*          (8 bytes)        │  ← next FreeBlock in this size class bucket
-              └──────────────────────────────────┘
-```
+| Offset | Size (x64) | Contents | Notes |
+|--------|------------|----------|-------|
+| 0 | 8 bytes | `MethodTable*` | Points at the `s_freeMethodTable` marker that identifies free blocks |
+| 8 | 4 bytes | `Size` | Total size of this free block (4 bytes of padding follow) |
+| 16 | 8 bytes | `Next*` | Next free block in the same size class |
+
+The header is 24 bytes, which is why `MinBlockSize` is 24: every allocation is rounded up to at least that, so any object can later be turned into a free block in place.
+
+### AllocContext (TLAB)
+
+[`AllocContext`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) is the per-thread allocation state, stored inline on each `Scheduler.Thread` (with a static fallback context for early boot, before the scheduler runs):
+
+| Field | Meaning |
+|-------|---------|
+| `AllocPtr` | Current allocation pointer, advances toward `AllocLimit` |
+| `AllocLimit` | End of the TLAB; reaching it forces a refill |
+| `AllocBytes` | Cumulative bytes this thread allocated on the regular heap |
+| `AllocBytesUoh` | Cumulative bytes this thread allocated on the pinned heap |
 
 ---
 
 ## Memory layout
 
-### Single segment
+### Segments
 
-Each segment is a contiguous memory region obtained from the page allocator. The `GCSegment` header sits at the start of the allocated pages, followed by the usable region where objects are placed:
+A segment is a contiguous range of pages from the page allocator (`PageType.GCHeap`). The [`GCSegment`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegment.cs) header sits at the base of the allocation, followed by the segment's brick table, then 8 reserved bytes, then the usable region:
 
-```
-                         one segment (1+ pages from PageAllocator)
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-
-│  GCSegment header              Usable region                              │
-  ┌────────────────┐ ┌──────────────────────────────────────────────────┐
-│ │ Next ──────────────► (next segment or null)                         │   │
-  │ Start ─────────┼►│                                                  │
-│ │ End ───────────┼─┼─────────────────────────────────────────────────►│   │
-  │ Bump ──────────┼─┼───────────────────────────►│                     │
-│ │ TotalSize      │ │                            │                     │   │
-  │ UsedSize       │ │ [obj A] [obj B] [free] ... │   (unallocated)     │
-│ └────────────────┘ └──────────────────────────────────────────────────┘   │
-
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                     ◄─── allocated objects ───►◄── free space ──►
-                          & free blocks           (bump region)
+```mermaid
+block-beta
+  columns 10
+  HDR["GCSegment header<br/>Next, Start, End, Bump,<br/>TotalSize, UsedSize"]:2
+  BT["brick table<br/>1 byte per chunk of<br/>255 pointer slots"]:2
+  RSV["8 reserved<br/>header-slot bytes"]:2
+  OBJ["[obj A] [obj B] [free] ...<br/>allocated objects and free blocks"]:2
+  FREE["unallocated space<br/>(bump region)"]:2
+  space:6 STARTA<["Start"]>(up) space BUMPA<["Bump"]>(up) ENDA<["End"]>(up)
 ```
 
-- **Start → Bump**: contains allocated objects and free blocks (left behind by dead objects after a collection).
-- **Bump → End**: untouched space. New objects are placed at `Bump`, which advances forward.
+The strip is one contiguous allocation in address order, page-aligned base on the left. `Start` points at the first byte after the reserved slot, `Bump` at the boundary where the next allocation lands (it advances toward `End`, one past the segment's last byte), and `Next` links the segments into the chains shown below. `TotalSize` is `End - Start`; `UsedSize` counts the bytes in use before sweep.
 
-### Regular GC chains
+- `Start` to `Bump` holds allocated objects and free blocks left behind by earlier collections.
+- `Bump` to `End` is untouched space; bump allocation hands out memory from `Bump` and advances it.
+- The 8 reserved bytes before `Start` exist because the runtime writes an object header (identity hash or thin lock) at `objRef - 4`. For the first object in a segment that write must land in reserved filler instead of the segment's own metadata.
 
-The GC maintains **two independent linked lists** of segments — one for the regular heap, one for pinned objects:
+Segment allocation lives in [`GCSegmentManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegmentManager.cs). `AllocateSegment(requestedSize)` clamps the request to at least one page, sizes the brick table, rounds the total up to whole pages, and appends the new segment to its manager's linked list. Page rounding slack is given to the usable region, so `TotalSize` is usually a bit larger than the request.
 
-```
- Regular GC heap chain (_segments)
- ═══════════════════════════════════════════════════════════════════
+### Brick table
 
- _segments                                                _tailSegment
-     │                                                         │
-     ▼                                                         ▼
- ┌────────┐    Next    ┌────────┐    Next    ┌────────┐       ┌────────┐
- │ Seg 0  │──────────► │ Seg 1  │──────────► │ Seg 2  │─···─► │ Seg N  │──► null
- │ (FULL) │            │(SEMI)  │            │(SEMI)  │       │ (FREE) │
- └────────┘            └────────┘            └────────┘       └────────┘
-                            ▲
-                            │
-                  _lastSegment / _currentSegment
-                  (next alloc starts here)
+Each segment carries a small side table that lets the GC map an address inside the segment back to an object start. The usable region is divided into chunks of 255 pointer-sized slots; the table stores one byte per chunk holding the 1-based slot index of the last object that starts in that chunk (0 means no object recorded).
 
+`GCSegment.MarkObject(addr)` records an allocation start. On the pinned heap that is every object. On the regular heap it is every buffer bump-allocated from the segment, which in practice means TLABs: the recorded address is also the start of the first object carved from that buffer, but the objects that follow inside the same TLAB are not individually recorded, and a TLAB recycled from the free list adds no entry at all. `FindClosestObjectBelow(addr)` reads the table backwards for the nearest recorded start at or below an address. The result is therefore a nearby walkable object start, not necessarily the immediate predecessor; interior pointer resolution walks forward object by object from there (see [Interior pointers](#interior-pointers)), which is still far cheaper than walking the whole segment from `Start`.
 
- Pinned heap chain (_pinnedSegments)
- ═══════════════════════════════════════════════════════════════════
+### Segment chains
 
- _pinnedSegments
-     │
-     ▼
- ┌────────┐    Next    ┌────────┐
- │ Pin 0  │──────────► │ Pin 1  │──► null
- │ (FULL) │            │(SEMI)  │
- └────────┘            └────────┘
-                            ▲
-                            │
-                    _currentPinnedSegment
+Both heaps keep their segments in a singly linked list owned by their manager:
+
+```mermaid
+flowchart LR
+    subgraph REG["Regular heap (s_segmentManager)"]
+        direction LR
+        RHEAD["Segments<br/>(list head)"] -.-> S0["Seg 0<br/>(FULL)"]
+        RCUR["s_lastSegment / s_currentSegment<br/>(bump allocation starts here)"] -.-> S1
+        RTAIL["TailSegment"] -.-> SN
+        S0 -->|Next| S1["Seg 1<br/>(SEMIFULL)"] -->|Next| S2["Seg 2<br/>(SEMIFULL)"] -->|Next| SN["Seg N<br/>(FREE)"] --> RNULL(["null"])
+    end
 ```
 
-Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the **pinned chain**.
+```mermaid
+flowchart LR
+    subgraph PIN["Pinned heap (s_pinnedSegmentManager)"]
+        direction LR
+        PHEAD["Segments<br/>(list head)"] -.-> P0["Pin 0"]
+        PCUR["s_currentPinnedSegment"] -.-> P1
+        P0 -->|Next| P1["Pin 1"] --> PNULL(["null"])
+    end
+```
 
-The GC tracks two segment pointers for the regular heap: `_lastSegment` is the segment where the next allocation attempt begins (set to the first semifull or free segment after collection), and `_currentSegment` tracks the segment that last successfully served an allocation. Both are updated together during bump allocation and segment reordering.
+`s_lastSegment` is the segment where the next bump attempt starts and `s_currentSegment` tracks the segment that last served an allocation; both are updated together. Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the pinned chain instead.
 
-After each collection, segments in both chains are sorted into three groups: **FULL** (bump reached end) → **SEMIFULL** (partially used) → **FREE** (empty). Empty multi-page segments are returned to the page allocator entirely. `_lastSegment` is set to the first semifull (or free) segment so the next allocation targets available space first.
+After each collection the segments of both chains are regrouped in FULL, SEMIFULL, FREE order, and empty segments spanning more than one page are returned to the page allocator (see [Segment reordering](#segment-reordering)).
+
+To reject arbitrary values quickly, the GC caches a bounding box (`s_gcHeapMin` / `s_gcHeapMax`) over the regular segments. `IsInGCHeap` checks the box first, then walks the segment list; anything outside the box, or inside the box but between segments, is checked against the pinned chain with a plain linear walk (`IsInPinnedHeap`). The box is recomputed lazily whenever `s_heapRangeDirty` is set by a segment change.
 
 ### Handle store
 
-GC handles let the runtime hold references to managed objects from locations the GC does not automatically scan (registers, native code, internal caches). For example, `RuntimeType` caches a `RuntimeTypeInfo` via a weak GC handle — without a handle, the GC would not know that the cached object is still reachable and might collect it. Handle types control lifetime: `Weak` handles do not prevent collection, while `Normal` and `Pinned` handles keep objects alive.
+GC handles let the runtime hold references from places the GC does not scan (native code, runtime caches, `GCHandle` values in user code). The store is owned by [`GCHandleManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleManager.cs) and is organized by handle type: one `GCHandleSegmentStore` per handle type, plus a separate store for dependent handles.
 
-The handle table is stored in a dedicated `GCSegment` allocated at GC initialization.
+| Type | Value | Keeps target alive? | Notes |
+|------|-------|--------------------|-------|
+| `Weak` | 0 | No | Freed after collection if the target died |
+| `WeakTrackResurrection` | 1 | No | Allocatable; there is no finalization yet, so it behaves like storage only |
+| `Normal` | 2 | Yes | Scanned as a strong root |
+| `Pinned` | 3 | Yes | Scanned as a strong root; the target sits on the non-moving heap anyway |
+| dependent | 6 | Conditional | Primary in `Object`, secondary in `ExtraInfo`; matches the runtime's `HNDTYPE_DEPENDENT`. There is no named enum member for it |
 
-Each handle entry is:
+Each store is a linked list of `GCHandleSegment` pages. A segment is one 4 KiB page: a 16-byte header followed by 170 handle slots of 24 bytes each:
 
-```
-GCHandle (24 bytes on x64)
-┌──────────────────────────┐
-│ GCObject* obj            │  ← the referenced object
-├──────────────────────────┤
-│ GCHandleType type        │  ← Weak, Normal, or Pinned
-├──────────────────────────┤
-│ nuint extraInfo          │  ← used for dependent handles
-└──────────────────────────┘
-```
-
-The handle store is a standalone `GCSegment*` allocated once at GC initialization via `AllocateSegment()`. It is not part of the regular or pinned chains. Unlike regular segments, `Bump` is never advanced — it stays equal to `Start` and serves as the base address of the handle table. The entire region from `Start` to `End` is a flat array of `GCHandle` slots. `AllocateHandler` scans linearly for an empty slot (`obj == null`).
-
-```
- Handle store (handlerStore)
- ═══════════════════════════════════════════════════════════════════
-
- handlerStore ──► GCSegment (single, not linked)
-                       │
-              Start = Bump (never moves)                        End
-                       │                                         │
-                       ▼                                         ▼
-                      ┌──────────┬──────────┬──────────┬────────┐
-                      │ GCHandle │ GCHandle │ GCHandle │  ...   │
-                      │ obj─►ObjA│ obj─►ObjB│ obj=null │        │
-                      │ type=Weak│ type=Norm│ (empty)  │        │
-                      └──────────┴──────────┴──────────┴────────┘
-                                                 ▲
-                                          AllocateHandler()
-                                          picks first empty slot
+```mermaid
+flowchart LR
+    subgraph STORE["GCHandleSegmentStore (one per handle type, plus one for dependent handles)"]
+        direction LR
+        SHEAD["_head"] -.-> SEG0
+        STAIL["_tail<br/>(allocation fast path)"] -.-> SEG1
+        subgraph SEG0["GCHandleSegment (one 4 KiB page)"]
+            direction TB
+            H0["header: Next,<br/>packed free head"] --- SL0["170 GCHandle slots<br/>(24 bytes each:<br/>Object, ExtraInfo, Type)"]
+        end
+        subgraph SEG1["GCHandleSegment"]
+            direction TB
+            H1["header"] --- SL1["170 GCHandle slots"]
+        end
+        SEG0 -->|Next| SEG1
+        SEG1 --> SNULL(["null"])
+    end
 ```
 
-The GC scans this table during the mark phase, `Normal` and `Pinned` handles are treated as roots. After marking, `FreeWeakHandles` nulls out any `Weak` handle whose object was not marked (see [Handle store](#handle-store)).
+A `GCHandle` slot is `{ GCObject* Object; nint ExtraInfo; GCHandleType Type; }`. Free slots are stamped with the sentinel type `(GCHandleType)(-1)` and chained through `ExtraInfo` into an intra-segment free list. The list head, the alive count, and an ABA version tag are packed into one 64-bit word updated with `Interlocked.CompareExchange`, so slot allocation and free are lock-free within a segment. When every segment of a store is full, the store allocates one more page.
 
-### Frozen segments chain
+A handle value handed to the runtime is simply the address of its slot. Allocation, `RhHandleSet`, dependent secondary access, and freeing all cast the `IntPtr` back to a `GCHandle*`.
 
-Frozen segments hold **pre-initialized, read-only objects** emitted by the NativeAOT compiler (string literals, static readonly data, etc.). They are registered at startup via `RhRegisterFrozenSegment` and are never collected.
+During collection, `Normal` and `Pinned` stores are scanned as roots, dependent handles are processed by a convergence loop, and weak handles are never scanned; see [Handles during marking](#handles-during-marking).
 
-The GC tracks them in a linked list of `FrozenSegmentInfo` nodes allocated from a bump-allocated metadata page. `IsInFrozenSegment` is used to distinguish frozen objects from heap objects during validation.
+### Frozen segments
 
-Frozen segments do not participate in mark or sweep phases.
+Frozen segments hold pre-initialized read-only objects emitted by ILC (string literals, frozen arrays, and similar data). The runtime registers them at startup through `RhRegisterFrozenSegment`, and `ManagedModule` registers each module's `FrozenObjectRegion` directly. The GC records them in a linked list of `FrozenSegmentInfo` nodes carved from a bump-allocated metadata page:
 
-```
- Frozen segments (_frozenSegments)
- ═══════════════════════════════════════════════════════════════════
-
- _frozenSegments ──► FrozenSegmentInfo linked list
-                          │
-                          ▼
-                     ┌──────────────┐   Next   ┌──────────────┐
-                     │ Start: 0x... │─────────►│ Start: 0x... │──► null
-                     │ AllocSize    │          │ AllocSize    │
-                     │ CommitSize   │          │ CommitSize   │
-                     │ ReservedSize │          │ ReservedSize │
-                     └──────┬───────┘          └──────┬───────┘
-                            │                         │
-                            ▼                         ▼
-                     ┌──────────────────┐      ┌──────────────────┐
-                     │ read-only objects│      │ read-only objects│
-                     │ (string literals,│      │ (static data,    │
-                     │  const data, ...)│      │  ...)            │
-                     └──────────────────┘      └──────────────────┘
+```mermaid
+flowchart LR
+    FROOT["s_frozenSegments"] --> F0["FrozenSegmentInfo<br/>Start, AllocSize,<br/>CommitSize, ReservedSize"] -->|Next| F1["FrozenSegmentInfo<br/>Start, AllocSize,<br/>CommitSize, ReservedSize"] --> FNULL(["null"])
+    F0 -.->|Start| D0["read-only objects<br/>(string literals, frozen data)"]
+    F1 -.->|Start| D1["read-only objects"]
 ```
 
-### Other heaps
+Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations.
 
-The garbage collector also sweeps objects allocated on the general-purpose heaps (SmallHeap, MediumHeap, LargeHeap). These heaps are not segment-based — the sweeper finds their objects by scanning the page allocator's Range Allocation Table (RAT) for the corresponding page types.
+### What the GC does not touch
+
+The kernel's malloc-style heaps (SmallHeap, MediumHeap, LargeHeap in `Memory/Heap/`) are not part of the GC. Managed objects never live there, and the sweep deliberately never walks them: a live unmanaged block whose first word happens to hold a GC heap pointer would be indistinguishable from an unmarked object header, and sweeping it would free live memory (issue [#386](https://github.com/valentinbreiz/nativeaot-patcher/issues/386), covered by the `GC_MallocHeapNotSwept` test).
 
 ---
 
@@ -214,224 +197,272 @@ The garbage collector also sweeps objects allocated on the general-purpose heaps
 
 ### Runtime bridge
 
-#### GC Allocation
+The NativeAOT runtime calls exported functions in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs). The allocation exports funnel into `GarbageCollector.AllocObject(size, flags)`; before the GC is initialized they fall back to the boot allocator (`MemoryOp.Alloc` plus an explicit zero).
 
-The .NET runtime calls exported functions (defined in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs)) which all funnel into `GarbageCollector.AllocObject(size, flags)`:
+| Runtime export | Purpose |
+|----------------|---------|
+| `RhpNewFast` | Fixed-size object (`RawBaseSize`) |
+| `RhpNewArray`, `RhpNewArrayFast`, `RhpNewPtrArrayFast` | Arrays; a negative length returns null |
+| `RhNewArray` | Arrays; forwards to `RhAllocateNewArray` with no flags |
+| `RhAllocateNewArray` | Arrays, with allocation flags |
+| `RhAllocateNewObject` | Object with flags (used with the pinned flag for GC statics) |
+| `RhNewString`, `RhNewVariableSizeObject` | Forward to `RhpNewArray` |
 
-| Runtime function | Purpose |
-|-----------------|---------|
-| `RhpNewFast` | Allocate fixed-size object |
-| `RhpNewArray` | Allocate array |
-| `RhpNewArrayFast` | Allocate array (fast path) |
-| `RhpNewPtrArrayFast` | Allocate pointer array (fast path) |
-| `RhNewArray` | Allocate array (via `RhAllocateNewArray`) |
-| `RhAllocateNewArray` | Allocate array with flags |
-| `RhAllocateNewObject` | Allocate object with flags |
-| `RhNewVariableSizeObject` | Allocate variable-size object |
-| `RhNewString` | Allocate string (via `RhpNewArray`) |
+The handle and frozen-segment exports:
 
-#### Handles
-
-The .NET runtime accesses GC handles through exported functions in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs):
-
-| Runtime function | Maps to |
-|-----------------|---------|
-| `RhpHandleAlloc` | `GarbageCollector.AllocateHandler` |
+| Runtime export | Maps to |
+|----------------|---------|
+| `RhpHandleAlloc` | `GarbageCollector.AllocateHandler(obj, type, IntPtr.Zero)` |
+| `RhpHandleAllocDependent` | `AllocateHandler(primary, (GCHandleType)6, secondary)` |
+| `RhHandleSet` | `GarbageCollector.HandleSetPrimary` |
 | `RhHandleFree` | `GarbageCollector.FreeHandle` |
 | `RhRegisterFrozenSegment` | `GarbageCollector.RegisterFrozenSegment` |
 | `RhUpdateFrozenSegment` | `GarbageCollector.UpdateFrozenSegment` |
 
+Of the allocation flags only `GC_ALLOC_PINNED_OBJECT_HEAP` is honored; everything else (finalization, alignment, optional zeroing) is accepted and ignored. Regular-heap allocations are always handed out zeroed, whatever the flags say.
+
 ### Allocation flow
+
+`AllocObject` runs entirely inside `DisableInterruptsScope`: interrupt handlers allocate too (scheduler tick, input), and an interleaved refill on the same context would mix pointers from two different TLABs (issue #382).
 
 ```mermaid
 flowchart TD
     REQ["AllocObject(size, flags)"] --> PINNED{Pinned flag?}
-    PINNED -->|Yes| PIN_ALLOC[AllocPinnedObject]
-    PINNED -->|No| ALIGN[Align size, enforce 24-byte minimum]
-    ALIGN --> FL[Try AllocFromFreeList]
-    FL -->|Found| RET[Return object]
-    FL -->|Miss| BUMP["Try BumpAlloc in _lastSegment"]
-    BUMP -->|Fits| RET
-    BUMP -->|Full| SLOW["AllocateObjectSlow
-    Walk segments, then allocate new segment"]
-    SLOW -->|Success| RET
-    SLOW -->|Fail| GC["AllocObject calls Collect()"]
-    GC --> FL2[Retry free list]
-    FL2 -->|Found| RET
-    FL2 -->|Miss| SLOW2[Retry AllocateObjectSlow]
-    SLOW2 --> RET
+    PINNED -->|yes| PIN["AllocPinnedObject:
+    bump in current pinned segment,
+    or allocate a new pinned segment"]
+    PINNED -->|no| ALIGN["Align size, enforce 24-byte minimum"]
+    ALIGN --> TLAB{"Fits in the thread's TLAB?"}
+    TLAB -->|yes| RET["Advance AllocPtr, return"]
+    TLAB -->|no| REFILL["RefillAllocContext"]
+    REFILL -->|success| RET
+    REFILL -->|failure| GC["Collect()"]
+    GC --> REFILL2["RefillAllocContext (retry)"]
+    REFILL2 -->|success| RET
+    REFILL2 -->|failure| NULL["return null"]
 ```
 
-**Free list allocation** uses 12 size classes — powers of two from 16 to 32768 bytes. A request is matched to the smallest class that fits, then that bucket is walked for a block large enough. If none fits, larger classes are tried. When a block is found, leftovers are split back into the free list if the remainder is at least 24 bytes (`MinBlockSize`).
+The fast path is two pointer operations: if `AllocPtr + size <= AllocLimit`, bump and return. Everything else happens during refill.
 
-**Bump allocation** is the fast path: advance `Bump` by the aligned size. If `_lastSegment` is full, the slow path walks all segments from `_lastSegment` forward (then wraps around), and if nothing fits, allocates a new segment from the page allocator.
+### TLAB refill
 
-If all of that fails, a **collection** runs and the allocation retries.
+`RefillAllocContext` (in [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs)) first stamps the old TLAB's unused tail back to the free list, then tries, in order:
+
+1. A free-list block of `max(size, TlabSize)` bytes, where `TlabSize` is 8 KiB.
+2. Bump allocation of that size in `s_lastSegment`.
+3. The largest free-list block that still fits the requested object (`AllocLargestFromFreeListRaw`). The block is taken whole and becomes a smaller-than-usual TLAB. This matters after a sweep: surviving objects chop the free space into blocks below 8 KiB, and without this step every refill in a partially live segment would fail and grow the heap instead.
+4. A walk of all segments starting at `s_lastSegment` (wrapping around once), and if nothing fits, a brand new segment from the page allocator (`AllocateObjectSlowRaw`).
+5. If the request was smaller than a full TLAB, one more exact-size attempt at the free list and the segment walk.
+
+Only when all of that fails does `AllocObjectSlow` run a collection and retry the refill once. If the retry also fails, allocation returns null. Note the ordering: the heap grows before a collection is attempted; `Collect` only runs once the page allocator itself has nothing left to give.
+
+### Free lists
+
+There are 12 size classes, powers of two from 16 to 32768 bytes. A lookup starts at the smallest class that fits and walks upward; a block is taken if it fits exactly or leaves a remainder of at least 24 bytes (the remainder is split back to the free list). Blocks larger than 32768 bytes are filed under the last class. The free lists are cleared at the start of every collection and rebuilt by the sweep.
+
+Every free block excludes its last 8 bytes (`ReservedHeaderSlotSize`): those bytes may hold the runtime object header (`objRef - 4`) of the object that follows the block, which must survive block recycling.
+
+### Returning TLABs
+
+`Collect` starts by returning every thread's TLAB (`ReturnAllAllocContexts`). A gap of at least 32 bytes is stamped in place as a `FreeBlock` and pushed onto the free list; smaller gaps are just zeroed so the sweep does not trip over stale data. Afterwards every context is `null`/`null` and refills on next use.
+
+### Pinned allocation
+
+Pinned objects bypass TLABs entirely: `AllocPinnedObject` bump-allocates in the current pinned segment, allocating a new pinned segment when it is full. Pinned allocation never draws from the free lists (though pinned free space discovered by the sweep does flow into them). The pinned heap exists for objects whose address must stay stable, such as the GC statics base objects that `ManagedModule.InitializeStatics` allocates with the pinned flag.
 
 ---
 
 ## Collection
 
-Collection is triggered when allocation fails or when `Collect()` is called explicitly. The entire collection runs inside a `DisableInterruptsScope` — no thread switching or interrupt handling occurs during GC.
-
-To quickly reject pointers that cannot be heap objects, the GC maintains a bounding box (`_gcHeapMin` / `_gcHeapMax`) covering all segment addresses. `IsInGCHeap` first checks this range before walking the segment list. The range is recomputed after any segment is added, removed, or reordered (flagged by `_heapRangeDirty`).
-
-For pointers outside the main heap range, `IsInPinnedHeap` performs a separate linear walk of pinned segments.
-
-### Collection lifecycle
+`Collect()` returns the number of objects freed. Its phase order:
 
 ```mermaid
 sequenceDiagram
-    participant App as Application
+    participant App as Caller
     participant GC as GarbageCollector
     participant PA as PageAllocator
 
     App->>GC: Collect()
     activate GC
     Note over GC: Interrupts disabled
+    GC->>GC: ReturnAllAllocContexts (stamp TLAB gaps)
     GC->>GC: Clear all free lists
-    GC->>GC: MarkPhase (scan stacks, handles)
+    GC->>GC: MarkPhase (stacks, then handles)
     GC->>GC: FreeWeakHandles
     GC->>GC: SweepPhase (rebuild free lists)
-    GC->>GC: Reorder segments, free empty ones 
-    GC->>GC: Reorder pinned segments, free empty ones 
-    GC->>PA: Free(empty segments)
+    GC->>GC: Reorder regular segments, free empty ones
+    GC->>GC: Reorder pinned segments, free empty ones
+    GC->>PA: Free(empty multi-page segments)
     GC->>GC: RecomputeHeapRange
     Note over GC: Interrupts enabled
     deactivate GC
-    GC-->>App: freed objects count
+    GC-->>App: freed object count
 ```
+
+Generation 0 size and fragmentation are snapshotted before and after the phases, and the duration feeds `GetLastGCPercentTimeInGC`.
 
 ### Mark phase
 
-The mark phase identifies all reachable objects using a worklist-based traversal. It scans three root sources:
+The mark phase finds all reachable objects with a worklist. `MarkPhase` resets the mark stack, scans stack roots, then scans GC handles.
 
-```mermaid
-flowchart LR
-    MARK[MarkPhase] --> STACK[ScanStackRoots]
-    MARK --> HANDLES[ScanGCHandles]
-    MARK --> STATIC["ScanStaticRoots (disabled)"]
-```
+Stack scanning is a hybrid:
 
-**Static root scanning** walks GCStaticRegion sections from all loaded modules. This is currently disabled.
+- The **GC-triggering thread** is scanned **precisely**. It reached the collector through a managed call chain, so every return address up its stack is a call-site safepoint where GCInfo is valid. `PreciseScanCurrentThread` walks its frames one by one and reports exactly the slots the compiler says are live, including exception funclet frames. The mechanism has its own article: [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md).
+- **Every other registered thread** was preempted at an arbitrary instruction, where a GCInfo lookup would be meaningless. Those threads get a **conservative** scan: each saved register and every pointer-sized word of their stack is treated as a potential reference. Replacing this last conservative path needs return-address hijacking, tracked in issue [#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385). Dead threads are skipped.
 
-**Stack scanning** is a hybrid. The **GC-triggering thread** is scanned **precisely** from NativeAOT GCInfo (`GarbageCollector.PreciseStack.cs`): it is stopped at a call-site safepoint, so the per-frame GCInfo names exactly which slots hold live references; this includes exception-funclet frames. Every other registered thread (preempted by the timer IRQ at an arbitrary instruction, where GCInfo is meaningless) still gets a **conservative** scan — every pointer-sized value of its saved registers and stack treated as a potential object reference.
+There is no static-root pass. `ManagedModule.InitializeStatics` stores every module's GC-statics base objects in a spine array reachable from a strong (`Normal`) GC handle, so scanning the handle stores covers all static fields transitively (the `GC_StaticOnlyReachability` test proves this).
 
-Conservative scanning over-roots (stale heap pointers in dead spill slots keep objects alive) and is layout-fragile (a codegen shift can resurrect a dead object — see [issue #346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346)); the precise scan replaced it where it is provably sound, and return-address hijacking ([#348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348) phase 4) will let it cover parked threads too. See [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md) for the design, the why, and the rollout.
+Candidate pointers go through `TryMarkRoot(value)`:
 
-**GC handle scanning** walks the handle table and marks objects referenced by `Normal` and `Pinned` handles. `Weak` handles do not keep objects alive.
+1. Reject the value unless it points into the GC heap (regular or pinned segments).
+2. Push it on the mark stack, then drain the stack:
+   - Read the object's first word and mask off the mark bit.
+   - Reject the candidate if that `MethodTable` pointer is null, points inside the GC heap, or lies below `AddressSpace.KernelSpaceStart`. Real method tables live in kernel data sections.
+   - Skip the object if it is already marked.
+   - Set the mark bit.
+   - If the type has `ContainsGCPointers`, call `EnumerateReferences` to push the object's child references.
 
-| Type | Keeps object alive? | Freed during collection? |
-|------|--------------------|-----------------------|
-| `Weak` | No | Yes, if object is unmarked |
-| `Normal` | Yes (scanned as root) | No |
-| `Pinned` | Yes (scanned as root) | No |
+The mark stack starts at one page (512 entries) and grows by copying into a larger page allocation when full. If growing fails, the collector logs a warning and drops the pointer, so an allocation failure at that point can under-mark; there is no fallback.
 
-While scanning, `TryMarkRoot(value)` pushes a candidate pointer onto the mark stack, then processes the stack iteratively:
+`EnumerateReferences` decodes the **GCDesc** that ILC stores immediately before each `MethodTable`. The word at `MT[-1]` is `numSeries` and selects one of two layouts.
 
-1. Pop a pointer
-2. Read the `MethodTable` field (masking off the mark bit)
-3. Reject if the `MethodTable` pointer is null or points inside the GC heap — valid method tables live in kernel code, outside the heap
-4. Skip if already marked
-5. Mark the object (set bit 0 of `MethodTable`)
-6. If `ContainsGCPointers` is set, call `EnumerateReferences` to discover child references
+Normal series (`numSeries > 0`), for regular objects and reference arrays. The table rows are in memory order, lower addresses first; the GCDesc grows downward from the `MethodTable`:
 
-`EnumerateReferences` reads the **GCDesc** metadata to find which fields inside an object are managed pointers. This metadata is emitted by the NativeAOT compiler (ILC) and stored in memory immediately *before* each `MethodTable`. It is not part of the `MethodTable` struct itself — the code reads it by indexing backwards from the `MethodTable` pointer: `((nint*)mt)[-1]` gives the first word before `mt`, `((nint*)mt)[-2]` the second, and so on.
+| Location | Contents |
+|----------|----------|
+| below `MT[-1]`, extending downward | `GCDescSeries[numSeries-1]` down to `GCDescSeries[0]`, each holding `SeriesSize` and `StartOffset`; entry 0 sits nearest the count word |
+| `MT[-1]` | `numSeries` (positive) |
+| `MT[0]`, `MT[1]`, ... | The `MethodTable` fields themselves |
 
-The first word before the MethodTable (`MT[-1]`) is `numSeries`, which determines the layout:
+Each `GCDescSeries` describes one contiguous run of references. `SeriesSize` is stored biased by the object size, so the scanner computes `SeriesSize + objectSize` to get the byte count and walks that many words starting at `obj + StartOffset`.
 
-**Normal series** (`numSeries > 0`) — for regular objects:
+Val series (`numSeries < 0`), for arrays of structs that contain references, laid out the same way:
 
-```
-          lower addresses
-    ┌──────────────────────────┐
-    │ GCDescSeries[last]       │  ← SeriesSize + StartOffset
-    │ ...                      │
-    │ GCDescSeries[0]          │
-    ├──────────────────────────┤
-    │ numSeries (positive)     │  ← MT[-1]
-    ├──────────────────────────┤
-    │ MethodTable fields ...   │  ← MT[0], MT[1], ...
-    └──────────────────────────┘
-          higher addresses
-```
+| Location | Contents |
+|----------|----------|
+| below `MT[-2]`, extending downward | The `ValSerieItem` entries, each holding `Nptrs` (pointer count) and `Skip` (bytes to skip); item 0 sits nearest the offset word |
+| `MT[-2]` | `startOffset` of the element data |
+| `MT[-1]` | `numSeries` (negative; the entry count is its absolute value) |
+| `MT[0]`, `MT[1]`, ... | The `MethodTable` fields themselves |
 
-Each `GCDescSeries` describes a contiguous range of pointers within the object. The collector scans from `obj + StartOffset` for `(SeriesSize + objectSize) / pointerSize` slots.
+The scanner starts a cursor at `obj + startOffset` and, for every array element, walks the `ValSerieItem` entries: read `Nptrs` pointers, then skip `Skip` bytes, repeated `|numSeries|` times per element.
 
-**Val series** (`numSeries < 0`) — for arrays whose elements contain pointers (e.g. `SomeStruct[]` where `SomeStruct` has reference fields):
+### Interior pointers
 
-```
-          lower addresses
-    ┌──────────────────────────┐
-    │ ValSerieItem[last]       │  ← Nptrs (pointer count) + Skip (bytes to skip)
-    │ ...                      │
-    │ ValSerieItem[0]          │
-    ├──────────────────────────┤
-    │ startOffset              │  ← MT[-2]
-    ├──────────────────────────┤
-    │ numSeries (negative)     │  ← MT[-1]
-    ├──────────────────────────┤
-    │ MethodTable fields ...   │
-    └──────────────────────────┘
-          higher addresses
-```
+A `ref` into an array element, a `Span<T>`'s `_reference`, or any other byref can be the only live reference to an object. Such a pointer does not point at the object header, so `TryMarkRoot`'s MethodTable check would discard it and the object would be collected while still in use (issue [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384); support tracked in [#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376)).
 
-The collector starts at `obj + startOffset` and for each array element, walks the `ValSerieItem` entries backwards (negative loop index). Each entry says "scan `Nptrs` pointers, then skip `Skip` bytes". This pattern repeats for every element in the array.
+The precise stack scan fixes this for the GC-triggering thread. GCInfo tags byref slots with `GC_CALL_INTERIOR`, and the scan's root callback resolves them before marking:
+
+1. Pick the segment list: the pinned chain if `GC_CALL_PINNED` is also set, the regular chain otherwise.
+2. Find the segment containing the address.
+3. Ask the segment's brick table for the closest recorded object start at or below the address (`FindClosestObjectBelow`).
+4. Enumerate objects forward from there (`GCSegment.Enumerator`, stepping by `ComputeSize()`) until reaching the object whose range contains the address.
+5. Mark that object.
+
+If no segment contains the pointer the value is passed through unchanged and `TryMarkRoot`'s normal validation discards it. The brick table entry found in step 3 may be a few objects behind the target (see [Brick table](#brick-table)); step 4 covers the distance.
+
+The conservative scan still only accepts pointers that hit an object header exactly. `GC_InteriorPointerRoot` is the acceptance test: an `int[2100]` reachable only through a `ref int` into element 8 must survive a collection followed by allocation churn.
+
+### Handles during marking
+
+Handle scanning happens after stack scanning, in two passes:
+
+1. All `Normal` handles, then all `Pinned` handles, are marked as strong roots.
+2. Dependent handles run to a fixpoint: whenever a handle's primary is marked and its secondary is not, the secondary is marked, and the loop repeats until a pass marks nothing new. This handles chains where one dependent handle's secondary is another's primary.
+
+Weak handles are never scanned. Between mark and sweep, `FreeWeakHandles` walks the `Weak` store and the dependent store and frees every handle whose target (for dependent handles, whose primary) is unmarked. Freeing returns the slot to its segment's free list.
+
+| Type | Scanned as root? | Cleanup after mark |
+|------|------------------|--------------------|
+| `Weak` | No | Freed if the target is unmarked |
+| `WeakTrackResurrection` | No | Not cleaned up (no finalization support yet) |
+| `Normal` | Yes | None |
+| `Pinned` | Yes | None |
+| dependent (6) | Secondary, if primary is marked | Freed if the primary is unmarked |
 
 ### Sweep phase
 
 ```mermaid
 flowchart TD
-    SWEEP["SweepPhase()"] --> SEG["Walk each regular segment
-    SweepSegment()"]
+    SWEEP["SweepPhase()"] --> SEG["SweepSegment() for each regular segment"]
     SWEEP --> PIN["SweepPinnedHeap()"]
 
     SEG --> WALK["Linear walk from Start to Bump"]
-    WALK --> READ{Read object at ptr}
-    READ -->|"MT == null"| STOP[Break]
-    READ -->|"MT == _freeMethodTable"| ACCUM[Accumulate into free run]
-    READ -->|"MT inside heap"| SKIP["Skip pointer-sized chunk"]
-    READ -->|Marked object| LIVE["Unmark, flush free run
-    to free list"]
-    READ -->|Unmarked object| DEAD["Extend free run"]
-    ACCUM --> NEXT[Advance ptr]
-    SKIP --> NEXT
-    LIVE --> NEXT
-    DEAD --> NEXT
-    NEXT --> READ
+    WALK --> READ{Classify word at ptr}
+    READ -->|"MT == s_freeMethodTable"| ACCUM["Old free block:
+    fold into free run, advance by Size"]
+    READ -->|"implausible MethodTable"| FILLER["Filler word:
+    fold into free run, advance one word"]
+    READ -->|marked object| LIVE["Unmark, flush free run
+    to the free list"]
+    READ -->|unmarked object| DEAD["Dead: extend free run,
+    advance by object size"]
+    ACCUM --> READ
+    FILLER --> READ
+    LIVE --> READ
+    DEAD --> READ
 ```
 
-For each regular segment, the sweep walks linearly from `Start` to `Bump`. It accumulates consecutive dead objects and free blocks into a **free run**. When a live (marked) object is encountered, the accumulated free run is flushed as a `FreeBlock` onto the free list, and the object is unmarked for the next cycle.
+The sweep walks each segment linearly from `Start` to `Bump`, accumulating consecutive dead space into a free run. Three kinds of non-live words are folded into the run:
 
-When a free run reaches the end of a segment (trailing dead objects), the sweeper reclaims that space by moving `Bump` back instead of creating a free block.
+- free blocks from earlier collections (first word equals the free marker `MethodTable`), advanced by their stored size;
+- filler words whose first word cannot be a `MethodTable` (null, below kernel space, or inside the GC heap). These come from zeroed TLAB gaps too small to stamp, from the runtime header written at `objRef - 4` next to a gap, or from stale data. They are skipped one pointer-sized word at a time;
+- unmarked objects, counted as freed.
 
-The sweep also covers the pinned heap (same algorithm but free runs are not added to the shared free list). The unmanaged Small/Medium/Large malloc heaps are not swept: managed allocations never live there, and a live block whose first word happens to hold a GC-heap pointer would be indistinguishable from an unmarked object header.
+When a marked object is reached it is unmarked for the next cycle and the pending run is flushed as a `FreeBlock` (minus the 8-byte reserved tail, which is sanitized instead of recycled). Runs smaller than 32 bytes are dropped and become filler for the next sweep. A run that reaches `Bump` is reclaimed by moving `Bump` back instead, which is what lets an emptied segment be returned to the page allocator.
+
+The pinned heap is swept with the same walk, minus the free-block branch; its free runs go to the shared free lists as well. If the sweep encounters an impossible size (zero, or extending past the segment end), it abandons that segment for this collection rather than walking into corruption.
 
 ### Segment reordering
 
-After sweeping, segments are reordered into three groups:
+After the sweep, each chain is regrouped in one pass into FULL segments first, then SEMIFULL, then FREE. Empty segments larger than one page are handed back to the page allocator; empty single-page segments are kept as ready capacity. `s_lastSegment` (and `s_currentPinnedSegment` for the pinned chain) is pointed at the first semifull segment, or the first free one, so the next allocation lands in available space. Both reorders mark the heap range dirty, and `Collect` recomputes the bounding box at the end.
 
-```
- FULL segments → SEMIFULL segments → FREE segments
-```
+---
 
-Empty multi-page segments are returned to the page allocator. `_lastSegment` is set to the first semifull segment (or first free segment) so the next allocation targets available space.
+## Statistics and memory info
 
-The same reordering runs independently on the pinned segment chain.
+[`GarbageCollector.Info.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Info.cs) backs the runtime's memory queries:
+
+- `GetStats(out totalCollections, out totalObjectsFreed)` exposes the two running counters. `Collect()`'s return value and these counters are exact: the test suite asserts the deltas match.
+- `GetSimpleMemoryInfo()` fills the snapshot behind `RhGetMemoryInfo`, which is what `GC.GetGCMemoryInfo()` reads: heap size (occupied range of regular plus pinned segments), fragmented bytes (sum of all free-list blocks), committed bytes (segments, frozen segments, mark stack, free-list page, handle store pages), pinned object count (pinned-heap objects plus `Pinned` handles), collection index, and condemned generation (always 0; the collector is not generational, so promoted bytes are always 0 too).
+- `GetTotalAllocatedBytes()` / `GetTotalAllocatedBytesPrecise()` back `GC.GetTotalAllocatedBytes()`; the precise variant subtracts the unused tail of every live TLAB.
+- `GetLastGCPercentTimeInGC()` derives from the last collection's duration and the interval since the previous one.
+- `Variables` is the runtime configuration table; it reports `GCName = "OrionGC"` with server GC, concurrent GC, and large pages all off.
+
+---
+
+## Tests
+
+The kernel test suite in [`tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector`](../../../tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector/Kernel.cs) runs 45 tests (`make test KERNEL=GarbageCollector`). Highlights:
+
+- exact collection accounting (`GC_CollectBasic`, `GC_UnreachableExactCount`),
+- weak and dependent handle behavior (`GC_WeakReference`, `GC_DependentHandle`, `GC_DependentHandleCleanup`),
+- interior pointer roots (`GC_InteriorPointerRoot`, the acceptance test for #384),
+- statics reachability through the handle spine (`GC_StaticOnlyReachability`),
+- precise stack scanning and funclet frames (`GC_PreciseStackScan`, `GC_FuncletNoFalseRoot`, `GC_FuncletNoCrashOnAllocInCatch`, `GC_StackScanPaddingStress`),
+- the malloc heaps staying untouched (`GC_MallocHeapNotSwept`),
+- multithreaded allocation under repeated collections (`GC_MultithreadChurnUnderCollect`),
+- TLAB accounting and gap stamping (`GC_TLAB_*`),
+- the memory info wiring (`GC_Info_*`).
 
 ---
 
 ## Source files
 
-| File | Path |
+| Area | Path |
 |------|------|
 | GC core | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.cs) |
-| Allocation | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs) |
-| Mark phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) |
-| Sweep phase | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) |
-| GC handles | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) |
-| Frozen segments | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) |
-| Pinned heap | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) |
-| Object header | [`src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) |
+| Allocation | [`GarbageCollector.Alloc.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Alloc.cs), [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs) |
+| Mark phase | [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs), [`GarbageCollector.PreciseStack.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PreciseStack.cs) |
+| GCInfo decoder (precise scan) | [`GcInfo/`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GcInfo/), see [Precise Stack Scanning](garbage-collector-gcinfo.md) |
+| Sweep phase | [`GarbageCollector.Sweep.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Sweep.cs) |
+| Segments | [`GCSegment.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegment.cs), [`GCSegmentManager.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegmentManager.cs) |
+| GC handles | [`GCHandle.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandle.cs), [`GCHandleSegment.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleSegment.cs), [`GCHandleManager.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleManager.cs), [`GarbageCollector.GCHandler.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.GCHandler.cs) |
+| Pinned heap | [`GarbageCollector.PinnedHeap.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.PinnedHeap.cs) |
+| Frozen segments | [`GarbageCollector.Frozen.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Frozen.cs) |
+| Statistics | [`GarbageCollector.Info.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Info.cs) |
+| Object header | [`GCObject.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCObject.cs) |
+| TLAB struct | [`AllocContext.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) |
 | Runtime exports | [`src/Cosmos.Kernel.Core/Runtime/Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs) |
+| Module and statics setup | [`src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ManagedModule.cs) |
 | Page allocator | [`src/Cosmos.Kernel.Core/Memory/PageAllocator.cs`](../../../src/Cosmos.Kernel.Core/Memory/PageAllocator.cs) |
