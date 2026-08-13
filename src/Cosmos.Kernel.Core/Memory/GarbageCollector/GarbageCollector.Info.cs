@@ -115,13 +115,13 @@ public static unsafe partial class GarbageCollector
         }
 
         ulong heapSize = 0;
-        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != null; seg = seg->Next)
         {
             heapSize += (ulong)(seg->Bump - seg->Start);
         }
 
         // Include pinned segments
-        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_pinnedSegmentManager.Segments; seg != null; seg = seg->Next)
         {
             heapSize += (ulong)(seg->Bump - seg->Start);
         }
@@ -137,7 +137,7 @@ public static unsafe partial class GarbageCollector
         }
 
         ulong committedGcSegments = 0;
-        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != null; seg = seg->Next)
         {
             // Include the segment header to match dotnet's accumulate_committed_bytes behavior
             committedGcSegments += seg->TotalSize + Align((uint)sizeof(GCSegment));
@@ -191,23 +191,7 @@ public static unsafe partial class GarbageCollector
         ulong pinned = s_pinnedHeapObjectCount;
 
         // Also count GC handles of type Pinned
-        if (s_handlerStore != null)
-        {
-            int size = (int)(s_handlerStore->End - s_handlerStore->Bump) / sizeof(GCHandle);
-            var handles = new Span<GCHandle>(s_handlerStore->Bump, size);
-            foreach (GCHandle handle in handles)
-            {
-                if ((IntPtr)handle.obj == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                if (handle.type == GCHandleType.Pinned)
-                {
-                    pinned++;
-                }
-            }
-        }
+        pinned += s_gCHandleManager.GCHandleControllers[(int)GCHandleType.Pinned].Count;
 
         return pinned;
     }
@@ -222,7 +206,7 @@ public static unsafe partial class GarbageCollector
         ulong totalCommitted = GetCommittedGcSegmentsBytes();
 
         // Pinned segments (include header)
-        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_pinnedSegmentManager.Segments; seg != null; seg = seg->Next)
         {
             totalCommitted += seg->TotalSize + Align((uint)sizeof(GCSegment));
         }
@@ -244,11 +228,7 @@ public static unsafe partial class GarbageCollector
             totalCommitted += PageAllocator.PageSize;
         }
 
-        // Handler store segment
-        if (s_handlerStore != null)
-        {
-            totalCommitted += s_handlerStore->TotalSize;
-        }
+        totalCommitted += s_gCHandleManager.GetCommitedSize();
 
         return totalCommitted;
     }
@@ -299,7 +279,7 @@ public static unsafe partial class GarbageCollector
         byte* p = (byte*)objPtr;
 
         // Check regular GC segments (bump-allocated)
-        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != null; seg = seg->Next)
         {
             if (p >= seg->Start && p < seg->Bump)
             {
@@ -308,7 +288,7 @@ public static unsafe partial class GarbageCollector
         }
 
         // Check pinned segments
-        for (GCSegment* seg = s_pinnedSegments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_pinnedSegmentManager.Segments; seg != null; seg = seg->Next)
         {
             if (p >= seg->Start && p < seg->Bump)
             {
@@ -451,7 +431,7 @@ public static unsafe partial class GarbageCollector
         }
 
         ulong used = 0;
-        for (GCSegment* seg = s_segments; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != null; seg = seg->Next)
         {
             used += (ulong)(seg->Bump - seg->Start);
         }
