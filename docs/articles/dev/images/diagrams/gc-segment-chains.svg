@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 392" role="img" aria-label="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1.">
+  <style>
+    svg { color: #24292f; }
+    .bg { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      svg { color: #d0d7de; }
+      .bg { fill: #1c2128; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="392"/>
+  <defs>
+    <marker id="chain-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- regular heap chain -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">regular heap chain (s_segmentManager)</text>
+  <rect x="10" y="28" width="726" height="158" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+    <text x="85" y="50">Segments</text>
+    <text x="585" y="50">TailSegment</text>
+  </g>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="85" y1="56" x2="85" y2="69" marker-end="url(#chain-ah)"/>
+    <line x1="585" y1="56" x2="585" y2="69" marker-end="url(#chain-ah)"/>
+  </g>
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="40" y="72" width="90" height="46"/>
+    <rect x="190" y="72" width="90" height="46"/>
+    <rect x="340" y="72" width="90" height="46"/>
+    <rect x="540" y="72" width="90" height="46"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
+    <text x="85" y="91">Seg 0</text>
+    <text x="235" y="91">Seg 1</text>
+    <text x="385" y="91">Seg 2</text>
+    <text x="585" y="91">Seg N</text>
+  </g>
+  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="85" y="107">(FULL)</text>
+    <text x="235" y="107">(SEMIFULL)</text>
+    <text x="385" y="107">(SEMIFULL)</text>
+    <text x="585" y="107">(FREE)</text>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="158" y="88">Next</text>
+    <text x="308" y="88">Next</text>
+  </g>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="130" y1="95" x2="187" y2="95" marker-end="url(#chain-ah)"/>
+    <line x1="280" y1="95" x2="337" y2="95" marker-end="url(#chain-ah)"/>
+    <line x1="430" y1="95" x2="537" y2="95" marker-end="url(#chain-ah)" stroke-dasharray="5 4"/>
+    <line x1="630" y1="95" x2="672" y2="95" marker-end="url(#chain-ah)"/>
+  </g>
+  <text x="678" y="99" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
+  <line x1="235" y1="146" x2="235" y2="123" stroke="currentColor" stroke-width="1.4" marker-end="url(#chain-ah)"/>
+  <text x="235" y="163" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_lastSegment / s_currentSegment</text>
+  <text x="235" y="178" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(next bump attempt starts here)</text>
+  <!-- pinned heap chain -->
+  <text x="14" y="214" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">pinned heap chain (s_pinnedSegmentManager)</text>
+  <rect x="10" y="224" width="420" height="158" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+    <text x="85" y="246">Segments</text>
+    <text x="235" y="246">TailSegment</text>
+  </g>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="85" y1="252" x2="85" y2="265" marker-end="url(#chain-ah)"/>
+    <line x1="235" y1="252" x2="235" y2="265" marker-end="url(#chain-ah)"/>
+  </g>
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="40" y="268" width="90" height="46"/>
+    <rect x="190" y="268" width="90" height="46"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
+    <text x="85" y="287">Pin 0</text>
+    <text x="235" y="287">Pin 1</text>
+  </g>
+  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="85" y="303">(FULL)</text>
+    <text x="235" y="303">(SEMIFULL)</text>
+  </g>
+  <text x="158" y="284" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="130" y1="291" x2="187" y2="291" marker-end="url(#chain-ah)"/>
+    <line x1="280" y1="291" x2="322" y2="291" marker-end="url(#chain-ah)"/>
+  </g>
+  <text x="328" y="295" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
+  <line x1="235" y1="342" x2="235" y2="319" stroke="currentColor" stroke-width="1.4" marker-end="url(#chain-ah)"/>
+  <text x="235" y="359" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_currentPinnedSegment</text>
+  <text x="235" y="374" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(pinned bump allocation lands here)</text>
+</svg>

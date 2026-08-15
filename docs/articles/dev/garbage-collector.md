@@ -80,64 +80,7 @@ The header is 24 bytes, which is why `MinBlockSize` is 24: every allocation is r
 A segment is a contiguous range of pages from the page allocator (`PageType.GCHeap`). The [`GCSegment`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegment.cs) header sits at the base of the allocation, followed by the segment's brick table, then 8 reserved bytes, then the usable region:
 
 <div style="overflow-x:auto">
-<svg viewBox="0 0 760 292" style="width:100%;min-width:620px;max-width:760px;display:block" role="img" aria-label="Memory layout of one GC segment: the GCSegment header, the brick table, 8 reserved bytes, then the usable region. Start points at the first usable byte, Bump at the boundary between allocated objects and free space, End one past the last byte, Next at the following segment.">
-  <defs>
-    <marker id="seg-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-    </marker>
-  </defs>
-  <!-- caption + outer dashed page allocation -->
-  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one segment — one or more pages from the page allocator</text>
-  <rect x="10" y="28" width="726" height="228" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <!-- GCSegment header -->
-  <rect x="30" y="52" width="160" height="180" fill="currentColor" fill-opacity="0.07" stroke="currentColor"/>
-  <text x="110" y="71" text-anchor="middle" font-size="13" font-weight="bold" fill="currentColor">GCSegment header</text>
-  <line x1="30" y1="80" x2="190" y2="80" stroke="currentColor" stroke-opacity="0.4"/>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
-    <text x="42" y="96">Next</text>
-    <text x="42" y="121">Start</text>
-    <text x="42" y="146">End</text>
-    <text x="42" y="171">Bump</text>
-    <text x="42" y="196">TotalSize</text>
-    <text x="42" y="221">UsedSize</text>
-  </g>
-  <!-- brick table -->
-  <rect x="190" y="52" width="62" height="180" fill="currentColor" fill-opacity="0.12" stroke="currentColor"/>
-  <text x="221" y="202" text-anchor="middle" font-size="12" fill="currentColor">brick</text>
-  <text x="221" y="217" text-anchor="middle" font-size="12" fill="currentColor">table</text>
-  <!-- 8 reserved bytes (narrow sliver, labelled below) -->
-  <rect x="252" y="52" width="14" height="180" fill="currentColor" fill-opacity="0.2" stroke="currentColor"/>
-  <polyline points="259,232 259,244 270,244" fill="none" stroke="currentColor" stroke-opacity="0.6"/>
-  <text x="274" y="248" font-size="11.5" fill="currentColor" fill-opacity="0.8">8 reserved bytes</text>
-  <!-- usable region: allocated part + bump region -->
-  <rect x="266" y="52" width="244" height="180" fill="currentColor" fill-opacity="0.06"/>
-  <rect x="266" y="52" width="450" height="180" fill="none" stroke="currentColor"/>
-  <line x1="510" y1="52" x2="510" y2="232" stroke="currentColor" stroke-dasharray="4 4"/>
-  <text x="388" y="220" text-anchor="middle" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="currentColor">[obj A] [obj B] [free] …</text>
-  <text x="613" y="220" text-anchor="middle" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">(unallocated)</text>
-  <!-- pointer lines from the header fields -->
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="90" y1="92" x2="550" y2="92" marker-end="url(#seg-ah)"/>
-    <line x1="94" y1="117" x2="263" y2="117" marker-end="url(#seg-ah)"/>
-    <line x1="80" y1="142" x2="713" y2="142" marker-end="url(#seg-ah)"/>
-    <line x1="90" y1="167" x2="507" y2="167" marker-end="url(#seg-ah)"/>
-  </g>
-  <text x="558" y="96" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.75">(next segment or null)</text>
-  <!-- extent labels under the usable region -->
-  <g stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="2 3">
-    <line x1="266" y1="234" x2="266" y2="268"/>
-    <line x1="510" y1="234" x2="510" y2="268"/>
-    <line x1="716" y1="234" x2="716" y2="268"/>
-  </g>
-  <g stroke="currentColor" stroke-width="1.2">
-    <line x1="269" y1="268" x2="507" y2="268" marker-start="url(#seg-ah)" marker-end="url(#seg-ah)"/>
-    <line x1="513" y1="268" x2="713" y2="268" marker-start="url(#seg-ah)" marker-end="url(#seg-ah)"/>
-  </g>
-  <g font-size="12" fill="currentColor" fill-opacity="0.8" text-anchor="middle">
-    <text x="388" y="284">allocated objects &amp; free blocks</text>
-    <text x="613" y="284">free space (bump region)</text>
-  </g>
-</svg>
+<img src="images/diagrams/gc-segment-layout.svg" alt="Memory layout of one GC segment: the GCSegment header, the brick table, 8 reserved bytes, then the usable region. Start points at the first usable byte, Bump at the boundary between allocated objects and free space, End one past the last byte, Next at the following segment." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 The strip is one contiguous allocation in address order, page-aligned base on the left. `Start` points at the first byte after the reserved slot, `Bump` at the boundary where the next allocation lands (it advances toward `End`, one past the segment's last byte), and `Next` links the segments into the chains shown below. `TotalSize` is `End - Start`; `UsedSize` counts the bytes in use before sweep.
@@ -159,88 +102,7 @@ Each segment carries a small side table that lets the GC map an address inside t
 Both heaps keep their segments in a singly linked list owned by their manager:
 
 <div style="overflow-x:auto">
-<svg viewBox="0 0 760 392" style="width:100%;min-width:620px;max-width:760px;display:block" role="img" aria-label="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1.">
-  <defs>
-    <marker id="chain-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-    </marker>
-  </defs>
-  <!-- regular heap chain -->
-  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">regular heap chain (s_segmentManager)</text>
-  <rect x="10" y="28" width="726" height="158" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor" text-anchor="middle">
-    <text x="85" y="50">Segments</text>
-    <text x="585" y="50">TailSegment</text>
-  </g>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="85" y1="56" x2="85" y2="69" marker-end="url(#chain-ah)"/>
-    <line x1="585" y1="56" x2="585" y2="69" marker-end="url(#chain-ah)"/>
-  </g>
-  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
-    <rect x="40" y="72" width="90" height="46"/>
-    <rect x="190" y="72" width="90" height="46"/>
-    <rect x="340" y="72" width="90" height="46"/>
-    <rect x="540" y="72" width="90" height="46"/>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
-    <text x="85" y="91">Seg 0</text>
-    <text x="235" y="91">Seg 1</text>
-    <text x="385" y="91">Seg 2</text>
-    <text x="585" y="91">Seg N</text>
-  </g>
-  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
-    <text x="85" y="107">(FULL)</text>
-    <text x="235" y="107">(SEMIFULL)</text>
-    <text x="385" y="107">(SEMIFULL)</text>
-    <text x="585" y="107">(FREE)</text>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
-    <text x="158" y="88">Next</text>
-    <text x="308" y="88">Next</text>
-  </g>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="130" y1="95" x2="187" y2="95" marker-end="url(#chain-ah)"/>
-    <line x1="280" y1="95" x2="337" y2="95" marker-end="url(#chain-ah)"/>
-    <line x1="430" y1="95" x2="537" y2="95" marker-end="url(#chain-ah)" stroke-dasharray="5 4"/>
-    <line x1="630" y1="95" x2="672" y2="95" marker-end="url(#chain-ah)"/>
-  </g>
-  <text x="678" y="99" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
-  <line x1="235" y1="146" x2="235" y2="123" stroke="currentColor" stroke-width="1.4" marker-end="url(#chain-ah)"/>
-  <text x="235" y="163" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_lastSegment / s_currentSegment</text>
-  <text x="235" y="178" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(next bump attempt starts here)</text>
-  <!-- pinned heap chain -->
-  <text x="14" y="214" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">pinned heap chain (s_pinnedSegmentManager)</text>
-  <rect x="10" y="224" width="420" height="158" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor" text-anchor="middle">
-    <text x="85" y="246">Segments</text>
-    <text x="235" y="246">TailSegment</text>
-  </g>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="85" y1="252" x2="85" y2="265" marker-end="url(#chain-ah)"/>
-    <line x1="235" y1="252" x2="235" y2="265" marker-end="url(#chain-ah)"/>
-  </g>
-  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
-    <rect x="40" y="268" width="90" height="46"/>
-    <rect x="190" y="268" width="90" height="46"/>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
-    <text x="85" y="287">Pin 0</text>
-    <text x="235" y="287">Pin 1</text>
-  </g>
-  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
-    <text x="85" y="303">(FULL)</text>
-    <text x="235" y="303">(SEMIFULL)</text>
-  </g>
-  <text x="158" y="284" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="130" y1="291" x2="187" y2="291" marker-end="url(#chain-ah)"/>
-    <line x1="280" y1="291" x2="322" y2="291" marker-end="url(#chain-ah)"/>
-  </g>
-  <text x="328" y="295" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
-  <line x1="235" y1="342" x2="235" y2="319" stroke="currentColor" stroke-width="1.4" marker-end="url(#chain-ah)"/>
-  <text x="235" y="359" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_currentPinnedSegment</text>
-  <text x="235" y="374" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(pinned bump allocation lands here)</text>
-</svg>
+<img src="images/diagrams/gc-segment-chains.svg" alt="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 `s_lastSegment` is the segment where the next bump attempt starts and `s_currentSegment` tracks the segment that last served an allocation; both are updated together. Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the pinned chain instead.
@@ -264,84 +126,7 @@ GC handles let the runtime hold references from places the GC does not scan (nat
 Each store is a linked list of `GCHandleSegment` pages. A segment is one 4 KiB page: a 16-byte header followed by 170 handle slots of 24 bytes each:
 
 <div style="overflow-x:auto">
-<svg viewBox="0 0 760 430" style="width:100%;min-width:620px;max-width:760px;display:block" role="img" aria-label="The handle store. Top: one GCHandleSegmentStore is a linked list of GCHandleSegment pages, _head pointing at the first and _tail at the last, allocation trying the tail first. Bottom: inside one 4 KiB page, a 16-byte header (Next and the packed _freeHead word) followed by 170 GCHandle slots of 24 bytes; _freeHead holds the index of the first free slot and free slots chain to the next free index through ExtraInfo.">
-  <defs>
-    <marker id="hs-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-    </marker>
-  </defs>
-  <!-- store chain -->
-  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one GCHandleSegmentStore per handle type, plus one for dependent handles</text>
-  <rect x="10" y="28" width="440" height="150" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor" text-anchor="middle">
-    <text x="85" y="50">_head</text>
-    <text x="235" y="50">_tail</text>
-  </g>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="85" y1="56" x2="85" y2="69" marker-end="url(#hs-ah)"/>
-    <line x1="235" y1="56" x2="235" y2="69" marker-end="url(#hs-ah)"/>
-  </g>
-  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
-    <rect x="40" y="72" width="90" height="46"/>
-    <rect x="190" y="72" width="90" height="46"/>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
-    <text x="85" y="91">Seg 0</text>
-    <text x="235" y="91">Seg 1</text>
-  </g>
-  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
-    <text x="85" y="107">(4 KiB page)</text>
-    <text x="235" y="107">(4 KiB page)</text>
-  </g>
-  <text x="158" y="88" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="130" y1="95" x2="187" y2="95" marker-end="url(#hs-ah)"/>
-    <line x1="280" y1="95" x2="322" y2="95" marker-end="url(#hs-ah)"/>
-  </g>
-  <text x="328" y="99" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
-  <line x1="235" y1="146" x2="235" y2="121" stroke="currentColor" stroke-width="1.4" marker-end="url(#hs-ah)"/>
-  <text x="235" y="163" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(allocation tries the tail first)</text>
-  <!-- inside one segment page -->
-  <text x="14" y="210" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">inside one GCHandleSegment — a 4 KiB page: a 16-byte header, then 170 slots of 24 bytes each</text>
-  <rect x="10" y="220" width="726" height="200" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <!-- header box -->
-  <rect x="30" y="258" width="150" height="92" fill="currentColor" fill-opacity="0.07" stroke="currentColor"/>
-  <text x="105" y="276" text-anchor="middle" font-size="12.5" font-weight="bold" fill="currentColor">header (16 B)</text>
-  <line x1="30" y1="284" x2="180" y2="284" stroke="currentColor" stroke-opacity="0.4"/>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor">
-    <text x="42" y="305">Next</text>
-    <text x="42" y="327">_freeHead</text>
-  </g>
-  <text x="42" y="342" font-size="10" font-style="italic" fill="currentColor" fill-opacity="0.7">(free idx · alive · tag)</text>
-  <!-- slot cells -->
-  <g fill="currentColor" fill-opacity="0.06">
-    <rect x="180" y="258" width="100" height="92"/>
-    <rect x="280" y="258" width="100" height="92"/>
-  </g>
-  <g fill="none" stroke="currentColor">
-    <rect x="180" y="258" width="100" height="92"/>
-    <rect x="280" y="258" width="100" height="92"/>
-    <rect x="380" y="258" width="100" height="92"/>
-    <rect x="480" y="258" width="200" height="92"/>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" fill="currentColor" text-anchor="middle">
-    <text x="230" y="300">Object → A</text>
-    <text x="330" y="300">Object → B</text>
-    <text x="430" y="300">Object = null</text>
-    <text x="230" y="320">Type Weak</text>
-    <text x="330" y="320">Type Normal</text>
-    <text x="430" y="320">Type −1</text>
-  </g>
-  <text x="430" y="336" text-anchor="middle" font-size="10.5" font-style="italic" fill="currentColor" fill-opacity="0.7">(free)</text>
-  <text x="580" y="308" text-anchor="middle" font-size="16" fill="currentColor" fill-opacity="0.7">⋯</text>
-  <!-- free-list chain: slot 2 to the next free slot -->
-  <path d="M430,258 V240 H580 V254" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#hs-ah)"/>
-  <text x="505" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" fill-opacity="0.75" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">ExtraInfo = next free index</text>
-  <!-- _freeHead pointing at the first free slot -->
-  <path d="M105,350 V376 H430 V356" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#hs-ah)"/>
-  <text x="250" y="371" text-anchor="middle" font-size="10.5" fill="currentColor" fill-opacity="0.75">free-list head (slot index)</text>
-  <text x="373" y="402" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">alloc pops the head, free pushes — one CAS on the packed word</text>
-</svg>
+<img src="images/diagrams/gc-handle-store.svg" alt="The handle store. Top: one GCHandleSegmentStore is a linked list of GCHandleSegment pages, _head pointing at the first and _tail at the last, allocation trying the tail first. Bottom: inside one 4 KiB page, a 16-byte header (Next and the packed _freeHead word) followed by 170 GCHandle slots of 24 bytes; _freeHead holds the index of the first free slot and free slots chain to the next free index through ExtraInfo." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 A `GCHandle` slot is `{ GCObject* Object; nint ExtraInfo; GCHandleType Type; }`. Free slots are stamped with the sentinel type `(GCHandleType)(-1)` and chained through `ExtraInfo` into an intra-segment free list. The list head, the alive count, and an ABA version tag are packed into one 64-bit word updated with `Interlocked.CompareExchange`, so slot allocation and free are lock-free within a segment. When every segment of a store is full, the store allocates one more page.
@@ -355,70 +140,7 @@ During collection, `Normal` and `Pinned` stores are scanned as roots, dependent 
 Frozen segments hold pre-initialized read-only objects emitted by ILC (string literals, frozen arrays, and similar data). The runtime registers them at startup through `RhRegisterFrozenSegment`, and `ManagedModule` registers each module's `FrozenObjectRegion` directly. The GC records them in a linked list of `FrozenSegmentInfo` nodes carved from a bump-allocated metadata page:
 
 <div style="overflow-x:auto">
-<svg viewBox="0 0 760 330" style="width:100%;min-width:620px;max-width:760px;display:block" role="img" aria-label="The frozen segment registry. s_frozenSegments points at a linked list of FrozenSegmentInfo nodes, each holding Start, AllocSize, CommitSize and ReservedSize, linked through Next to null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page.">
-  <defs>
-    <marker id="fz-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-    </marker>
-  </defs>
-  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">frozen segment registry (s_frozenSegments)</text>
-  <rect x="10" y="28" width="560" height="288" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
-  <text x="135" y="50" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_frozenSegments</text>
-  <line x1="135" y1="56" x2="135" y2="69" stroke="currentColor" stroke-width="1.4" marker-end="url(#fz-ah)"/>
-  <!-- FrozenSegmentInfo nodes -->
-  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
-    <rect x="60" y="72" width="150" height="114"/>
-    <rect x="260" y="72" width="150" height="114"/>
-  </g>
-  <g font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">
-    <text x="135" y="90">FrozenSegmentInfo</text>
-    <text x="335" y="90">FrozenSegmentInfo</text>
-  </g>
-  <g stroke="currentColor" stroke-opacity="0.4">
-    <line x1="60" y1="98" x2="210" y2="98"/>
-    <line x1="260" y1="98" x2="410" y2="98"/>
-  </g>
-  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor">
-    <text x="72" y="117">Start</text>
-    <text x="72" y="137">AllocSize</text>
-    <text x="72" y="157">CommitSize</text>
-    <text x="72" y="177">ReservedSize</text>
-    <text x="272" y="117">Start</text>
-    <text x="272" y="137">AllocSize</text>
-    <text x="272" y="157">CommitSize</text>
-    <text x="272" y="177">ReservedSize</text>
-  </g>
-  <!-- Next chain -->
-  <text x="233" y="105" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="210" y1="112" x2="257" y2="112" marker-end="url(#fz-ah)"/>
-    <line x1="410" y1="112" x2="452" y2="112" marker-end="url(#fz-ah)"/>
-  </g>
-  <text x="458" y="116" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
-  <!-- Start pointers down to the data regions -->
-  <g stroke="currentColor" stroke-width="1.4">
-    <line x1="135" y1="186" x2="135" y2="215" marker-end="url(#fz-ah)"/>
-    <line x1="335" y1="186" x2="335" y2="215" marker-end="url(#fz-ah)"/>
-  </g>
-  <g font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-    <text x="143" y="205">Start</text>
-    <text x="343" y="205">Start</text>
-  </g>
-  <g fill="currentColor" fill-opacity="0.04" stroke="currentColor">
-    <rect x="60" y="218" width="150" height="60"/>
-    <rect x="260" y="218" width="150" height="60"/>
-  </g>
-  <g font-size="12" fill="currentColor" text-anchor="middle">
-    <text x="135" y="238">read-only objects</text>
-    <text x="335" y="244">read-only objects</text>
-  </g>
-  <g font-size="10.5" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
-    <text x="135" y="254">(string literals,</text>
-    <text x="135" y="268">frozen arrays, …)</text>
-    <text x="335" y="261">(emitted by ILC)</text>
-  </g>
-  <text x="290" y="302" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">FrozenSegmentInfo nodes are carved from a bump-allocated metadata page</text>
-</svg>
+<img src="images/diagrams/gc-frozen-segments.svg" alt="The frozen segment registry. s_frozenSegments points at a linked list of FrozenSegmentInfo nodes, each holding Start, AllocSize, CommitSize and ReservedSize, linked through Next to null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations.
