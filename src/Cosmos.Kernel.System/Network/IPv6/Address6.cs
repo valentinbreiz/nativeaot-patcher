@@ -1,0 +1,343 @@
+// This code is licensed under MIT license (see LICENSE for details)
+
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Cosmos.Kernel.System.Network.IPv4;
+
+namespace Cosmos.Kernel.System.Network.IPv6;
+
+public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
+{
+    public static readonly Address6 Zero = new(0, 0, 0, 0);
+    public uint Segment1 { get; }
+    public uint Segment2 { get; }
+    public uint Segment3 { get; }
+    public uint Segment4 { get; }
+    public override bool IsZero => Equals(Zero);
+    public override MaskedAddress Parts => new(Segment1, Segment2, Segment3, Segment4);
+    public override bool IsBroadcastAddress => throw new NotImplementedException();
+    public override bool IsLoopbackAddress() => throw new NotImplementedException();
+
+    public Address6(uint segment1, uint segment2, uint segment3, uint segment4)
+    {
+        Segment1 = segment1;
+        Segment2 = segment2;
+        Segment3 = segment3;
+        Segment4 = segment4;
+    }
+
+    public Address6(ReadOnlySpan<uint> segments)
+    {
+        if (segments.Length != 4)
+        {
+            throw new ArgumentOutOfRangeException(nameof(segments), "Segments have to be 4 unsigned ints long");
+        }
+
+        Segment1 = segments[0];
+        Segment2 = segments[1];
+        Segment3 = segments[2];
+        Segment4 = segments[3];
+    }
+
+    public Address6(ushort segment1A, ushort segment1B, ushort segment2A, ushort segment2B,
+        ushort segment3A, ushort segment3B, ushort segment4A, ushort segment4B)
+    {
+        Segment1 = (uint)(segment1A << 16 | segment1B);
+        Segment2 = (uint)(segment2A << 16 | segment2B);
+        Segment3 = (uint)(segment3A << 16 | segment3B);
+        Segment4 = (uint)(segment4A << 16 | segment4B);
+    }
+
+    public Address6(ReadOnlySpan<ushort> buffer)
+    {
+        if (buffer.Length != 8)
+        {
+            throw new ArgumentOutOfRangeException(nameof(buffer), "Buffer has to be 8 unsigned shorts long");
+        }
+
+        Segment1 = (uint)(buffer[0] << 16 | buffer[1]);
+        Segment2 = (uint)(buffer[2] << 16 | buffer[3]);
+        Segment3 = (uint)(buffer[4] << 16 | buffer[5]);
+        Segment4 = (uint)(buffer[6] << 16 | buffer[7]);
+    }
+
+    public override ImmutableArray<byte> ToBytes()
+    {
+        Span<byte> data = new byte[16];
+        SegmentToSpan(Segment1, data);
+        SegmentToSpan(Segment2, data[4..7]);
+        SegmentToSpan(Segment3, data[8..11]);
+        SegmentToSpan(Segment4, data[12..15]);
+        return [.. data];
+    }
+
+    internal static int CountSeparators(ReadOnlySpan<char> addr)
+    {
+        int result = 0;
+        int index;
+        var span = addr;
+        while ((index = span.IndexOf(':')) >= 0)
+        {
+            span = span[(index + 1)..];
+            result++;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Splits given address to ranges before and after zelo groups.
+    /// </summary>
+    /// <param name="addr"></param>
+    /// <param name="ranges"></param>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
+    /// <example>
+    /// ::0001 would result in [], [0001]
+    /// :: would result in [], []
+    /// 0001::0002:0003 would result in [0001], [0002, 0003]
+    /// </example>
+    internal static bool SplitByZeroGroupsAbbreviation(ReadOnlySpan<char> addr, ReadOnlySpan<Range> ranges,
+        out ReadOnlySpan<Range> left, out ReadOnlySpan<Range> right)
+    {
+        int? startZeroGroupIndex = null;
+        int endZeroGroupIndex = -1;
+        left = [];
+        right = [];
+        // checks whether addr starts with a column
+        if (addr[ranges[0]].IsEmpty)
+        {
+            // if it starts with a column, then next fragment has to be empty as well
+            if (!addr[ranges[1]].IsEmpty)
+            {
+                return false;
+            }
+
+            startZeroGroupIndex = 0;
+            // if addr is :: then push end index of zero group to the right
+            if (ranges.Length > 2 && addr[ranges[2]].IsEmpty)
+            {
+                // can't allow more than :: columns
+                if (ranges.Length > 3)
+                {
+                    return false;
+                }
+
+                endZeroGroupIndex = 2;
+            }
+            else
+            {
+                endZeroGroupIndex = 1;
+            }
+        }
+        else
+        {
+            // pinpoints zero group if any
+            for (int i = 1; i < ranges.Length; i++)
+            {
+                var fragment = addr[ranges[i]];
+                if (fragment.IsEmpty)
+                {
+                    // if there is already a zero group present, raise error
+                    if (startZeroGroupIndex.HasValue)
+                    {
+                        return false;
+                    }
+
+                    startZeroGroupIndex = i;
+                    endZeroGroupIndex = startZeroGroupIndex.Value;
+
+                    // addr can't end with a single :
+                    if (i == ranges.Length - 1)
+                    {
+                        return false;
+                    }
+
+                    else if (i == ranges.Length - 2)
+                    {
+                        // in case it ends with a double column then push end index of zero group to the right
+                        if (addr[ranges[i + 1]].IsEmpty)
+                        {
+                            endZeroGroupIndex = i + 1;
+                            break;
+                        }
+                    }
+                }
+                // can't have fragments longer than 4 chars
+                else if (fragment.Length > 4)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // when zero group is present, split left and right ranges
+        if (startZeroGroupIndex.HasValue)
+        {
+            left = ranges[0..startZeroGroupIndex.Value];
+            right = ranges[(endZeroGroupIndex + 1)..];
+        }
+        // when no zero group present, number of ranges has to be 8
+        else if (ranges.Length == 8)
+        {
+            left = ranges;
+        }
+        // otherwise address is considered non-valid
+        else
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static new Address6? Parse(ReadOnlySpan<char> addr)
+    {
+        int separators = CountSeparators(addr);
+        // ArgumentOutOfRangeException.ThrowIfGreaterThan(separators, 7, nameof(separators));
+        // ArgumentOutOfRangeException.ThrowIfLessThan(separators, 2, nameof(separators));
+        if (separators > 7 || separators < 2)
+        {
+            return null;
+        }
+
+        var fragments = addr.Split(':');
+        Span<ushort> addressValues = stackalloc ushort[8];
+        ReadOnlySpan<Range> ranges = [.. fragments];
+
+        if (!SplitByZeroGroupsAbbreviation(addr, ranges, out var leftFragments, out var rightFragments))
+        {
+            return null;
+        }
+
+        int additionalZeroGroups = 8 - (leftFragments.Length + rightFragments.Length);
+        FillFragments(addressValues, addr, leftFragments);
+        FillFragments(addressValues[(leftFragments.Length + additionalZeroGroups)..], addr, rightFragments);
+
+        return new Address6(addressValues);
+    }
+
+    internal static bool FillFragments(Span<ushort> addressValues, ReadOnlySpan<char> addr, ReadOnlySpan<Range> ranges)
+    {
+        for (int i = 0; i < ranges.Length; i++)
+        {
+            var fragment = addr[ranges[i]];
+            // no more empty fragments are allowed
+            if (fragment.IsEmpty)
+            {
+                return false;
+            }
+
+            if (!ushort.TryParse(fragment, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort value))
+            {
+                return false;
+            }
+
+            addressValues[i] = value;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Normalizes address buffer when there is a zero wildcard present at <paramref name="wildcardIndex"/>.
+    /// X1X2:Y1Y2:Z1Z2::Q1Q2 -> X1X2:Y1Y2:Z1Z2:0000:0000:0000:0000:Q1Q2
+    /// </summary>
+    /// <param name="buffer"></param>
+    /// <param name="wildcardIndex"></param>
+    /// <param name="length"></param>
+    internal static void NormalizeBuffer(Span<ushort> buffer, int wildcardIndex, int length)
+    {
+        ArgumentOutOfRangeException.ThrowIfNotEqual(buffer.Length, 8, nameof(buffer));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(wildcardIndex, 6, nameof(wildcardIndex));
+        ArgumentOutOfRangeException.ThrowIfLessThan(wildcardIndex, 0, nameof(wildcardIndex));
+        ArgumentOutOfRangeException.ThrowIfLessThan(length, 1, nameof(length));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(length, 8, nameof(length));
+
+        int remainingValues = 8 - wildcardIndex - 1;
+        int zeros = 8 - length;
+        // first shift non zeros on the right side to the right edge
+        for (int i = 0; i < remainingValues; i++)
+        {
+            buffer[8 - i - 1] = buffer[8 - i - 1 - zeros];
+        }
+
+        // zeros out bytes that should be zero
+        for (int i = wildcardIndex; i < wildcardIndex + zeros; i++)
+        {
+            buffer[i] = 0;
+        }
+    }
+
+    protected override MaskedAddress OperatorBitwiseAnd(Address other)
+    {
+        if (other is Address6 otherAddress6)
+        {
+            uint segment1 = Segment1 & otherAddress6.Segment1;
+            uint segment2 = Segment2 & otherAddress6.Segment2;
+            uint segment3 = Segment3 & otherAddress6.Segment3;
+            uint segment4 = Segment4 & otherAddress6.Segment4;
+            return new MaskedAddress(segment1, segment2, segment3, segment4);
+        }
+
+        throw new ArgumentException($"Can bitwise operate {nameof(Address6)} with {nameof(Address4)} only");
+    }
+
+    public int CompareTo(Address6? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        int diff = Segment1.CompareTo(other.Segment1);
+        if (diff != 0)
+        {
+            return diff;
+        }
+
+        diff = Segment2.CompareTo(other.Segment2);
+        if (diff != 0)
+        {
+            return diff;
+        }
+
+        diff = Segment3.CompareTo(other.Segment3);
+        if (diff != 0)
+        {
+            return diff;
+        }
+
+        return Segment4.CompareTo(other.Segment4);
+    }
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return ReferenceEquals(this, obj) || obj is Address6 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Segment1, Segment2, Segment3, Segment4);
+    }
+
+    public bool Equals(Address6? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Segment1 == other.Segment1
+               && Segment2 == other.Segment2
+               && Segment3 == other.Segment3
+               && Segment4 == other.Segment4;
+    }
+}

@@ -42,7 +42,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         var numberStyles = style == AddressParsingStyle.Dec ? NumberStyles.Number : NumberStyles.HexNumber;
         foreach (var fragment in fragments)
         {
-            // to many fragments?
+            // too many fragments?
             if (index > 3)
             {
                 return null;
@@ -102,6 +102,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
     /// Convert a CIDR number to an IPv4 address.
     /// </summary>
     /// <param name="cidr">The CIDR number.</param>
+    // ReSharper disable once InconsistentNaming
     public static Address4? CIDRToAddress(int cidr)
     {
         try
@@ -133,6 +134,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
     /// <summary>
     /// Check if this address is an APIPA address.
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public bool IsAPIPA()
     {
         return (Segment1 >> 16) == 0xA9_FE; // 169, 254
@@ -151,7 +153,6 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         }
 
         return Segment1.CompareTo(other.Segment1);
-
     }
 
     public override bool IsLoopbackAddress() => (Segment1 >> 24) == 127;
