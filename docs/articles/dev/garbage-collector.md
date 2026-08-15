@@ -354,12 +354,72 @@ During collection, `Normal` and `Pinned` stores are scanned as roots, dependent 
 
 Frozen segments hold pre-initialized read-only objects emitted by ILC (string literals, frozen arrays, and similar data). The runtime registers them at startup through `RhRegisterFrozenSegment`, and `ManagedModule` registers each module's `FrozenObjectRegion` directly. The GC records them in a linked list of `FrozenSegmentInfo` nodes carved from a bump-allocated metadata page:
 
-```mermaid
-flowchart LR
-    FROOT["s_frozenSegments"] --> F0["FrozenSegmentInfo<br/>Start, AllocSize,<br/>CommitSize, ReservedSize"] -->|Next| F1["FrozenSegmentInfo<br/>Start, AllocSize,<br/>CommitSize, ReservedSize"] --> FNULL(["null"])
-    F0 -.->|Start| D0["read-only objects<br/>(string literals, frozen data)"]
-    F1 -.->|Start| D1["read-only objects"]
-```
+<div style="overflow-x:auto">
+<svg viewBox="0 0 760 330" style="width:100%;min-width:620px;max-width:760px;display:block" role="img" aria-label="The frozen segment registry. s_frozenSegments points at a linked list of FrozenSegmentInfo nodes, each holding Start, AllocSize, CommitSize and ReservedSize, linked through Next to null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page.">
+  <defs>
+    <marker id="fz-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">frozen segment registry (s_frozenSegments)</text>
+  <rect x="10" y="28" width="560" height="288" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <text x="135" y="50" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_frozenSegments</text>
+  <line x1="135" y1="56" x2="135" y2="69" stroke="currentColor" stroke-width="1.4" marker-end="url(#fz-ah)"/>
+  <!-- FrozenSegmentInfo nodes -->
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="60" y="72" width="150" height="114"/>
+    <rect x="260" y="72" width="150" height="114"/>
+  </g>
+  <g font-size="12" font-weight="bold" fill="currentColor" text-anchor="middle">
+    <text x="135" y="90">FrozenSegmentInfo</text>
+    <text x="335" y="90">FrozenSegmentInfo</text>
+  </g>
+  <g stroke="currentColor" stroke-opacity="0.4">
+    <line x1="60" y1="98" x2="210" y2="98"/>
+    <line x1="260" y1="98" x2="410" y2="98"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor">
+    <text x="72" y="117">Start</text>
+    <text x="72" y="137">AllocSize</text>
+    <text x="72" y="157">CommitSize</text>
+    <text x="72" y="177">ReservedSize</text>
+    <text x="272" y="117">Start</text>
+    <text x="272" y="137">AllocSize</text>
+    <text x="272" y="157">CommitSize</text>
+    <text x="272" y="177">ReservedSize</text>
+  </g>
+  <!-- Next chain -->
+  <text x="233" y="105" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="210" y1="112" x2="257" y2="112" marker-end="url(#fz-ah)"/>
+    <line x1="410" y1="112" x2="452" y2="112" marker-end="url(#fz-ah)"/>
+  </g>
+  <text x="458" y="116" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
+  <!-- Start pointers down to the data regions -->
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="135" y1="186" x2="135" y2="215" marker-end="url(#fz-ah)"/>
+    <line x1="335" y1="186" x2="335" y2="215" marker-end="url(#fz-ah)"/>
+  </g>
+  <g font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <text x="143" y="205">Start</text>
+    <text x="343" y="205">Start</text>
+  </g>
+  <g fill="currentColor" fill-opacity="0.04" stroke="currentColor">
+    <rect x="60" y="218" width="150" height="60"/>
+    <rect x="260" y="218" width="150" height="60"/>
+  </g>
+  <g font-size="12" fill="currentColor" text-anchor="middle">
+    <text x="135" y="238">read-only objects</text>
+    <text x="335" y="244">read-only objects</text>
+  </g>
+  <g font-size="10.5" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="135" y="254">(string literals,</text>
+    <text x="135" y="268">frozen arrays, …)</text>
+    <text x="335" y="261">(emitted by ILC)</text>
+  </g>
+  <text x="290" y="302" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">FrozenSegmentInfo nodes are carved from a bump-allocated metadata page</text>
+</svg>
+</div>
 
 Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations.
 
