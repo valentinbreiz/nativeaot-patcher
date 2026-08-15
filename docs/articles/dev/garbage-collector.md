@@ -6,10 +6,10 @@
 
 The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a [stop-the-world](gc-concepts/stop-the-world.md), [non-moving](gc-concepts/non-moving.md), [mark-and-sweep](gc-concepts/mark-and-sweep.md) collector with a [single generation](gc-concepts/gc-generations.md). Every collection pauses all threads, marks the objects that are still reachable, frees the rest in place, and never changes a live object's address. Each linked term has a short background note in the [glossary](garbage-collector-glossary.md). The collector manages four kinds of memory:
 
-- the regular GC heap, a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
-- the pinned object heap, a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
-- the GC handle store, tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
-- frozen segments, pre-initialized read-only data registered by the runtime and never collected.
+- the [regular GC heap](#segment-chains), a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
+- the [pinned object heap](#pinned-allocation), a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
+- the [GC handle store](#handle-store), tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
+- [frozen segments](#frozen-segments), pre-initialized read-only data registered by the runtime and never collected.
 
 The GC operates in a threaded kernel. The [scheduler](scheduler.md) preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block. Interrupt handlers allocate too (the scheduler tick, input drivers). There is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
 
