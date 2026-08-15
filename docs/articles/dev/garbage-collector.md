@@ -4,20 +4,22 @@
 
 ## Overview
 
-The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a stop-the-world, non-moving, mark-and-sweep collector with a single generation. It manages four kinds of memory:
+The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a [stop-the-world](gc-concepts/stop-the-world.md), [non-moving](gc-concepts/non-moving.md), [mark-and-sweep](gc-concepts/mark-and-sweep.md) collector with a [single generation](gc-concepts/gc-generations.md). Every collection pauses all threads, marks the objects that are still reachable, frees the rest in place, and never changes a live object's address. Each linked term has a short background note in the [glossary](garbage-collector-glossary.md). The collector manages four kinds of memory:
 
-- the regular GC heap, a linked list of bump-allocated segments,
-- the pinned object heap, a second segment list for objects that must not move,
-- the GC handle store, per-type segmented tables of `GCHandle` slots,
+- the regular GC heap, a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
+- the pinned object heap, a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
+- the GC handle store, tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
 - frozen segments, pre-initialized read-only data registered by the runtime and never collected.
 
-Allocation goes through per-thread TLABs (thread-local allocation buffers). A collection runs when a TLAB refill fails even after growing the heap, or when `Collect()` is called explicitly. The whole collection runs inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
+The GC operates in a threaded kernel. The [scheduler](scheduler.md) preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block. Interrupt handlers allocate too (the scheduler tick, input drivers). There is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
 
-Roots come from three places: the GC-triggering thread's stack, scanned precisely from NativeAOT GCInfo (see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)); every other registered thread's stack and saved registers, scanned conservatively; and strong GC handles. Static fields need no separate scan pass: module initialization parks every module's GC-statics base objects in a spine array behind a strong handle, so the handle scan reaches them.
+Since every thread and interrupt handler can allocate, allocation goes through per-thread [TLABs](gc-concepts/tlab.md) (thread-local allocation buffers): each thread bumps a pointer inside its own buffer and only touches shared state when the buffer runs out and needs a refill. Collection is a last resort. When a refill fails, the collector first grows the heap; `Collect()` runs only when the page allocator itself has nothing left to give, or when called explicitly.
+
+Marking starts from the [roots](gc-concepts/gc-roots.md), the reference-holding locations that exist outside the heap. OrionGC scans three groups: the stack of the thread that triggered the collection, scanned [precisely](gc-concepts/conservative-vs-precise.md) from NativeAOT GCInfo (see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)); the stacks and saved registers of every other registered thread, scanned conservatively; and the strong GC handles (the handle types that keep their target alive). Static fields need no separate scan: during module initialization, the objects that hold each module's static fields are gathered into spine arrays kept alive by a strong handle, so the handle scan reaches every static field transitively.
+
+That scanning split constrains the whole design. A preempted thread can be stopped at any instruction, so its stack can only be scanned conservatively, and a conservative reference pins its target: a word that merely looks like a heap pointer might be an integer, so the collector may never relocate the object it appears to point to. Non-moving in turn keeps the rest simple: object addresses are stable for life, and pinning costs nothing. A single generation means no [write barriers or remembered sets](gc-concepts/gc-generations.md); reference stores compile to plain writes.
 
 The code lives in `src/Cosmos.Kernel.Core/Memory/GarbageCollector/`. The `GarbageCollector` class itself is a static partial class split by phase (`.Alloc`, `.Tlab`, `.Mark`, `.Sweep`, and so on); segments, handles, and the TLAB struct sit in their own types, and the `GcInfo/` folder holds the decoder for the precise stack scan. The full file map is in [Source files](#source-files) at the end of this article.
-
-Two `GCSegmentManager` instances exist: `s_segmentManager` for the regular heap and `s_pinnedSegmentManager` for the pinned heap. The handle store is `s_gCHandleManager`, a `GCHandleManager`.
 
 ---
 
@@ -99,7 +101,7 @@ Each segment carries a small side table that lets the GC map an address inside t
 
 ### Segment chains
 
-Both heaps keep their segments in a singly linked list owned by their manager:
+Both heaps keep their segments in a singly linked list, each owned by its own `GCSegmentManager` instance (`s_segmentManager` for the regular heap, `s_pinnedSegmentManager` for the pinned one):
 
 <div style="overflow-x:auto">
 <img src="images/diagrams/gc-segment-chains.svg" alt="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1." style="width:100%;min-width:620px;max-width:760px">
@@ -113,7 +115,7 @@ To reject arbitrary values quickly, the GC caches a bounding box (`s_gcHeapMin` 
 
 ### Handle store
 
-GC handles let the runtime hold references from places the GC does not scan (native code, runtime caches, `GCHandle` values in user code). The store is owned by [`GCHandleManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleManager.cs) and is organized by handle type: one `GCHandleSegmentStore` per handle type, plus a separate store for dependent handles.
+GC handles let the runtime hold references from places the GC does not scan (native code, runtime caches, `GCHandle` values in user code). The store is owned by a single [`GCHandleManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleManager.cs) (the `s_gCHandleManager` instance) and is organized by handle type: one `GCHandleSegmentStore` per handle type, plus a separate store for dependent handles.
 
 | Type | Value | Keeps target alive? | Notes |
 |------|-------|--------------------|-------|
