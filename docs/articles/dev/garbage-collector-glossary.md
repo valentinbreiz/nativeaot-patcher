@@ -12,3 +12,8 @@ Short background notes on the general GC concepts the [Garbage Collector](garbag
 | [TLAB](gc-concepts/tlab.md) | Per-thread buffers that make the allocation fast path synchronization-free |
 | [GC roots](gc-concepts/gc-roots.md) | Where reachability starts |
 | [Precise vs. conservative scanning](gc-concepts/conservative-vs-precise.md) | Knowing which stack words are references, or guessing |
+| [Safepoint](gc-concepts/safepoint.md) | Code locations where the compiler's tables describe the GC state exactly |
+| [Funclet](gc-concepts/funclet.md) | Exception handlers compiled as small separate functions with frames of their own |
+| [Finalization and resurrection](gc-concepts/finalization.md) | Cleanup code before reclaim, and dead objects becoming reachable again |
+| [Runtime object header](gc-concepts/object-header.md) | The bookkeeping word just before every object (hash code, thin lock) |
+| [ABA problem](gc-concepts/aba-problem.md) | Why lock-free code needs version tags when values can be recycled |

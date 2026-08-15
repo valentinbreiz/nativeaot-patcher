@@ -27,7 +27,7 @@ The code lives in `src/Cosmos.Kernel.Core/Memory/GarbageCollector/`. The `Garbag
 
 ### MethodTable
 
-Every managed type compiled by ILC has a `MethodTable`, a type descriptor that lives in the kernel's data sections, never on the GC heap. The GC reads a handful of its fields:
+Every managed type compiled by ILC (the NativeAOT ahead-of-time compiler; see [Kernel Compilation Steps](build/kernel-compilation-steps.md)) has a `MethodTable`, a type descriptor that lives in the kernel's data sections, never on the GC heap. The GC reads a handful of its fields:
 
 | Field | Purpose |
 |-------|---------|
@@ -89,7 +89,7 @@ The strip is one contiguous allocation in address order, page-aligned base on th
 
 - `Start` to `Bump` holds allocated objects and free blocks left behind by earlier collections.
 - `Bump` to `End` is untouched space; bump allocation hands out memory from `Bump` and advances it.
-- The 8 reserved bytes before `Start` exist because the runtime writes an object header (identity hash or thin lock) at `objRef - 4`. For the first object in a segment that write must land in reserved filler instead of the segment's own metadata.
+- The 8 reserved bytes before `Start` exist because the runtime writes a [runtime object header](gc-concepts/object-header.md) (identity hash or thin lock) at `objRef - 4`. For the first object in a segment that write must land in reserved filler instead of the segment's own metadata.
 
 Segment allocation lives in [`GCSegmentManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegmentManager.cs). `AllocateSegment(requestedSize)` clamps the request to at least one page, sizes the brick table, rounds the total up to whole pages, and appends the new segment to its manager's linked list. Page rounding slack is given to the usable region, so `TotalSize` is usually a bit larger than the request.
 
@@ -126,7 +126,7 @@ The store is owned by a single [`GCHandleManager`](../../../src/Cosmos.Kernel.Co
 | Type | Value | Keeps target alive? | Notes |
 |------|-------|--------------------|-------|
 | `Weak` | 0 | No | Freed after collection if the target died |
-| `WeakTrackResurrection` | 1 | No | Allocatable; there is no finalization yet, so it behaves like storage only |
+| `WeakTrackResurrection` | 1 | No | Allocatable; there is no [finalization](gc-concepts/finalization.md) yet, so it behaves like storage only |
 | `Normal` | 2 | Yes | Scanned as a strong root |
 | `Pinned` | 3 | Yes | Scanned as a strong root; the target sits on the non-moving heap anyway |
 | dependent | 6 | Conditional | Primary in `Object`, secondary in `ExtraInfo`; matches the runtime's `HNDTYPE_DEPENDENT`. There is no named enum member for it |
@@ -137,7 +137,7 @@ Each store is a linked list of `GCHandleSegment` pages. A segment is one 4 KiB p
 <img src="images/diagrams/gc-handle-store.svg" alt="The handle store. Top: one GCHandleSegmentStore is a linked list of GCHandleSegment pages, _head pointing at the first and _tail at the last, allocation trying the tail first. Bottom: inside one 4 KiB page, a 16-byte header (Next and the packed _freeHead word) followed by 170 GCHandle slots of 24 bytes; _freeHead holds the index of the first free slot and free slots chain to the next free index through ExtraInfo." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
-A `GCHandle` slot is `{ GCObject* Object; nint ExtraInfo; GCHandleType Type; }`. Free slots are stamped with the sentinel type `(GCHandleType)(-1)` and chained through `ExtraInfo` into an intra-segment free list. The list head, the alive count, and an ABA version tag are packed into one 64-bit word updated with `Interlocked.CompareExchange`, so slot allocation and free are lock-free within a segment. When every segment of a store is full, the store allocates one more page.
+A `GCHandle` slot is `{ GCObject* Object; nint ExtraInfo; GCHandleType Type; }`. Free slots are stamped with the sentinel type `(GCHandleType)(-1)` and chained through `ExtraInfo` into an intra-segment free list. The list head, the alive count, and an [ABA](gc-concepts/aba-problem.md) version tag are packed into one 64-bit word updated with `Interlocked.CompareExchange`, so slot allocation and free are lock-free within a segment. When every segment of a store is full, the store allocates one more page.
 
 A handle value handed to the runtime is simply the address of its slot. Allocation, `RhHandleSet`, dependent secondary access, and freeing all cast the `IntPtr` back to a `GCHandle*`.
 
@@ -228,7 +228,7 @@ Only when all of that fails does `AllocObjectSlow` run a collection and retry th
 
 There are 12 size classes, powers of two from 16 to 32768 bytes. A lookup starts at the smallest class that fits and walks upward; a block is taken if it fits exactly or leaves a remainder of at least 24 bytes (the remainder is split back to the free list). Blocks larger than 32768 bytes are filed under the last class. The free lists are cleared at the start of every collection and rebuilt by the sweep.
 
-Every free block excludes its last 8 bytes (`ReservedHeaderSlotSize`): those bytes may hold the runtime object header (`objRef - 4`) of the object that follows the block, which must survive block recycling.
+Every free block excludes its last 8 bytes (`ReservedHeaderSlotSize`): those bytes may hold the [runtime object header](gc-concepts/object-header.md) (`objRef - 4`) of the object that follows the block, which must survive block recycling.
 
 ### Returning TLABs
 
@@ -275,7 +275,7 @@ The mark phase finds all reachable objects with a worklist. `MarkPhase` resets t
 
 Stack scanning is a hybrid:
 
-- The **GC-triggering thread** is scanned **precisely**. It reached the collector through a managed call chain, so every return address up its stack is a call-site safepoint where GCInfo is valid. `PreciseScanCurrentThread` walks its frames one by one and reports exactly the slots the compiler says are live, including exception funclet frames. The mechanism has its own article: [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md).
+- The **GC-triggering thread** is scanned **precisely**. It reached the collector through a managed call chain, so every return address up its stack is a call-site [safepoint](gc-concepts/safepoint.md) where GCInfo is valid. `PreciseScanCurrentThread` walks its frames one by one and reports exactly the slots the compiler says are live, including exception [funclet](gc-concepts/funclet.md) frames. The mechanism has its own article: [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md).
 - **Every other registered thread** was preempted at an arbitrary instruction, where a GCInfo lookup would be meaningless. Those threads get a **conservative** scan: each saved register and every pointer-sized word of their stack is treated as a potential reference. Replacing this last conservative path needs return-address hijacking, tracked in issue [#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385). Dead threads are skipped.
 
 There is no static-root pass. `ManagedModule.InitializeStatics` stores every module's GC-statics base objects in a spine array reachable from a strong (`Normal`) GC handle, so scanning the handle stores covers all static fields transitively (the `GC_StaticOnlyReachability` test proves this).
@@ -392,7 +392,7 @@ After the sweep, each chain is regrouped in one pass into FULL segments first, t
 [`GarbageCollector.Info.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Info.cs) backs the runtime's memory queries:
 
 - `GetStats(out totalCollections, out totalObjectsFreed)` exposes the two running counters. `Collect()`'s return value and these counters are exact: the test suite asserts the deltas match.
-- `GetSimpleMemoryInfo()` fills the snapshot behind `RhGetMemoryInfo`, which is what `GC.GetGCMemoryInfo()` reads: heap size (occupied range of regular plus pinned segments), fragmented bytes (sum of all free-list blocks), committed bytes (segments, frozen segments, mark stack, free-list page, handle store pages), pinned object count (pinned-heap objects plus `Pinned` handles), collection index, and condemned generation (always 0; the collector is not generational, so promoted bytes are always 0 too).
+- `GetSimpleMemoryInfo()` fills the snapshot behind `RhGetMemoryInfo`, which is what `GC.GetGCMemoryInfo()` reads: heap size (occupied range of regular plus pinned segments), fragmented bytes (sum of all free-list blocks), committed bytes (segments, frozen segments, mark stack, free-list page, handle store pages), pinned object count (pinned-heap objects plus `Pinned` handles), collection index, and [condemned generation](gc-concepts/gc-generations.md) (always 0; the collector is not generational, so promoted bytes are always 0 too).
 - `GetTotalAllocatedBytes()` / `GetTotalAllocatedBytesPrecise()` back `GC.GetTotalAllocatedBytes()`; the precise variant subtracts the unused tail of every live TLAB.
 - `GetLastGCPercentTimeInGC()` derives from the last collection's duration and the interval since the previous one.
 - `Variables` is the runtime configuration table; it reports `GCName = "OrionGC"` with server GC, concurrent GC, and large pages all off.
