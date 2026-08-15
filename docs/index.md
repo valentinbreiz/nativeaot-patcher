@@ -32,7 +32,7 @@ Architecture and internals, for contributors and the curious:
  - [Plugs](articles/dev/plugs.md) — the IL-level method replacement system.
  - [Testing](articles/dev/testing.md) — unit tests and QEMU kernel test suites.
  - [Garbage Collector](articles/dev/garbage-collector.md) — the mark-and-sweep GC.
- - [Garbage Collector — Precise Stack Scan (GCInfo)](articles/dev/garbage-collector-gcinfo.md)
+ - [Garbage Collector - Precise Stack Scan](articles/dev/garbage-collector-gcinfo.md)
  - [Scheduler](articles/dev/scheduler.md) — the preemptive, pluggable scheduler.
  - [Kernel Compilation Steps](articles/dev/build/kernel-compilation-steps.md) — C# to bootable ISO, end to end.
  - [Cosmos.Build.Asm](articles/dev/build/asm-build.md), [Cosmos.Build.GCC](articles/dev/build/gcc-build.md), [Cosmos.Build.Patcher](articles/dev/build/patcher-build.md), [Cosmos.Build.Ilc](articles/dev/build/ilc-build.md) — the build pipeline components.
