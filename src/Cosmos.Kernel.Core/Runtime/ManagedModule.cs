@@ -82,7 +82,7 @@ public static unsafe partial class ManagedModule
 
         var ptr = Memory.RhNewArray(MethodTable.Of<object[][]>(), modules.Length);
         var gcStaticBaseSpines = Unsafe.AsRef<object[]>(ptr);
-        s_moduleGCStaticsSpines = GarbageCollector.AllocateHandler((GCObject*)ptr, GCHandleType.Normal, UIntPtr.Zero);
+        s_moduleGCStaticsSpines = GarbageCollector.AllocateHandler((GCObject*)ptr, GCHandleType.Normal, IntPtr.Zero);
 
         for (int i = 0; i < modules.Length; i++)
         {
@@ -202,7 +202,7 @@ public static unsafe partial class ManagedModule
 
         object[] spine = new object[length / (MethodTable.SupportsRelativePointers ? sizeof(int) : sizeof(nint))];
         ref object rawSpineData = ref Unsafe.As<byte, object>(ref Unsafe.As<RawArrayData>(spine).Data);
-        GCHandle.Alloc(spine);
+        System.Runtime.InteropServices.GCHandle.Alloc(spine);
 
         int currentBase = 0;
         for (byte* block = (byte*)gcStaticRegionStart;
