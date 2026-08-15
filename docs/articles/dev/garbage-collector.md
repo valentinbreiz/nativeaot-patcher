@@ -6,8 +6,8 @@
 
 The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a [stop-the-world](gc-concepts/stop-the-world.md), [non-moving](gc-concepts/non-moving.md), [mark-and-sweep](gc-concepts/mark-and-sweep.md) collector with a [single generation](gc-concepts/gc-generations.md). Every collection pauses all threads, marks the objects that are still reachable, frees the rest in place, and never changes a live object's address. Each linked term has a short background note in the [glossary](garbage-collector-glossary.md). The collector manages four kinds of memory:
 
-- the [regular GC heap](#segment-chains), a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
-- the [pinned object heap](#pinned-allocation), a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
+- the [regular GC heap](#regular-heap), a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
+- the [pinned object heap](#pinned-heap), a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
 - the [GC handle store](#handle-store), tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
 - [frozen segments](#frozen-segments), pre-initialized read-only data registered by the runtime and never collected.
 
@@ -101,7 +101,11 @@ Each segment carries a small side table that lets the GC map an address inside t
 
 ### Segment chains
 
-The two chains together are the managed heap, the memory behind every `new` in kernel C# code. Class instances, arrays, strings and boxed values all start life in a segment of the regular chain; user code never picks a segment, the allocator does. Growing the heap means appending a segment to a chain; shrinking it means returning an empty segment to the page allocator. The standard .NET GC organizes its heap the same way, in segments or regions carved from larger reservations ([Fundamentals of garbage collection](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals)).
+#### Regular heap
+
+The regular chain is the managed heap, the memory behind every `new` in kernel C# code. Class instances, arrays, strings and boxed values all start life in one of its segments; user code never picks a segment, the allocator does. Growing the heap means appending a segment to the chain; shrinking it means returning an empty segment to the page allocator. The standard .NET GC organizes its heap the same way, in segments or regions carved from larger reservations ([Fundamentals of garbage collection](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals)).
+
+#### Pinned heap
 
 The pinned chain exists because an object's address sometimes escapes the GC's world: a buffer handed to a device for DMA, a struct passed to native code, a pointer taken with `fixed`. In standard .NET, where the collector compacts, such objects must be pinned so they are not relocated mid-operation, either temporarily (the `fixed` statement, `GCHandle.Alloc` with `GCHandleType.Pinned`) or for their whole lifetime by allocating them on a dedicated pinned object heap (`GC.AllocateArray<T>(length, pinned: true)`), which keeps long-lived pinned objects from fragmenting the main heap. In OrionGC nothing ever moves, so pinning adds no constraint; the pinned chain honors the runtime's pinned-heap flag with a segment list of its own (see [Pinned allocation](#pinned-allocation) for the mechanics). Official docs: [the fixed statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/fixed), [GC.AllocateArray](https://learn.microsoft.com/en-us/dotnet/api/system.gc.allocatearray), [Internals of the Pinned Object Heap](https://devblogs.microsoft.com/dotnet/internals-of-the-poh/).
 
