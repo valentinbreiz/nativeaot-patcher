@@ -11,3 +11,11 @@ public struct SVGA3dCmdDefineGBMob
     public uint basePPN;
     public uint sizeInBytes;
 }
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct SVGA3dCmdDefineGBMob64
+{
+    public uint mobid;
+    public MobFormat ptDepth;
+    public ulong basePPN;
+    public uint sizeInBytes;
+}

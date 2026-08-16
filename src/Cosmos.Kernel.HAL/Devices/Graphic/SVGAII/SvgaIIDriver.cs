@@ -1,8 +1,10 @@
 using System;
+using System.Drawing;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
@@ -26,6 +28,7 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// FIFO memory block.
     /// </summary>
     private MemoryBlock _fifoMemory = null!;
+    private MemoryBlock _mmioRegs = null!;
 
     /// <summary>
     /// The bound PCI device.
@@ -55,6 +58,7 @@ public unsafe class SvgaIIDriver : GraphicDevice
 
     private uint _fifonext;
     private uint _fifoReservedBytes;
+    private bool _isSvga3;
 
     /// <summary>
     /// Capabilities.
@@ -86,30 +90,68 @@ public unsafe class SvgaIIDriver : GraphicDevice
     {
         _device = device;
         _device.EnableMemory(true);
-        _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
 
-        WriteRegister(Register.ID, (uint)ID.V2);
-        if (ReadRegister(Register.ID) != (uint)ID.V2)
+        _isSvga3 = device.DeviceId == (ushort)DeviceId.SvgaiiAdapter + 1;
+
+        if (_isSvga3)
         {
-            throw new Exception("VMware SVGA II device did not accept the version 2 protocol");
+            ulong hhdmOffsetEarly = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+            _mmioRegs = new MemoryBlock(
+                hhdmOffsetEarly + _device.BaseAddressBar[0].BaseAddress,
+                (uint)PciDevice.GetBarSize(_device,0));
+            _basePort = 0;
+        }
+        else
+        {
+            _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
         }
 
-        // FrameBufferStart is the physical VRAM BAR; Limine base revision >= 1
-        // has no lower-half identity map, so CPU access goes through the HHDM.
+        WriteRegister(Register.ID, (uint)ID.V3);
+        if (ReadRegister(Register.ID) != (uint)ID.V3)
+        {
+            Serial.WriteString("[SVGAIII] did not accept protocol version 3, falling back to 2\n");
+
+            WriteRegister(Register.ID, (uint)ID.V2);
+            if (ReadRegister(Register.ID) != (uint)ID.V2)
+            {
+                throw new Exception("VMware SVGAII device did not accept the version 2 protocol, svga version is too old to continue");
+            }
+        }
+
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        FbPhys = ReadRegister(Register.FrameBufferStart);
-        VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, ReadRegister(Register.VRamSize));
+
+        if (_isSvga3)
+        {
+            FbPhys = _device.BaseAddressBar[2].BaseAddress;
+            VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, (uint)PciDevice.GetBarSize(_device,2));
+        }
+        else
+        {
+            FbPhys = _device.BaseAddressBar[1].BaseAddress;
+            VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, ReadRegister(Register.VRamSize));
+        }
+
         Capabilities = ReadRegister(Register.Capabilities);
 
-        Serial.WriteString("[SVGAII] Init: ports 0x");
-        Serial.WriteHex(_basePort);
+        Serial.WriteString(_isSvga3 ? "[SVGAIII] Init: mmio 0x" : "[SVGAII] Init: ports 0x");
+        Serial.WriteHex(_isSvga3 ? (ulong)_device.BaseAddressBar[0].BaseAddress : _basePort);
         Serial.WriteString(", fb 0x");
         Serial.WriteHex(FbPhys);
         Serial.WriteString(", caps 0x");
         Serial.WriteHex(Capabilities);
         Serial.WriteString("\n");
 
-        InitializeFIFO();
+        if (_isSvga3)
+        {
+            WriteRegister(Register.Enable, (uint)(RegisterEnableFlags.Enable | RegisterEnableFlags.Hide));
+            WriteRegister(Register.ConfigDone, 1);
+
+            Is3DEnabled = (Capabilities & (uint)Capability.Cap3D) != 0;
+        }
+        else
+        {
+            InitializeFIFO();
+        }
     }
 
     const uint HWVERSION_WS65_B1 = (2u << 16) | (1u & 0xFFu);
@@ -158,10 +200,10 @@ public unsafe class SvgaIIDriver : GraphicDevice
             if (_fifoMemory[(uint)FIFO.Min] > hwVersionOffset)
             {
                 // Try negotiating modern hardware version first (WS8 / WS65 profiles)
-                WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, HWVERSION_WS8_B1);
+                WriteFifo3D(Register3D.SVGA_FIFO_GUEST_3D_HWVERSION, HWVERSION_WS8_B1);
 
                 // Check if the device exposes revised 3D capabilities
-                if ((Capabilities & (1 << 8)) != 0) // SVGA_CAP_GBOBJECTS / modern capabilities flag check
+                if ((Capabilities & (uint)Capability.GuestBackedObjects) != 0) // SVGA_CAP_GBOBJECTS / modern capabilities flag check
                 {
                     HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
                 }
@@ -186,12 +228,8 @@ public unsafe class SvgaIIDriver : GraphicDevice
             }
         }
 
-        // No Register.Enable write here: the constructor runs InitializeFIFO
-        // before any mode is set, and enabling the device with Width/Height
-        // still unprogrammed wedges QEMU's display-refresh loop (main thread
-        // at 100% holding the BQL — guest, monitor and gdbstub all freeze).
-        // SetMode enables the device once the mode registers are valid.
         WriteRegister(Register.ConfigDone, 1);
+        WriteRegister(Register.Enable, 1);
     }
 
     /// <summary>
@@ -373,6 +411,7 @@ public unsafe class SvgaIIDriver : GraphicDevice
         uint max = GetFIFO(FIFO.Max);
 
         SetFIFO(FIFO.NextCmd, _fifonext);
+        WaitForFifo();
     }
 
     /// <summary>

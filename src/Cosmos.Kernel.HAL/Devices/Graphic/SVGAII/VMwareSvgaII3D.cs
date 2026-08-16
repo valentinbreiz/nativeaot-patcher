@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 
 namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
@@ -29,9 +30,14 @@ public unsafe class VMWareSVGAII3D
 
         s_dmaStart = new SVGAGuestPtr { gmrId = SVGA_GMR_FRAMEBUFFER, offset = dmaStartOffset };
         s_nextPtr.offset = s_dmaStart.offset;
+
+        if (CheckGBCached())
+        {
+            MobAllocator.SetupOTables(this,_driver);
+        }
     }
 
-    private uint _contextId;
+    private uint _contextId = 1;
     private GBContext? _boundContextId = null;
 
     private uint GetNextContextId() => ++_contextId;
@@ -39,16 +45,13 @@ public unsafe class VMWareSVGAII3D
     private uint CurrentContextId => _boundContextId?.ContextID 
         ?? throw new InvalidOperationException("No context is currently bound! Call BindContext first.");
 
-    private uint _surfaceId;
+    private uint _surfaceId = 1;
     private GBSurface? _boundSurfaceId = null;
 
     private uint GetNextSurfaceId() => ++_surfaceId;
 
-    private uint _viewId;
+    private uint _viewId = 1;
     private uint GetNextViewId() => ++_viewId;
-
-    private uint _mobIdCounter = 0;
-    private uint GetNextMobId() => ++_mobIdCounter;
 
     private uint _persistentMobOffset = 0;
 
@@ -136,65 +139,77 @@ public unsafe class VMWareSVGAII3D
     public GBContext DefineContext()
     {
         uint cid = GetNextContextId();
-
         uint cmdid = (uint)(
             CheckDXCached() ? FIFOCommand.SVGA_3D_CMD_DX_DEFINE_CONTEXT :
             CheckGBCached() ? FIFOCommand.SVGA_3D_CMD_DEFINE_GB_CONTEXT :
             FIFOCommand.DEFINE_CONTEXT
         );
+        Serial.WriteString("[DefineContext] cid="); Serial.WriteHex(cid);
+        Serial.WriteString(" cmdid="); Serial.WriteHex(cmdid);
+        Serial.WriteString(" dxCached="); Serial.WriteHex(CheckDXCached() ? 1u : 0u);
+        Serial.WriteString(" gbCached="); Serial.WriteHex(CheckGBCached() ? 1u : 0u);
+        Serial.WriteString("\n");
 
         void* mobPtr = (void*)0;
-
-        var mobid = CheckModernCached() ? DefineGBMob(
-            CheckDXCached() ? (uint)sizeof(SVGADXContextMobFormat) : 
-            (uint)sizeof(SVGAGBContextData), 
+        var mobid = CheckModernCached() ? MobAllocator.DefineGBMob(
+            this, _driver,
+            CheckDXCached() ? (uint)sizeof(SVGADXContextMobFormat) : (uint)sizeof(SVGAGBContextData),
             out mobPtr, out _
         ) : 0;
+        Serial.WriteString("[DefineContext] mobid="); Serial.WriteHex(mobid);
+        Serial.WriteString(" mobPtr=0x"); Serial.WriteHex((ulong)mobPtr);
+        Serial.WriteString(" contextMobSize="); Serial.WriteHex((uint)sizeof(SVGADXContextMobFormat));
+        Serial.WriteString("\n");
 
-        SVGA3dCmdDefineContext* cmd;
-        cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdDefineContext));
+        uint nextBefore = _driver.GetFIFO(FIFO.NextCmd);
+        SVGA3dCmdDefineContext* cmd = (SVGA3dCmdDefineContext*)ReserveFIFO3D(cmdid, (uint)sizeof(SVGA3dCmdDefineContext));
         cmd->cid = cid;
-
         _driver.CommitFIFOCommand();
+        uint stopAfter = _driver.GetFIFO(FIFO.Stop);
+        Serial.WriteString("[DefineContext] cmd nextBefore="); Serial.WriteHex(nextBefore);
+        Serial.WriteString(" stopAfter="); Serial.WriteHex(stopAfter);
+        Serial.WriteString(" delta="); Serial.WriteHex(stopAfter - nextBefore);
+        Serial.WriteString(" expected="); Serial.WriteHex((uint)sizeof(SVGA3dCmdHeader) + (uint)sizeof(SVGA3dCmdDefineContext));
+        Serial.WriteString("\n");
 
         var ctx = new GBContext { ContextID = cid, MobID = mobid, MobPtr = mobPtr, CoTables = new() };
-
         _driver.WaitForFifo();
+        Serial.WriteString("[DefineContext] released from object wait \n");
 
         if (CheckDXCached())
         {
             uint cotmax = (uint)(CheckSM5Cached() ? SVGACOTableType.SVGA_COTABLE_MAX : SVGACOTableType.SVGA_COTABLE_DX10_MAX);
+            Serial.WriteString("[DefineContext] cotmax="); Serial.WriteHex(cotmax); Serial.WriteString("\n");
 
             for (uint i = 0; i < cotmax; i++)
             {
                 var entry = s_coInfo[(int)i];
                 var size = entry.MaxEntries * entry.EntrySize;
-
-                uint comob = DefineGBMob(size, out void* coPtr, out _);
+                uint comob = MobAllocator.DefineGBMob(this, _driver, size, out void* coPtr, out _);
+                Serial.WriteString("[DefineContext] cotable i="); Serial.WriteHex(i);
+                Serial.WriteString(" size="); Serial.WriteHex(size);
+                Serial.WriteString(" mobid="); Serial.WriteHex(comob);
+                Serial.WriteString("\n");
 
                 if (i == (uint)SVGACOTableType.SVGA_COTABLE_RTVIEW)
                 {
                     _rtviewCOTableMobPtr = coPtr;
                 }
-
-                ctx.CoTables.Add(new()
-                {
-                    Type = (SVGACOTableType)i,
-                    MobID = comob,
-                    Size = size,
-                    DataPtr = coPtr
-                });
+                ctx.CoTables.Add(new() { Type = (SVGACOTableType)i, MobID = comob, Size = size, DataPtr = coPtr });
             }
         }
+        else
+        {
+            Serial.WriteString($"[DefineContext] skipped DX check {CheckDXCached()} \n");
+        }
 
-        BindContext(ctx);
-
+        InternalBindContext(ctx,true);
         return ctx;
     }
 
     private void* _rtviewCOTableMobPtr;
 
-    private void BindCOTable(uint ctx,CoTable table)
+    private void BindCOTable(uint ctx, CoTable table)
     {
         var cmd = (SVGA3dCmdDXSetCOTable*)ReserveFIFO3D(
             (uint)FIFOCommand.SVGA_3D_CMD_DX_SET_COTABLE,
@@ -206,7 +221,18 @@ public unsafe class VMWareSVGAII3D
         cmd->type = table.Type;
         cmd->validSizeInBytes = 0;
 
+        uint nextBefore = _driver.GetFIFO(FIFO.NextCmd);
         _driver.CommitFIFOCommand();
+        uint stopAfter = _driver.GetFIFO(FIFO.Stop);
+
+        Serial.WriteString("[BindCOTable] cid="); Serial.WriteHex(ctx);
+        Serial.WriteString(" type="); Serial.WriteHex((uint)table.Type);
+        Serial.WriteString(" mobid="); Serial.WriteHex(table.MobID);
+        Serial.WriteString(" nextBefore="); Serial.WriteHex(nextBefore);
+        Serial.WriteString(" stopAfter="); Serial.WriteHex(stopAfter);
+        Serial.WriteString(" delta="); Serial.WriteHex(stopAfter - nextBefore);
+        Serial.WriteString(" expected="); Serial.WriteHex((uint)sizeof(SVGA3dCmdHeader) + (uint)sizeof(SVGA3dCmdDXSetCOTable));
+        Serial.WriteString("\n");
     }
 
     private void GrowCOTable(uint cid, SVGACOTableType type, uint mobid, uint sizeInBytes)
@@ -228,10 +254,10 @@ public unsafe class VMWareSVGAII3D
     public void DebugContextMob(GBContext ctx)
     {
         var dxctx = (SVGADXContextMobFormat*)ctx.MobPtr;
-        Console.WriteLine($"ctx mob: {dxctx->depthStencilViewId} {dxctx->renderTargetViewIds[0]} ");
+        Console.WriteLine($"ctx mob: {dxctx->depthStencilViewId:X8} {dxctx->renderTargetViewIds[0]:X8} ");
         
-        Console.WriteLine($"viewports: {dxctx->numViewports} ");
-        var vp0 = (SVGA3dViewport*)dxctx->viewportsRaw[0];
+        Console.WriteLine($"viewports: {dxctx->numViewports:X8} ");
+        var vp0 = (SVGA3dViewport*)&dxctx->viewportsRaw[0];
         Console.WriteLine($"viewport 0: {vp0->x} {vp0->y} {vp0->w} {vp0->h} {vp0->dmin} {vp0->dmax} ");
     }
     public void DebugCOTables()
@@ -252,11 +278,28 @@ public unsafe class VMWareSVGAII3D
 
         *cmd = ctx.ContextID;
 
+        var nextcmd = _driver.GetFIFO(FIFO.NextCmd);
+
         _driver.CommitFIFOCommand();
         SyncToFence(InsertFence());
+
+        var ncmd = _driver.GetFIFO(FIFO.NextCmd);
+
+        var stopvalue = _driver.GetFIFO(FIFO.Stop);
+
+        if (stopvalue != ncmd)
+        {
+            Console.WriteLine($"Values are diffrent {nextcmd} {ncmd} {stopvalue}");
+        }
+        else
+        {
+            Console.WriteLine($"Values are good {nextcmd} {ncmd} {stopvalue}");
+        }
     }
 
-    public GBContext BindContext(GBContext context,bool invalidate = false)
+    public GBContext BindContext(GBContext context) => InternalBindContext(context);
+
+    GBContext InternalBindContext(GBContext context,bool invalidate = false)
     {
         if (_boundContextId.HasValue && _boundContextId.Value.ContextID == context.ContextID)
         {
@@ -276,7 +319,18 @@ public unsafe class VMWareSVGAII3D
             cmd->mobid = context.MobID;
             cmd->validContents = invalidate ? 0u : 1u;
 
+            uint nextBefore = _driver.GetFIFO(FIFO.NextCmd);
             _driver.CommitFIFOCommand();
+            uint stopAfter = _driver.GetFIFO(FIFO.Stop);
+            Serial.WriteString("[BindContext] cid="); Serial.WriteHex(context.ContextID);
+            Serial.WriteString(" mobid="); Serial.WriteHex(context.MobID);
+            Serial.WriteString(" validContents="); Serial.WriteHex(cmd->validContents);
+            Serial.WriteString(" nextBefore="); Serial.WriteHex(nextBefore);
+            Serial.WriteString(" stopAfter="); Serial.WriteHex(stopAfter);
+            Serial.WriteString(" delta="); Serial.WriteHex(stopAfter - nextBefore);
+            Serial.WriteString(" expected="); Serial.WriteHex((uint)sizeof(SVGA3dCmdHeader) + (uint)sizeof(SVGA3dCmdBindGBContext));
+            Serial.WriteString(" cotables="); Serial.WriteNumber(context.CoTables.Count);
+            Serial.WriteString("\n");
 
             foreach (var item in context.CoTables)
             {
@@ -305,10 +359,10 @@ public unsafe class VMWareSVGAII3D
         {
             foreach (var item in context.CoTables)
             {
-                DestroyGBMob(item.MobID);
+                MobAllocator.DestroyGBMob(this,_driver,item.MobID);
             }
 
-            DestroyGBMob(context.MobID);
+            MobAllocator.DestroyGBMob(this,_driver,context.MobID);
         }
     }
 
@@ -322,7 +376,7 @@ public unsafe class VMWareSVGAII3D
         if (CheckGBCached())
         {
             uint mobSize = CalculateSurfaceMobSize(width, height, depth, mips, format);
-            uint mobid = DefineGBMob(mobSize, out void* mobPtr, out _);
+            uint mobid = MobAllocator.DefineGBMob(this,_driver,mobSize, out void* mobPtr, out _);
 
             SVGA3dCmdDefineGBSurface* cmd = (SVGA3dCmdDefineGBSurface*)ReserveFIFO3D(
                 (uint)FIFOCommand.SVGA_3D_CMD_DEFINE_GB_SURFACE_V2,
@@ -423,7 +477,7 @@ public unsafe class VMWareSVGAII3D
 
         if (surface.MobID != 0)
         {
-            DestroyGBMob(surface.MobID);
+            MobAllocator.DestroyGBMob(this,_driver,surface.MobID);
         }
     }
 
@@ -437,7 +491,7 @@ public unsafe class VMWareSVGAII3D
         if (CheckGBCached())
         {
             uint size = (uint)bytecode.Length;
-            uint mobid = DefineGBMob(size, out void* mobPtr, out _);
+            uint mobid = MobAllocator.DefineGBMob(this,_driver,size, out void* mobPtr, out _);
 
             fixed (byte* bytecodePtr = bytecode)
             {
@@ -527,7 +581,7 @@ public unsafe class VMWareSVGAII3D
 
             _driver.CommitFIFOCommand();
 
-            DestroyGBMob(shader.MobID);
+            MobAllocator.DestroyGBMob(this,_driver,shader.MobID);
         }
         else
         {
@@ -1265,67 +1319,6 @@ public unsafe class VMWareSVGAII3D
         _lastDMASize = alignedSize;
 
         return buffer;
-    }
-
-    public uint DefineGBMob(uint sizeInBytes, out void* buffer, out SVGAGuestPtr gPtr)
-    {
-        uint mobid = GetNextMobId();
-
-        uint alignedSize = (sizeInBytes + 4095u) & ~4095u;
-
-        buffer = SVGA3DUtil_AllocDMABuffer(alignedSize, out gPtr);
-
-        uint mobBasePPN = (_driver.FbPhys + gPtr.offset) / 4096u;
-
-        MobFormat ptDepth;
-        uint basePPN;
-
-        if (sizeInBytes <= 4096)
-        {
-            ptDepth = MobFormat.PTDEPTH_0;
-            basePPN = mobBasePPN;
-        }
-        else
-        {
-            ptDepth = MobFormat.PTDEPTH_1;
-
-            uint numPages = alignedSize / 4096u;
-            uint pageTableSize = numPages * sizeof(uint);
-
-            uint* pageTable = (uint*)SVGA3DUtil_AllocDMABuffer(pageTableSize, out SVGAGuestPtr ptGuestPtr);
-
-            for (uint i = 0; i < numPages; i++)
-            {
-                pageTable[i] = mobBasePPN + i;
-            }
-
-            uint ptPhysicalAddress = _driver.FbPhys + ptGuestPtr.offset;
-            basePPN = ptPhysicalAddress / 4096u;
-        }
-
-        SVGA3dCmdDefineGBMob* cmd = (SVGA3dCmdDefineGBMob*)ReserveFIFO3D(
-            (uint)FIFOCommand.SVGA_3D_CMD_DEFINE_GB_MOB, (uint)sizeof(SVGA3dCmdDefineGBMob)
-        );
-
-        cmd->mobid = mobid;
-        cmd->ptDepth = ptDepth;
-        cmd->basePPN = basePPN;
-        cmd->sizeInBytes = sizeInBytes;
-
-        _driver.CommitFIFOCommand();
-
-        return mobid;
-    }
-
-    public void DestroyGBMob(uint mobid)
-    {
-        SVGA3dCmdDestroyGBMob* cmd = (SVGA3dCmdDestroyGBMob*)ReserveFIFO3D(
-            (uint)FIFOCommand.SVGA_3D_CMD_DESTROY_GB_MOB, (uint)sizeof(SVGA3dCmdDestroyGBMob)
-        );
-            
-        cmd->mobid = mobid;
-
-        _driver.CommitFIFOCommand();
     }
 
     bool? _gbcache = null;

@@ -490,4 +490,60 @@ public class PciDevice : Device
 
         WriteRegister16((byte)Config.Command, command);
     }
+
+    public static ulong GetBarSize(PciDevice device, int barIndex)
+    {
+        if (device.BaseAddressBar![barIndex].Is64Bit)
+        {
+            return GetBarSize64(device,barIndex);
+        }
+
+        byte offset = (byte)(0x10 + barIndex * 4);
+
+        uint original = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offset);
+
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offset, 0xFFFFFFFF);
+        uint probed = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offset);
+
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offset, original);
+
+        bool isIoBar = (original & 0x1) != 0;
+
+        uint sizeMask = isIoBar
+            ? probed & 0xFFFFFFFC
+            : probed & 0xFFFFFFF0;
+
+        if (sizeMask == 0)
+        {
+            return 0;
+        }
+
+        return (~sizeMask) + 1;
+    }
+
+    static ulong GetBarSize64(PciDevice device, int barIndex)
+    {
+        byte offsetLo = (byte)(0x10 + barIndex * 4);
+        byte offsetHi = (byte)(offsetLo + 4);
+
+        uint originalLo = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetLo);
+        uint originalHi = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetHi);
+
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetLo, 0xFFFFFFFF);
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetHi, 0xFFFFFFFF);
+
+        uint probedLo = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetLo);
+        uint probedHi = ReadConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetHi);
+
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetLo, originalLo);
+        WriteConfig32((ushort)device.Bus,(ushort)device.Slot,(ushort)device.Function,offsetHi, originalHi);
+
+        ulong probed = ((ulong)probedHi << 32) | (probedLo & 0xFFFFFFF0);
+        if (probed == 0)
+        {
+            return 0;
+        }
+
+        return (~probed) + 1;
+    }
 }
