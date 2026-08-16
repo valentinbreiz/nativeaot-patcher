@@ -165,9 +165,9 @@ public static unsafe class Memory
     }
 
     [RuntimeExport("RhHandleSet")]
-    internal static IntPtr RhHandleSet(object obj)
+    internal static void RhHandleSet(IntPtr handle, GCObject* obj)
     {
-        return IntPtr.Zero;
+        GarbageCollector.HandleSetPrimary(handle, obj);
     }
 
     [RuntimeExport("RhHandleFree")]
@@ -179,13 +179,13 @@ public static unsafe class Memory
     [RuntimeExport("RhpHandleAlloc")]
     internal static IntPtr RhpHandleAlloc(GCObject* obj, GCHandleType handleType)
     {
-        return GarbageCollector.AllocateHandler(obj, handleType, UIntPtr.Zero);
+        return GarbageCollector.AllocateHandler(obj, handleType, IntPtr.Zero);
     }
 
     [RuntimeExport("RhpHandleAllocDependent")]
     internal static IntPtr RhpHandleAllocDependent(GCObject* primary, GCObject* secondary)
     {
-        return GarbageCollector.AllocateHandler(primary, GCHandleType.Normal, (nuint)secondary);
+        return GarbageCollector.AllocateHandler(primary, (GCHandleType)6, (nint)secondary);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

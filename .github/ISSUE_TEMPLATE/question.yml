@@ -7,8 +7,8 @@ body:
     attributes:
       value: |
         Before asking a question, please check:
-        - [Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — installation, debugging, and subsystem guides
-        - [Existing issues](https://github.com/valentinbreiz/nativeaot-patcher/issues)
+        - [Documentation site](https://cosmosos.github.io/index.html) — installation, debugging, and subsystem guides
+        - [Existing issues](https://github.com/CosmosOS/Cosmos/issues)
         - [Discord](https://discord.com/invite/kwtBwv6jhD) — often faster for setup questions
         
   - type: textarea

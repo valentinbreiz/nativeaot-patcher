@@ -2,7 +2,7 @@ name: .NET Format
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "gen3" ]
     paths-ignore:
       - 'docs/**'
       - '*.md'

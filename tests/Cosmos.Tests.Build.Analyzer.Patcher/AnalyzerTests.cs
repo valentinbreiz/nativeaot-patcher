@@ -74,6 +74,48 @@ public class AnalyzerTests
     }
 
     [Fact]
+    public async Task Test_StaticallyLinkedPInvokeDoesNotNeedPlug()
+    {
+        const string code = """
+
+                                    using System.Runtime.CompilerServices;
+                                    using System.Runtime.InteropServices;
+
+                                    namespace ConsoleApplication1
+                                    {
+                                        public static unsafe partial class NativeCpu
+                                        {
+                                            [LibraryImport("*", EntryPoint = "native_x64_rdseed")]
+                                            [return: MarshalAs(UnmanagedType.U1)]
+                                            public static partial bool X64RdSeed(ulong* outVal);
+
+                                            [DllImport("*", EntryPoint = "native_x64_cpuid")]
+                                            public static extern void X64CpuId(uint leaf, uint* eax);
+
+                                            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                                            public static int Twice(int value) => value * 2;
+                                        }
+
+                                        public class Test
+                                        {
+                                            public unsafe void TestMethod()
+                                            {
+                                                ulong seed;
+                                                uint eax;
+                                                NativeCpu.X64RdSeed(&seed);
+                                                NativeCpu.X64CpuId(0, &eax);
+                                                NativeCpu.Twice(21);
+                                            }
+                                        }
+                                    }
+                            """;
+
+        ImmutableArray<Diagnostic> diagnostics = await GetDiagnosticsAsync(code);
+
+        Assert.DoesNotContain(diagnostics, d => d.Id == DiagnosticMessages.MemberNeedsPlug.Id);
+    }
+
+    [Fact]
     public async Task Test_MethodNotImplemented()
     {
         const string code = """

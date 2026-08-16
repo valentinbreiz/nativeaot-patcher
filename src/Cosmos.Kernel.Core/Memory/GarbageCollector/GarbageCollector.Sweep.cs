@@ -23,7 +23,7 @@ public static unsafe partial class GarbageCollector
     {
         int totalFreed = 0;
 
-        GCSegment* segment = s_segments;
+        GCSegment* segment = s_segmentManager.Segments;
         while (segment != null)
         {
             totalFreed += SweepSegment(segment);
@@ -203,7 +203,7 @@ public static unsafe partial class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
-        GCSegment* seg = s_segments;
+        GCSegment* seg = s_segmentManager.Segments;
 
         while (seg != null)
         {
@@ -266,8 +266,8 @@ public static unsafe partial class GarbageCollector
             tail = freeTail;
         }
 
-        s_segments = newHead;
-        s_tailSegment = tail;
+        s_segmentManager.Segments = newHead;
+        s_segmentManager.TailSegment = tail;
         s_lastSegment = semiHead != null ? semiHead : freeHead;
         s_currentSegment = s_lastSegment;
 
@@ -300,7 +300,7 @@ public static unsafe partial class GarbageCollector
         }
 
         // Walk segments to confirm
-        GCSegment* segment = s_segments;
+        GCSegment* segment = s_segmentManager.Segments;
         while (segment != null)
         {
             if (p >= segment->Start && p < segment->End)
@@ -320,7 +320,7 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void RecomputeHeapRange()
     {
-        if (s_segments == null)
+        if (s_segmentManager.Segments == null)
         {
             s_gcHeapMin = (byte*)0;
             s_gcHeapMax = (byte*)0;
@@ -328,10 +328,10 @@ public static unsafe partial class GarbageCollector
             return;
         }
 
-        byte* min = s_segments->Start;
-        byte* max = s_segments->End;
+        byte* min = s_segmentManager.Segments->Start;
+        byte* max = s_segmentManager.Segments->End;
 
-        for (GCSegment* seg = s_segments->Next; seg != null; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments->Next; seg != null; seg = seg->Next)
         {
             if (seg->Start < min)
             {

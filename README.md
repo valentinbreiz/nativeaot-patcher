@@ -6,10 +6,10 @@
 
 <p align="center">
   <a href="https://discord.com/invite/kwtBwv6jhD"><img src="https://img.shields.io/discord/833970409337913344?label=discord&logo=discord&color=5865F2" /></a>
-  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/dotnet.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/dotnet.yml?branch=main&label=.NET%20tests&logo=github" /></a>
-  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/kernel-tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/kernel-tests.yml?branch=main&label=kernel%20tests&logo=github" /></a>
-  <a href="https://github.com/valentinbreiz/nativeaot-patcher/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/valentinbreiz/nativeaot-patcher/release.yml?label=release&logo=github" /></a>
-  <a href="https://valentinbreiz.github.io/nativeaot-patcher/roadmap.html"><img src="https://img.shields.io/badge/gen3_release-90%25-yellow" /></a>
+  <a href="https://github.com/CosmosOS/Cosmos/actions/workflows/dotnet.yml"><img src="https://img.shields.io/github/actions/workflow/status/CosmosOS/Cosmos/dotnet.yml?branch=gen3&label=.NET%20tests&logo=github" /></a>
+  <a href="https://github.com/CosmosOS/Cosmos/actions/workflows/kernel-tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/CosmosOS/Cosmos/kernel-tests.yml?branch=gen3&label=kernel%20tests&logo=github" /></a>
+  <a href="https://github.com/CosmosOS/Cosmos/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/CosmosOS/Cosmos/release.yml?label=release&logo=github" /></a>
+  <a href="https://cosmosos.github.io/roadmap.html"><img src="https://img.shields.io/badge/gen3_release-90%25-yellow" /></a>
 </p>
 
 # Cosmos gen3
@@ -27,26 +27,26 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - NativeAOT compilation
 - x64 and ARM64
 - [Limine](https://github.com/Limine-Bootloader/Limine) boot protocol
-- [Cosmos plug system](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/plugs.html)
+- [Cosmos plug system](https://cosmosos.github.io/articles/dev/plugs.html)
 - Native runtime stubs
 - .NET runtime support (String, Collections, List, Dictionary, Math, Console, Date Time, Random, Bit Operations, Threading, Generics)
-- [Mark-and-sweep Garbage Collector](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/garbage-collector.html)
-- [Priority-based Stride Scheduler](https://valentinbreiz.github.io/nativeaot-patcher/articles/dev/scheduler.html)
+- [Mark-and-sweep Garbage Collector](https://cosmosos.github.io/articles/dev/garbage-collector.html)
+- [Priority-based Stride Scheduler](https://cosmosos.github.io/articles/dev/scheduler.html)
 - Exception handling
 - Interrupts (APIC on x64, GIC on ARM64)
 - ACPI (via [LAI](https://github.com/managarm/lai))
 - PCI and MMIO drivers
 - UART serial
-- [Cosmos Graphics Subsystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
+- [Cosmos Graphics Subsystem](https://cosmosos.github.io/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
 - Keyboard and Mouse input
-- [Network stack](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
+- [Network stack](https://cosmosos.github.io/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
 - Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
-- [FAT12/16/32 filesystem](https://valentinbreiz.github.io/nativeaot-patcher/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
+- [FAT12/16/32 filesystem](https://cosmosos.github.io/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
 - Timer / Clock
 
 ## Documentation
 
-[Documentation site](https://valentinbreiz.github.io/nativeaot-patcher/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
+[Documentation site](https://cosmosos.github.io/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
 
 **User Guide**
 
@@ -92,7 +92,7 @@ Thanks to everyone who has contributed code, reviews, plugs, and bug reports:
 - [@spectradevv](https://github.com/spectradevv)
 - All [Cosmos gen2 contributors](https://github.com/CosmosOS/Cosmos/graphs/contributors)
 
-See the live list on the [Contributors page](https://github.com/valentinbreiz/nativeaot-patcher/graphs/contributors).
+See the live list on the [Contributors page](https://github.com/CosmosOS/Cosmos/graphs/contributors).
 
 ## License
 
