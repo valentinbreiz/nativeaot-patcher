@@ -240,7 +240,7 @@ The fast path is two pointer operations: if `AllocPtr + size <= AllocLimit`, bum
 
 ### TLAB refill
 
-`RefillAllocContext` (in [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs)) replaces an exhausted TLAB, trying cheap sources before expensive ones: recycled free-list space first, then untouched segment space, then new pages, and a collection only when everything else has failed.
+`RefillAllocContext` (in [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs)) replaces an exhausted TLAB, trying cheap sources before expensive ones: recycled [free-list](#free-lists) space first, then untouched segment space, then new pages, and a collection only when everything else has failed.
 
 ```mermaid
 flowchart TD
@@ -280,9 +280,13 @@ Note the overall ordering: the heap grows before a collection is attempted. `Col
 
 ### Free lists
 
-There are 12 size classes, powers of two from 16 to 32768 bytes. A lookup starts at the smallest class that fits and walks upward; a block is taken if it fits exactly or leaves a remainder of at least 24 bytes (the remainder is split back to the free list). Blocks larger than 32768 bytes are filed under the last class. The free lists are cleared at the start of every collection and rebuilt by the sweep.
+In a non-moving collector the space the sweep reclaims stays where it is, scattered between the surviving objects, and bump allocation cannot reach it: the `Bump` cursor only advances into untouched space. The free lists are how that scattered space gets used again. Every hole the sweep finds, and every returned TLAB tail, is filed as a [FreeBlock](#freeblock), and TLAB refills draw from these lists before touching fresh segment space.
 
-Every free block excludes its last 8 bytes (`ReservedHeaderSlotSize`): those bytes may hold the [runtime object header](gc-concepts/object-header.md) (`objRef - 4`) of the object that follows the block, which must survive block recycling.
+Finding a fitting hole has to be fast, so the blocks are bucketed into 12 size classes, powers of two from 16 to 32768 bytes; a lookup jumps straight to the smallest class that can satisfy the request instead of scanning one long list. It walks the classes upward and takes the first block that either fits exactly or leaves a remainder of at least 24 bytes; the remainder becomes a free block of its own and is filed back. The 24-byte floor is `MinBlockSize`, the smallest space that can still hold a `FreeBlock` header. Blocks larger than 32768 bytes are filed under the last class.
+
+The lists never survive a collection: they are cleared when it starts and rebuilt by the sweep. The sweep coalesces neighboring dead space into fresh, larger runs, so entries recorded before it would describe blocks that no longer exist; rebuilding from scratch keeps the lists trustworthy with no extra bookkeeping.
+
+One rule protects the neighbors: a free block's last 8 bytes (`ReservedHeaderSlotSize`) are never handed out. Those bytes sit directly in front of the object that follows the block, exactly where the runtime writes that object's [runtime object header](gc-concepts/object-header.md) (the identity hash or thin lock, at `objRef - 4`). Recycling them would let a new allocation overwrite a live neighbor's header.
 
 ### Returning TLABs
 
