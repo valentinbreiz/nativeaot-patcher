@@ -193,25 +193,25 @@ This section answers how a `new` becomes a pointer in a handful of instructions,
 
 The NativeAOT runtime calls exported functions in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs). The allocation exports funnel into `GarbageCollector.AllocObject(size, flags)`; before the GC is initialized they fall back to the boot allocator (`MemoryOp.Alloc` plus an explicit zero).
 
-| Runtime export | Purpose |
-|----------------|---------|
-| `RhpNewFast` | Fixed-size object (`RawBaseSize`) |
-| `RhpNewArray`, `RhpNewArrayFast`, `RhpNewPtrArrayFast` | Arrays; a negative length returns null |
-| `RhNewArray` | Arrays; forwards to `RhAllocateNewArray` with no flags |
-| `RhAllocateNewArray` | Arrays, with allocation flags |
-| `RhAllocateNewObject` | Object with flags (used with the pinned flag for GC statics) |
-| `RhNewString`, `RhNewVariableSizeObject` | Forward to `RhpNewArray` |
+| Runtime export | Maps to | Purpose |
+|----------------|---------|---------|
+| `RhpNewFast` | `AllocObject(RawBaseSize)` | Fixed-size object |
+| `RhpNewArray`, `RhpNewArrayFast`, `RhpNewPtrArrayFast` | `AllocObject(BaseSize + length * ComponentSize)` | Arrays; a negative length returns null |
+| `RhNewArray` | `RhAllocateNewArray` with no flags | Arrays |
+| `RhAllocateNewArray` | `AllocObject(size, flags)` | Arrays, with allocation flags |
+| `RhAllocateNewObject` | `AllocObject(RawBaseSize, flags)` | Object with flags (used with the pinned flag for GC statics) |
+| `RhNewString`, `RhNewVariableSizeObject` | `RhpNewArray` | Strings and other variable-size objects |
 
 The handle and frozen-segment exports:
 
-| Runtime export | Maps to |
-|----------------|---------|
-| `RhpHandleAlloc` | `GarbageCollector.AllocateHandler(obj, type, IntPtr.Zero)` |
-| `RhpHandleAllocDependent` | `AllocateHandler(primary, (GCHandleType)6, secondary)` |
-| `RhHandleSet` | `GarbageCollector.HandleSetPrimary` |
-| `RhHandleFree` | `GarbageCollector.FreeHandle` |
-| `RhRegisterFrozenSegment` | `GarbageCollector.RegisterFrozenSegment` |
-| `RhUpdateFrozenSegment` | `GarbageCollector.UpdateFrozenSegment` |
+| Runtime export | Maps to | Purpose |
+|----------------|---------|---------|
+| `RhpHandleAlloc` | `AllocateHandler(obj, type, IntPtr.Zero)` | Allocate a handle of a given type |
+| `RhpHandleAllocDependent` | `AllocateHandler(primary, (GCHandleType)6, secondary)` | Allocate a dependent handle for a primary/secondary pair |
+| `RhHandleSet` | `HandleSetPrimary` | Point an existing handle at a new target |
+| `RhHandleFree` | `FreeHandle` | Return the slot to its segment's free list |
+| `RhRegisterFrozenSegment` | `RegisterFrozenSegment` | Register a frozen region at startup |
+| `RhUpdateFrozenSegment` | `UpdateFrozenSegment` | Update a registered frozen region's bounds |
 
 Of the allocation flags only `GC_ALLOC_PINNED_OBJECT_HEAP` is honored; everything else (finalization, alignment, optional zeroing) is accepted and ignored. Regular-heap allocations are always handed out zeroed, whatever the flags say.
 
