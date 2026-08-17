@@ -1,50 +1,21 @@
 ## Overview
 
-This article describes how the garbage collector finds roots on thread stacks: a **precise** per-frame scan driven by the **GCInfo** metadata that the NativeAOT compiler (ILC) emits for every method. It replaces the **conservative** scan documented in [Garbage Collector: Mark phase](garbage-collector.md#mark-phase) wherever the precise scan is provably sound.
+A stack scan can [guess or know](gc-concepts/conservative-vs-precise.md) which stack words are object references. This article covers the knowing side: the **GCInfo** metadata that ILC emits for every method, how the GC uses it to walk the triggering thread frame by frame, and the [safepoint](gc-concepts/safepoint.md) constraint that decides which threads it can cover. It continues the [Mark phase](garbage-collector.md#mark-phase) section of the Garbage Collector article.
 
-> **Status.** The precise scan is live for the GC-triggering thread and for exception funclet frames, and it resolves interior pointers to their parent objects (epic [#348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348) phases 1 to 3 and 5, interior pointer support from [#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376)/[#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)). The conservative scan still covers threads preempted in the scheduler; retiring it needs [return-address hijacking](#the-safepoint-constraint), tracked in [#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385).
+> [!NOTE]
+> Status: the precise scan is live for the GC-triggering thread and for exception [funclet](gc-concepts/funclet.md) frames, and it resolves interior pointers to their parent objects (epic [#348](https://github.com/valentinbreiz/nativeaot-patcher/issues/348) phases 1 to 3 and 5, interior pointer support from [#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376)/[#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)). Threads preempted in the scheduler keep the conservative scan until [return-address hijacking](#the-safepoint-constraint) lands ([#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385)).
 
 ---
 
-## Why conservative scanning has to go
+## Why precise scanning
 
-### What the conservative scan does
+The [conservative scan](gc-concepts/conservative-vs-precise.md) does not know which stack words are references, so it treats every pointer-sized word as a candidate (`ScanThreadStack` and `ScanMemoryRange` feeding `TryMarkRoot` in [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs)), keeping any that lands in the GC heap and carries a plausible `MethodTable`. Those are plausibility filters, not proof, and two problems follow.
 
-During the mark phase the GC has to discover every object still reachable from a thread's stack: local variables, spilled registers, method arguments. The conservative scan does not know which stack words are object references and which are integers, so it treats every pointer-sized word as a candidate (`ScanThreadStack` and `ScanMemoryRange` feeding `TryMarkRoot` in [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs)). `TryMarkRoot` keeps a candidate only if it lands inside the GC heap and its would-be `MethodTable` pointer lives in the kernel's higher half. Those are plausibility filters, not proof.
+**Over-rooting.** Any stale heap pointer left in a dead spill slot or a not-yet-overwritten callee frame becomes a root, so the dead object it points at survives the collection, along with everything it transitively references. A false root through a strong reference leaks silently. One that keeps a weak reference's target alive is at least visible: a weak handle that should have cleared still resolves, which is what CI catches.
 
-Anything that looks like a heap pointer becomes a root. A thread's stack, walked 8 bytes at a time:
+**Layout fragility.** Whether a stale pointer sits in a scanned slot is an accident of compilation, so correctness shifts whenever codegen shifts. Issue [#346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346) is the archetype: adding a single 8-byte field to a stack-allocated struct (`InterruptScope`, inlined around every GC and scheduler path) moved the slots below it, a stale array pointer landed where the scan reads, and the weak reference tests failed. Adding a field, introducing a local, or upgrading the compiler were all the same class of failure until the triggering thread's scan became precise.
 
-| Stack word | What it actually is | Conservative verdict |
-|------------|--------------------|--------------------|
-| `0x0000000000000007` | int 7 | Not in heap range, ignored |
-| `0xFFFF8001A2B3C4D0` | live `List<int>` reference | In heap range, marked ✅ correct |
-| `0xFFFF8001DEADBEEF` | dead spill slot | Still in range, marked ❌ false root |
-| `0x00007FFE12340000` | a return address | Not in range, ignored |
-| `0xFFFF8001CAFE0000` | stale callee pointer | Still in range, marked ❌ false root |
-
-### Problem 1: over-rooting
-
-Any stale heap pointer left in a dead spill slot, a scratch slot, or a not-yet-overwritten callee frame is treated as a root, so the object it points at survives the collection, along with everything it transitively references. A false root through a strong reference leaks silently. A false root that keeps a weak reference's target alive is at least visible: a weak handle that should have been cleared still resolves, which is what CI catches.
-
-### Problem 2: layout fragility (the `InterruptScope` regression)
-
-Because the scan reads whatever word sits at each stack offset, its correctness depends on the exact stack layout the compiler chose: which slot got reused, which value was left there, whether the scan range happens to cover it. That layout shifts whenever codegen shifts.
-
-The concrete instance (issue [#346](https://github.com/valentinbreiz/nativeaot-patcher/issues/346)): commit `6c497186` added a single field, `private ulong _savedFlags;`, to the [`InterruptScope`](../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) ref struct. `InterruptScope` always lives on the stack, its construction is aggressively inlined, and `using (InternalCpu.DisableInterruptsScope())` wraps the GC, heap, and scheduler hot paths. The extra 8 bytes shifted the slots below it; a stale `byte[128]` pointer in a returned frame landed in a slot the conservative scan reads, the array was kept alive, its weak handle was not cleared, and the GarbageCollector suite's weak reference and dependent handle tests failed on ARM64. The field was reverted in `2f1b6d17` and later re-added (as the `SaveIrqAndDisable` / `RestoreIrq` pair), which is safe now that the GC-triggering thread is scanned precisely: the frame where that stale pointer lived is no longer read word by word.
-
-### Why ARM64 broke and x64 did not
-
-Same source change, different outcome per architecture, because "is there a stale heap pointer in a slot the scan reads" is a codegen artifact and ILC makes independent decisions per arch:
-
-- **Register file.** x64 has 16 general-purpose registers, ARM64 has 31. The register allocator spills different values to different stack slots, so the stale pointer sat in a spilled slot on one arch and in a register (reused before the GC ran) on the other.
-- **Frame setup and alignment.** x64 (`push rbp` / `sub rsp, N`) and ARM64 (`stp x29, x30, [sp, #-N]!`, SP kept 16-byte aligned) absorb 8 extra bytes differently. On one arch the field fell into existing padding; on the other it pushed every slot below it down.
-- **Inlining.** ILC's inliner uses a per-arch cost model, so the set of live frames at GC time differs.
-
-The arch asymmetry is the problem statement: the GC was not consistently broken, it broke whenever the compiler happened to put a stale pointer where the scan looks. Adding a field, upgrading ILC, or introducing a local are all the same class of failure. ARM64 GC CI is the canary because ARM64 codegen surfaces it first.
-
-### The shortcut that does not work
-
-A tempting half-measure is to keep the conservative scan but only read live frame ranges found by walking the RBP / X29 frame-pointer chain. That is not safe here: ILC compiles many functions without a frame pointer, so the frame chain silently skips those frames. The kernel's own exception unwinder documents this (see the comment about the managed equivalent of `-fomit-frame-pointer` in [`ExceptionHelper.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling/ExceptionHelper.cs)). For exception dispatch a skipped frame is tolerable. For the GC a skipped frame means missed roots, which collects a live object and turns into a use-after-free during sweep, strictly worse than the false rooting it was meant to remove. Precise GCInfo is the only correct path.
+A tempting half-measure is to keep the conservative scan but only read the live frame ranges found by walking the frame-pointer chain. That is unsafe here: ILC compiles many functions without a frame pointer, so the chain silently skips frames. Exception dispatch can tolerate a skipped frame; the GC cannot, because a missed root frees a live object and turns into a use-after-free during sweep, strictly worse than the over-rooting it was meant to remove. Asking the compiler where the references are is the only correct path.
 
 ---
 
@@ -73,7 +44,8 @@ The `.dotnet_eh_table` section is a sequence of these records, one per method, e
 
 A method's `.eh_frame` FDE points its LSDA pointer at that record's first byte, and the code offset for the GCInfo query is `ip - methodStart`.
 
-The LSDA header layout is the format the NativeAOT runtime parses; the upstream reference is `FindMethodInfo` / `GetCodeOffset` in `dotnet/runtime/src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp`.
+> [!NOTE]
+> Upstream reference: the LSDA header layout is the format the NativeAOT runtime parses in `FindMethodInfo` / `GetCodeOffset` of [`UnixNativeCodeManager.cpp`](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/Runtime/unix/UnixNativeCodeManager.cpp).
 
 ### What's inside the blob
 
@@ -118,7 +90,8 @@ static void Foo()
 - A GC fires while `Foo`'s frame is on the stack with the IP at the return address after `Bar()`. The code offset resolves to safepoint (I), GCInfo reports only the slot holding `a`, and the `byte[128]` is kept. Nothing else.
 - A GC fires with the IP at the return address after `WriteLine`. Safepoint (II) reports only the register holding `s`. The `byte[128]` is not reported and is collected, even though its stale pointer still sits in `a`'s stack slot. That last case is exactly what the conservative scan gets wrong.
 
-The authoritative format and decoder semantics are `dotnet/runtime/src/coreclr/vm/gcinfodecoder.cpp` (`GcInfoDecoder::EnumerateLiveSlots`, built with `GCINFODECODER_NO_EE` for NativeAOT) and `dotnet/runtime/src/coreclr/inc/{gcinfotypes.h,gcinfodecoder.h}`. The kernel's decoder is a direct port of the v4 subset it needs.
+> [!NOTE]
+> Upstream reference: the authoritative format and decoder semantics are `GcInfoDecoder::EnumerateLiveSlots` in [`gcinfodecoder.cpp`](https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/gcinfodecoder.cpp) (built with `GCINFODECODER_NO_EE` for NativeAOT), with the types in [`gcinfotypes.h`](https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/gcinfotypes.h) and [`gcinfodecoder.h`](https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/gcinfodecoder.h). The kernel's decoder is a direct port of the v4 subset it needs.
 
 ---
 
@@ -130,31 +103,42 @@ The driver is `PreciseScanCurrentThread` in [`GarbageCollector.PreciseStack.cs`]
 
 ```mermaid
 flowchart TD
-    START["frame: REGDISPLAY + IP"] --> LOOKUP{"IP has GCInfo?<br/>(MethodGcInfoLookup)"}
-    LOOKUP -->|"no, but CFI exists<br/>(asm trampoline)"| STEP["report nothing,<br/>step through"]
-    LOOKUP -->|"no CFI at all<br/>(IRQ entry, bootloader)"| FALLBACK["conservative-scan the rest<br/>of this stack, then stop"]
-    LOOKUP -->|yes| DECODE["GcInfoDecoder.EnumerateLiveSlots<br/>(REGDISPLAY, codeOffset)"]
-    DECODE --> RESOLVE["resolve each live slot to an address:<br/>register slot → saved register location<br/>stack slot → base register + offset"]
-    RESOLVE --> MARK["for each reported ref:<br/>interior → GetParentObject via brick table<br/>then TryMarkRoot"]
+    START["Frame: REGDISPLAY + IP"] --> LOOKUP{"IP has GCInfo?
+    (MethodGcInfoLookup)"}
+    LOOKUP -->|"no, but CFI exists
+    (asm trampoline)"| STEP["Report nothing,
+    step through"]
+    LOOKUP -->|"no CFI at all
+    (IRQ entry, bootloader)"| FALLBACK["Conservative-scan the rest
+    of this stack, then stop"]
+    LOOKUP -->|yes| DECODE["GcInfoDecoder.EnumerateLiveSlots
+    (REGDISPLAY, codeOffset)"]
+    DECODE --> RESOLVE["Resolve each live slot to an address:
+    register slot: saved register location,
+    stack slot: base register + offset"]
+    RESOLVE --> MARK["For each reported ref:
+    interior: GetParentObject() via brick table,
+    then TryMarkRoot()"]
     STEP --> UNWIND
-    MARK --> UNWIND["UnwindOneFrameWithCFI<br/>→ caller's REGDISPLAY + IP"]
+    MARK --> UNWIND["UnwindOneFrameWithCFI():
+    caller's REGDISPLAY + IP"]
     UNWIND --> START
 ```
 
 Per reported slot, the callback (`PreciseRootTrampoline`) does one of two things:
 
 - A plain reference is passed to `TryMarkRoot` directly; the usual heap-range and `MethodTable` checks are harmless belt and braces on a precisely reported root.
-- A slot flagged `GC_CALL_INTERIOR` holds a pointer into the middle of an object (a byref, a span's reference). The callback resolves it to the containing object with `GetParentObject`: pick the pinned segment list if `GC_CALL_PINNED` is also set and the regular list otherwise, find the containing segment, ask the segment's brick table for the closest recorded object start below the address, walk forward object by object until one covers the address, and mark that object. This is the fix for objects reachable only through a byref (issue [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)); the mechanism is described in [Garbage Collector: Interior pointers](garbage-collector.md#interior-pointers).
+- A slot flagged `GC_CALL_INTERIOR` holds a pointer into the middle of an object (a byref, a span's reference). The callback resolves it to the containing object with `GetParentObject`: pick the pinned segment list if `GC_CALL_PINNED` is also set and the regular list otherwise, find the containing segment, ask the segment's [brick table](garbage-collector.md#brick-table) for the closest recorded object start below the address, walk forward object by object until one covers the address, and mark that object. This is the fix for objects reachable only through a byref (issue [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)); the mechanism is described in [Garbage Collector: Interior pointers](garbage-collector.md#interior-pointers).
 
 Frames without GCInfo come in two kinds. A hand-written asm trampoline that still carries `.cfi` directives (`RhpCallCatchFunclet`, `RhpCallFilterFunclet`, `RhpThrowEx`) is stepped through reporting nothing: the managed frames on either side cover its register save locations, and the in-flight exception object is reported from the funclet's or `RhpThrowEx`'s own slot deeper on the stack. A frame with no CFI at all (interrupt entry stubs, the bootloader) ends the walk: the scanner conservatively scans the remaining stack range and stops rather than crashing. The same conservative tail runs if the unwinder fails mid-walk or a method's slot table overflows the decoder's fixed buffer.
 
-Funclet frames (catch, filter, and finally bodies) carry no GCInfo of their own. Their LSDA header redirects to the main method's record, and the code offset is resolved against the main method's start, so the funclet is scanned with the parent's slot table on the frame it actually runs on. Filter funclets run mid-throw, so the parent's untracked slots may be stale there and are not reported (`NoReportUntracked`); catch and finally funclets report them normally, and marking is idempotent, so double-reporting with the parent frame is harmless.
+[Funclet](gc-concepts/funclet.md) frames (catch, filter, and finally bodies) carry no GCInfo of their own. Their LSDA header redirects to the main method's record, and the code offset is resolved against the main method's start, so the funclet is scanned with the parent's slot table on the frame it actually runs on. Filter funclets run mid-throw, so the parent's untracked slots may be stale there and are not reported (`NoReportUntracked`); catch and finally funclets report them normally, and marking is idempotent, so double-reporting with the parent frame is harmless.
 
 ---
 
 ## The safepoint constraint
 
-GCInfo is only valid at safepoints: call sites for a partially-interruptible method, or any IP inside a fully-interruptible range. So whether a precise scan of a given thread is sound depends on where that thread's instruction pointer is when the GC runs:
+GCInfo is only valid at [safepoints](gc-concepts/safepoint.md): call sites for a partially-interruptible method, or any IP inside a fully-interruptible range. So whether a precise scan of a given thread is sound depends on where that thread's instruction pointer is when the GC runs:
 
 1. **The thread that triggered the GC.** It reached the collector through a managed call chain into the allocator, so every return address up its stack is a call-site safepoint. A precise scan of this thread is sound. Exception funclet frames are entered through the dispatcher's `call` too, so they are also safepoints.
 
@@ -174,7 +158,6 @@ Until then, threads other than the GC-triggering one keep the conservative scan 
 | CFI unwinder, `REGDISPLAY` | [`ExceptionHelper.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling/ExceptionHelper.cs) (+ `ExceptionHelper.X64.cs` / `ExceptionHelper.ARM64.cs`, [`RegisterContext.X64.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling/RegisterContext.X64.cs) / [`RegisterContext.ARM64.cs`](../../../src/Cosmos.Kernel.Core/Runtime/ExceptionHandling/RegisterContext.ARM64.cs)) | `UnwindOneFrameWithCFI` executes DWARF call-frame instructions to reconstruct the caller's register state, built for [#227](https://github.com/valentinbreiz/nativeaot-patcher/issues/227) |
 | `_native_capture_regdisplay` stub | `src/Cosmos.Kernel.Native.X64/CPU/ContextCapture.s`, `src/Cosmos.Kernel.Native.ARM64/CPU/ContextCapture.s`, [`ContextSwitchNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs) | seeds the initial `REGDISPLAY` for the GC-triggering thread |
 | `.dotnet_eh_table` kept, with `__dotnet_eh_table_start/end` | [`linker.x64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.x64.ld), [`linker.arm64.ld`](../../../src/Cosmos.Build.Templates/Linker/linker.arm64.ld) | GCInfo is reachable at runtime via the FDE LSDA |
-| IRQ save/restore natives | `Cosmos.Kernel.Native.{X64,ARM64}/CPU/CpuOps.s`, [`CpuNative.cs`](../../../src/Cosmos.Kernel.Core/Bridge/Import/CpuNative.cs) | used by [`InterruptScope`](../../../src/Cosmos.Kernel.Core/CPU/InternalCpu.cs) (the re-added `_savedFlags` save/restore form) |
 | Conservative scan (parked threads) | [`GarbageCollector.Mark.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Mark.cs) | `ScanThreadStack` / `ScanMemoryRange` / `TryMarkRoot`; what remains until hijacking lands |
 | Tests | `tests/Kernels/Cosmos.Kernel.Tests.GarbageCollector` | `GC_GcInfoDecoder`, `GC_PreciseStackScan`, `GC_FuncletNoFalseRoot`, `GC_FuncletNoCrashOnAllocInCatch`, `GC_StackScanPaddingStress`, `GC_InteriorPointerRoot` |
 | Hijack stub | not yet written | [#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385), phase 4 of the epic |
