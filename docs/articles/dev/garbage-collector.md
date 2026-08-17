@@ -342,25 +342,28 @@ Every candidate pointer, whatever root produced it, goes through `TryMarkRoot(va
 
 ```mermaid
 flowchart TD
-    VAL["Candidate pointer"] --> INHEAP{"Points into the GC heap
-    (regular or pinned segments)?"}
+    ROOT["TryMarkRoot(value)"] --> INHEAP{"IsInGCHeap(value)?
+    (regular or pinned segments)"}
     INHEAP -->|no| DROP["Rejected: not a heap object"]
-    INHEAP -->|yes| PUSH["Push on the mark stack"]
+    INHEAP -->|yes| PUSH["PushMarkStack(value)"]
     PUSH --> POP{"Mark stack empty?"}
     POP -->|yes| DONE["Done, next root"]
-    POP -->|no| READ["Pop an object; read its first
-    word, mask off the mark bit"]
+    POP -->|no| READ["PopMarkStack(),
+    GetMethodTable() masks
+    off the mark bit"]
     READ --> MT{"Plausible MethodTable?
     (not null, not inside the GC heap,
     not below KernelSpaceStart)"}
     MT -->|no| POP
-    MT -->|yes| MARKED{"Already marked?"}
+    MT -->|yes| MARKED{"IsMarked?"}
     MARKED -->|yes| POP
-    MARKED -->|no| SET["Set the mark bit"]
+    MARKED -->|no| SET["Mark(): set bit 0
+    of the MethodTable word"]
     SET --> PTRS{"ContainsGCPointers?"}
     PTRS -->|no| POP
-    PTRS -->|yes| ENUM["EnumerateReferences pushes
-    the object's child references"]
+    PTRS -->|yes| ENUM["EnumerateReferences():
+    PushMarkStack() for
+    each child reference"]
     ENUM --> POP
 ```
 
