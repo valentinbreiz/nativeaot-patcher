@@ -11,7 +11,7 @@ The garbage collector (it identifies itself as **OrionGC** in the runtime config
 - the [GC handle store](#handle-store), tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
 - [frozen segments](#frozen-segments), pre-initialized read-only data registered by the runtime and never collected.
 
-The GC operates in a threaded kernel. The [scheduler](scheduler.md) preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block. Interrupt handlers allocate too (the scheduler tick, input drivers). There is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
+The GC usually operates in a threaded kernel, but does not require one. When the [scheduler](scheduler.md) is running, it preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block; interrupt handlers allocate too (the scheduler tick, input drivers). Before the scheduler starts, or in kernels that compile it out (the `CosmosEnableScheduler` feature switch), the GC works the same way with a single static allocation context and the current stack as the only stack root. In either mode there is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
 
 Since every thread and interrupt handler can allocate, allocation goes through per-thread [TLABs](gc-concepts/tlab.md) (thread-local allocation buffers): each thread bumps a pointer inside its own buffer and only touches shared state when the buffer runs out and needs a refill. Collection is a last resort. When a refill fails, the collector first grows the heap; `Collect()` runs only when the page allocator itself has nothing left to give, or when called explicitly.
 
@@ -64,7 +64,7 @@ The header is 24 bytes, which is why `MinBlockSize` is 24: every allocation is r
 
 ### AllocContext (TLAB)
 
-[`AllocContext`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) is the per-thread allocation state, stored inline on each `Scheduler.Thread` (with a static fallback context for early boot, before the scheduler runs):
+[`AllocContext`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) is the per-thread allocation state, stored inline on each `Scheduler.Thread` (with a static fallback context used before the scheduler runs, and for the whole kernel lifetime when the scheduler is compiled out):
 
 | Field | Meaning |
 |-------|---------|
