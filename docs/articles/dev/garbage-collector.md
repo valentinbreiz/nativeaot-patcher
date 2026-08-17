@@ -240,15 +240,43 @@ The fast path is two pointer operations: if `AllocPtr + size <= AllocLimit`, bum
 
 ### TLAB refill
 
-`RefillAllocContext` (in [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs)) first stamps the old TLAB's unused tail back to the free list, then tries, in order:
+`RefillAllocContext` (in [`GarbageCollector.Tlab.cs`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GarbageCollector.Tlab.cs)) replaces an exhausted TLAB, trying cheap sources before expensive ones: recycled free-list space first, then untouched segment space, then new pages, and a collection only when everything else has failed.
 
-1. A free-list block of `max(size, TlabSize)` bytes, where `TlabSize` is 8 KiB.
-2. Bump allocation of that size in `s_lastSegment`.
-3. The largest free-list block that still fits the requested object (`AllocLargestFromFreeListRaw`). The block is taken whole and becomes a smaller-than-usual TLAB. This matters after a sweep: surviving objects chop the free space into blocks below 8 KiB, and without this step every refill in a partially live segment would fail and grow the heap instead.
-4. A walk of all segments starting at `s_lastSegment` (wrapping around once), and if nothing fits, a brand new segment from the page allocator (`AllocateObjectSlowRaw`).
-5. If the request was smaller than a full TLAB, one more exact-size attempt at the free list and the segment walk.
+```mermaid
+flowchart TD
+    REF["RefillAllocContext(size)"] --> STAMP["Stamp the old TLAB's unused
+    tail back to the free list"]
+    STAMP --> S1{"1. Free-list block of
+    max(size, TlabSize)?"}
+    S1 -->|found| OK["New TLAB, object
+    carved from its start"]
+    S1 -->|none| S2{"2. Bump that size
+    in s_lastSegment?"}
+    S2 -->|fits| OK
+    S2 -->|full| S3{"3. Largest free-list block
+    that still fits the object?
+    (AllocLargestFromFreeListRaw)"}
+    S3 -->|"found: taken whole as a
+    smaller-than-usual TLAB"| OK
+    S3 -->|none| S4{"4. Walk all segments from
+    s_lastSegment (wrapping once),
+    else a new segment
+    (AllocateObjectSlowRaw)"}
+    S4 -->|space found| OK
+    S4 -->|none| Q{"5. Request smaller
+    than TlabSize?"}
+    Q -->|yes| S5{"Exact-size retry:
+    free list, then segment walk"}
+    Q -->|no| FAIL["Refill failed:
+    AllocObjectSlow runs Collect()
+    and retries the refill once"]
+    S5 -->|found| OK
+    S5 -->|none| FAIL
+```
 
-Only when all of that fails does `AllocObjectSlow` run a collection and retry the refill once. If the retry also fails, allocation returns null. Note the ordering: the heap grows before a collection is attempted; `Collect` only runs once the page allocator itself has nothing left to give.
+`TlabSize` is 8 KiB. Step 3 is what keeps a partially live segment usable: after a sweep, surviving objects chop the free space into blocks smaller than 8 KiB, so a refill that insisted on a full-size TLAB would always fail there and grow the heap instead; taking the largest block whole as a smaller-than-usual TLAB recycles that space.
+
+Note the overall ordering: the heap grows before a collection is attempted. `Collect` only runs once the page allocator itself has nothing left to give, and if the refill retry after it also fails, allocation returns null.
 
 ### Free lists
 
