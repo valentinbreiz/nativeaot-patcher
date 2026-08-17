@@ -236,7 +236,7 @@ Every free block excludes its last 8 bytes (`ReservedHeaderSlotSize`): those byt
 
 ### Returning TLABs
 
-`Collect` starts by returning every thread's TLAB (`ReturnAllAllocContexts`). A gap of at least 32 bytes is stamped in place as a `FreeBlock` and pushed onto the free list; smaller gaps are just zeroed so the sweep does not trip over stale data. Afterwards every context is `null`/`null` and refills on next use.
+`Collect` starts by returning every allocation context: each registered thread's TLAB and the static fallback context (`ReturnAllAllocContexts`). A gap of at least 32 bytes is stamped in place as a `FreeBlock` and pushed onto the free list; smaller gaps are just zeroed so the sweep does not trip over stale data. Afterwards every context is `null`/`null` and refills on next use.
 
 ### Pinned allocation
 

@@ -4,4 +4,4 @@ With many threads allocating from one heap, a shared allocation cursor would nee
 
 The trade-off is waste: the unused tail of each thread's TLAB is memory no other thread can use until the TLAB is returned.
 
-In OrionGC the TLAB is the `AllocContext` stored on each scheduler thread, the default TLAB size is 8 KiB, and every collection starts by returning all TLABs so the sweep sees a consistent heap. See [AllocContext](../garbage-collector.md#alloccontext-tlab), [TLAB refill](../garbage-collector.md#tlab-refill) and [Returning TLABs](../garbage-collector.md#returning-tlabs).
+In OrionGC the TLAB is the `AllocContext` stored on each scheduler thread (a single static context serves instead before the scheduler runs, or when it is compiled out), the default TLAB size is 8 KiB, and every collection starts by returning all TLABs so the sweep sees a consistent heap. See [AllocContext](../garbage-collector.md#alloccontext-tlab), [TLAB refill](../garbage-collector.md#tlab-refill) and [Returning TLABs](../garbage-collector.md#returning-tlabs).
