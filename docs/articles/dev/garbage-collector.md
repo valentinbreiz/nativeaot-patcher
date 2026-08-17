@@ -338,15 +338,33 @@ Stack scanning is a hybrid:
 
 There is no static-root pass. `ManagedModule.InitializeStatics` stores every module's GC-statics base objects in a spine array reachable from a strong (`Normal`) GC handle, so scanning the handle stores covers all static fields transitively (the `GC_StaticOnlyReachability` test proves this).
 
-Candidate pointers go through `TryMarkRoot(value)`:
+Every candidate pointer, whatever root produced it, goes through `TryMarkRoot(value)`: a cheap membership test, then the standard mark loop that drains the worklist:
 
-1. Reject the value unless it points into the GC heap (regular or pinned segments).
-2. Push it on the mark stack, then drain the stack:
-   - Read the object's first word and mask off the mark bit.
-   - Reject the candidate if that `MethodTable` pointer is null, points inside the GC heap, or lies below `AddressSpace.KernelSpaceStart`. Real method tables live in kernel data sections.
-   - Skip the object if it is already marked.
-   - Set the mark bit.
-   - If the type has `ContainsGCPointers`, call `EnumerateReferences` to push the object's child references.
+```mermaid
+flowchart TD
+    VAL["Candidate pointer"] --> INHEAP{"Points into the GC heap
+    (regular or pinned segments)?"}
+    INHEAP -->|no| DROP["Rejected: not a heap object"]
+    INHEAP -->|yes| PUSH["Push on the mark stack"]
+    PUSH --> POP{"Mark stack empty?"}
+    POP -->|yes| DONE["Done, next root"]
+    POP -->|no| READ["Pop an object; read its first
+    word, mask off the mark bit"]
+    READ --> MT{"Plausible MethodTable?
+    (not null, not inside the GC heap,
+    not below KernelSpaceStart)"}
+    MT -->|no| POP
+    MT -->|yes| MARKED{"Already marked?"}
+    MARKED -->|yes| POP
+    MARKED -->|no| SET["Set the mark bit"]
+    SET --> PTRS{"ContainsGCPointers?"}
+    PTRS -->|no| POP
+    PTRS -->|yes| ENUM["EnumerateReferences pushes
+    the object's child references"]
+    ENUM --> POP
+```
+
+The two validation steps are what make conservative scanning safe: a candidate can be any bit pattern that happened to sit in a register or stack slot, so before it is treated as an object it must both land inside a heap segment and carry a plausible `MethodTable` pointer (the validity filter from [MethodTable](#methodtable)). Precise roots go through the same checks and simply never fail them.
 
 The mark stack starts at one page (512 entries) and grows by copying into a larger page allocation when full. If growing fails, the collector logs a warning and drops the pointer, so an allocation failure at that point can under-mark; there is no fallback.
 
