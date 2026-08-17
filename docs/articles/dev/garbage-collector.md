@@ -17,13 +17,15 @@ Since every thread and interrupt handler can allocate, allocation goes through p
 
 Marking starts from the [roots](gc-concepts/gc-roots.md), the reference-holding locations that exist outside the heap. OrionGC scans three groups: the stack of the thread that triggered the collection, scanned [precisely](gc-concepts/conservative-vs-precise.md) from NativeAOT GCInfo (see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)); the stacks and saved registers of every other registered thread, scanned conservatively; and the strong GC handles (the handle types that keep their target alive). Static fields need no separate scan: during module initialization, the objects that hold each module's static fields are gathered into spine arrays kept alive by a strong handle, so the handle scan reaches every static field transitively.
 
-That scanning split constrains the whole design. A preempted thread can be stopped at any instruction, so its stack can only be scanned conservatively, and a conservative reference pins its target: a word that merely looks like a heap pointer might be an integer, so the collector may never relocate the object it appears to point to. Non-moving in turn keeps the rest simple: object addresses are stable for life, and pinning costs nothing. A single generation means no [write barriers or remembered sets](gc-concepts/gc-generations.md); reference stores compile to plain writes.
+That scanning split constrains the whole design. A preempted thread can be stopped at any instruction, so its stack can only be scanned conservatively, and a conservative reference pins its target: a word that merely looks like a heap pointer might be an integer, so the collector may never relocate the object it appears to point to. Non-moving in turn keeps the rest simple: object addresses are stable for life, and pinning costs nothing. A single generation means no [write barriers or remembered sets](gc-concepts/gc-generations.md); reference stores compile to plain writes. The recurring trade is throughput for simplicity and verifiability: every collection scans the whole heap, but every structure can be walked by hand and the accounting is exact, down to the freed-object counts the [test suite](#tests) asserts. What the design gives up is collected in [Limitations and evolution](#limitations-and-evolution).
 
 The code lives in `src/Cosmos.Kernel.Core/Memory/GarbageCollector/`. The `GarbageCollector` class itself is a static partial class split by phase (`.Alloc`, `.Tlab`, `.Mark`, `.Sweep`, and so on); segments, handles, and the TLAB struct sit in their own types, and the `GcInfo/` folder holds the decoder for the precise stack scan. The full file map is in [Source files](#source-files) at the end of this article.
 
 ---
 
 ## Core structures
+
+Four data shapes underpin everything else in this article: the type descriptor the compiler emits for every managed type, the object as the GC sees it, the free block that describes dead space, and the per-thread allocation state. Every later section builds on these.
 
 ### MethodTable
 
@@ -37,6 +39,8 @@ Every managed type compiled by ILC (the NativeAOT ahead-of-time compiler; see [K
 | `ContainsGCPointers` | True if instances contain references the GC must trace |
 
 Because `MethodTable` pointers always live in kernel space, outside the heap, the GC uses that as a validity filter: a candidate object whose first word is null, points inside the GC heap, or sits below `AddressSpace.KernelSpaceStart` cannot be a real object.
+
+The one thing these fields do not describe is where the references inside an instance sit. That layout lives in the GCDesc stored just before the `MethodTable` (see [GCDesc](#gcdesc)).
 
 ### Object header
 
@@ -64,7 +68,7 @@ The header is 24 bytes, which is why `MinBlockSize` is 24: every allocation is r
 
 ### AllocContext (TLAB)
 
-[`AllocContext`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) is the per-thread allocation state, stored inline on each `Scheduler.Thread` (with a static fallback context used before the scheduler runs, and for the whole kernel lifetime when the scheduler is compiled out):
+[`AllocContext`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/AllocContext.cs) is the per-thread allocation state (the [TLAB](gc-concepts/tlab.md) itself), stored inline on each `Scheduler.Thread` (with a static fallback context used before the scheduler runs, and for the whole kernel lifetime when the scheduler is compiled out):
 
 | Field | Meaning |
 |-------|---------|
@@ -76,6 +80,8 @@ The header is 24 bytes, which is why `MinBlockSize` is 24: every allocation is r
 ---
 
 ## Memory layout
+
+This section answers where managed memory lives and how the GC finds its way around it: the anatomy of one segment and its brick table, how segments chain into the two heaps, then the two structures that sit beside the heaps (the handle store and the frozen segments), and finally what deliberately stays outside the GC's reach.
 
 ### Segments
 
@@ -167,6 +173,8 @@ The kernel's malloc-style heaps (SmallHeap, MediumHeap, LargeHeap in `Memory/Hea
 
 ## Allocation
 
+This section answers how a `new` becomes a pointer in a handful of instructions, and what happens when the fast path runs out. The request travels from the runtime's exported helpers through the thread's TLAB, and on a miss falls back to the free lists, segment bumping, new segments, and only then a collection.
+
 ### Runtime bridge
 
 The NativeAOT runtime calls exported functions in [`Memory.cs`](../../../src/Cosmos.Kernel.Core/Runtime/Memory.cs). The allocation exports funnel into `GarbageCollector.AllocObject(size, flags)`; before the GC is initialized they fall back to the boot allocator (`MemoryOp.Alloc` plus an explicit zero).
@@ -246,7 +254,7 @@ Pinned objects bypass TLABs entirely: `AllocPinnedObject` bump-allocates in the 
 
 ## Collection
 
-`Collect()` returns the number of objects freed. Its phase order:
+A collection marks everything reachable, then reclaims everything that is not. The phase order below is forced by dependencies: TLABs must be returned before anything walks the heap, weak handles can only be judged once marking is complete, the free lists are rebuilt by the sweep that empties them, and the segment chains are tidied last so the next allocation lands well. `Collect()` returns the number of objects freed:
 
 ```mermaid
 sequenceDiagram
@@ -295,6 +303,8 @@ Candidate pointers go through `TryMarkRoot(value)`:
    - If the type has `ContainsGCPointers`, call `EnumerateReferences` to push the object's child references.
 
 The mark stack starts at one page (512 entries) and grows by copying into a larger page allocation when full. If growing fails, the collector logs a warning and drops the pointer, so an allocation failure at that point can under-mark; there is no fallback.
+
+#### GCDesc
 
 `EnumerateReferences` decodes the **GCDesc** that ILC stores immediately before each `MethodTable`. The word at `MT[-1]` is `numSeries` and selects one of two layouts.
 
@@ -400,6 +410,22 @@ After the sweep, each chain is regrouped in one pass into FULL segments first, t
 - `GetTotalAllocatedBytes()` / `GetTotalAllocatedBytesPrecise()` back `GC.GetTotalAllocatedBytes()`; the precise variant subtracts the unused tail of every live TLAB.
 - `GetLastGCPercentTimeInGC()` derives from the last collection's duration and the interval since the previous one.
 - `Variables` is the runtime configuration table; it reports `GCName = "OrionGC"` with server GC, concurrent GC, and large pages all off.
+
+---
+
+## Limitations and evolution
+
+Every choice above trades something away. This section collects the sharp edges in one place, with the path out where one exists.
+
+- **Whole-heap pauses.** A single generation and no concurrency means every collection scans every live object with interrupts off. That is the right trade while heaps are small; larger heaps would need generations (with their write barriers and remembered sets) or incremental marking.
+- **Stop-the-world leans on a single CPU.** The scheduler currently runs everything on CPU 0 (`SchedulerManager.GetCurrentCpuId()` returns 0), so disabling interrupts stops every mutator. A multi-core kernel would need a cross-CPU rendezvous before that guarantee holds again.
+- **Conservative scanning over-retains and blocks moving.** On preempted threads, an integer that happens to resemble a heap address keeps a dead object alive, and nothing those stacks appear to reference may ever be relocated. The exit is return-address hijacking ([#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385)), which would let every thread be scanned precisely.
+- **Interior pointers resolve on the precise path only.** A byref kept alive solely by a preempted thread's stack must hit an object header exactly to be found ([#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376), [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)).
+- **No [finalization](gc-concepts/finalization.md).** Finalizers never run, allocation flags requesting them are ignored, and `WeakTrackResurrection` handles behave as plain storage.
+- **A mark-stack growth failure can under-mark.** If the mark stack cannot grow mid-collection, pointers are dropped with a logged warning, and an unmarked live object would be swept. There is no overflow fallback yet.
+- **Allocation failure returns null.** When even a collection cannot free enough memory, the allocation helpers return null; there is no `OutOfMemoryException` path from the allocator.
+
+Retiring the conservative path is the keystone: once every thread can be scanned precisely, relocation stops being impossible, and compaction or generations become design options rather than non-starters.
 
 ---
 
