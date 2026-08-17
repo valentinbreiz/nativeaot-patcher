@@ -109,11 +109,17 @@ Each segment carries a small side table that lets the GC map an address inside t
 
 #### Regular heap
 
-The regular chain is the managed heap, the memory behind every `new` in kernel C# code. Class instances, arrays, strings and boxed values all start life in one of its segments; user code never picks a segment, the allocator does. Growing the heap means appending a segment to the chain; shrinking it means returning an empty segment to the page allocator. The standard .NET GC organizes its heap the same way, in segments or regions carved from larger reservations ([Fundamentals of garbage collection](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals)).
+The regular chain is the managed heap, the memory behind every `new` in kernel C# code. Class instances, arrays, strings and boxed values all start life in one of its segments; user code never picks a segment, the allocator does. Growing the heap means appending a segment to the chain; shrinking it means returning an empty segment to the page allocator. The standard .NET GC organizes its heap the same way, in segments or regions carved from larger reservations.
+
+> [!NOTE]
+> Official docs: [Fundamentals of garbage collection](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals).
 
 #### Pinned heap
 
-The pinned chain exists because an object's address sometimes escapes the GC's world: a buffer handed to a device for DMA, a struct passed to native code, a pointer taken with `fixed`. In standard .NET, where the collector compacts, such objects must be pinned so they are not relocated mid-operation, either temporarily (the `fixed` statement, `GCHandle.Alloc` with `GCHandleType.Pinned`) or for their whole lifetime by allocating them on a dedicated pinned object heap (`GC.AllocateArray<T>(length, pinned: true)`), which keeps long-lived pinned objects from fragmenting the main heap. In OrionGC nothing ever moves, so pinning adds no constraint; the pinned chain honors the runtime's pinned-heap flag with a segment list of its own (see [Pinned allocation](#pinned-allocation) for the mechanics). Official docs: [the fixed statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/fixed), [GC.AllocateArray](https://learn.microsoft.com/en-us/dotnet/api/system.gc.allocatearray), [Internals of the Pinned Object Heap](https://devblogs.microsoft.com/dotnet/internals-of-the-poh/).
+The pinned chain exists because an object's address sometimes escapes the GC's world: a buffer handed to a device for DMA, a struct passed to native code, a pointer taken with `fixed`. In standard .NET, where the collector compacts, such objects must be pinned so they are not relocated mid-operation, either temporarily (the `fixed` statement, `GCHandle.Alloc` with `GCHandleType.Pinned`) or for their whole lifetime by allocating them on a dedicated pinned object heap (`GC.AllocateArray<T>(length, pinned: true)`), which keeps long-lived pinned objects from fragmenting the main heap. In OrionGC nothing ever moves, so pinning adds no constraint; the pinned chain honors the runtime's pinned-heap flag with a segment list of its own (see [Pinned allocation](#pinned-allocation) for the mechanics).
+
+> [!NOTE]
+> Official docs: [the fixed statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/fixed), [GC.AllocateArray](https://learn.microsoft.com/en-us/dotnet/api/system.gc.allocatearray), [Internals of the Pinned Object Heap](https://devblogs.microsoft.com/dotnet/internals-of-the-poh/).
 
 Both heaps keep their segments in a singly linked list, each owned by its own `GCSegmentManager` instance (`s_segmentManager` for the regular heap, `s_pinnedSegmentManager` for the pinned one):
 
@@ -129,7 +135,10 @@ To reject arbitrary values quickly, the GC caches a bounding box (`s_gcHeapMin` 
 
 ### Handle store
 
-A GC handle is a reference to a managed object that lives outside normal root scanning and has an explicit lifetime: code allocates the handle, uses it, and frees it. C# code meets handles in three main forms. `GCHandle.Alloc` keeps an object alive (and optionally pinned) while native code holds a raw pointer to it, the interop pattern. `WeakReference` observes an object without keeping it alive, the cache pattern. `DependentHandle`, the mechanism behind `ConditionalWeakTable`, ties one object's lifetime to another's, which is how extra state gets attached to objects that cannot be modified. The kernel runtime is a client too: its internal caches and the statics spine from the overview live behind handles. Official docs: [GCHandle](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.gchandle), [Weak references](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/weak-references), [DependentHandle](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.dependenthandle).
+A GC handle is a reference to a managed object that lives outside normal root scanning and has an explicit lifetime: code allocates the handle, uses it, and frees it. C# code meets handles in three main forms. `GCHandle.Alloc` keeps an object alive (and optionally pinned) while native code holds a raw pointer to it, the interop pattern. `WeakReference` observes an object without keeping it alive, the cache pattern. `DependentHandle`, the mechanism behind `ConditionalWeakTable`, ties one object's lifetime to another's, which is how extra state gets attached to objects that cannot be modified. The kernel runtime is a client too: its internal caches and the statics spine from the overview live behind handles.
+
+> [!NOTE]
+> Official docs: [GCHandle](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.gchandle), [Weak references](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/weak-references), [DependentHandle](https://learn.microsoft.com/en-us/dotnet/api/system.runtime.dependenthandle).
 
 The store is owned by a single [`GCHandleManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCHandleManager.cs) (the `s_gCHandleManager` instance) and is organized by handle type: one `GCHandleSegmentStore` per handle type, plus a separate store for dependent handles.
 
@@ -155,7 +164,10 @@ During collection, `Normal` and `Pinned` stores are scanned as roots, dependent 
 
 ### Frozen segments
 
-Objects whose contents are known at build time do not need to be built at runtime. ILC lays out string literals, frozen arrays and preinitialized static data as ready-made objects in the kernel binary's data sections, so they exist from the first instruction at addresses that never change, occupy no heap space, and cost the collector nothing. There is no C# API for this; code gets it automatically by using string literals and static data the compiler can evaluate ahead of time. Upstream .NET calls this the non-GC heap ([NonGC-Heap design notes](https://github.com/dotnet/runtime/blob/main/docs/design/features/NonGC-Heap.md)).
+Objects whose contents are known at build time do not need to be built at runtime. ILC lays out string literals, frozen arrays and preinitialized static data as ready-made objects in the kernel binary's data sections, so they exist from the first instruction at addresses that never change, occupy no heap space, and cost the collector nothing. There is no C# API for this; code gets it automatically by using string literals and static data the compiler can evaluate ahead of time. Upstream .NET calls this the non-GC heap.
+
+> [!NOTE]
+> Official docs: [NonGC-Heap design notes](https://github.com/dotnet/runtime/blob/main/docs/design/features/NonGC-Heap.md).
 
 The runtime registers each such region at startup through `RhRegisterFrozenSegment`, and `ManagedModule` registers each module's `FrozenObjectRegion` directly. The GC records them in a linked list of `FrozenSegmentInfo` nodes carved from a bump-allocated metadata page:
 
