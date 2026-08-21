@@ -85,7 +85,7 @@ _native_x64_load_gdt:
     // 8:2 logical-address pointer in .data above.
     lea     rax, [rip + _native_x64_reload_target]
     .att_syntax prefix
-    ljmp    *(%rax)
+    ljmpq    *(%rax)
     .intel_syntax noprefix
 
     // _native_x64_gdt_reload_cs returns here.

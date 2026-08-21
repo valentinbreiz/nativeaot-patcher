@@ -9,10 +9,6 @@ namespace Cosmos.Kernel.Core.Memory.VAS;
 /// </summary>
 public static class PageFaultHandler
 {
-    /// <summary>
-    /// x64 canonical higher-half start (lower half is user space for this PoC).
-    /// </summary>
-    private const ulong X64UserSpaceLimit = 0x0000800000000000UL;
 
     /// <summary>
     /// Handles a page fault. Returns true if the fault was handled (e.g. process killed).
