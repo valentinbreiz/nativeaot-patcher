@@ -126,7 +126,7 @@ The pinned chain exists because an object's address sometimes escapes the GC's w
 Both heaps keep their segments in a singly linked list, each owned by its own `GCSegmentManager` instance (`s_segmentManager` for the regular heap, `s_pinnedSegmentManager` for the pinned one):
 
 <div style="overflow-x:auto">
-<img src="images/diagrams/gc-segment-chains.svg" alt="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1." style="width:100%;min-width:620px;max-width:760px">
+<img src="images/diagrams/gc-segment-chains.svg" alt="The two segment chains, drawn identically. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 (SEMIFULL) and elided further segments to Seg N (FREE), then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: the same shape with Pin 0 (FULL) and Pin 1 (SEMIFULL) through Pin N (FREE) to null; TailSegment points at Pin N and s_currentPinnedSegment at Pin 1." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 `s_lastSegment` is the segment where the next bump attempt starts; `s_currentSegment` mirrors it (every update site assigns both the same segment). Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the pinned chain instead.
@@ -155,7 +155,7 @@ The store is owned by a single [`GCHandleManager`](../../../src/Cosmos.Kernel.Co
 Each store is a linked list of `GCHandleSegment` pages. A segment is one 4 KiB page: a 16-byte header followed by 170 handle slots of 24 bytes each:
 
 <div style="overflow-x:auto">
-<img src="images/diagrams/gc-handle-store.svg" alt="The handle store. Top: one GCHandleSegmentStore is a linked list of GCHandleSegment pages, _head pointing at the first and _tail at the last, allocation trying the tail first. Bottom: inside one 4 KiB page, a 16-byte header (Next and the packed _freeHead word) followed by 170 GCHandle slots of 24 bytes; _freeHead holds the index of the first free slot and free slots chain to the next free index through ExtraInfo." style="width:100%;min-width:620px;max-width:760px">
+<img src="images/diagrams/gc-handle-store.svg" alt="The handle store. Top: one GCHandleSegmentStore is a linked list of GCHandleSegment pages, _head pointing at Page 0, Next links leading through Page 1 and elided further pages to Page N and then null; _tail points at Page N and allocation tries the tail first. Bottom: inside one 4 KiB page, a 16-byte header (Next and the packed _freeHead word) followed by 170 GCHandle slots of 24 bytes; _freeHead holds the index of the first free slot and free slots chain to the next free index through ExtraInfo." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 A `GCHandle` slot is `{ GCObject* Object; nint ExtraInfo; GCHandleType Type; }`. Free slots are stamped with the sentinel type `(GCHandleType)(-1)` and chained through `ExtraInfo` into an intra-segment free list. The list head, the alive count, and an [ABA](gc-concepts/aba-problem.md) version tag are packed into one 64-bit word updated with `Interlocked.CompareExchange`, so slot allocation and free are lock-free within a segment. When every segment of a store is full, the store allocates one more page.
@@ -174,7 +174,7 @@ Objects whose contents are known at build time do not need to be built at runtim
 The runtime registers each such region at startup through `RhRegisterFrozenSegment`, and `ManagedModule` registers each module's `FrozenObjectRegion` directly. The GC records them in a linked list of `FrozenSegmentInfo` nodes carved from a bump-allocated metadata page:
 
 <div style="overflow-x:auto">
-<img src="images/diagrams/gc-frozen-segments.svg" alt="The frozen segment registry. s_frozenSegments points at a linked list of FrozenSegmentInfo nodes, each holding Start, AllocSize, CommitSize and ReservedSize, linked through Next to null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page." style="width:100%;min-width:620px;max-width:760px">
+<img src="images/diagrams/gc-frozen-segments.svg" alt="The frozen segment registry. s_frozenSegments points at Info 0, the first FrozenSegmentInfo node; Next links lead to Info 1 and then null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
 Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations. Staying out of the mark phase rests on an assumption the kernel does not verify: a frozen object must never hold the only reference to a regular-heap object (see [Limitations and evolution](#limitations-and-evolution)).

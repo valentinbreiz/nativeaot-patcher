@@ -10,7 +10,7 @@
     </marker>
   </defs>
   <!-- caption + outer dashed page allocation -->
-  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one segment — one or more pages from the page allocator</text>
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one segment: one or more pages from the page allocator</text>
   <rect x="10" y="28" width="726" height="228" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
   <!-- GCSegment header -->
   <rect x="30" y="52" width="160" height="180" fill="currentColor" fill-opacity="0.07" stroke="currentColor"/>
