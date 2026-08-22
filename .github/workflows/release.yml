@@ -6,6 +6,8 @@ name: Release
 #   2. Publish them to NuGet.org
 #   3. Build the Windows installer
 #   4. Create a GitHub release
+#   5. Publish a frozen copy of the docs to gh-pages under vX.Y.Z/ (plus
+#      latest/ and versions.json, consumed by the version dropdown)
 #
 # `workflow_dispatch` is available for manual reruns / testing; manual runs
 # only build artifacts and DO NOT publish to NuGet or create a GitHub release.
@@ -95,6 +97,30 @@ jobs:
           dotnet nuget locals all --clear
           ./.devcontainer/postCreateCommand.sh
 
+      # Final breaking-change guard on the API-tracked packages, comparing the
+      # freshly built nupkg against the CosmosApiBaselineVersion release on
+      # NuGet.org. Inert until that property is set in Directory.Build.props
+      # (first Gen3 release): pack-time package validation is also keyed on it.
+      - name: 🛡️ API compatibility guard
+        run: |
+          baseline=$(grep -oP '<CosmosApiBaselineVersion>\K[^<]+' Directory.Build.props || true)
+          if [[ -z "$baseline" ]]; then
+            echo "CosmosApiBaselineVersion is empty (no Gen3 release on NuGet yet): skipping."
+            exit 0
+          fi
+          dotnet tool install -g Microsoft.DotNet.ApiCompat.Tool
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          for id in Cosmos.Kernel.System; do
+            lower=$(echo "$id" | tr '[:upper:]' '[:lower:]')
+            echo "Comparing $id ${{ steps.version.outputs.version }} against baseline $baseline"
+            curl -sSfL \
+              "https://api.nuget.org/v3-flatcontainer/$lower/$baseline/$lower.$baseline.nupkg" \
+              -o "/tmp/$lower.baseline.nupkg"
+            apicompat package \
+              --baseline-package "/tmp/$lower.baseline.nupkg" \
+              "artifacts/package/release/$id.${{ steps.version.outputs.version }}.nupkg"
+          done
+
       - name: 📤 Upload packages
         uses: actions/upload-artifact@v4
         with:
@@ -131,6 +157,84 @@ jobs:
               --source https://api.nuget.org/v3/index.json \
               --skip-duplicate
           done
+
+  # ── Versioned docs (tag pushes only) ─────────────────────────────────────────
+  # Freezes the docs of this release under gh-pages/vX.Y.Z/, refreshes the
+  # latest/ alias, and rewrites versions.json (read by the version dropdown in
+  # docs/templates/custom). The dev site that build-docs.yml publishes at the
+  # branch root keeps these folders thanks to its keep_files: true.
+  publish-docs:
+    name: Publish Versioned Docs
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'valentinbreiz/nativeaot-patcher'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install DocFX
+        run: |
+          dotnet tool update -g docfx
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      # Same restore scope as build-docs.yml: Cosmos.Kernel transitively
+      # project-references everything the DocFX metadata pass compiles.
+      - name: Restore docs projects
+        run: dotnet restore src/Cosmos.Kernel/Cosmos.Kernel.csproj
+
+      - name: Build Docs
+        run: |
+          cd docs
+          docfx docfx.json
+
+      # versions.json lists the frozen releases already on gh-pages plus this
+      # one, newest first. The dropdown adds the dev entry (site root) itself.
+      - name: Compose versions.json
+        id: version
+        run: |
+          version="${GITHUB_REF#refs/tags/}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          git fetch origin gh-pages --depth=1 || true
+          mkdir -p /tmp/pages-root
+          {
+            git ls-tree --name-only FETCH_HEAD 2>/dev/null | grep -E '^v[0-9]' || true
+            echo "$version"
+          } | sort -uVr | python3 -c '
+          import json, sys
+          versions = [line.strip() for line in sys.stdin if line.strip()]
+          json.dump({"latest": versions[0], "versions": versions}, sys.stdout, indent=2)
+          ' > /tmp/pages-root/versions.json
+          cat /tmp/pages-root/versions.json
+
+      - name: Publish frozen copy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs/_site
+          destination_dir: ${{ steps.version.outputs.version }}
+
+      - name: Refresh latest alias
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs/_site
+          destination_dir: latest
+
+      - name: Publish versions.json
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: /tmp/pages-root
+          keep_files: true
 
   # ── Windows Installer ────────────────────────────────────────────────────────
   build-installer-windows:
