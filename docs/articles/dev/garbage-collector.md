@@ -403,13 +403,29 @@ A `ref` into an array element, a `Span<T>`'s `_reference`, or any other byref ca
 
 The precise stack scan fixes this for the GC-triggering thread. GCInfo tags byref slots with `GC_CALL_INTERIOR`, and the scan's root callback resolves them before marking:
 
-1. Pick the segment list: the pinned chain if `GC_CALL_PINNED` is also set, the regular chain otherwise.
-2. Find the segment containing the address.
-3. Ask the segment's brick table for the closest recorded object start at or below the address (`FindClosestObjectBelow`).
-4. Enumerate objects forward from there (`GCSegment.Enumerator`, stepping by `ComputeSize()`) until reaching the object whose range contains the address.
-5. Mark that object.
+```mermaid
+flowchart TD
+    BYREF["Byref slot tagged GC_CALL_INTERIOR"] --> PINQ{"GC_CALL_PINNED too?"}
+    PINQ -->|yes| SEGP["Find the segment containing
+    the address in the pinned chain"]
+    PINQ -->|no| SEGR["Find the segment containing
+    the address in the regular chain"]
+    SEGP --> FOUND{"Segment found?"}
+    SEGR --> FOUND
+    FOUND -->|no| PASS["Pass the value through unchanged:
+    TryMarkRoot's normal validation
+    discards it"]
+    FOUND -->|yes| BRICK["Brick table: closest recorded
+    object start at or below the address
+    (FindClosestObjectBelow)"]
+    BRICK --> WALK["Enumerate objects forward
+    (GCSegment.Enumerator, stepping by
+    ComputeSize) until the object whose
+    range contains the address"]
+    WALK --> MARK["Mark that object"]
+```
 
-If no segment contains the pointer the value is passed through unchanged and `TryMarkRoot`'s normal validation discards it. The brick table entry found in step 3 may be a few objects behind the target (see [Brick table](#brick-table)); step 4 covers the distance.
+The brick table entry the lookup lands on may be a few objects behind the target (see [Brick table](#brick-table)); the forward walk covers the distance.
 
 The conservative scan still only accepts pointers that hit an object header exactly. `GC_InteriorPointerRoot` is the acceptance test: an `int[2100]` reachable only through a `ref int` into element 8 must survive a collection followed by allocation churn.
 
