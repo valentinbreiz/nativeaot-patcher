@@ -35,6 +35,7 @@ Architecture and internals, for contributors and the curious:
  - [Garbage Collector - Precise Stack Scan](articles/dev/garbage-collector-gcinfo.md): how GCInfo makes the triggering thread's stack scan exact.
  - [Garbage Collector - Glossary](articles/dev/garbage-collector-glossary.md): background notes on the GC concepts the articles build on.
  - [Scheduler](articles/dev/scheduler.md) — the preemptive, pluggable scheduler.
+ - [Scheduler - Writing a Scheduler](articles/dev/scheduler-plugging.md) — how to implement and install a scheduling policy.
  - [Kernel Compilation Steps](articles/dev/build/kernel-compilation-steps.md) — C# to bootable ISO, end to end.
  - [Cosmos.Build.Asm](articles/dev/build/asm-build.md), [Cosmos.Build.GCC](articles/dev/build/gcc-build.md), [Cosmos.Build.Patcher](articles/dev/build/patcher-build.md), [Cosmos.Build.Ilc](articles/dev/build/ilc-build.md) — the build pipeline components.
 
