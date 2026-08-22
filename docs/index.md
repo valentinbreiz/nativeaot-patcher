@@ -31,6 +31,7 @@ Architecture and internals, for contributors and the curious:
  - [Coding Guidelines](articles/dev/coding-guidelines.md) — style and architecture patterns.
  - [Plugs](articles/dev/plugs.md) — the IL-level method replacement system.
  - [Testing](articles/dev/testing.md) — unit tests and QEMU kernel test suites.
+ - [Public API Tracking](articles/dev/public-api.md): declared surface files, package validation, versioned docs.
  - [Garbage Collector](articles/dev/garbage-collector.md) — the mark-and-sweep GC.
  - [Garbage Collector - Precise Stack Scan](articles/dev/garbage-collector-gcinfo.md): how GCInfo makes the triggering thread's stack scan exact.
  - [Garbage Collector - Glossary](articles/dev/garbage-collector-glossary.md): background notes on the GC concepts the articles build on.
