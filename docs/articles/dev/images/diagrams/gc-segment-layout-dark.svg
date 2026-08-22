@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 292" role="img" aria-label="Memory layout of one GC segment: the GCSegment header, the brick table, 8 reserved bytes, then the usable region. Start points at the first usable byte, Bump at the boundary between allocated objects and free space, End one past the last byte, Next at the following segment.">
+  <style>
+    svg { color: #d0d7de; }
+    .bg { fill: #1c2128; }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="292"/>
+  <defs>
+    <marker id="seg-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- caption + outer dashed page allocation -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one segment: one or more pages from the page allocator</text>
+  <rect x="10" y="28" width="726" height="228" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <!-- GCSegment header -->
+  <rect x="30" y="52" width="160" height="180" fill="currentColor" fill-opacity="0.07" stroke="currentColor"/>
+  <text x="110" y="71" text-anchor="middle" font-size="13" font-weight="bold" fill="currentColor">GCSegment header</text>
+  <line x1="30" y1="80" x2="190" y2="80" stroke="currentColor" stroke-opacity="0.4"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+    <text x="42" y="96">Next</text>
+    <text x="42" y="121">Start</text>
+    <text x="42" y="146">End</text>
+    <text x="42" y="171">Bump</text>
+    <text x="42" y="196">TotalSize</text>
+    <text x="42" y="221">UsedSize</text>
+  </g>
+  <!-- brick table -->
+  <rect x="190" y="52" width="62" height="180" fill="currentColor" fill-opacity="0.12" stroke="currentColor"/>
+  <text x="221" y="202" text-anchor="middle" font-size="12" fill="currentColor">brick</text>
+  <text x="221" y="217" text-anchor="middle" font-size="12" fill="currentColor">table</text>
+  <!-- 8 reserved bytes (narrow sliver, labelled below) -->
+  <rect x="252" y="52" width="14" height="180" fill="currentColor" fill-opacity="0.2" stroke="currentColor"/>
+  <polyline points="259,232 259,244 270,244" fill="none" stroke="currentColor" stroke-opacity="0.6"/>
+  <text x="274" y="248" font-size="11.5" fill="currentColor" fill-opacity="0.8">8 reserved bytes</text>
+  <!-- usable region: allocated part + bump region -->
+  <rect x="266" y="52" width="244" height="180" fill="currentColor" fill-opacity="0.06"/>
+  <rect x="266" y="52" width="450" height="180" fill="none" stroke="currentColor"/>
+  <line x1="510" y1="52" x2="510" y2="232" stroke="currentColor" stroke-dasharray="4 4"/>
+  <text x="388" y="220" text-anchor="middle" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="currentColor">[obj A] [obj B] [free] …</text>
+  <text x="613" y="220" text-anchor="middle" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">(unallocated)</text>
+  <!-- pointer lines from the header fields -->
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="90" y1="92" x2="550" y2="92" marker-end="url(#seg-ah)"/>
+    <line x1="94" y1="117" x2="263" y2="117" marker-end="url(#seg-ah)"/>
+    <line x1="80" y1="142" x2="713" y2="142" marker-end="url(#seg-ah)"/>
+    <line x1="90" y1="167" x2="507" y2="167" marker-end="url(#seg-ah)"/>
+  </g>
+  <text x="558" y="96" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.75">(next segment or null)</text>
+  <!-- extent labels under the usable region -->
+  <g stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="2 3">
+    <line x1="266" y1="234" x2="266" y2="268"/>
+    <line x1="510" y1="234" x2="510" y2="268"/>
+    <line x1="716" y1="234" x2="716" y2="268"/>
+  </g>
+  <g stroke="currentColor" stroke-width="1.2">
+    <line x1="269" y1="268" x2="507" y2="268" marker-start="url(#seg-ah)" marker-end="url(#seg-ah)"/>
+    <line x1="513" y1="268" x2="713" y2="268" marker-start="url(#seg-ah)" marker-end="url(#seg-ah)"/>
+  </g>
+  <g font-size="12" fill="currentColor" fill-opacity="0.8" text-anchor="middle">
+    <text x="388" y="284">allocated objects &amp; free blocks</text>
+    <text x="613" y="284">free space (bump region)</text>
+  </g>
+</svg>

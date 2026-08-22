@@ -10,8 +10,10 @@
   href: testing.md
 - name: Garbage Collector
   href: garbage-collector.md
-- name: Garbage Collector — Precise Stack Scan (GCInfo)
+- name: Garbage Collector - Precise Stack Scan
   href: garbage-collector-gcinfo.md
+- name: Garbage Collector - Glossary
+  href: garbage-collector-glossary.md
 - name: Scheduler
   href: scheduler.md
 - name: Kernel Compilation Steps
