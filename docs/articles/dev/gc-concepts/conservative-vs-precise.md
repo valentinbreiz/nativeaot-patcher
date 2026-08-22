@@ -13,7 +13,7 @@ Concretely, a thread's stack walked 8 bytes at a time:
 | `0x0000000000000007` | int 7 | Not in heap range, ignored |
 | `0xFFFF8001A2B3C4D0` | live `List<int>` reference | In heap range, marked ✅ correct |
 | `0xFFFF8001DEADBEEF` | dead spill slot | Still in range, marked ❌ false root |
-| `0x00007FFE12340000` | a return address | Not in range, ignored |
+| `0xFFFFFFFF80123400` | a return address into kernel code | Kernel address, but outside heap segments, ignored |
 | `0xFFFF8001CAFE0000` | stale callee pointer | Still in range, marked ❌ false root |
 
 OrionGC uses both. The thread that triggered the collection sits on a chain of managed call sites where GCInfo is valid, so it is scanned precisely; every other thread was preempted at an arbitrary instruction and is scanned conservatively. See [Precise Stack Scanning (GCInfo)](../garbage-collector-gcinfo.md).
