@@ -55,7 +55,7 @@ async function initVersionSelector() {
         : folder === 'latest' ? manifest.latest
         : folder;
     const select = document.createElement('select');
-    select.className = 'form-select form-select-sm';
+    select.className = 'form-select';
     select.setAttribute('aria-label', 'Documentation version');
     for (const name of ['dev', ...manifest.versions]) {
         const option = document.createElement('option');
