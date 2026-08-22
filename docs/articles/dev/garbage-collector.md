@@ -13,7 +13,7 @@ The garbage collector (it identifies itself as **OrionGC** in the runtime config
 
 The GC usually operates in a threaded kernel, but does not require one. When the [scheduler](scheduler.md) is running, it preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block; interrupt handlers allocate too (the scheduler tick, input drivers). Before the scheduler starts, or in kernels that compile it out (the `CosmosEnableScheduler` feature switch), the GC works the same way with a single static allocation context and the current stack as the only stack root. In either mode there is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
 
-Since every thread and interrupt handler can allocate, allocation goes through per-thread [TLABs](gc-concepts/tlab.md) (thread-local allocation buffers): each thread bumps a pointer inside its own buffer and only touches shared state when the buffer runs out and needs a refill. Collection is a last resort. When a refill fails, the collector first grows the heap; `Collect()` runs only when the page allocator itself has nothing left to give, or when called explicitly.
+Since every thread and interrupt handler can allocate, allocation goes through per-thread [TLABs](gc-concepts/tlab.md) (thread-local allocation buffers): each thread bumps a pointer inside its own buffer and, apart from a global allocated-bytes counter, only touches shared state when the buffer runs out and needs a refill. Collection is a last resort. When a refill fails, the collector first grows the heap; `Collect()` runs only when the page allocator itself has nothing left to give, or when called explicitly.
 
 Marking starts from the [roots](gc-concepts/gc-roots.md), the reference-holding locations that exist outside the heap. OrionGC scans three groups: the stack of the thread that triggered the collection, scanned [precisely](gc-concepts/conservative-vs-precise.md) from NativeAOT GCInfo (see [Precise Stack Scanning (GCInfo)](garbage-collector-gcinfo.md)); the stacks and saved registers of every other registered thread, scanned conservatively; and the strong GC handles (the handle types that keep their target alive). Static fields need no separate scan: during module initialization, the objects that hold each module's static fields are gathered into spine arrays kept alive by a strong handle, so the handle scan reaches every static field transitively.
 
@@ -49,8 +49,8 @@ Every object on the GC heap starts with a [`GCObject`](../../../src/Cosmos.Kerne
 | Offset | Size (x64) | Contents | Notes |
 |--------|------------|----------|-------|
 | 0 | 8 bytes | `MethodTable*` | Bit 0 doubles as the mark bit |
-| 8 | 4 bytes | `Length` | Element count for arrays and strings |
-| 12 | rest of the object | Fields or elements | |
+| 8 | 4 bytes | `Length` | Element count; only arrays and strings have this slot |
+| 8, 12 or 16 | rest of the object | Fields or elements | Fields start at 8 for fixed-size objects; string characters at 12; array elements at 16 (4 padding bytes after `Length`) |
 
 `MethodTable` pointers are aligned, so bit 0 is normally zero. `Mark()` sets it, `Unmark()` clears it, and `GetMethodTable()` masks it off before dereferencing. `ComputeSize()` returns `BaseSize + Length * ComponentSize` for arrays and strings, `RawBaseSize` for everything else.
 
@@ -129,7 +129,7 @@ Both heaps keep their segments in a singly linked list, each owned by its own `G
 <img src="images/diagrams/gc-segment-chains.svg" alt="The two segment chains. Regular heap: Segments points at Seg 0 (FULL), Next links lead through Seg 1 and Seg 2 (SEMIFULL) to Seg N (FREE) and then null; TailSegment points at Seg N; s_lastSegment and s_currentSegment point at Seg 1. Pinned heap: Segments points at Pin 0 (FULL), Next leads to Pin 1 (SEMIFULL) then null; TailSegment and s_currentPinnedSegment point at Pin 1." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
-`s_lastSegment` is the segment where the next bump attempt starts and `s_currentSegment` tracks the segment that last served an allocation; both are updated together. Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the pinned chain instead.
+`s_lastSegment` is the segment where the next bump attempt starts; `s_currentSegment` mirrors it (every update site assigns both the same segment). Objects allocated with the `GC_ALLOC_PINNED_OBJECT_HEAP` flag go to the pinned chain instead.
 
 After each collection the segments of both chains are regrouped in FULL, SEMIFULL, FREE order, and empty segments spanning more than one page are returned to the page allocator (see [Segment reordering](#segment-reordering)).
 
@@ -177,7 +177,7 @@ The runtime registers each such region at startup through `RhRegisterFrozenSegme
 <img src="images/diagrams/gc-frozen-segments.svg" alt="The frozen segment registry. s_frozenSegments points at a linked list of FrozenSegmentInfo nodes, each holding Start, AllocSize, CommitSize and ReservedSize, linked through Next to null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page." style="width:100%;min-width:620px;max-width:760px">
 </div>
 
-Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations.
+Frozen segments take no part in mark or sweep. `IsInFrozenSegment` answers membership queries (bounded by `AllocSize`), and `GetObjectGeneration` reports frozen objects as outside the GC generations. Staying out of the mark phase rests on an assumption the kernel does not verify: a frozen object must never hold the only reference to a regular-heap object (see [Limitations and evolution](#limitations-and-evolution)).
 
 ### What the GC does not touch
 
@@ -217,7 +217,7 @@ Of the allocation flags only `GC_ALLOC_PINNED_OBJECT_HEAP` is honored; everythin
 
 ### Allocation flow
 
-`AllocObject` runs entirely inside `DisableInterruptsScope`: interrupt handlers allocate too (scheduler tick, input), and an interleaved refill on the same context would mix pointers from two different TLABs (issue #382).
+`AllocObject` runs entirely inside `DisableInterruptsScope`: interrupt handlers allocate too (scheduler tick, input), and an interleaved refill on the same context would mix pointers from two different TLABs (issue [#382](https://github.com/valentinbreiz/nativeaot-patcher/issues/382)).
 
 ```mermaid
 flowchart TD
@@ -266,7 +266,8 @@ flowchart TD
     S4 -->|none| Q{"5. Request smaller
     than TlabSize?"}
     Q -->|yes| S5{"Exact-size retry:
-    free list, then segment walk"}
+    free list, then segment
+    walk / new segment"}
     Q -->|no| FAIL["Refill failed:
     AllocObjectSlow runs Collect()
     and retries the refill once"]
@@ -286,11 +287,11 @@ Finding a fitting hole has to be fast, so the blocks are bucketed into 12 size c
 
 The lists never survive a collection: they are cleared when it starts and rebuilt by the sweep. The sweep coalesces neighboring dead space into fresh, larger runs, so entries recorded before it would describe blocks that no longer exist; rebuilding from scratch keeps the lists trustworthy with no extra bookkeeping.
 
-One rule protects the neighbors: a free block's last 8 bytes (`ReservedHeaderSlotSize`) are never handed out. Those bytes sit directly in front of the object that follows the block, exactly where the runtime writes that object's [runtime object header](gc-concepts/object-header.md) (the identity hash or thin lock, at `objRef - 4`). Recycling them would let a new allocation overwrite a live neighbor's header.
+One rule protects the neighbors: when a run of dead space is filed as a free block, its last 8 bytes (`ReservedHeaderSlotSize`) are left out of the block. Those bytes sit directly in front of the object that follows the run, exactly where the runtime writes that object's [runtime object header](gc-concepts/object-header.md) (the identity hash or thin lock, at `objRef - 4`); recycling them would let a new allocation overwrite a live neighbor's header. Filing therefore needs a run of at least 32 bytes — `MinBlockSize` (24) for the block plus the 8-byte tail — while a block already on the lists is fully allocatable, which is why splitting one only needs a 24-byte remainder.
 
 ### Returning TLABs
 
-`Collect` starts by returning every allocation context: each registered thread's TLAB and the static fallback context (`ReturnAllAllocContexts`). A gap of at least 32 bytes is stamped in place as a `FreeBlock` and pushed onto the free list; smaller gaps are just zeroed so the sweep does not trip over stale data. Afterwards every context is `null`/`null` and refills on next use.
+`Collect` starts by returning every allocation context: each registered thread's TLAB and the static fallback context (`ReturnAllAllocContexts`). A gap of at least 32 bytes (the filing minimum from [Free lists](#free-lists)) is stamped in place as a `FreeBlock` and pushed onto the free list; smaller gaps are just zeroed so the sweep does not trip over stale data. Afterwards every context is `null`/`null` and refills on next use.
 
 ### Pinned allocation
 
@@ -398,7 +399,7 @@ The scanner starts a cursor at `obj + startOffset` and, for every array element,
 
 ### Interior pointers
 
-A `ref` into an array element, a `Span<T>`'s `_reference`, or any other byref can be the only live reference to an object. Such a pointer does not point at the object header, so `TryMarkRoot`'s MethodTable check would discard it and the object would be collected while still in use (issue [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384); support tracked in [#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376)).
+A `ref` into an array element, a `Span<T>`'s `_reference`, or any other byref can be the only live reference to an object. Such a pointer does not point at the object header, so `TryMarkRoot`'s MethodTable check would discard it and the object would be collected while still in use (issue [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384), fixed by the interior-pointer support from [#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376) for precisely scanned frames; conservatively scanned threads still miss them, see [Limitations and evolution](#limitations-and-evolution)).
 
 The precise stack scan fixes this for the GC-triggering thread. GCInfo tags byref slots with `GC_CALL_INTERIOR`, and the scan's root callback resolves them before marking:
 
@@ -458,7 +459,7 @@ The sweep walks each segment linearly from `Start` to `Bump`, accumulating conse
 - filler words whose first word cannot be a `MethodTable` (null, below kernel space, or inside the GC heap). These come from zeroed TLAB gaps too small to stamp, from the runtime header written at `objRef - 4` next to a gap, or from stale data. They are skipped one pointer-sized word at a time;
 - unmarked objects, counted as freed.
 
-When a marked object is reached it is unmarked for the next cycle and the pending run is flushed as a `FreeBlock` (minus the 8-byte reserved tail, which is sanitized instead of recycled). Runs smaller than 32 bytes are dropped and become filler for the next sweep. A run that reaches `Bump` is reclaimed by moving `Bump` back instead, which is what lets an emptied segment be returned to the page allocator.
+When a marked object is reached it is unmarked for the next cycle and the pending run is flushed as a `FreeBlock` (minus the 8-byte reserved tail, which is sanitized instead of recycled). Runs smaller than 32 bytes (the filing minimum from [Free lists](#free-lists)) are dropped and become filler for the next sweep. A run that reaches `Bump` is reclaimed by moving `Bump` back instead, which is what lets an emptied segment be returned to the page allocator.
 
 The pinned heap is swept with the same walk, minus the free-block branch; its free runs go to the shared free lists as well. If the sweep encounters an impossible size (zero, or extending past the segment end), it abandons that segment for this collection rather than walking into corruption.
 
@@ -488,6 +489,7 @@ Every choice above trades something away. This section collects the sharp edges 
 - **Stop-the-world leans on a single CPU.** The scheduler currently runs everything on CPU 0 (`SchedulerManager.GetCurrentCpuId()` returns 0), so disabling interrupts stops every mutator. A multi-core kernel would need a cross-CPU rendezvous before that guarantee holds again.
 - **Conservative scanning over-retains and blocks moving.** On preempted threads, an integer that happens to resemble a heap address keeps a dead object alive, and nothing those stacks appear to reference may ever be relocated. The exit is return-address hijacking ([#385](https://github.com/valentinbreiz/nativeaot-patcher/issues/385)), which would let every thread be scanned precisely.
 - **Interior pointers resolve on the precise path only.** A byref kept alive solely by a preempted thread's stack must hit an object header exactly to be found ([#376](https://github.com/valentinbreiz/nativeaot-patcher/issues/376), [#384](https://github.com/valentinbreiz/nativeaot-patcher/issues/384)).
+- **Frozen segments are not traced.** A frozen object holding the only reference to a regular-heap object would not keep it alive. Frozen objects normally reference only other frozen data, so no such reference should exist, but nothing verifies it either way.
 - **No [finalization](gc-concepts/finalization.md).** Finalizers never run, allocation flags requesting them are ignored, and `WeakTrackResurrection` handles behave as plain storage.
 - **A mark-stack growth failure can under-mark.** If the mark stack cannot grow mid-collection, pointers are dropped with a logged warning, and an unmarked live object would be swept. There is no overflow fallback yet.
 - **Allocation failure returns null.** When even a collection cannot free enough memory, the allocation helpers return null; there is no `OutOfMemoryException` path from the allocator.
