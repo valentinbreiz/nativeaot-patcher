@@ -155,7 +155,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         return Segment1.CompareTo(other.Segment1);
     }
 
-    public override bool IsLoopbackAddress() => (Segment1 >> 24) == 127;
+    public override bool IsLoopbackAddress => (Segment1 >> 24) == 127;
 
 
     public override bool Equals([NotNullWhen(true)]object? obj)
@@ -179,7 +179,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         throw new ArgumentException($"Can bitwise operate {nameof(Address4)} with {nameof(Address4)} only");
     }
 
-    public bool Equals(Address4? other)
+    public bool Equals([NotNullWhen(true)]Address4? other)
     {
         if (other is null)
         {

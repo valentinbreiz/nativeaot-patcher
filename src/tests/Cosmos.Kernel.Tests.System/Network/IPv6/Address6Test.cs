@@ -42,27 +42,6 @@ public class Address6Test
             Assert.That(actual, Is.True);
         }
 
-        [TestCase(":::")]
-        [TestCase("0001:::")]
-        [TestCase(":::0002")]
-        [TestCase("0001:::0002")]
-        [TestCase("0001:::0002")]
-        [TestCase("0001")]
-        [TestCase("0001:2")]
-        [TestCase("0:1:2:3:4:5:6")]
-        [TestCase(":0")]
-        [TestCase("0:1:2:3:4:5:")]
-        public void GivenInvalidAddresses_ReturnsFalse(string address)
-        {
-            var fragments = address.AsSpan().Split(':');
-            ReadOnlySpan<Range> ranges = [.. fragments];
-
-            bool? actual = Address6.SplitByZeroGroupsAbbreviation(address, ranges,
-                out var _, out var _);
-
-            Assert.That(actual, Is.False);
-        }
-
         public record struct TestValidCaseData(
             string Addr,
             ImmutableArray<Range> Ranges,
@@ -83,17 +62,6 @@ public class Address6Test
             var fragments = source.AsSpan().Split(':');
             return new (source, [.. fragments], expectedLeft, expectedRight);
         }
-    }
-
-    public class Parse : Address6Test
-    {
-        [TestCaseSource(nameof(TestValidCases))]
-        public void GivenSampleSource_ReturnsCorrectAddress(TestValidCaseData dt)
-        {
-            var actual = Address6.Parse(dt.Addr);
-
-            Assert.That(actual, Is.EqualTo(new Address6(dt.ExpectedSegments.AsSpan())));
-        }
 
         [TestCase(":::")]
         [TestCase("0001:::")]
@@ -105,11 +73,45 @@ public class Address6Test
         [TestCase("0:1:2:3:4:5:6")]
         [TestCase(":0")]
         [TestCase("0:1:2:3:4:5:")]
+        public void GivenInvalidAddresses_ReturnsFalse(string address)
+        {
+            var fragments = address.AsSpan().Split(':');
+            ReadOnlySpan<Range> ranges = [.. fragments];
+
+            bool? actual = Address6.SplitByZeroGroupsAbbreviation(address, ranges,
+                out var _, out var _);
+
+            Assert.That(actual, Is.False);
+        }
+    }
+
+    public class Parse : Address6Test
+    {
+        [TestCase(":::")]
+        [TestCase("0001:::")]
+        [TestCase(":::0002")]
+        [TestCase("0001:::0002")]
+        [TestCase("0001:::0002")]
+        [TestCase("0001")]
+        [TestCase("0001:2")]
+        [TestCase("0:1:2:3:4:5:6")]
+        [TestCase(":0")]
+        [TestCase("0:1:2:3:4:5:")]
+        [TestCase(":::00022")]
+        [TestCase("::ffff:c0000280")]
         public void GivenInvalidAddresses_ReturnsNull(string address)
         {
             var actual = Address6.Parse(address);
 
             Assert.That(actual, Is.Null);
+        }
+
+        [TestCaseSource(nameof(TestValidCases))]
+        public void GivenSampleSource_ReturnsCorrectAddress(TestValidCaseData dt)
+        {
+            var actual = Address6.Parse(dt.Addr);
+
+            Assert.That(actual, Is.EqualTo(new Address6(dt.ExpectedSegments.AsSpan())));
         }
 
         public record struct TestValidCaseData(
@@ -122,6 +124,28 @@ public class Address6Test
             yield return new("0010::", [0x0010_0000, 0, 0, 0]);
             yield return new("0010::0020", [0x0010_0000, 0, 0, 0x0020]);
             yield return new("0010:0020::0030", [0x0010_0020, 0, 0, 0x0000_0030]);
+            yield return new ("::ffff:c000:0280", [0x0, 0x0, 0x0000FFFF, 0xC0000280]); // 192.0.2.128
+        }
+    }
+
+    public class AddressType : Address6Test
+    {
+        [TestCase("::ffff:c000:0280", ExpectedResult = IPv6AddressType.EmbeddedIPv4)]
+        [TestCase("2000::", ExpectedResult = IPv6AddressType.GlobalUnicast)]
+        [TestCase("2100::", ExpectedResult = IPv6AddressType.GlobalUnicast)]
+        [TestCase("2100::000a", ExpectedResult = IPv6AddressType.GlobalUnicast)]
+        [TestCase("FE80::", ExpectedResult = IPv6AddressType.LinkLocal)]
+        [TestCase("FE80::000a", ExpectedResult = IPv6AddressType.LinkLocal)]
+        [TestCase("0:0:0:0:0:0:0:1", ExpectedResult = IPv6AddressType.Loopback)]
+        [TestCase("0:0:0:0:0:0:0:0", ExpectedResult = IPv6AddressType.Unspecified)]
+        [TestCase("FF00::", ExpectedResult = IPv6AddressType.WellKnown)]
+        [TestCase("FF02::", ExpectedResult = IPv6AddressType.WellKnown)]
+        [TestCase("ff02:0:0:0:0:1:ff00:0", ExpectedResult = IPv6AddressType.SolicitedNode)]
+        public IPv6AddressType? GivenAddress_ReturnsCorrectAddressType(string address)
+        {
+            var target = Address6.Parse(address);
+
+            return target?.AddressType;
         }
     }
 }

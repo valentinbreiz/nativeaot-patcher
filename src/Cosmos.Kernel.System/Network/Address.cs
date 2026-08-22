@@ -8,6 +8,7 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.System.Network.IPv4;
+using Cosmos.Kernel.System.Network.IPv6;
 
 namespace Cosmos.Kernel.System.Network;
 
@@ -42,13 +43,13 @@ public abstract class Address : IComparable<Address>
     /// <returns>The parsed address value or null when parsing fails.</returns>
     public static Address? Parse(ReadOnlySpan<char> addr)
     {
-       return Address4.Parse(addr);
+       return Address4.Parse(addr) ?? Address6.Parse(addr);
     }
 
     /// <summary>
     /// Check if this address is a loopback address.
     /// </summary>
-    public abstract bool IsLoopbackAddress();
+    public abstract bool IsLoopbackAddress { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static uint ToUint32(ReadOnlySpan<byte> buffer)

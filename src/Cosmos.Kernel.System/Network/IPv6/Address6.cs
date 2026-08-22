@@ -7,17 +7,34 @@ using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.IPv6;
 
+public enum IPv6AddressType
+{
+    Anycast,
+    GlobalUnicast,
+    LinkLocal,
+    Loopback,
+    Unspecified,
+    UniqueLocal,
+    EmbeddedIPv4,
+    WellKnown,
+    Transient,
+    SolicitedNode,
+    Generic,
+}
+
 public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
 {
     public static readonly Address6 Zero = new(0, 0, 0, 0);
+    public static readonly Address6 Loopback = new(0, 0, 0, 1);
     public uint Segment1 { get; }
     public uint Segment2 { get; }
     public uint Segment3 { get; }
     public uint Segment4 { get; }
     public override bool IsZero => Equals(Zero);
     public override MaskedAddress Parts => new(Segment1, Segment2, Segment3, Segment4);
-    public override bool IsBroadcastAddress => throw new NotImplementedException();
-    public override bool IsLoopbackAddress() => throw new NotImplementedException();
+    // IPv6 has multicast
+    public override bool IsBroadcastAddress => false;
+    public override bool IsLoopbackAddress => Equals(Loopback);
 
     public Address6(uint segment1, uint segment2, uint segment3, uint segment4)
     {
@@ -86,6 +103,109 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
         return result;
     }
 
+    public new IPv6AddressType AddressType
+    {
+        get
+        {
+            if (IsLoopbackAddress)
+            {
+                return IPv6AddressType.Loopback;
+            }
+
+            if (IsZero)
+            {
+                return IPv6AddressType.Unspecified;
+            }
+            switch (Segment1)
+            {
+                // first 80 bits are zero and next 16 are either 0 or 0xffff (legacy)
+                case 0:
+                    if (Segment2 == 0)
+                    {
+                        // the latter is deprecated
+                        if (Segment3 is 0x0000ffff or 0)
+                        {
+                            return IPv6AddressType.EmbeddedIPv4;
+                        }
+                    }
+                    break;
+                // ff02:0:0:0:0:1:ff00::/104
+                case var _ when Segment1 == 0xff02_0000 && Segment2 == 0 && Segment3 == 1 && (Segment4 & 0xff000000) == 0xff000000:
+                    return IPv6AddressType.SolicitedNode;
+                // ff02::/12
+                case var _ when Segment1 >> 20 == 0b1111_1111_0000:
+                    return IPv6AddressType.WellKnown;
+                case var _ when Segment1 >> 29 == 0x1:
+                    return IPv6AddressType.GlobalUnicast;
+                // FE80::/10
+                case var _ when Segment1 >> 22 == 0b1111_1110_10:
+                    return IPv6AddressType.LinkLocal;
+                // fc00::/7
+                case var _ when Segment1 >> 25 == 0b0111_1110:
+                    return IPv6AddressType.UniqueLocal;
+            }
+            return IPv6AddressType.Generic;
+        }
+    }
+
+    /// <summary>
+    /// Checks whether segment starts with given bytes. Valid bytes length is between 1 and 3.
+    /// </summary>
+    /// <param name="segment"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    private static bool SegmentStartsWith(uint segment, ReadOnlySpan<byte> value)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(value.Length, 3, nameof(value));
+        ArgumentOutOfRangeException.ThrowIfLessThan(value.Length, 1, nameof(value));
+
+        if (segment >> 24 != value[1])
+        {
+            return false;
+        }
+
+        if (value.Length > 1)
+        {
+            if ((segment >> 16 & 0x000000FF) != value[2])
+            {
+                return false;
+            }
+
+            if (value.Length > 2)
+            {
+                if ((segment >> 8 & 0x000000FF) != value[3])
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether address starts with given mask.
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public bool IsStartMask(ReadOnlySpan<byte> mask)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(mask.Length, 4, nameof(mask));
+
+        ReadOnlySpan<uint> segments = [Segment1, Segment2, Segment3, Segment4];
+
+        for (int i = 0; i < mask.Length; i++)
+        {
+            if ((segments[i] & mask[i]) != mask[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /// <summary>
     /// Splits given address to ranges before and after zelo groups.
     /// </summary>
@@ -95,9 +215,9 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
     /// <param name="right"></param>
     /// <returns></returns>
     /// <example>
-    /// ::0001 would result in [], [0001]
-    /// :: would result in [], []
-    /// 0001::0002:0003 would result in [0001], [0002, 0003]
+    /// <c>::0001</c> would result in <c>[], [0001]</c><br/>
+    /// <c>::</c> would result in <c>[], []</c><br/>
+    /// <c>0001::0002:0003</c> would result in <c>[0001], [0002, 0003]</c>
     /// </example>
     internal static bool SplitByZeroGroupsAbbreviation(ReadOnlySpan<char> addr, ReadOnlySpan<Range> ranges,
         out ReadOnlySpan<Range> left, out ReadOnlySpan<Range> right)
@@ -195,6 +315,16 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
 
     public static new Address6? Parse(ReadOnlySpan<char> addr)
     {
+        // check for illegal chars first
+        for (int i = 0; i < addr.Length; i++)
+        {
+            char ch = addr[i];
+            if (ch is (< 'a' or > 'f') and (< 'A' or > 'F') and (< '0' or > '9') and not ':')
+            {
+                return null;
+            }
+
+        }
         int separators = CountSeparators(addr);
         // ArgumentOutOfRangeException.ThrowIfGreaterThan(separators, 7, nameof(separators));
         // ArgumentOutOfRangeException.ThrowIfLessThan(separators, 2, nameof(separators));
@@ -213,10 +343,14 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
         }
 
         int additionalZeroGroups = 8 - (leftFragments.Length + rightFragments.Length);
-        FillFragments(addressValues, addr, leftFragments);
-        FillFragments(addressValues[(leftFragments.Length + additionalZeroGroups)..], addr, rightFragments);
+        if (
+            FillFragments(addressValues, addr, leftFragments) &&
+            FillFragments(addressValues[(leftFragments.Length + additionalZeroGroups)..], addr, rightFragments))
+        {
+            return new Address6(addressValues);
+        }
 
-        return new Address6(addressValues);
+        return null;
     }
 
     internal static bool FillFragments(Span<ushort> addressValues, ReadOnlySpan<char> addr, ReadOnlySpan<Range> ranges)
@@ -226,6 +360,11 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
             var fragment = addr[ranges[i]];
             // no more empty fragments are allowed
             if (fragment.IsEmpty)
+            {
+                return false;
+            }
+
+            if (fragment.Length > 4)
             {
                 return false;
             }
@@ -243,18 +382,22 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
 
     /// <summary>
     /// Normalizes address buffer when there is a zero wildcard present at <paramref name="wildcardIndex"/>.
-    /// X1X2:Y1Y2:Z1Z2::Q1Q2 -> X1X2:Y1Y2:Z1Z2:0000:0000:0000:0000:Q1Q2
     /// </summary>
     /// <param name="buffer"></param>
     /// <param name="wildcardIndex"></param>
     /// <param name="length"></param>
+    /// <example>
+    /// <code>
+    /// X1X2:Y1Y2:Z1Z2::Q1Q2 -> X1X2:Y1Y2:Z1Z2:0000:0000:0000:0000:Q1Q2
+    /// </code>
+    /// </example>
     internal static void NormalizeBuffer(Span<ushort> buffer, int wildcardIndex, int length)
     {
         ArgumentOutOfRangeException.ThrowIfNotEqual(buffer.Length, 8, nameof(buffer));
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(wildcardIndex, 6, nameof(wildcardIndex));
-        ArgumentOutOfRangeException.ThrowIfLessThan(wildcardIndex, 0, nameof(wildcardIndex));
-        ArgumentOutOfRangeException.ThrowIfLessThan(length, 1, nameof(length));
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(length, 8, nameof(length));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(wildcardIndex, 6);
+        ArgumentOutOfRangeException.ThrowIfLessThan(wildcardIndex, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(length, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(length, 8);
 
         int remainingValues = 8 - wildcardIndex - 1;
         int zeros = 8 - length;
@@ -323,7 +466,7 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
         return HashCode.Combine(Segment1, Segment2, Segment3, Segment4);
     }
 
-    public bool Equals(Address6? other)
+    public bool Equals([NotNullWhen(true)]Address6? other)
     {
         if (other is null)
         {
