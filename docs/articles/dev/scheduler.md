@@ -174,7 +174,7 @@ sequenceDiagram
         SM->>SC: PickNext(state)
         SC-->>SM: next (null means idle thread)
         alt next is not prev
-            SM->>SM: prev.StackPointer = contextBase; Running becomes Ready
+            SM->>SM: prev.StackPointer = contextBase, demote Running to Ready
             SM->>SC: OnThreadYield(state, prev) if prev stayed Ready
             SM->>ASM: stage new-thread flag, then target stack pointer
         end
@@ -264,7 +264,7 @@ flowchart TD
     (interrupts now masked)"] --> B["Insert self into the wait queue"]
     B --> C["Release any covering lock (CV releases the mutex)"]
     C --> D["BlockThread / MarkSleeping (state flips while IRQs are still masked)"]
-    D --> E["Dispose the scope (interrupts back on; a pending wake can land now)"]
+    D --> E["Dispose the scope (interrupts back on: a pending wake can land now)"]
     E --> F{"Still Blocked / Sleeping?"}
     F -->|yes| G["Halt until an interrupt"]
     F -->|no| H["Already woken: continue"]
