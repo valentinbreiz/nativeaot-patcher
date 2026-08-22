@@ -7094,11 +7094,11 @@
       "type": "Toc",
       "source_relative_path": "api/toc.yml",
       "output": {
-        ".html": {
-          "relative_path": "api/toc.html"
-        },
         ".json": {
           "relative_path": "api/toc.json"
+        },
+        ".html": {
+          "relative_path": "api/toc.html"
         }
       },
       "version": ""
@@ -7175,10 +7175,240 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/dev/garbage-collector-glossary.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/garbage-collector-glossary.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/dev/garbage-collector.md",
       "output": {
         ".html": {
           "relative_path": "articles/dev/garbage-collector.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/aba-problem.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/aba-problem.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/bump-allocation.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/bump-allocation.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/conservative-vs-precise.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/conservative-vs-precise.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/finalization.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/finalization.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/funclet.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/funclet.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/gc-generations.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/gc-generations.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/gc-roots.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/gc-roots.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/mark-and-sweep.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/mark-and-sweep.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/non-moving.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/non-moving.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/object-header.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/object-header.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/safepoint.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/safepoint.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/stop-the-world.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/stop-the-world.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/gc-concepts/tlab.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/gc-concepts/tlab.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-frozen-segments-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-frozen-segments-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-frozen-segments.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-frozen-segments.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-handle-store-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-handle-store-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-handle-store.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-handle-store.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-segment-chains-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-segment-chains-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-segment-chains.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-segment-chains.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-segment-layout-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-segment-layout-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/gc-segment-layout.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/gc-segment-layout.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/orion-gc.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/orion-gc.jpg"
         }
       },
       "version": ""
@@ -7237,11 +7467,11 @@
       "type": "Toc",
       "source_relative_path": "articles/dev/toc.yml",
       "output": {
-        ".html": {
-          "relative_path": "articles/dev/toc.html"
-        },
         ".json": {
           "relative_path": "articles/dev/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/dev/toc.html"
         }
       },
       "version": ""
@@ -7510,11 +7740,11 @@
       "type": "Toc",
       "source_relative_path": "articles/user/toc.yml",
       "output": {
-        ".html": {
-          "relative_path": "articles/user/toc.html"
-        },
         ".json": {
           "relative_path": "articles/user/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/user/toc.html"
         }
       },
       "version": ""
@@ -7573,11 +7803,11 @@
       "type": "Toc",
       "source_relative_path": "toc.yml",
       "output": {
-        ".html": {
-          "relative_path": "toc.html"
-        },
         ".json": {
           "relative_path": "toc.json"
+        },
+        ".html": {
+          "relative_path": "toc.html"
         }
       },
       "version": ""
