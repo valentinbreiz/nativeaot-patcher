@@ -67,6 +67,32 @@
 
   <!-- Clang defaults to 'clang' on PATH — set by Cosmos.Build.CC.props -->
 
+  <!--
+    Public API tracking, opt-in per project with
+    <CosmosTrackPublicApi>true</CosmosTrackPublicApi>.
+
+    Microsoft.CodeAnalysis.PublicApiAnalyzers requires every public symbol to
+    be declared in PublicAPI.Shipped.txt (frozen at release) or
+    PublicAPI.Unshipped.txt (pending), next to the csproj. Any surface change
+    then shows up as a reviewable txt diff in the PR; `make api` reseeds the
+    files after a deliberate change (RS0016/RS0017 code fixes).
+
+    The same flag enables NuGet package validation. Baseline validation
+    (breaking-change detection against the last published release) activates
+    once CosmosApiBaselineVersion is set below: leave it empty until the first
+    Gen3 release is on NuGet.org, then pin it to that version.
+  -->
+  <PropertyGroup>
+    <CosmosApiBaselineVersion></CosmosApiBaselineVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CosmosTrackPublicApi)' == 'true'">
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion Condition="'$(CosmosApiBaselineVersion)' != ''">$(CosmosApiBaselineVersion)</PackageValidationBaselineVersion>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(CosmosTrackPublicApi)' == 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
+
   <!-- Native ASM files come from the NuGet packages (Cosmos.Kernel.Native.X64/ARM64).
        Local-source overrides removed to avoid duplicate-symbol conflicts when both the
        local copy and the NuGet copy are picked up by AsmSearchPath. To iterate on native
