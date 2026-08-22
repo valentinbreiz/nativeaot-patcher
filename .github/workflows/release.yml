@@ -19,6 +19,10 @@ on:
         description: 'Version override (e.g., 3.0.44). Leave empty to derive from global.json.'
         required: false
         type: string
+      docs_tag:
+        description: 'Backfill versioned docs for an existing tag (e.g. v3.0.82). Only runs publish-docs.'
+        required: false
+        type: string
   push:
     tags:
       - 'v*'
@@ -158,20 +162,32 @@ jobs:
               --skip-duplicate
           done
 
-  # ── Versioned docs (tag pushes only) ─────────────────────────────────────────
-  # Freezes the docs of this release under gh-pages/vX.Y.Z/, refreshes the
+  # ── Versioned docs ───────────────────────────────────────────────────────────
+  # Freezes the docs of a release under gh-pages/vX.Y.Z/, refreshes the
   # latest/ alias, and rewrites versions.json (read by the version dropdown in
   # docs/templates/custom). The dev site that build-docs.yml publishes at the
   # branch root keeps these folders thanks to its keep_files: true.
+  #
+  # Runs on v* tag pushes; dispatching with docs_tag backfills a tag released
+  # before this job existed (docs built from the tag's source, current
+  # templates/custom overlaid so the frozen pages carry the version dropdown).
   publish-docs:
     name: Publish Versioned Docs
-    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'valentinbreiz/nativeaot-patcher'
+    if: github.repository == 'valentinbreiz/nativeaot-patcher' && (startsWith(github.ref, 'refs/tags/v') || inputs.docs_tag != '')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.docs_tag || github.ref }}
+
+      - name: Overlay current template (backfill only)
+        if: inputs.docs_tag != ''
+        run: |
+          git fetch origin main --depth=1
+          git checkout FETCH_HEAD -- docs/templates/custom
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -198,16 +214,23 @@ jobs:
       - name: Compose versions.json
         id: version
         run: |
-          version="${GITHUB_REF#refs/tags/}"
+          version="${{ inputs.docs_tag }}"
+          if [[ -z "$version" ]]; then
+            version="${GITHUB_REF#refs/tags/}"
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           git fetch origin gh-pages --depth=1 || true
           mkdir -p /tmp/pages-root
           {
             git ls-tree --name-only FETCH_HEAD 2>/dev/null | grep -E '^v[0-9]' || true
             echo "$version"
-          } | sort -uVr | python3 -c '
+          } | sort -uVr > /tmp/versions.txt
+          # A backfilled old tag must not steal the latest/ alias.
+          newest=$(head -1 /tmp/versions.txt)
+          echo "is_latest=$([[ "$newest" == "$version" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          python3 -c '
           import json, sys
-          versions = [line.strip() for line in sys.stdin if line.strip()]
+          versions = [line.strip() for line in open("/tmp/versions.txt") if line.strip()]
           json.dump({"latest": versions[0], "versions": versions}, sys.stdout, indent=2)
           ' > /tmp/pages-root/versions.json
           cat /tmp/pages-root/versions.json
@@ -221,6 +244,7 @@ jobs:
           destination_dir: ${{ steps.version.outputs.version }}
 
       - name: Refresh latest alias
+        if: steps.version.outputs.is_latest == 'true'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
