@@ -6,10 +6,10 @@
 
 The garbage collector (it identifies itself as **OrionGC** in the runtime configuration table) is a [stop-the-world](gc-concepts/stop-the-world.md), [non-moving](gc-concepts/non-moving.md), [mark-and-sweep](gc-concepts/mark-and-sweep.md) collector with a [single generation](gc-concepts/gc-generations.md). Every collection pauses all threads, marks the objects that are still reachable, frees the rest in place, and never changes a live object's address. Each linked term has a short background note in the [glossary](garbage-collector-glossary.md). The collector manages four kinds of memory:
 
-- the [regular GC heap](#regular-heap), a linked list of [bump-allocated](gc-concepts/bump-allocation.md) segments,
-- the [pinned object heap](#pinned-heap), a second segment list for objects the runtime requires to never move (such as the GC statics base objects),
-- the [GC handle store](#handle-store), tables of `GCHandle` slots the runtime uses to reference heap objects from outside the heap,
-- [frozen segments](#frozen-segments), pre-initialized read-only data registered by the runtime and never collected.
+- the [regular GC heap](#regular-heap), where every `new` allocates,
+- the [pinned object heap](#pinned-heap), for objects whose address must never change,
+- the [GC handle store](#handle-store), references to heap objects held from outside the heap,
+- [frozen segments](#frozen-segments), read-only objects baked into the kernel binary, never collected.
 
 The GC usually operates in a threaded kernel, but does not require one. When the [scheduler](scheduler.md) is running, it preempts threads from the timer interrupt, keeps every live thread in a global registry the GC scans from, and stores each thread's allocation state on its `Thread` control block; interrupt handlers allocate too (the scheduler tick, input drivers). Before the scheduler starts, or in kernels that compile it out (the `CosmosEnableScheduler` feature switch), the GC works the same way with a single static allocation context and the current stack as the only stack root. In either mode there is no dedicated GC thread: a collection runs on whichever thread triggered it, inside `InternalCpu.DisableInterruptsScope()`, so no thread switch or interrupt handler can observe the heap mid-collection.
 
@@ -94,7 +94,7 @@ A segment is a contiguous range of pages from the page allocator (`PageType.GCHe
 The strip is one contiguous allocation in address order, page-aligned base on the left. `Start` points at the first byte after the reserved slot, `Bump` at the boundary where the next allocation lands (it advances toward `End`, one past the segment's last byte), and `Next` links the segments into the chains shown below. `TotalSize` is `End - Start`; `UsedSize` counts the bytes in use before sweep.
 
 - `Start` to `Bump` holds allocated objects and free blocks left behind by earlier collections.
-- `Bump` to `End` is untouched space; bump allocation hands out memory from `Bump` and advances it.
+- `Bump` to `End` is untouched space; [bump allocation](gc-concepts/bump-allocation.md) hands out memory from `Bump` and advances it.
 - The 8 reserved bytes before `Start` exist because the runtime writes a [runtime object header](gc-concepts/object-header.md) (identity hash or thin lock) at `objRef - 4`. For the first object in a segment that write must land in reserved filler instead of the segment's own metadata.
 
 Segment allocation lives in [`GCSegmentManager`](../../../src/Cosmos.Kernel.Core/Memory/GarbageCollector/GCSegmentManager.cs). `AllocateSegment(requestedSize)` clamps the request to at least one page, sizes the brick table, rounds the total up to whole pages, and appends the new segment to its manager's linked list. Page rounding slack is given to the usable region, so `TotalSize` is usually a bit larger than the request.
