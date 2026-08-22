@@ -61,4 +61,4 @@ cosmos.patcher --version
 cosmos --version
 ```
 
-If any step fails, re-run the script — it is designed to be idempotent and will clean up previous state before rebuilding.
+If any step fails, re-run the script: it is designed to be idempotent and will clean up previous state before rebuilding.
