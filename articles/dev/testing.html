@@ -96,12 +96,12 @@
 </code></pre>
 <h3 id="test-projects">Test Projects</h3>
 <ul>
-<li><strong>Cosmos.Tests.Build.Asm</strong> – Verifies the assembly build task runs via clang.
+<li><strong>Cosmos.Tests.Build.Asm</strong>: Verifies the assembly build task runs via clang.
 <ul>
 <li><code>Test1</code></li>
 </ul>
 </li>
-<li><strong>Cosmos.Tests.Build.Analyzer.Patcher</strong> – Validates that code does not contain plug architecture errors.
+<li><strong>Cosmos.Tests.Build.Analyzer.Patcher</strong>: Validates that code does not contain plug architecture errors.
 <ul>
 <li><code>Test_AnalyzeAccessedMember</code></li>
 <li><code>Test_MethodNotImplemented</code></li>
@@ -109,7 +109,7 @@
 <li><code>Test_StaticConstructorNotImplemented</code></li>
 </ul>
 </li>
-<li><strong>Cosmos.Tests.Scanner</strong> – Validates that all required plugs are detected correctly.
+<li><strong>Cosmos.Tests.Scanner</strong>: Validates that all required plugs are detected correctly.
 <ul>
 <li><code>LoadPlugMethods_ShouldReturnPublicStaticMethods</code></li>
 <li><code>LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist</code></li>
@@ -120,7 +120,7 @@
 <li><code>FindPluggedAssemblies_ShouldReturnMatchingAssemblies</code></li>
 </ul>
 </li>
-<li><strong>Cosmos.Tests.Patcher</strong> – Ensures that plugs are applied successfully to target methods and types.
+<li><strong>Cosmos.Tests.Patcher</strong>: Ensures that plugs are applied successfully to target methods and types.
 <ul>
 <li><code>PatchAssembly_ShouldSkipWhenNoMatchingPlugs</code></li>
 <li><code>PatchObjectWithAThis_ShouldPlugInstanceCorrectly</code></li>
@@ -131,8 +131,8 @@
 <li><code>AddMethod_BehaviorBeforeAndAfterPlug</code></li>
 </ul>
 </li>
-<li><strong>Cosmos.Tests.NativeWrapper</strong> – Contains runtime assets; no unit tests.</li>
-<li><strong>Cosmos.Tests.NativeLibrary</strong> – Provides native code used in tests; no unit tests.</li>
+<li><strong>Cosmos.Tests.NativeWrapper</strong>: Contains runtime assets; no unit tests.</li>
+<li><strong>Cosmos.Tests.NativeLibrary</strong>: Provides native code used in tests; no unit tests.</li>
 </ul>
 <hr>
 <h2 id="kernel-integration-tests">Kernel Integration Tests</h2>
@@ -161,9 +161,9 @@
 </table>
 <h4 id="helloworld-tests">HelloWorld Tests</h4>
 <ul>
-<li><code>Test_BasicArithmetic</code> – Addition (2+2=4)</li>
-<li><code>Test_BooleanLogic</code> – True/False assertions</li>
-<li><code>Test_IntegerComparison</code> – Equality and comparison operators</li>
+<li><code>Test_BasicArithmetic</code>: Addition (2+2=4)</li>
+<li><code>Test_BooleanLogic</code>: True/False assertions</li>
+<li><code>Test_IntegerComparison</code>: Equality and comparison operators</li>
 </ul>
 <h4 id="memory-tests">Memory Tests</h4>
 <p><strong>Boxing/Unboxing (11 tests):</strong></p>
@@ -178,7 +178,7 @@
 <li><code>Memory_StringConcat</code>, <code>Memory_StringBuilder</code></li>
 <li><code>Memory_ZeroLengthArray</code>, <code>Memory_EmptyString</code>, <code>Memory_LargeAllocation</code></li>
 </ul>
-<p><strong>Generic Collections – List (14 tests):</strong></p>
+<p><strong>Generic Collections - List (14 tests):</strong></p>
 <ul>
 <li><code>Collections_ListInt</code>, <code>Collections_ListString</code>, <code>Collections_ListByte</code></li>
 <li><code>Collections_ListLong</code>, <code>Collections_ListStruct</code></li>
@@ -186,13 +186,13 @@
 <li><code>Collections_ListInsert</code>, <code>Collections_ListRemove</code>, <code>Collections_ListClear</code></li>
 <li><code>Collections_ListToArray</code>, <code>Collections_ListForeach</code>, <code>Collections_ListEmpty</code></li>
 </ul>
-<p><strong>Generic Collections – Dictionary (9 tests):</strong></p>
+<p><strong>Generic Collections - Dictionary (9 tests):</strong></p>
 <ul>
 <li><code>Collections_DictCustomComparer</code>, <code>Collections_DictAddGet</code>, <code>Collections_DictIndexer</code></li>
 <li><code>Collections_DictContains</code>, <code>Collections_DictRemove</code>, <code>Collections_DictClear</code></li>
 <li><code>Collections_DictTryGetValue</code>, <code>Collections_DictKeysValues</code>, <code>Collections_DictEmpty</code></li>
 </ul>
-<p><strong>Generic Collections – IEnumerable (1 test):</strong></p>
+<p><strong>Generic Collections - IEnumerable (1 test):</strong></p>
 <ul>
 <li><code>Collections_IEnumerable</code></li>
 </ul>
@@ -226,10 +226,10 @@
 <li>Press <code>Ctrl+Shift+P</code> → &quot;Tasks: Run Task&quot;</li>
 <li>Select one of:
 <ul>
-<li><strong>Run Test: HelloWorld (x64)</strong> – Console + XML output</li>
-<li><strong>Run Test: HelloWorld (x64, Console Only)</strong> – Console output only</li>
-<li><strong>Run Test: HelloWorld (ARM64)</strong> – ARM64 test with XML output</li>
-<li><strong>Dev Test: HelloWorld (x64)</strong> – Developer mode with verbose output</li>
+<li><strong>Run Test: HelloWorld (x64)</strong>: Console + XML output</li>
+<li><strong>Run Test: HelloWorld (x64, Console Only)</strong>: Console output only</li>
+<li><strong>Run Test: HelloWorld (ARM64)</strong>: ARM64 test with XML output</li>
+<li><strong>Dev Test: HelloWorld (x64)</strong>: Developer mode with verbose output</li>
 </ul>
 </li>
 </ol>
@@ -355,7 +355,7 @@ ALL TESTS PASSED
 </ul>
 <p>After the final <code>TestSuiteEnd</code> message the kernel also sends an 8-byte termination marker (<code>0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE</code>) so the engine can kill QEMU immediately without waiting for the full timeout.</p>
 <h3 id="commands-kernel--host-ds2vs">Commands (Kernel → Host, <code>Ds2Vs</code>)</h3>
-<p>Test-runner-specific commands occupy the range <strong>100–106</strong>. The original CosmosOS debug commands (0–25) are also defined but are not used by the test runner.</p>
+<p>Test-runner-specific commands occupy the range <strong>100-106</strong>. The original CosmosOS debug commands (0-25) are also defined but are not used by the test runner.</p>
 <table>
 <thead>
 <tr>
@@ -453,10 +453,10 @@ ALL TESTS PASSED
 ├── Cosmos.TestRunner.Protocol/      # Shared protocol definitions
 │   ├── Consts.cs                    # Magic signature and constants
 │   └── Messages.cs                  # Typed message classes
-├── Cosmos.Tests.Build.Asm/          # Unit tests – Clang assembly build task
-├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests – plug analyzer
-├── Cosmos.Tests.Scanner/            # Unit tests – plug scanner
-├── Cosmos.Tests.Patcher/            # Unit tests – IL patcher
+├── Cosmos.Tests.Build.Asm/          # Unit tests: Clang assembly build task
+├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests: plug analyzer
+├── Cosmos.Tests.Scanner/            # Unit tests: plug scanner
+├── Cosmos.Tests.Patcher/            # Unit tests: IL patcher
 ├── Cosmos.Tests.NativeWrapper/      # Runtime assets (no tests)
 ├── Cosmos.Tests.NativeLibrary/      # Native code for tests (no tests)
 └── Kernels/                         # Kernel test projects
@@ -522,13 +522,13 @@ public class Kernel : Sys.Kernel
 <h3 id="kernel-lifecycle">Kernel Lifecycle</h3>
 <p>The <code>Sys.Kernel</code> base class drives a fixed lifecycle:</p>
 <ol>
-<li><code>OnBoot()</code> – system initialization (called automatically, rarely overridden)</li>
-<li><code>BeforeRun()</code> – <strong>run all tests here</strong>, then call <code>Stop()</code></li>
-<li><code>Run()</code> – called in a loop until <code>Stop()</code> is invoked; leave empty for test kernels</li>
-<li><code>AfterRun()</code> – called once after the loop exits; call <code>Cosmos.Kernel.Kernel.Halt()</code> here</li>
+<li><code>OnBoot()</code>: system initialization (called automatically, rarely overridden)</li>
+<li><code>BeforeRun()</code>: <strong>run all tests here</strong>, then call <code>Stop()</code></li>
+<li><code>Run()</code>: called in a loop until <code>Stop()</code> is invoked; leave empty for test kernels</li>
+<li><code>AfterRun()</code>: called once after the loop exits; call <code>Cosmos.Kernel.Kernel.Halt()</code> here</li>
 </ol>
 <h3 id="available-assertions">Available Assertions</h3>
-<pre><code class="lang-csharp">// Equality – typed overloads (int, uint, long, byte, bool, string, byte[], int[])
+<pre><code class="lang-csharp">// Equality: typed overloads (int, uint, long, byte, bool, string, byte[], int[])
 Assert.Equal(expected, actual);
 Assert.Equal&lt;T&gt;(expected, actual);   // Generic overload (requires IEquatable&lt;T&gt;)
 
@@ -590,11 +590,11 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 <p>The CI workflow (<code>.github/workflows/kernel-tests.yml</code>) runs kernel integration tests on both x64 and ARM64.</p>
 <p><strong>Jobs:</strong></p>
 <ul>
-<li><code>helloworld-tests</code> – Matrix build for x64/arm64</li>
-<li><code>helloworld-results</code> – Combined PR comment</li>
-<li><code>memory-tests</code> – Matrix build for x64/arm64</li>
-<li><code>memory-results</code> – Combined PR comment</li>
-<li><code>test-summary</code> – Final status summary</li>
+<li><code>helloworld-tests</code>: Matrix build for x64/arm64</li>
+<li><code>helloworld-results</code>: Combined PR comment</li>
+<li><code>memory-tests</code>: Matrix build for x64/arm64</li>
+<li><code>memory-results</code>: Combined PR comment</li>
+<li><code>test-summary</code>: Final status summary</li>
 </ul>
 <p><strong>Triggers:</strong></p>
 <ul>
@@ -605,9 +605,9 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 <p><strong>PR Comments:</strong> Each test suite posts a comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts.</p>
 <p><strong>Artifacts (30-day retention):</strong></p>
 <ul>
-<li><code>test-results-{suite}-{arch}.xml</code> – JUnit XML results</li>
-<li><code>uart-log-{suite}-{arch}</code> – Full UART output</li>
-<li><code>{Suite}-Test-ISO-{arch}</code> – Bootable kernel ISO + ELF</li>
+<li><code>test-results-{suite}-{arch}.xml</code>: JUnit XML results</li>
+<li><code>uart-log-{suite}-{arch}</code>: Full UART output</li>
+<li><code>{Suite}-Test-ISO-{arch}</code>: Bootable kernel ISO + ELF</li>
 </ul>
 <h3 id="example-ci-step">Example CI Step</h3>
 <pre><code class="lang-yaml">- name: Run Cosmos Tests
@@ -645,13 +645,13 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 </tr>
 <tr>
 <td>HelloWorld execution</td>
-<td>2–5 s</td>
-<td>5–10 s</td>
+<td>2-5 s</td>
+<td>5-10 s</td>
 </tr>
 <tr>
 <td>Memory execution</td>
-<td>60–120 s</td>
-<td>120–240 s</td>
+<td>60-120 s</td>
+<td>120-240 s</td>
 </tr>
 </tbody>
 </table>

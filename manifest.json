@@ -7525,6 +7525,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "articles/dev/public-api.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/public-api.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "articles/dev/sched-concepts/instruction-boundary.md",
       "output": {
         ".html": {

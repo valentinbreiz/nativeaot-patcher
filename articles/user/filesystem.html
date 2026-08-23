@@ -88,7 +88,7 @@
 <h1 id="file-system">File System</h1>
 
 <p>In this article, we will discuss using the Cosmos Gen3 VFS (virtual file system).
-Unlike Gen2, where you talked to <code>CosmosVFS</code> and a plugged subset of <code>System.IO</code>, Gen3 gives you the <strong>standard .NET <code>System.IO</code> API</strong> — <code>File</code>, <code>Directory</code>, <code>FileStream</code>, <code>StreamReader</code>/<code>StreamWriter</code>, <code>FileInfo</code>/<code>DirectoryInfo</code> — running unmodified on top of the kernel's VFS. You mount a filesystem at a Unix-style mount point and use ordinary rooted paths.</p>
+Unlike Gen2, where you talked to <code>CosmosVFS</code> and a plugged subset of <code>System.IO</code>, Gen3 gives you the <strong>standard .NET <code>System.IO</code> API</strong> (<code>File</code>, <code>Directory</code>, <code>FileStream</code>, <code>StreamReader</code>/<code>StreamWriter</code>, <code>FileInfo</code>/<code>DirectoryInfo</code>) running unmodified on top of the kernel's VFS. You mount a filesystem at a Unix-style mount point and use ordinary rooted paths.</p>
 <p>The main differences if you come from Gen2:</p>
 <table>
 <thead>
@@ -162,9 +162,9 @@ if (VfsManager.TryMount(&quot;fat&quot;, &quot;0&quot;, MountFlags.None, &quot;/
 <!-- screenshot: kernel console right after boot showing the "Mounted fat partition 0 at /mnt" line -->
 <p><img src="images/filesystem-mount.png" alt="Mount"></p>
 <p>From this point on, everything under <code>/mnt</code> is served by the FAT driver, and everything in this article is plain <code>System.IO</code>.</p>
-<p><strong>Note</strong>: <code>/</code> itself is a <em>virtual root</em>. It always exists — even with nothing mounted — and enumerating it lists the mount points. You cannot create files directly in it (<code>IOException</code>, read-only file system); create them under a mount point like <code>/mnt</code>.</p>
+<p><strong>Note</strong>: <code>/</code> itself is a <em>virtual root</em>. It always exists, even with nothing mounted, and enumerating it lists the mount points. You cannot create files directly in it (<code>IOException</code>, read-only file system); create them under a mount point like <code>/mnt</code>.</p>
 <h3 id="alternative-a-ram-disk">Alternative: a RAM disk</h3>
-<p>For quick experiments you don't need a disk image at all. A block device is just an <code>IBlockDevice</code> (from <code>Cosmos.Kernel.HAL.Interfaces.Devices</code>), and a RAM-backed one fits in a few lines — this is exactly what the kernel test suites use:</p>
+<p>For quick experiments you don't need a disk image at all. A block device is just an <code>IBlockDevice</code> (from <code>Cosmos.Kernel.HAL.Interfaces.Devices</code>), and a RAM-backed one fits in a few lines; this is exactly what the kernel test suites use:</p>
 <pre><code class="lang-csharp">internal sealed class MemoryBlockDevice : IBlockDevice
 {
     private readonly byte[] _storage;
@@ -212,7 +212,7 @@ if (!VfsManager.TryFormat(&quot;fat&quot;, &quot;0&quot;, options))
     Console.WriteLine(&quot;Format failed&quot;);
 }
 </code></pre>
-<p>Formatting is refused while the source is mounted — unmount first with <code>VfsManager.TryUnmount(&quot;/mnt&quot;)</code>.</p>
+<p>Formatting is refused while the source is mounted: unmount first with <code>VfsManager.TryUnmount(&quot;/mnt&quot;)</code>.</p>
 <h2 id="list-mounted-volumes">List mounted volumes</h2>
 <p><code>VfsManager.Mounts</code> is the mount table. Each entry tells you the driver name, the backing source and the mount point:</p>
 <pre><code class="lang-csharp">foreach (VfsManager.VfsMount m in VfsManager.Mounts)
@@ -231,7 +231,7 @@ foreach (string file in files)
     Console.WriteLine(file);
 }
 </code></pre>
-<p>Search patterns work too — this is the stock BCL enumeration engine:</p>
+<p>Search patterns work too; this is the stock BCL enumeration engine:</p>
 <pre><code class="lang-csharp">string[] logs = Directory.GetFiles(&quot;/mnt&quot;, &quot;*.txt&quot;);
 </code></pre>
 <!-- screenshot: console listing a few files under /mnt -->
@@ -252,7 +252,7 @@ foreach (string directory in directories)
 <!-- screenshot: console listing files and directories under /mnt -->
 <p><img src="images/filesystem-directory-listing.png" alt="Directory Listing"></p>
 <h2 id="read-all-the-files-in-a-directory">Read all the files in a directory</h2>
-<p>We get the file list and print the content of each file. As in Gen2, keep filesystem code inside <code>try</code>/<code>catch</code> — the exceptions are the standard <code>System.IO</code> ones and they are catchable:</p>
+<p>We get the file list and print the content of each file. As in Gen2, keep filesystem code inside <code>try</code>/<code>catch</code>: the exceptions are the standard <code>System.IO</code> ones and they are catchable:</p>
 <pre><code class="lang-csharp">try
 {
     foreach (string file in Directory.GetFiles(&quot;/mnt&quot;))
@@ -320,7 +320,7 @@ catch (Exception e)
 Console.WriteLine(&quot;Read &quot; + data.Length + &quot; bytes&quot;);
 </code></pre>
 <h2 id="copy-move-delete">Copy, move, delete</h2>
-<p>Unlike Gen2, <code>File.Move</code> is fully supported — no copy-and-delete workaround needed. A move onto an existing destination throws <code>IOException</code> unless you pass <code>overwrite: true</code>; the overwrite is crash-safe (the destination is kept as a backup until the rename lands).</p>
+<p>Unlike Gen2, <code>File.Move</code> is fully supported, no copy-and-delete workaround needed. A move onto an existing destination throws <code>IOException</code> unless you pass <code>overwrite: true</code>; the overwrite is crash-safe (the destination is kept as a backup until the rename lands).</p>
 <pre><code class="lang-csharp">try
 {
     File.Copy(&quot;/mnt/testing.txt&quot;, &quot;/mnt/copy.txt&quot;);
@@ -381,7 +381,7 @@ Directory.SetCurrentDirectory(&quot;/&quot;);
 <li>Deleting a non-empty directory without <code>recursive: true</code> → <code>IOException</code></li>
 <li><code>File.Copy</code>/<code>File.Move</code> onto an existing file without overwrite → <code>IOException</code></li>
 </ul>
-<p>With <strong>nothing mounted at all</strong>, <code>System.IO</code> still degrades gracefully: <code>Directory.Exists(&quot;/&quot;)</code> is <code>true</code>, enumerating <code>/</code> returns an empty list, and every access to another path fails with one of the exceptions above — never a kernel fault.</p>
+<p>With <strong>nothing mounted at all</strong>, <code>System.IO</code> still degrades gracefully: <code>Directory.Exists(&quot;/&quot;)</code> is <code>true</code>, enumerating <code>/</code> returns an empty list, and every access to another path fails with one of the exceptions above, never a kernel fault.</p>
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
 <li>Symbolic links and hard links are not supported (<code>ENOTSUP</code>/<code>EPERM</code> under the hood; the BCL surfaces <code>IOException</code>).</li>
@@ -390,12 +390,12 @@ Directory.SetCurrentDirectory(&quot;/&quot;);
 <li>FAT is the only filesystem driver today; the <code>IVfsFilesystemType</code> interface is what a new driver implements.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p>Your code calls the stock BCL, which bottoms out in the Unix PAL (<code>Interop.Sys.*</code> P/Invokes). Those ~45 entry points are <a href="../dev/plugs.html">plugged</a> in <code>Cosmos.Kernel.Plugs</code> — a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to <code>VfsManager</code>, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an <code>IBlockDevice</code> (AHCI or NVMe via <code>StorageManager</code>, RAM via <code>MemoryBlockDevice</code>).</p>
+<p>Your code calls the stock BCL, which bottoms out in the Unix PAL (<code>Interop.Sys.*</code> P/Invokes). Those ~45 entry points are <a href="../dev/plugs.html">plugged</a> in <code>Cosmos.Kernel.Plugs</code>: a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to <code>VfsManager</code>, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an <code>IBlockDevice</code> (AHCI or NVMe via <code>StorageManager</code>, RAM via <code>MemoryBlockDevice</code>).</p>
 <pre><code>File / Directory / FileStream          (stock BCL)
         │
 Interop.Sys.* PAL calls                (stock BCL, plugged)
         │
-FileDescriptorTable                    (Cosmos.Kernel.Plugs — fds, dir streams, errno)
+FileDescriptorTable                    (Cosmos.Kernel.Plugs: fds, dir streams, errno)
         │
 VfsManager                             (mounts, paths, CWD, open handles)
         │

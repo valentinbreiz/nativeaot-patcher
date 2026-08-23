@@ -121,7 +121,7 @@
 <tr>
 <td>Lifecycle</td>
 <td><code>BeforeRun</code> / <code>Run</code> / <code>AfterRun</code></td>
-<td><code>BeforeRun</code> / <code>Run</code> / <code>AfterRun</code> — unchanged</td>
+<td><code>BeforeRun</code> / <code>Run</code> / <code>AfterRun</code> (unchanged)</td>
 </tr>
 </tbody>
 </table>
@@ -136,22 +136,22 @@ kmain()           native C bootstrap (Cosmos.Kernel/Bootstrap/kmain.c)
     ├─ Phase 3    Managed runtime: heap, GC, type system, library initializers
     └─ Phase 4    User kernel: Main(argc, argv) → Kernel.Start()
 </code></pre>
-<p>The <a href="https://limine-bootloader.org/">Limine</a> bootloader loads the kernel ELF produced by the build pipeline, and jumps to <code>kmain()</code> — a small C bootstrap compiled into every kernel. From there:</p>
+<p>The <a href="https://limine-bootloader.org/">Limine</a> bootloader loads the kernel ELF produced by the build pipeline, and jumps to <code>kmain()</code>, a small C bootstrap compiled into every kernel. From there:</p>
 <ul>
-<li><strong>Phase 1 — CPU.</strong> SIMD is enabled first (NativeAOT-generated code uses XMM registers from the very first instruction) and the serial port is initialized, so everything after this line is logged. On ARM64 the alignment check is disabled here too.</li>
-<li><strong>Phase 2 — Platform.</strong> The bootstrap asks Limine for the ACPI RSDP and the higher-half direct-map offset, then does an early ACPI parse: the MADT (where the interrupt controllers and CPUs are) and the MCFG (where PCIe configuration space lives).</li>
-<li><strong>Phase 3 — Managed runtime.</strong> The NativeAOT startup path runs. This is where the C# world comes alive, one package at a time (see the next section).</li>
-<li><strong>Phase 4 — User kernel.</strong> The bootstrap builds <code>argv</code> from the kernel command line and calls the managed <code>Main</code>, which ends up in your kernel's <code>Start()</code>.</li>
+<li><strong>Phase 1: CPU.</strong> SIMD is enabled first (NativeAOT-generated code uses XMM registers from the very first instruction) and the serial port is initialized, so everything after this line is logged. On ARM64 the alignment check is disabled here too.</li>
+<li><strong>Phase 2: Platform.</strong> The bootstrap asks Limine for the ACPI RSDP and the higher-half direct-map offset, then does an early ACPI parse: the MADT (where the interrupt controllers and CPUs are) and the MCFG (where PCIe configuration space lives).</li>
+<li><strong>Phase 3: Managed runtime.</strong> The NativeAOT startup path runs. This is where the C# world comes alive, one package at a time (see the next section).</li>
+<li><strong>Phase 4: User kernel.</strong> The bootstrap builds <code>argv</code> from the kernel command line and calls the managed <code>Main</code>, which ends up in your kernel's <code>Start()</code>.</li>
 </ul>
 <h2 id="phase-3-how-the-managed-kernel-comes-up">Phase 3: how the managed kernel comes up</h2>
 <p>Each Cosmos package contributes a <em>library initializer</em> that the runtime executes before any of your code, in dependency order:</p>
 <ol>
-<li><strong>Cosmos.Kernel.Core</strong> — carves the heap out of the Limine memory map, initializes the garbage collector, then registers the type system (statics, static constructors, module initializers).</li>
-<li><strong>Cosmos.Kernel.HAL</strong> — platform HAL, the interrupt controller, PCI enumeration over ECAM, platform hardware (APIC/GIC, device drivers such as the NIC), and the AHCI/NVMe storage controllers.</li>
-<li><strong>Cosmos.Kernel.System</strong> — the service managers: <code>TimerManager</code>, <code>KeyboardManager</code>, <code>MouseManager</code>, <code>NetworkManager</code>, <code>StorageManager</code>.</li>
-<li><strong>Cosmos.Kernel</strong> — CPU exception handlers and the scheduler (one idle thread per CPU, preemption on a 10 ms quantum).</li>
+<li><strong>Cosmos.Kernel.Core</strong>: carves the heap out of the Limine memory map, initializes the garbage collector, then registers the type system (statics, static constructors, module initializers).</li>
+<li><strong>Cosmos.Kernel.HAL</strong>: platform HAL, the interrupt controller, PCI enumeration over ECAM, platform hardware (APIC/GIC, device drivers such as the NIC), and the AHCI/NVMe storage controllers.</li>
+<li><strong>Cosmos.Kernel.System</strong>: the service managers <code>TimerManager</code>, <code>KeyboardManager</code>, <code>MouseManager</code>, <code>NetworkManager</code>, <code>StorageManager</code>.</li>
+<li><strong>Cosmos.Kernel</strong>: CPU exception handlers and the scheduler (one idle thread per CPU, preemption on a 10 ms quantum).</li>
 </ol>
-<p>Every step in 2–4 is gated by a feature switch (<code>CosmosEnableInterrupts</code>, <code>CosmosEnablePCI</code>, <code>CosmosEnableTimer</code>, <code>CosmosEnableKeyboard</code>, <code>CosmosEnableMouse</code>, <code>CosmosEnableNetwork</code>, <code>CosmosEnableStorage</code>, <code>CosmosEnableGraphics</code>, <code>CosmosEnableScheduler</code> — all <code>true</code> by default). Set one to <code>false</code> in your <code>.csproj</code> and the corresponding subsystem is skipped here and compiled out of the kernel.</p>
+<p>Every step in 2-4 is gated by a feature switch (<code>CosmosEnableInterrupts</code>, <code>CosmosEnablePCI</code>, <code>CosmosEnableTimer</code>, <code>CosmosEnableKeyboard</code>, <code>CosmosEnableMouse</code>, <code>CosmosEnableNetwork</code>, <code>CosmosEnableStorage</code>, <code>CosmosEnableGraphics</code>, <code>CosmosEnableScheduler</code>, all <code>true</code> by default). Set one to <code>false</code> in your <code>.csproj</code> and the corresponding subsystem is skipped here and compiled out of the kernel.</p>
 <h2 id="the-generated-entry-point">The generated entry point</h2>
 <p>You never write a <code>Main</code> for a Cosmos kernel. The SDK ships a source generator that emits it from the <code>CosmosKernelClass</code> project property:</p>
 <pre><code class="lang-csharp">// Auto-generated: CosmosEntryPoint.g.cs
@@ -173,13 +173,13 @@ public static class CosmosEntryPoint
 <h2 id="syskernelstart">Sys.Kernel.Start()</h2>
 <p><code>Cosmos.Kernel.System.Kernel</code> is the abstract base class of every user kernel. Its <code>Start()</code> drives the whole lifecycle:</p>
 <ol>
-<li>Calls <code>OnBoot()</code>, whose default implementation runs <code>Global.Init()</code> — this initializes the graphical <code>KernelConsole</code>, which is what makes <code>Console.WriteLine</code> work.</li>
+<li>Calls <code>OnBoot()</code>, whose default implementation runs <code>Global.Init()</code>: this initializes the graphical <code>KernelConsole</code>, which is what makes <code>Console.WriteLine</code> work.</li>
 <li>Enables hardware interrupts (everything before this point ran with interrupts off).</li>
-<li>Turns off the early-boot text renderer — up to here, the boot log you see on screen is the serial log mirrored by a minimal framebuffer writer; from now on the screen belongs to <code>Console</code> and the <a href="graphics.html">Canvas</a>.</li>
+<li>Turns off the early-boot text renderer: up to here, the boot log you see on screen is the serial log mirrored by a minimal framebuffer writer; from now on the screen belongs to <code>Console</code> and the <a href="graphics.html">Canvas</a>.</li>
 <li>Calls <code>BeforeRun()</code> once.</li>
 <li>Calls <code>Run()</code> in a loop until <code>Stop()</code> is called.</li>
 <li>Calls <code>AfterRun()</code> once.</li>
-<li>Halts the CPU. There is no operating system to return to — a kernel never exits.</li>
+<li>Halts the CPU. There is no operating system to return to: a kernel never exits.</li>
 </ol>
 <h2 id="a-minimal-kernel">A minimal kernel</h2>
 <pre><code class="lang-csharp">using System;
@@ -204,14 +204,14 @@ public class Kernel : Sys.Kernel
 }
 </code></pre>
 <ul>
-<li><code>BeforeRun()</code> — one-time setup: mount a <a href="filesystem.html">filesystem</a>, configure the <a href="network.html">network</a>, draw a splash screen.</li>
-<li><code>Run()</code> — your main loop body. It is called again as soon as it returns, so it does not need to loop itself; keep it re-entrant.</li>
-<li><code>Stop()</code> — call it from anywhere to exit the loop after the current <code>Run()</code> completes.</li>
-<li><code>AfterRun()</code> — optional cleanup once the loop has ended.</li>
+<li><code>BeforeRun()</code>: one-time setup (mount a <a href="filesystem.html">filesystem</a>, configure the <a href="network.html">network</a>, draw a splash screen).</li>
+<li><code>Run()</code>: your main loop body. It is called again as soon as it returns, so it does not need to loop itself; keep it re-entrant.</li>
+<li><code>Stop()</code>: call it from anywhere to exit the loop after the current <code>Run()</code> completes.</li>
+<li><code>AfterRun()</code>: optional cleanup once the loop has ended.</li>
 </ul>
 <p>An uncaught exception inside <code>Run()</code> propagates out of the loop, so wrap the body in <code>try</code>/<code>catch</code> if a command failing should not take the kernel down.</p>
 <h2 id="customizing-startup">Customizing startup</h2>
-<p><code>OnBoot()</code> runs <em>before</em> interrupts are enabled and before the console exists — the right place for early hardware setup:</p>
+<p><code>OnBoot()</code> runs <em>before</em> interrupts are enabled and before the console exists, the right place for early hardware setup:</p>
 <pre><code class="lang-csharp">protected override void OnBoot()
 {
     base.OnBoot();   // keep Global.Init() → KernelConsole; drop this line to boot headless
@@ -219,16 +219,16 @@ public class Kernel : Sys.Kernel
     // your early initialization here
 }
 </code></pre>
-<p>For total control you can override <code>Start()</code> itself and take over the lifecycle — the default implementation in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Kernel.cs"><code>Cosmos.Kernel.System/Kernel.cs</code></a> is small and a good starting point to copy from.</p>
+<p>For total control you can override <code>Start()</code> itself and take over the lifecycle: the default implementation in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Kernel.cs"><code>Cosmos.Kernel.System/Kernel.cs</code></a> is small and a good starting point to copy from.</p>
 <h2 id="the-kernel-command-line">The kernel command line</h2>
-<p>Limine passes a command line to the kernel — the <code>cmdline:</code> entry of the <code>Bootloader/limine.conf</code> file in your kernel project. It comes out the standard way:</p>
+<p>Limine passes a command line to the kernel: the <code>cmdline:</code> entry of the <code>Bootloader/limine.conf</code> file in your kernel project. It comes out the standard way:</p>
 <pre><code class="lang-csharp">foreach (string arg in Environment.GetCommandLineArgs())
 {
     Console.WriteLine(arg);
 }
 </code></pre>
 <h2 id="watching-a-boot">Watching a boot</h2>
-<p>Every phase above logs to the serial port (COM1), which <code>make run</code> and <code>cosmos run</code> connect to your terminal — the first thing to read when a kernel does not come up:</p>
+<p>Every phase above logs to the serial port (COM1), which <code>make run</code> and <code>cosmos run</code> connect to your terminal, the first thing to read when a kernel does not come up:</p>
 <pre><code>========================================
   CosmosOS v3.0.62 (gen3)
   Architecture: x86-64

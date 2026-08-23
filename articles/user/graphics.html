@@ -87,7 +87,7 @@
         <article data-uid="">
 <h1 id="graphics">Graphics</h1>
 
-<p>In this article, we will discuss the Cosmos Graphics Subsystem (CGS) on Cosmos Gen3: how to get a drawing surface and put shapes, text and images on the screen. CGS is based on the abstraction of a <strong>Canvas</strong> — an empty space you draw on. It is a drawing layer, not a widget toolkit: there are no windows or buttons, but everything you need to build them.</p>
+<p>In this article, we will discuss the Cosmos Graphics Subsystem (CGS) on Cosmos Gen3: how to get a drawing surface and put shapes, text and images on the screen. CGS is based on the abstraction of a <strong>Canvas</strong>, an empty space you draw on. It is a drawing layer, not a widget toolkit: there are no windows or buttons, but everything you need to build them.</p>
 <p>The main differences if you come from Gen2:</p>
 <table>
 <thead>
@@ -111,7 +111,7 @@
 <tr>
 <td><code>Display()</code></td>
 <td>Required on double-buffered drivers</td>
-<td>Always required — the canvas is double-buffered</td>
+<td>Always required: the canvas is double-buffered</td>
 </tr>
 <tr>
 <td>Video mode</td>
@@ -144,7 +144,7 @@ using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 </code></pre>
 <h2 id="getting-a-canvas">Getting a canvas</h2>
-<p><code>Canvas.GetFullScreen()</code> returns the canvas backed by the screen — the framebuffer the bootloader set up at boot:</p>
+<p><code>Canvas.GetFullScreen()</code> returns the canvas backed by the screen, the framebuffer the bootloader set up at boot:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
 
 Console.WriteLine(&quot;Canvas:     &quot; + canvas.Name());
@@ -155,12 +155,12 @@ Console.WriteLine(&quot;Refresh:    &quot; + canvas.RefreshRate + &quot; Hz&quot
 <p><img src="images/graphics-canvas.png" alt="Getting a canvas"></p>
 <p>Two things to know before you start drawing:</p>
 <ul>
-<li><strong>The resolution is fixed at boot.</strong> Unlike Gen2, requesting a different <code>Mode</code> does not reprogram the video card — the canvas always has the resolution the bootloader chose. Use <code>canvas.Width</code> and <code>canvas.Height</code> instead of assuming one.</li>
-<li><strong>Nothing appears until you call <code>Display()</code>.</strong> The canvas is double-buffered: every drawing call goes to a back buffer, and <code>Display()</code> swaps the finished frame to video memory. Draw the whole frame, then call <code>Display()</code> once — that is also what keeps animations flicker-free.</li>
-<li><strong><code>Console</code> shares the screen with you.</strong> There is no separate text mode: <code>Console.WriteLine</code> is itself rendered on the full-screen canvas (and calls <code>Display()</code> on every write). Once you start drawing, stop writing to <code>Console</code> — the next write would paint text right over your graphics. This also means an uncaught exception prints over whatever you drew, which — unlike Gen2, where the screen just froze — at least tells you what went wrong.</li>
+<li><strong>The resolution is fixed at boot.</strong> Unlike Gen2, requesting a different <code>Mode</code> does not reprogram the video card: the canvas always has the resolution the bootloader chose. Use <code>canvas.Width</code> and <code>canvas.Height</code> instead of assuming one.</li>
+<li><strong>Nothing appears until you call <code>Display()</code>.</strong> The canvas is double-buffered: every drawing call goes to a back buffer, and <code>Display()</code> swaps the finished frame to video memory. Draw the whole frame, then call <code>Display()</code> once; that is also what keeps animations flicker-free.</li>
+<li><strong><code>Console</code> shares the screen with you.</strong> There is no separate text mode: <code>Console.WriteLine</code> is itself rendered on the full-screen canvas (and calls <code>Display()</code> on every write). Once you start drawing, stop writing to <code>Console</code>: the next write would paint text right over your graphics. This also means an uncaught exception prints over whatever you drew, which, unlike Gen2 where the screen just froze, at least tells you what went wrong.</li>
 </ul>
 <h2 id="drawing-shapes">Drawing shapes</h2>
-<p>The canvas offers the classic set of primitives — points, lines, rectangles, circles, ellipses, arcs, triangles and polygons, most in outlined and filled variants:</p>
+<p>The canvas offers the classic set of primitives (points, lines, rectangles, circles, ellipses, arcs, triangles and polygons), most in outlined and filled variants:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
 
 canvas.Clear(Color.MidnightBlue);
@@ -182,7 +182,7 @@ canvas.DrawCircle(Color.Chartreuse, 130, 200, 40);
 canvas.DrawFilledCircle(Color.MediumOrchid, 130, 320, 40);
 canvas.DrawEllipse(Color.DeepSkyBlue, 300, 350, 60, 30);
 
-/* An arc — angles are in degrees */
+/* An arc: angles are in degrees */
 canvas.DrawArc(500, 400, 50, 50, Color.CadetBlue, 90, 270);
 
 /* Triangles and polygons */
@@ -197,12 +197,12 @@ canvas.Display();
 <p><img src="images/graphics-shapes.png" alt="Drawing shapes"></p>
 <p>Colors are plain <code>System.Drawing.Color</code> values, so the full named palette (<code>Color.MidnightBlue</code>, <code>Color.Chartreuse</code>, ...) and <code>Color.FromArgb(...)</code> are available. Colors with an alpha channel below 255 are blended with the pixel already on the canvas.</p>
 <h2 id="drawing-text">Drawing text</h2>
-<p>Text rendering uses PSF (PC Screen Font) bitmap fonts — the format the Linux console uses, in both its <strong>PSF1</strong> and <strong>PSF2</strong> versions. A 16x32 <a href="https://github.com/fcambus/spleen">Spleen</a> font is built in as <code>PCScreenFont.DefaultFont</code>, and <code>PCScreenFont.LoadFont(byte[])</code> loads any other PSF font at runtime.</p>
+<p>Text rendering uses PSF (PC Screen Font) bitmap fonts, the format the Linux console uses, in both its <strong>PSF1</strong> and <strong>PSF2</strong> versions. A 16x32 <a href="https://github.com/fcambus/spleen">Spleen</a> font is built in as <code>PCScreenFont.DefaultFont</code>, and <code>PCScreenFont.LoadFont(byte[])</code> loads any other PSF font at runtime.</p>
 <p>There are plenty of ready-made PSF fonts to download:</p>
 <ul>
-<li><a href="https://www.zap.org.au/projects/console-fonts-zap/">The Zap Group's console fonts</a> — classic 8x16 PSF1 fonts (<code>zap-light16.psf</code>, <code>zap-vga16.psf</code>).</li>
-<li><a href="https://terminus-font.sourceforge.net/">Terminus</a> — PSF2 in many sizes; most Linux distributions already ship it under <code>/usr/share/consolefonts/</code> as <code>.psf.gz</code> files (decompress with <code>gunzip</code> first, the kernel reads plain <code>.psf</code>).</li>
-<li><a href="https://github.com/fcambus/spleen">Spleen</a> — PSF2 releases from 5x8 up to 32x64.</li>
+<li><a href="https://www.zap.org.au/projects/console-fonts-zap/">The Zap Group's console fonts</a>: classic 8x16 PSF1 fonts (<code>zap-light16.psf</code>, <code>zap-vga16.psf</code>).</li>
+<li><a href="https://terminus-font.sourceforge.net/">Terminus</a>: PSF2 in many sizes; most Linux distributions already ship it under <code>/usr/share/consolefonts/</code> as <code>.psf.gz</code> files (decompress with <code>gunzip</code> first, the kernel reads plain <code>.psf</code>).</li>
+<li><a href="https://github.com/fcambus/spleen">Spleen</a>: PSF2 releases from 5x8 up to 32x64.</li>
 </ul>
 <p>A font is just a file, so the easiest way to ship one is on the FAT disk from the <a href="filesystem.html">File System</a> article. Here <code>zap16.psf</code> is Zap Light (PSF1) and <code>term24.psf</code> is Terminus 12x24 (PSF2), copied onto the disk under FAT-friendly names:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
@@ -231,7 +231,7 @@ canvas.Display();
 <p><img src="images/graphics-text.png" alt="Drawing text"></p>
 <h3 id="truetype-fonts">TrueType fonts</h3>
 <p>PSF fonts are bitmaps: one size, one cell, no curves. For real typography the <code>TrueTypeFont</code> class loads a <code>.ttf</code> file and rasterizes it at any pixel size, with anti-aliased edges, per-glyph widths and pair kerning. The parser and rasterizer are pure managed code (see the <a href="../../credits.html">Credits</a> page), so a malformed font file throws an exception instead of corrupting memory.</p>
-<p><code>TrueTypeFont</code> derives from <code>Font</code>, so it goes wherever a bitmap font goes — passed to the plain <code>DrawString</code> overload it draws at its <code>SizePx</code> (set in the constructor, 16 by default). The dedicated overload takes the size explicitly, and each (character, size) pair is rasterized once and cached, so drawing the same text again is cheap:</p>
+<p><code>TrueTypeFont</code> derives from <code>Font</code>, so it goes wherever a bitmap font goes: passed to the plain <code>DrawString</code> overload it draws at its <code>SizePx</code> (set in the constructor, 16 by default). The dedicated overload takes the size explicitly, and each (character, size) pair is rasterized once and cached, so drawing the same text again is cheap:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
 
 canvas.Clear(Color.MidnightBlue);
@@ -246,7 +246,7 @@ canvas.DrawString(&quot;Anti-aliased, kerned and scalable to any size.&quot;, de
 int y = 200;
 foreach (int size in new[] { 14, 20, 28, 40 })
 {
-    canvas.DrawString(&quot;Cosmos at &quot; + size + &quot;px — AV To Wa&quot;, dejavu, size, Color.DeepSkyBlue, 60, y);
+    canvas.DrawString(&quot;Cosmos at &quot; + size + &quot;px - AV To Wa&quot;, dejavu, size, Color.DeepSkyBlue, 60, y);
     y += dejavu.GetLineHeight(size) + 10;
 }
 
@@ -256,7 +256,7 @@ canvas.Display();
 <p><img src="images/graphics-ttf.png" alt="Drawing TrueType text"></p>
 <p>The <code>(x, y)</code> you pass is the top-left of the text line, like the PSF overload. For layout, <code>MeasureString(text, size)</code> returns the width a string will occupy, <code>GetLineHeight(size)</code> the distance between the tops of two lines, and <code>GetLineMetrics(size, out ascent, out descent, out lineGap)</code> the underlying baseline metrics. Kerning comes from the font's legacy <code>kern</code> table; fonts that only ship GPOS kerning still render, just without pair adjustments.</p>
 <h2 id="drawing-images">Drawing images</h2>
-<p>Images are represented by the <code>Bitmap</code> class. You can build one in code from raw pixel data — each pixel is four bytes in <strong>B, G, R, A</strong> order:</p>
+<p>Images are represented by the <code>Bitmap</code> class. You can build one in code from raw pixel data: each pixel is four bytes in <strong>B, G, R, A</strong> order:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
 
 canvas.Clear(Color.MidnightBlue);
@@ -276,7 +276,7 @@ canvas.DrawImage(bitmap, 100, 150, 128, 128);
 
 canvas.Display();
 </code></pre>
-<p>More usefully, <code>Bitmap</code> can load an uncompressed 24-bit or 32-bit <strong>BMP file</strong> through standard <code>System.IO</code> — for example from a FAT disk mounted as shown in the <a href="filesystem.html">File System</a> article:</p>
+<p>More usefully, <code>Bitmap</code> can load an uncompressed 24-bit or 32-bit <strong>BMP file</strong> through standard <code>System.IO</code>, for example from a FAT disk mounted as shown in the <a href="filesystem.html">File System</a> article:</p>
 <pre><code class="lang-csharp">/* logo.bmp is a 24-bit BMP on the FAT partition mounted at /mnt */
 Bitmap logo = new Bitmap(@&quot;/mnt/logo.bmp&quot;);
 
@@ -288,11 +288,11 @@ canvas.Display();
 </code></pre>
 <!-- screenshot: the 2x2 bitmap raw and scaled, plus the logo loaded from disk centered on screen -->
 <p><img src="images/graphics-images.png" alt="Drawing images"></p>
-<p><strong>PNG</strong> files work the same way through the <code>Png</code> class — also an <code>Image</code>, so it goes wherever a <code>Bitmap</code> goes. The whole format is supported (grayscale, truecolor and palette, with or without alpha, interlaced or not), decoded by pure managed code (see the <a href="../../credits.html">Credits</a> page). Transparent pixels blend with what is already on the canvas:</p>
+<p><strong>PNG</strong> files work the same way through the <code>Png</code> class, also an <code>Image</code>, so it goes wherever a <code>Bitmap</code> goes. The whole format is supported (grayscale, truecolor and palette, with or without alpha, interlaced or not), decoded by pure managed code (see the <a href="../../credits.html">Credits</a> page). Transparent pixels blend with what is already on the canvas:</p>
 <pre><code class="lang-csharp">/* logo.png is a PNG with transparency on the FAT partition mounted at /mnt */
 Png logo = new Png(&quot;/mnt/logo.png&quot;);
 
-/* Draw it scaled to half size, centered — transparent pixels blend with the background */
+/* Draw it scaled to half size, centered: transparent pixels blend with the background */
 int width = (int)logo.Width / 2;
 int height = (int)logo.Height / 2;
 canvas.DrawImage(logo, (canvas.Width - width) / 2, (canvas.Height - height) / 2, width, height);
@@ -301,9 +301,9 @@ canvas.Display();
 </code></pre>
 <!-- screenshot: the Cosmos logo PNG decoded from disk, scaled and alpha-blended over the background -->
 <p><img src="images/graphics-png.png" alt="Drawing a PNG"></p>
-<p><code>DrawImageAlpha</code> draws with per-pixel alpha blending, and <code>canvas.GetImage(x, y, width, height)</code> does the reverse — it copies a region of the canvas back into a <code>Bitmap</code>.</p>
+<p><code>DrawImageAlpha</code> draws with per-pixel alpha blending, and <code>canvas.GetImage(x, y, width, height)</code> does the reverse: it copies a region of the canvas back into a <code>Bitmap</code>.</p>
 <h2 id="off-screen-canvases">Off-screen canvases</h2>
-<p>A <code>Canvas</code> does not have to be the screen. Constructing one with a size gives you a memory-backed canvas with the exact same drawing API — compose a tile or sprite once, then blit it to the screen with <code>DrawCanvas</code> as many times as you like:</p>
+<p>A <code>Canvas</code> does not have to be the screen. Constructing one with a size gives you a memory-backed canvas with the exact same drawing API: compose a tile or sprite once, then blit it to the screen with <code>DrawCanvas</code> as many times as you like:</p>
 <pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
 
 canvas.Clear(Color.MidnightBlue);
@@ -329,13 +329,13 @@ Color color = canvas.GetPointColor(69, 69);   // Color.Red
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
 <li>Only 32-bit color depth is supported end to end; BMP loading additionally accepts 24-bit files.</li>
-<li>The video mode cannot be changed at runtime — the framebuffer resolution is whatever the bootloader negotiated at boot.</li>
+<li>The video mode cannot be changed at runtime: the framebuffer resolution is whatever the bootloader negotiated at boot.</li>
 <li>Supported image formats are BMP (uncompressed, 24 or 32 bpp) and PNG; there is no JPEG support.</li>
 <li>No hardware acceleration: every primitive is drawn pixel by pixel by the CPU.</li>
 <li><code>FullScreenCanvas.Disable()</code> exists but there is no VGA text mode to fall back to on UEFI machines.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p><code>Canvas.GetFullScreen()</code> returns a <code>GopCanvas</code>, a canvas backed by the framebuffer that the <a href="https://limine-bootloader.org/">Limine</a> bootloader requests from the firmware (UEFI GOP) before handing control to the kernel. This is why the same code works unmodified on x64 and ARM64 — the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; <code>Display()</code> copies the whole back buffer into the mapped framebuffer in one go. The kernel console (<a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs"><code>KernelConsole</code></a>) renders <code>Console</code> output onto that same canvas with the default PSF font, calling <code>Display()</code> after every write.</p>
+<p><code>Canvas.GetFullScreen()</code> returns a <code>GopCanvas</code>, a canvas backed by the framebuffer that the <a href="https://limine-bootloader.org/">Limine</a> bootloader requests from the firmware (UEFI GOP) before handing control to the kernel. This is why the same code works unmodified on x64 and ARM64: the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; <code>Display()</code> copies the whole back buffer into the mapped framebuffer in one go. The kernel console (<a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs"><code>KernelConsole</code></a>) renders <code>Console</code> output onto that same canvas with the default PSF font, calling <code>Display()</code> after every write.</p>
 <pre><code>Canvas API (shapes, text, images)      (Cosmos.Kernel.System.Graphics)
         │
 GopCanvas ── shared with ── KernelConsole (Console output)

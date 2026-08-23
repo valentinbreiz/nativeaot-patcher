@@ -193,12 +193,12 @@ else
 <pre><code class="lang-csharp">Console.WriteLine(NetworkConfigManager.Get(device).IPAddress.ToString());
 </code></pre>
 <h2 id="udp">UDP</h2>
-<p>UDP uses the standard .NET <code>UdpClient</code> — no Cosmos-specific classes. Sends go out immediately; for receives, poll <code>Available</code> (a receive with nothing pending would block):</p>
+<p>UDP uses the standard .NET <code>UdpClient</code>, no Cosmos-specific classes. Sends go out immediately; for receives, poll <code>Available</code> (a receive with nothing pending would block):</p>
 <pre><code class="lang-csharp">using System.Net.Sockets;
 
 var udpClient = new UdpClient(4242);
 
-/* Send data — 10.0.2.2 is the host under QEMU user networking */
+/* Send data: 10.0.2.2 is the host under QEMU user networking */
 byte[] message = Encoding.ASCII.GetBytes(&quot;Hello from CosmosOS!&quot;);
 udpClient.Send(message, message.Length, new IPEndPoint(IPAddress.Parse(&quot;10.0.2.2&quot;), 4242));
 
@@ -297,14 +297,14 @@ dnsClient.Close();
 <p><img src="images/network-dns.png" alt="DNS"></p>
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
-<li>ICMP is not implemented yet — no ping, in either direction.</li>
+<li>ICMP is not implemented yet: no ping, in either direction.</li>
 <li><code>System.Net.Dns</code> is not plugged; use the Cosmos <code>DnsClient</code> shown above.</li>
-<li>No TLS, so no <code>HttpClient</code>/HTTPS — raw TCP only.</li>
+<li>No TLS, so no <code>HttpClient</code>/HTTPS: raw TCP only.</li>
 <li>One NIC: the stack talks to <code>NetworkManager.PrimaryDevice</code>.</li>
 <li>Half-close is not supported: <code>Close()</code> on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p>Your code calls the standard .NET socket classes, whose PAL bottoms out in <code>Socket</code>-level <a href="../dev/plugs.html">plugs</a> in <code>Cosmos.Kernel.Plugs</code> (<code>SocketPlug</code>, <code>TcpClientPlug</code>, <code>TcpListenerPlug</code>, <code>UdpClientPlug</code>, <code>NetworkStreamPlug</code>). Those delegate to the Cosmos network stack — the TCP state machine and UDP layer over IPv4, ARP and Ethernet — which sends and receives frames through the <code>NetworkDevice</code> driver registered with <code>NetworkManager</code>. The Cosmos <code>DHCPClient</code> and <code>DnsClient</code> sit directly on the Cosmos UDP layer.</p>
+<p>Your code calls the standard .NET socket classes, whose PAL bottoms out in <code>Socket</code>-level <a href="../dev/plugs.html">plugs</a> in <code>Cosmos.Kernel.Plugs</code> (<code>SocketPlug</code>, <code>TcpClientPlug</code>, <code>TcpListenerPlug</code>, <code>UdpClientPlug</code>, <code>NetworkStreamPlug</code>). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over IPv4, ARP and Ethernet), which sends and receives frames through the <code>NetworkDevice</code> driver registered with <code>NetworkManager</code>. The Cosmos <code>DHCPClient</code> and <code>DnsClient</code> sit directly on the Cosmos UDP layer.</p>
 <pre><code>TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)
         │
 Socket plugs                                            (Cosmos.Kernel.Plugs)

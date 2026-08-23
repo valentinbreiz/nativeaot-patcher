@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Public API Tracking | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Public API Tracking | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/public-api.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="public-api-tracking">Public API Tracking</h1>
+
+<p>The public surface of the kernel packages is declared in text files checked into the repository, enforced by Roslyn analyzers at build time, guarded against breaking changes at release time, and published as one frozen documentation site per release. This page describes the three mechanisms and the contributor workflow they impose.</p>
+<hr>
+<h2 id="the-declared-surface">The declared surface</h2>
+<p>Projects opt in with <code>&lt;CosmosTrackPublicApi&gt;true&lt;/CosmosTrackPublicApi&gt;</code> in their <code>.csproj</code> (wired in <code>Directory.Build.props</code>). Today that covers <code>Cosmos.Kernel.System</code>; <code>Cosmos.Kernel.Core</code> and the HAL packages follow once their surfaces are audited.</p>
+<p>An opted-in project references <a href="https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md">Microsoft.CodeAnalysis.PublicApiAnalyzers</a>, which requires every <code>public</code> symbol to appear in one of two files next to the <code>.csproj</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PublicAPI.Shipped.txt</code></td>
+<td>The surface of the last release. Frozen: it only changes when a release is cut.</td>
+</tr>
+<tr>
+<td><code>PublicAPI.Unshipped.txt</code></td>
+<td>Surface added, changed, or removed since then. Emptied into <code>Shipped</code> at release time.</td>
+</tr>
+</tbody>
+</table>
+<p>Two diagnostics enforce the contract, both raised as build errors:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RS0016</code></td>
+<td>A public symbol exists in code but is not declared in either file.</td>
+</tr>
+<tr>
+<td><code>RS0017</code></td>
+<td>A declared symbol no longer exists in code.</td>
+</tr>
+</tbody>
+</table>
+<p>The effect is that any change to the public surface, deliberate or accidental, must land in the same commit as a diff of <code>PublicAPI.Unshipped.txt</code>, where the review can see it.</p>
+<p>Three categories stay out of the files, the first two through <code>.editorconfig</code> overrides that set <code>RS0016</code>/<code>RS0017</code> to <code>none</code> under their paths:</p>
+<ul>
+<li>The vendored directories (<code>SharpZipLib</code>, the PNG decoder, the TrueType fonts). Their types that are still <code>public</code> leak into the package anyway; making them <code>internal</code> is part of the pre-release surface cleanup, and keeping them out of the files means that cleanup will not churn the declared surface.</li>
+<li>The generated <code>KernelVersion.g.cs</code> that carries <code>Kernel.VersionString</code>: the declared-API format records constant values, and this one changes with every version stamp.</li>
+<li><code>internal</code> symbols, including everything exposed to the test kernels through <code>InternalsVisibleTo</code>.</li>
+</ul>
+<h3 id="changing-the-public-api">Changing the public API</h3>
+<ol>
+<li>Make the code change. The build now fails with <code>RS0016</code> or <code>RS0017</code>.</li>
+<li>Run <code>make api</code> from the repository root. It rebuilds the tracked projects and applies the analyzer's code fixes to <code>PublicAPI.Unshipped.txt</code>. The IDE quick fix (&quot;Add to public API&quot;) on each diagnostic is equivalent.</li>
+<li>Commit the txt diff together with the code.</li>
+</ol>
+<p>Removing or changing a symbol that already shipped is recorded as a <code>*REMOVED*</code> line in <code>Unshipped</code>, which is exactly what it is: a breaking change, visible as such in the PR. Before the first release, while <code>Shipped</code> is empty, a removal simply drops the line.</p>
+<hr>
+<h2 id="package-validation">Package validation</h2>
+<p>The same <code>CosmosTrackPublicApi</code> flag enables <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/package-validation/overview">NuGet package validation</a> on the project, and <code>Directory.Build.props</code> holds the baseline knob:</p>
+<pre><code class="lang-xml">&lt;CosmosApiBaselineVersion&gt;&lt;/CosmosApiBaselineVersion&gt;
+</code></pre>
+<p>The property is empty until the first Gen3 release is published on NuGet.org. Once it is pinned to that version, two guards activate on their own:</p>
+<ul>
+<li><code>PackageValidationBaselineVersion</code> makes every pack compare the package against the baseline release and fail on binary breaking changes.</li>
+<li>The <code>API compatibility guard</code> step in <code>release.yml</code> downloads the baseline package from NuGet.org and runs <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/apicompat/global-tool">Microsoft.DotNet.ApiCompat.Tool</a> against the freshly built one, as a final gate before publishing.</li>
+</ul>
+<p>An intentional breaking change is recorded in a <code>CompatibilitySuppressions.xml</code> next to the project (<code>dotnet pack /p:ApiCompatGenerateSuppressionFile=true</code> generates it), so it too becomes a reviewable diff.</p>
+<hr>
+<h2 id="versioned-docs">Versioned docs</h2>
+<p>The docs site at the root of <code>gh-pages</code> follows the main branch: it is the dev documentation, rebuilt by <code>build-docs.yml</code> on every docs push. Releases get frozen copies next to it, published by the <code>publish-docs</code> job of <code>release.yml</code> when a <code>v*</code> tag is pushed:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>Dev docs, follows main.</td>
+</tr>
+<tr>
+<td><code>/vX.Y.Z/</code></td>
+<td>The docs as built from tag <code>vX.Y.Z</code>, never rebuilt.</td>
+</tr>
+<tr>
+<td><code>/latest/</code></td>
+<td>Alias of the newest release, stable URL for external links.</td>
+</tr>
+<tr>
+<td><code>/versions.json</code></td>
+<td>The release list, newest first, plus the <code>latest</code> marker.</td>
+</tr>
+</tbody>
+</table>
+<p>The version dropdown in the site navbar comes from <code>docs/templates/custom/public/main.js</code>. It reads <code>versions.json</code>, lists <code>dev</code> plus every release, and keeps the reader on the same page across versions when the page exists there. It only appears once <code>versions.json</code> exists, i.e. after the first tagged release; until then the site behaves exactly as before.</p>
+<p>The dev deploys use <code>keep_files: true</code> so they never wipe the <code>v*/</code> folders, at the cost of deleted dev pages lingering on the branch until overwritten.</p>
+<hr>
+<h2 id="release-checklist">Release checklist</h2>
+<p>What cutting a release changes in this system:</p>
+<ol>
+<li>Tag <code>vX.Y.Z</code>. CI builds the packages, runs the API compatibility guard, publishes to NuGet.org, and freezes <code>/vX.Y.Z/</code> docs.</li>
+<li>Move the contents of <code>PublicAPI.Unshipped.txt</code> into <code>PublicAPI.Shipped.txt</code> (drop the <code>*REMOVED*</code> pairs), leaving <code>Unshipped</code> empty.</li>
+<li>Set <code>CosmosApiBaselineVersion</code> in <code>Directory.Build.props</code> to <code>X.Y.Z</code> so the next cycle validates against this release.</li>
+</ol>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/public-api.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
