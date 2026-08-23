@@ -26,32 +26,32 @@ public static class KeyboardManager
     /// <summary>
     /// The num-lock state.
     /// </summary>
-    public static bool NumLock { get; set; }
+    public static bool NumLock { get; private set; }
 
     /// <summary>
     /// The caps-lock state.
     /// </summary>
-    public static bool CapsLock { get; set; }
+    public static bool CapsLock { get; private set; }
 
     /// <summary>
     /// The scroll-lock state.
     /// </summary>
-    public static bool ScrollLock { get; set; }
+    public static bool ScrollLock { get; private set; }
 
     /// <summary>
     /// Whether the Control (Ctrl) key is currently pressed.
     /// </summary>
-    public static bool ControlPressed { get; set; }
+    public static bool ControlPressed { get; private set; }
 
     /// <summary>
     /// Whether the Shift key is currently pressed.
     /// </summary>
-    public static bool ShiftPressed { get; set; }
+    public static bool ShiftPressed { get; private set; }
 
     /// <summary>
     /// Whether the Alt key is currently pressed.
     /// </summary>
-    public static bool AltPressed { get; set; }
+    public static bool AltPressed { get; private set; }
 
     /// <summary>
     /// Whether a keyboard input is pending to be processed.

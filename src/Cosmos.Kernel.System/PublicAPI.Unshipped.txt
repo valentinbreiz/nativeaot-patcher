@@ -114,7 +114,8 @@ Cosmos.Kernel.System.Graphics.Image.Depth.set -> void
 Cosmos.Kernel.System.Graphics.Image.Height.get -> uint
 Cosmos.Kernel.System.Graphics.Image.Height.set -> void
 Cosmos.Kernel.System.Graphics.Image.Image(uint width, uint height, Cosmos.Kernel.System.Graphics.ColorDepth color) -> void
-Cosmos.Kernel.System.Graphics.Image.RawData -> int[]!
+Cosmos.Kernel.System.Graphics.Image.RawData.get -> int[]!
+Cosmos.Kernel.System.Graphics.Image.RawData.set -> void
 Cosmos.Kernel.System.Graphics.Image.Width.get -> uint
 Cosmos.Kernel.System.Graphics.Image.Width.set -> void
 Cosmos.Kernel.System.Graphics.ImageFormat
@@ -183,9 +184,11 @@ Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.SVGAII3DCanvas(Cosmos.Kernel.HAL.Pc
 Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.SVGAII3DCanvas(Cosmos.Kernel.HAL.Pci.PciDevice! device, Cosmos.Kernel.System.Graphics.Mode aMode) -> void
 Cosmos.Kernel.System.Kernel
 Cosmos.Kernel.System.Kernel.Kernel() -> void
-Cosmos.Kernel.System.Kernel.mStarted -> bool
-Cosmos.Kernel.System.Kernel.mStopped -> bool
+Cosmos.Kernel.System.Kernel.Started.get -> bool
+Cosmos.Kernel.System.Kernel.Started.set -> void
 Cosmos.Kernel.System.Kernel.Stop() -> void
+Cosmos.Kernel.System.Kernel.Stopped.get -> bool
+Cosmos.Kernel.System.Kernel.Stopped.set -> void
 Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
 Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.A = 47 -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
 Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.AltGr = 82 -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
@@ -318,12 +321,18 @@ Cosmos.Kernel.System.Keyboard.KeyEvent.Modifiers.set -> void
 Cosmos.Kernel.System.Keyboard.KeyEvent.Type.get -> Cosmos.Kernel.System.Keyboard.KeyEvent.KeyEventType
 Cosmos.Kernel.System.Keyboard.KeyEvent.Type.set -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping
-Cosmos.Kernel.System.Keyboard.KeyMapping.CapsLock -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.Control -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAlt -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAltShift -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.ControlShift -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.Key -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
+Cosmos.Kernel.System.Keyboard.KeyMapping.CapsLock.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.CapsLock.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.Control.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.Control.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAlt.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAlt.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAltShift.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlAltShift.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlShift.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.ControlShift.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.Key.get -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
+Cosmos.Kernel.System.Keyboard.KeyMapping.Key.set -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char n, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key) -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char normal, char shift, char num, char caps, char shiftCapsLock, char shiftNumLock, char ctrlAlt, char ctrlAltShift, char ctrl, char shiftCtrl, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx numKey) -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char normal, char shift, char num, char capsLock, char shiftCapsLock, char shiftNumLock, char ctrlAlt, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key) -> void
@@ -335,13 +344,20 @@ Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char normal, 
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char normal, char shift, char numLock, char capsLock, char shiftCapsLock, char shiftNumLock, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx numKey) -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, char numLock, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx numKey) -> void
 Cosmos.Kernel.System.Keyboard.KeyMapping.KeyMapping(byte scanCode, Cosmos.Kernel.System.Keyboard.ConsoleKeyEx key) -> void
-Cosmos.Kernel.System.Keyboard.KeyMapping.NumLock -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.NumLockKey -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
-Cosmos.Kernel.System.Keyboard.KeyMapping.ScanCode -> byte
-Cosmos.Kernel.System.Keyboard.KeyMapping.Shift -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftCapsLock -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftNumLock -> char
-Cosmos.Kernel.System.Keyboard.KeyMapping.Value -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.NumLock.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.NumLock.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.NumLockKey.get -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
+Cosmos.Kernel.System.Keyboard.KeyMapping.NumLockKey.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ScanCode.get -> byte
+Cosmos.Kernel.System.Keyboard.KeyMapping.ScanCode.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.Shift.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.Shift.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftCapsLock.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftCapsLock.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftNumLock.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.ShiftNumLock.set -> void
+Cosmos.Kernel.System.Keyboard.KeyMapping.Value.get -> char
+Cosmos.Kernel.System.Keyboard.KeyMapping.Value.set -> void
 Cosmos.Kernel.System.Keyboard.ScanMapBase
 Cosmos.Kernel.System.Keyboard.ScanMapBase.ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock) -> Cosmos.Kernel.System.Keyboard.KeyEvent?
 Cosmos.Kernel.System.Keyboard.ScanMapBase.Keys -> System.Collections.Generic.List<Cosmos.Kernel.System.Keyboard.KeyMapping!>!
@@ -371,8 +387,8 @@ Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Netwo
 Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> void
 Cosmos.Kernel.System.Network.Config.IPConfig.SubnetMask.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.Config.NetworkConfigEntry
-Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.Device -> Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice!
-Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.IPConfig -> Cosmos.Kernel.System.Network.Config.IPConfig!
+Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.Device.get -> Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice!
+Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.IPConfig.get -> Cosmos.Kernel.System.Network.Config.IPConfig!
 Cosmos.Kernel.System.Network.Config.NetworkConfigManager
 Cosmos.Kernel.System.Network.IPv4.Address
 Cosmos.Kernel.System.Network.IPv4.Address.Address(byte aFirst, byte aSecond, byte aThird, byte aFourth) -> void
@@ -390,11 +406,13 @@ Cosmos.Kernel.System.Network.IPv4.Address.Parts.get -> System.Collections.Immuta
 Cosmos.Kernel.System.Network.IPv4.Address.ToSpan() -> System.ReadOnlySpan<byte>
 Cosmos.Kernel.System.Network.IPv4.Address.ToUInt32() -> uint
 Cosmos.Kernel.System.Network.IPv4.EndPoint
-Cosmos.Kernel.System.Network.IPv4.EndPoint.Address -> Cosmos.Kernel.System.Network.IPv4.Address!
+Cosmos.Kernel.System.Network.IPv4.EndPoint.Address.get -> Cosmos.Kernel.System.Network.IPv4.Address!
+Cosmos.Kernel.System.Network.IPv4.EndPoint.Address.set -> void
 Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(object? obj) -> int
 Cosmos.Kernel.System.Network.IPv4.EndPoint.EndPoint(Cosmos.Kernel.System.Network.IPv4.Address! addr, ushort port) -> void
 Cosmos.Kernel.System.Network.IPv4.EndPoint.EndPoint(uint addr, ushort port) -> void
-Cosmos.Kernel.System.Network.IPv4.EndPoint.Port -> ushort
+Cosmos.Kernel.System.Network.IPv4.EndPoint.Port.get -> ushort
+Cosmos.Kernel.System.Network.IPv4.EndPoint.Port.set -> void
 Cosmos.Kernel.System.Network.IPv4.ICMPClient
 Cosmos.Kernel.System.Network.IPv4.ICMPClient.Close() -> void
 Cosmos.Kernel.System.Network.IPv4.ICMPClient.Connect(Cosmos.Kernel.System.Network.IPv4.Address! dest) -> void
@@ -521,17 +539,8 @@ override Cosmos.Kernel.System.Storage.Partition.Flush() -> void
 override Cosmos.Kernel.System.Storage.Partition.Name.get -> string!
 override Cosmos.Kernel.System.Storage.Partition.ReadBlock(ulong blockNo, ulong blockCount, System.Span<byte> data) -> void
 override Cosmos.Kernel.System.Storage.Partition.WriteBlock(ulong blockNo, ulong blockCount, System.ReadOnlySpan<byte> data) -> void
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.CanRead.get -> bool
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.CanSeek.get -> bool
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.CanWrite.get -> bool
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.Length.get -> long
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.Position.get -> long
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.Position.set -> void
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.Seek(long offset, System.IO.SeekOrigin origin) -> long
-override sealed Cosmos.Kernel.System.IO.ConsoleStream.SetLength(long value) -> void
 static Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.TryParse(System.ReadOnlySpan<byte> bpb, out Cosmos.Kernel.System.Filesystems.Fat.FatBootSector? bootSector) -> bool
 static Cosmos.Kernel.System.Global.CurrentKernel.get -> Cosmos.Kernel.System.Kernel?
-static Cosmos.Kernel.System.Global.CurrentKernel.set -> void
 static Cosmos.Kernel.System.Global.Init() -> void
 static Cosmos.Kernel.System.Global.RegisterKernel(Cosmos.Kernel.System.Kernel! kernel) -> void
 static Cosmos.Kernel.System.Global.StartKernel() -> void
@@ -558,11 +567,8 @@ static Cosmos.Kernel.System.Graphics.Mode.operator ==(Cosmos.Kernel.System.Graph
 static Cosmos.Kernel.System.Graphics.Mode.operator >(Cosmos.Kernel.System.Graphics.Mode a, Cosmos.Kernel.System.Graphics.Mode b) -> bool
 static Cosmos.Kernel.System.Graphics.Mode.operator >=(Cosmos.Kernel.System.Graphics.Mode a, Cosmos.Kernel.System.Graphics.Mode b) -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.AltPressed.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.AltPressed.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.CapsLock.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.CapsLock.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ControlPressed.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.ControlPressed.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKey(byte scanCode, out Cosmos.Kernel.System.Keyboard.KeyEvent? keyInfo) -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKeyLayout() -> Cosmos.Kernel.System.Keyboard.ScanMapBase?
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.HandleScanCode(byte scanCode, bool released) -> void
@@ -570,15 +576,12 @@ static Cosmos.Kernel.System.Keyboard.KeyboardManager.Initialize() -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.IsEnabled.get -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.KeyAvailable.get -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.NumLock.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.NumLock.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.Peek() -> Cosmos.Kernel.System.Keyboard.KeyEvent!
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ReadKey() -> Cosmos.Kernel.System.Keyboard.KeyEvent!
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard(Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice! keyboard) -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ScrollLock.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.ScrollLock.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.SetKeyLayout(Cosmos.Kernel.System.Keyboard.ScanMapBase! scanMap) -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ShiftPressed.get -> bool
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.ShiftPressed.set -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.TryReadKey(out Cosmos.Kernel.System.Keyboard.KeyEvent? key) -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.Initialize() -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled.get -> bool
@@ -589,9 +592,7 @@ static Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.I
 static Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta() -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.RightButton.get -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight.get -> int
-static Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight.set -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth.get -> int
-static Cosmos.Kernel.System.Mouse.MouseManager.ScreenWidth.set -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.ScrollDelta.get -> int
 static Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity.get -> float
 static Cosmos.Kernel.System.Mouse.MouseManager.Sensitivity.set -> void
@@ -600,6 +601,7 @@ static Cosmos.Kernel.System.Mouse.MouseManager.SetScreenSize(int width, int heig
 static Cosmos.Kernel.System.Mouse.MouseManager.X.get -> int
 static Cosmos.Kernel.System.Mouse.MouseManager.Y.get -> int
 static Cosmos.Kernel.System.Network.Config.DNSConfig.Add(Cosmos.Kernel.System.Network.IPv4.Address! nameserver) -> void
+static Cosmos.Kernel.System.Network.Config.DNSConfig.DNSNameservers.get -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.System.Network.IPv4.Address!>!
 static Cosmos.Kernel.System.Network.Config.DNSConfig.Remove(Cosmos.Kernel.System.Network.IPv4.Address! nameserver) -> void
 static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice! device, Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
 static Cosmos.Kernel.System.Network.Config.IPConfig.FindNetwork(Cosmos.Kernel.System.Network.IPv4.Address! destIP) -> Cosmos.Kernel.System.Network.IPv4.Address?
@@ -609,14 +611,12 @@ static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.ConfigsContainsD
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Count.get -> int
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentNetworkConfig.get -> Cosmos.Kernel.System.Network.Config.NetworkConfigEntry?
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentNetworkConfig.set -> void
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Get(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice! device) -> Cosmos.Kernel.System.Network.Config.IPConfig?
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Remove(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice! key) -> void
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.SetCurrentConfig(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice! device, Cosmos.Kernel.System.Network.Config.IPConfig! config) -> void
 static Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress(int cidr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan<char> addr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.DHCPServerAddress(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice! networkDevice) -> Cosmos.Kernel.System.Network.IPv4.Address?
-static Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.DynamicPortStart -> ushort
 static Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.GetDynamicPort(int tries = 10) -> ushort
 static Cosmos.Kernel.System.Network.NetworkManager.DeviceCount.get -> int
 static Cosmos.Kernel.System.Network.NetworkManager.GetDevice(int index) -> Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice?
@@ -704,8 +704,6 @@ static Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(string! path) 
 static Cosmos.Kernel.System.Vfs.VfsManager.TryStat(string! fullPath, out Cosmos.Kernel.HAL.Vfs.VfsStat stat) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(string! fullPath) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount(string! mountPoint) -> bool
-static readonly Cosmos.Kernel.System.Network.Config.DNSConfig.DNSNameservers -> System.Collections.Generic.List<Cosmos.Kernel.System.Network.IPv4.Address!>!
-static readonly Cosmos.Kernel.System.Network.Config.NetworkConfigManager.NetworkConfigs -> System.Collections.Generic.List<Cosmos.Kernel.System.Network.Config.NetworkConfigEntry!>!
 static readonly Cosmos.Kernel.System.Network.IPv4.Address.Broadcast -> Cosmos.Kernel.System.Network.IPv4.Address!
 static readonly Cosmos.Kernel.System.Network.IPv4.Address.Zero -> Cosmos.Kernel.System.Network.IPv4.Address!
 static readonly Cosmos.Kernel.System.Storage.Gpt.BasicDataPartitionType -> System.Guid

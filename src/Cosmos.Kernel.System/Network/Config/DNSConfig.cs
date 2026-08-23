@@ -14,10 +14,13 @@ namespace Cosmos.Kernel.System.Network.Config;
 /// </summary>
 public class DNSConfig
 {
+    private static readonly List<Address> s_nameservers = new();
+
     /// <summary>
-    /// The list of known DNS nameserver addresses.
+    /// The list of known DNS nameserver addresses. Use <see cref="Add"/> and
+    /// <see cref="Remove"/> to change it.
     /// </summary>
-    public static readonly List<Address> DNSNameservers = new();
+    public static IReadOnlyList<Address> DNSNameservers => s_nameservers;
 
     /// <summary>
     /// Registers a given DNS server.
@@ -32,7 +35,7 @@ public class DNSConfig
                 return;
             }
         }
-        DNSNameservers.Add(nameserver);
+        s_nameservers.Add(nameserver);
     }
 
     /// <summary>
@@ -52,7 +55,7 @@ public class DNSConfig
         }
         if (toRemove != null)
         {
-            DNSNameservers.Remove(toRemove);
+            s_nameservers.Remove(toRemove);
         }
     }
 }

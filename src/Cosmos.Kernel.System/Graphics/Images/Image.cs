@@ -14,7 +14,7 @@ public abstract class Image
     /// values of the raster image.
     /// </summary>
     /// <remarks>Must be initialized in supertype.</remarks>
-    public int[] RawData = null!;
+    public int[] RawData { get; set; } = null!;
 
     /// <summary>
     /// The width of the image.

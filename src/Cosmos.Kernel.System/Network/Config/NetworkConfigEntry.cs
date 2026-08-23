@@ -11,12 +11,12 @@ public class NetworkConfigEntry
     /// <summary>
     /// The network device associated with this <see cref="NetworkConfigEntry"/> instance.
     /// </summary>
-    public INetworkDevice Device;
+    public INetworkDevice Device { get; }
 
     /// <summary>
     /// The IPv4 configuration.
     /// </summary>
-    public IPConfig IPConfig;
+    public IPConfig IPConfig { get; }
 
     internal NetworkConfigEntry(INetworkDevice device, IPConfig config)
     {

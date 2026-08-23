@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 /// </summary>
 public class UdpClient : IDisposable
 {
-    public static ushort DynamicPortStart = 49152;
+    private const ushort DynamicPortStart = 49152;
 
     private static ushort s_nextPort = 49152;
 

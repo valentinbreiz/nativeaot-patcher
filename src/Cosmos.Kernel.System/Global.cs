@@ -14,13 +14,9 @@ public static class Global
     private static Kernel? s_kernel;
 
     /// <summary>
-    /// Gets or sets the current kernel instance.
+    /// Gets the current kernel instance.
     /// </summary>
-    public static Kernel? CurrentKernel
-    {
-        get => s_kernel;
-        set => s_kernel = value;
-    }
+    public static Kernel? CurrentKernel => s_kernel;
 
     /// <summary>
     /// Registers a kernel instance to be started by the boot infrastructure.

@@ -62,12 +62,12 @@ public static class MouseManager
     /// <summary>
     /// Screen width for boundary checking.
     /// </summary>
-    public static int ScreenWidth { get; set; } = 1024;
+    public static int ScreenWidth { get; private set; } = 1024;
 
     /// <summary>
     /// Screen height for boundary checking.
     /// </summary>
-    public static int ScreenHeight { get; set; } = 768;
+    public static int ScreenHeight { get; private set; } = 768;
 
     /// <summary>
     /// Mouse sensitivity multiplier (default 1.0).

@@ -8,12 +8,12 @@ public class EndPoint : IComparable
     /// <summary>
     /// The address of the end-point.
     /// </summary>
-    public Address Address;
+    public Address Address { get; set; }
 
     /// <summary>
     /// The port of the end-point.
     /// </summary>
-    public ushort Port;
+    public ushort Port { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EndPoint"/> class.
