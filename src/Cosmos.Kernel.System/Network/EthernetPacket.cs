@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Network;
 /// Represents an Ethernet packet.
 /// </summary>
 // For more info, refer to http://standards.ieee.org/about/get/802/802.3.html
-public class EthernetPacket
+internal class EthernetPacket
 {
     protected MACAddress srcMAC = null!;
     protected MACAddress destMAC = null!;

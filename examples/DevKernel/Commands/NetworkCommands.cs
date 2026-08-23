@@ -1,5 +1,5 @@
 using System;
-using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
@@ -34,6 +34,9 @@ internal static class NetworkCommands
 
     /// <summary>Payload sent by the netsend test packet.</summary>
     private const string TestPacketMessage = "Hello from CosmosOS!";
+
+    /// <summary>Maximum UDP payload bytes echoed to the console per datagram.</summary>
+    private const int UdpPreviewMaxBytes = 64;
 
     public static void Register(CommandShell shell)
     {
@@ -162,26 +165,15 @@ internal static class NetworkCommands
             payload[i] = (byte)TestPacketMessage[i];
         }
 
-        // Broadcast MAC stands in for the ARP resolution the stack does not do yet.
-        UDPPacket packet = new(
-            session.LocalIp!,
-            session.GatewayIp!,
-            TestUdpPort,
-            TestUdpPort,
-            payload,
-            MACAddress.Broadcast);
-
         Terminal.Info("Sending UDP packet to " + session.GatewayIp!.ToString() + ":" + TestUdpPort + "...");
-        bool sent = device.Send(packet.RawData, packet.RawData.Length);
 
-        if (sent)
+        using (UdpClient client = new(TestUdpPort))
         {
-            Terminal.Success("Packet sent!\n");
+            client.Connect(session.GatewayIp!, TestUdpPort);
+            client.Send(payload);
         }
-        else
-        {
-            Terminal.Error("Failed to send packet\n");
-        }
+
+        Terminal.Success("Packet sent!\n");
     }
 
     private static void StartListening(NetworkSession session)
@@ -197,8 +189,68 @@ internal static class NetworkCommands
             ConfigureNetwork(session);
         }
 
-        Terminal.Info("Listening for UDP packets on port " + TestUdpPort + "...");
+        Terminal.Info("Listening for UDP packets on port " + TestUdpPort + "... (Esc to stop)");
         Terminal.Hint("Send from host: echo 'test' | nc -u localhost " + TestUdpPort);
+
+        using (UdpClient client = new(TestUdpPort))
+        {
+            EndPoint source = new(Address.Zero, 0);
+
+            while (!Console.KeyAvailable || Console.ReadKey(true).Key != ConsoleKey.Escape)
+            {
+                byte[]? data = client.NonBlockingReceive(ref source);
+                if (data != null)
+                {
+                    PrintDatagram(source, data);
+                }
+            }
+        }
+    }
+
+    /// <summary>Logs the full payload to serial, and a printable preview to the console.</summary>
+    private static void PrintDatagram(EndPoint source, byte[] data)
+    {
+        Serial.Write("[UDP] Received datagram from ");
+        Serial.WriteString(source.Address.ToString());
+        Serial.Write(":");
+        Serial.WriteNumber((ulong)source.Port);
+        Serial.Write(" -> port ");
+        Serial.WriteNumber((ulong)TestUdpPort);
+        Serial.Write("\n");
+
+        Serial.Write("[UDP] Payload (");
+        Serial.WriteNumber((ulong)data.Length);
+        Serial.Write(" bytes): ");
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            char c = (char)data[i];
+            if (Ascii.IsPrintable(c))
+            {
+                Serial.Write(c.ToString());
+            }
+        }
+
+        Serial.Write("\n");
+
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.Write("[UDP] ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(source.Address.ToString() + ":" + source.Port.ToString());
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(" -> ");
+        Console.ResetColor();
+
+        for (int i = 0; i < data.Length && i < UdpPreviewMaxBytes; i++)
+        {
+            char c = (char)data[i];
+            if (Ascii.IsPrintable(c))
+            {
+                Console.Write(c.ToString());
+            }
+        }
+
+        Console.WriteLine();
     }
 
     private static void RunDhcp(NetworkSession session)

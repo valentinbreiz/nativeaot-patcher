@@ -75,6 +75,10 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Cosmos.Kernel.Plugs</_Parameter1>
     </AssemblyAttribute>
+    <!-- White-box network tests observe the stack's ICMP echo counters. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cosmos.Kernel.Tests.Network</_Parameter1>
+    </AssemblyAttribute>
     <!-- White-box FAT layout tests forge and corrupt raw directory bytes. -->
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Cosmos.Kernel.Tests.Fat</_Parameter1>

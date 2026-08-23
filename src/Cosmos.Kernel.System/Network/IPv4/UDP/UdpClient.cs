@@ -47,7 +47,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// The RX buffer queue.
     /// </summary>
-    public Queue<UDPPacket> rxBuffer;
+    internal Queue<UDPPacket> rxBuffer;
 
     /// <summary>
     /// Gets a UDP client running on the given port.

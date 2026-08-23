@@ -8,12 +8,12 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 /// <summary>
 /// Delegate for UDP data received events.
 /// </summary>
-public delegate void UDPDataReceivedHandler(UDPPacket packet);
+internal delegate void UDPDataReceivedHandler(UDPPacket packet);
 
 /// <summary>
 /// Represents a UDP packet.
 /// </summary>
-public class UDPPacket : IPPacket
+internal class UDPPacket : IPPacket
 {
     private ushort _udpCRC;
 

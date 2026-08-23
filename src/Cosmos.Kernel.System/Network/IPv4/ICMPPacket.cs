@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <remarks>
 /// See also: <seealso cref="IPPacket"/>.
 /// </remarks>
-public class ICMPPacket : IPPacket
+internal class ICMPPacket : IPPacket
 {
     protected byte icmpType;
     protected byte icmpCode;

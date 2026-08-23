@@ -9,7 +9,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <summary>
 /// Represents an IP (Internet Protocol) packet.
 /// </summary>
-public class IPPacket : EthernetPacket
+internal class IPPacket : EthernetPacket
 {
     protected byte ipHeaderLength;
     private static ushort s_sNextFragmentID;
