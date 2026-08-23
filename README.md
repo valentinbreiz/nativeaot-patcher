@@ -38,7 +38,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - PCI and MMIO drivers
 - UART serial
 - [Cosmos Graphics Subsystem](https://cosmosos.github.io/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
-- Keyboard and Mouse input
+- [Keyboard](https://cosmosos.github.io/articles/user/keyboard.html) and [Mouse](https://cosmosos.github.io/articles/user/mouse.html) input
 - [Network stack](https://cosmosos.github.io/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
 - Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
 - [FAT12/16/32 filesystem](https://cosmosos.github.io/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
@@ -55,6 +55,8 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - [File System](docs/articles/user/filesystem.md)
 - [Network](docs/articles/user/network.md)
 - [Graphics](docs/articles/user/graphics.md)
+- [Keyboard](docs/articles/user/keyboard.md)
+- [Mouse](docs/articles/user/mouse.md)
 - [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
 
 **Contributor Docs**
