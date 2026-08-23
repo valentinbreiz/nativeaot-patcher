@@ -28,7 +28,6 @@ const Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.CNAME = 5 -> ushor
 const Cosmos.Kernel.System.Storage.Gpt.FirstUsableLba = 34 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.PrimaryHeaderLba = 1 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.ProtectiveMbrStartLba = 1 -> uint
-Cosmos.Kernel.System.Conversion.Base64
 Cosmos.Kernel.System.Filesystems.Fat.FatAttr
 Cosmos.Kernel.System.Filesystems.Fat.FatAttr.Archive = 32 -> Cosmos.Kernel.System.Filesystems.Fat.FatAttr
 Cosmos.Kernel.System.Filesystems.Fat.FatAttr.Directory = 16 -> Cosmos.Kernel.System.Filesystems.Fat.FatAttr
@@ -821,7 +820,6 @@ override sealed Cosmos.Kernel.System.IO.ConsoleStream.Position.get -> long
 override sealed Cosmos.Kernel.System.IO.ConsoleStream.Position.set -> void
 override sealed Cosmos.Kernel.System.IO.ConsoleStream.Seek(long offset, System.IO.SeekOrigin origin) -> long
 override sealed Cosmos.Kernel.System.IO.ConsoleStream.SetLength(long value) -> void
-static Cosmos.Kernel.System.Conversion.Base64.Decode(char* Encoded, uint Length) -> byte*
 static Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.TryParse(System.ReadOnlySpan<byte> bpb, out Cosmos.Kernel.System.Filesystems.Fat.FatBootSector? bootSector) -> bool
 static Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.BuildShortName(string! longName, System.Span<char> dest11, System.ReadOnlySpan<byte> directoryData) -> void
 static Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.ComputeShortChecksum(System.ReadOnlySpan<byte> raw11) -> byte
