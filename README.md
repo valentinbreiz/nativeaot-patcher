@@ -48,36 +48,6 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 [Documentation site](https://cosmosos.github.io/index.html): split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
 
-**User Guide**
-
-- [Installation Guide](docs/articles/user/install.md)
-- [Kernel Startup](docs/articles/user/startup.md)
-- [File System](docs/articles/user/filesystem.md)
-- [Network](docs/articles/user/network.md)
-- [Graphics](docs/articles/user/graphics.md)
-- [Keyboard](docs/articles/user/keyboard.md)
-- [Mouse](docs/articles/user/mouse.md)
-- [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
-
-**Contributor Docs**
-
-- [Dev Container Setup](docs/articles/dev/install-dev.md)
-- [Kernel Project Layout](docs/articles/dev/kernel-project-layout.md)
-- [Coding Guidelines](docs/articles/dev/coding-guidelines.md)
-- [Plugs](docs/articles/dev/plugs.md)
-- [Testing](docs/articles/dev/testing.md)
-- [Garbage Collector](docs/articles/dev/garbage-collector.md), [Precise Stack Scan (GCInfo)](docs/articles/dev/garbage-collector-gcinfo.md)
-- [Scheduler](docs/articles/dev/scheduler.md)
-- [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
-- [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
-
-## Related resources
-
-- [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
-- [NativeAOT Developer Workflow](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/nativeaot.md)
-- [NativeAOT Limitations](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md)
-- [Limine Boot Protocol](https://github.com/limine-bootloader/limine)
-
 ## Contributors
 
 Thanks to everyone who has contributed code, reviews, plugs, and bug reports:
