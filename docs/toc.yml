@@ -1,6 +1,6 @@
 - name: User Guide
   href: articles/user/
-- name: Developer Docs
+- name: Contributor Docs
   href: articles/dev/
 - name: Roadmap
   href: roadmap.md

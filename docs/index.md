@@ -9,7 +9,7 @@ Check out the [Roadmap](roadmap.md) to see our progress toward the first release
 The documentation is split in two parts, depending on what you want to do with gen3:
 
 - **[User Guide](articles/user/install.md)** — you want to **build your own OS** with Cosmos: installing the toolchain, using the filesystem, debugging your kernel.
-- **[Developer Docs](articles/dev/install-dev.md)** — you want to **contribute to Cosmos itself** or understand its internals: architecture, build pipeline, runtime subsystems.
+- **[Contributor Docs](articles/dev/install-dev.md)** — you want to **contribute to Cosmos itself** or understand its internals: architecture, build pipeline, runtime subsystems.
 
 ## User Guide
 
@@ -22,7 +22,7 @@ Everything you need to create, build and run your own Cosmos kernel:
  - [Graphics](articles/user/graphics.md) — draw shapes, text and images on the screen with the Canvas API.
  - [Debugging with VSCode and QEMU](articles/user/debugging.md) — set breakpoints in your kernel with remote GDB.
 
-## Developer Docs
+## Contributor Docs
 
 Architecture and internals, for contributors and the curious:
 

@@ -46,7 +46,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 ## Documentation
 
-[Documentation site](https://cosmosos.github.io/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
+[Documentation site](https://cosmosos.github.io/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Contributor Docs** (contribute to Cosmos itself / architecture internals).
 
 **User Guide**
 
@@ -57,7 +57,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - [Graphics](docs/articles/user/graphics.md)
 - [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
 
-**Developer Docs**
+**Contributor Docs**
 
 - [Dev Container Setup](docs/articles/dev/install-dev.md)
 - [Kernel Project Layout](docs/articles/dev/kernel-project-layout.md)
