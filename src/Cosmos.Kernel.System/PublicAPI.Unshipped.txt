@@ -742,8 +742,6 @@ Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name.get -> string!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source.get -> string!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock.get -> Cosmos.Kernel.HAL.Vfs.IVfsSuperblock!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.VfsMount(string! name, string! source, string! mountPoint, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType! filesystemType, Cosmos.Kernel.HAL.Vfs.IVfsSuperblock! superblock) -> void
-Internal.Runtime.CompilerHelpers.LibraryInitializer
-Internal.Runtime.CompilerHelpers.LibraryInitializer.LibraryInitializer() -> void
 override Cosmos.Kernel.System.Graphics.Mode.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Graphics.Mode.GetHashCode() -> int
 override Cosmos.Kernel.System.Graphics.Mode.ToString() -> string!
@@ -1023,7 +1021,6 @@ static Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(string! path) 
 static Cosmos.Kernel.System.Vfs.VfsManager.TryStat(string! fullPath, out Cosmos.Kernel.HAL.Vfs.VfsStat stat) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(string! fullPath) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount(string! mountPoint) -> bool
-static Internal.Runtime.CompilerHelpers.LibraryInitializer.InitializeLibrary() -> void
 static readonly Cosmos.Kernel.System.Network.Config.DNSConfig.DNSNameservers -> System.Collections.Generic.List<Cosmos.Kernel.System.Network.IPv4.Address!>!
 static readonly Cosmos.Kernel.System.Network.Config.NetworkConfigManager.NetworkConfigs -> System.Collections.Generic.List<Cosmos.Kernel.System.Network.Config.NetworkConfigEntry!>!
 static readonly Cosmos.Kernel.System.Network.IPv4.Address.Broadcast -> Cosmos.Kernel.System.Network.IPv4.Address!

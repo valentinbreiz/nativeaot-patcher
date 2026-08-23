@@ -13,7 +13,7 @@ public static class OutgoingBuffer
 {
     private class BufferEntry
     {
-        public enum EntryStatus
+        internal enum EntryStatus
         {
             ADDED,
             ARP_SENT,
