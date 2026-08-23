@@ -48,7 +48,7 @@ namespace ICSharpCode.SharpZipLib.Checksum
     /// </summary>
     /// <see cref="ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream"/>
     /// <see cref="ICSharpCode.SharpZipLib.Zip.Compression.Streams.DeflaterOutputStream"/>
-    public sealed class Adler32 : IChecksum
+    internal sealed class Adler32 : IChecksum
     {
         #region Instance Fields
 
