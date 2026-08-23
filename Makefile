@@ -43,10 +43,17 @@ DEV_DISK_FLAGS := -drive file=$(AHCI_IMG),if=none,id=ahcidisk,format=raw \
                   -drive file=$(NVME_IMG),if=none,id=nvmedisk,format=raw \
                   -device nvme,drive=nvmedisk,serial=cosmos-nvme
 
-.PHONY: setup build clean distclean run run-dev debug-dev disks test test-cache
+.PHONY: setup build clean distclean run run-dev debug-dev disks test test-cache api
 
 setup:
 	./.devcontainer/postCreateCommand.sh
+
+# Reseed the PublicAPI.*.txt files of the API-tracked projects: builds the
+# project, then applies the RS0016/RS0017 code fixes (declare new public
+# symbols, drop deleted ones). Run after any deliberate public surface change.
+api:
+	dotnet format analyzers src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj \
+		--diagnostics RS0016 RS0017 --severity info
 
 build:
 	dotnet publish -c Debug -r $(RID) \
