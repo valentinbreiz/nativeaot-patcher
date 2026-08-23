@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 // Ported from Cosmos.HAL2/PS2Keyboard.cs
 
 using Cosmos.Kernel.Core;
