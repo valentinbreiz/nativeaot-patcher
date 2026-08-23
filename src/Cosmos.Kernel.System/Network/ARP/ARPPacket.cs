@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Network.ARP;
 /// <summary>
 /// Represents an ARP (Address Resolution Protocol) packet.
 /// </summary>
-public class ARPPacket : EthernetPacket
+internal class ARPPacket : EthernetPacket
 {
     protected ushort hardwareType;
     protected ushort protocolType;

@@ -4,7 +4,7 @@ using Cosmos.Kernel.System.Graphics;
 
 namespace Cosmos.Kernel.System.IO;
 
-public sealed class ConsoleTextWriter : TextWriter
+internal sealed class ConsoleTextWriter : TextWriter
 {
     public override Encoding Encoding => Encoding.Default;
     public override void Write(char value)

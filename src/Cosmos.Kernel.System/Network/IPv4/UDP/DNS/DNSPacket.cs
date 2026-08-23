@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 /// <summary>
 /// ReplyCode set in Flags
 /// </summary>
-public enum ReplyCode
+internal enum ReplyCode
 {
     OK = 0000,
     FormatError = 0001,
@@ -26,7 +26,7 @@ public enum ReplyCode
 /// <summary>
 /// DNS resource record types this stack understands (RFC 1035).
 /// </summary>
-public static class DNSRecordType
+internal static class DNSRecordType
 {
     public const ushort A = 1;
     public const ushort CNAME = 5;
@@ -35,7 +35,7 @@ public static class DNSRecordType
 /// <summary>
 /// Represents a DNS query.
 /// </summary>
-public class DNSQuery
+internal class DNSQuery
 {
     public string? Name { get; set; }
     public ushort Type { get; set; }
@@ -45,7 +45,7 @@ public class DNSQuery
 /// <summary>
 /// Represents a DNS answer (response).
 /// </summary>
-public class DNSAnswer
+internal class DNSAnswer
 {
     public ushort Name { get; set; }
     public string? ResolvedName { get; set; }
@@ -60,7 +60,7 @@ public class DNSAnswer
 /// <summary>
 /// Represents a DNS packet.
 /// </summary>
-public class DNSPacket : UDPPacket
+internal class DNSPacket : UDPPacket
 {
     // Simple transaction ID generator
     private static byte s_transactionCounter = 1;
@@ -268,7 +268,7 @@ public class DNSPacket : UDPPacket
 /// <summary>
 /// Represents a DNS translation request packet.
 /// </summary>
-public class DNSPacketAsk : DNSPacket
+internal class DNSPacketAsk : DNSPacket
 {
     // /// <summary>
     // /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
@@ -320,7 +320,7 @@ public class DNSPacketAsk : DNSPacket
 /// <summary>
 /// Represents a DNS translation result packet.
 /// </summary>
-public class DNSPacketAnswer : DNSPacket
+internal class DNSPacketAnswer : DNSPacket
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DNSPacketAnswer"/> class.

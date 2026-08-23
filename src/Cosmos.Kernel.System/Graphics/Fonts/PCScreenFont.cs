@@ -112,7 +112,7 @@ public class PCScreenFont : Font
     /// <param name="height">The height of a single character in pixels</param>
     /// <param name="data">The PCF data.</param>
     /// <param name="_unicodeMappings">The mappings of Unicode characters to font indexes.</param>
-    public PCScreenFont(byte width, byte height, byte[] data, List<UnicodeMapping> _unicodeMappings) : base(width, height, data)
+    internal PCScreenFont(byte width, byte height, byte[] data, List<UnicodeMapping> _unicodeMappings) : base(width, height, data)
     {
         this._unicodeMappings = _unicodeMappings;
     }
@@ -328,7 +328,7 @@ public class PCScreenFont : Font
 /// <summary>
 /// Represents a Unicode to font position mapping.
 /// </summary>
-public struct UnicodeMapping
+internal struct UnicodeMapping
 {
     public int FontPosition;
     public List<ushort> UnicodeCharacters;

@@ -70,5 +70,14 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Cosmos.Kernel.Tests.System</_Parameter1>
     </AssemblyAttribute>
+    <!-- Plugs patch BCL entry points (Console, Sockets) onto the stack's
+         internals; those internals are framework plumbing, not user API. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cosmos.Kernel.Plugs</_Parameter1>
+    </AssemblyAttribute>
+    <!-- White-box FAT layout tests forge and corrupt raw directory bytes. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cosmos.Kernel.Tests.Fat</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 </Project>

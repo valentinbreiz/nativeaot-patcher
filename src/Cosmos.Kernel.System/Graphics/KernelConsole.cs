@@ -911,7 +911,7 @@ public class KernelConsole
     /// <summary>
     /// Gets the cell at the specified position.
     /// </summary>
-    public Cell GetCellAt(int col, int row)
+    internal Cell GetCellAt(int col, int row)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
         {
@@ -925,7 +925,7 @@ public class KernelConsole
     /// <summary>
     /// Sets the cell at the specified position.
     /// </summary>
-    public void SetCellAt(int col, int row, Cell cell)
+    internal void SetCellAt(int col, int row, Cell cell)
     {
         if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
         {

@@ -14,7 +14,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.TCP;
 /// <summary>
 /// Represents a TCP connection status.
 /// </summary>
-public enum Status
+internal enum Status
 {
     /// <summary>
     /// Wait for a connection request from any remote TCP and port.
@@ -75,7 +75,7 @@ public enum Status
 /// <summary>
 /// Represents a Transmission Control Block (TCB).
 /// </summary>
-public class TransmissionControlBlock
+internal class TransmissionControlBlock
 {
     /** Send Sequence Variables **/
 
@@ -144,7 +144,7 @@ public class TransmissionControlBlock
 /// <remarks>
 /// See <a href="https://datatracker.ietf.org/doc/html/rfc793">RFC 793</a> for more information.
 /// </remarks>
-public class Tcp : IDisposable
+internal class Tcp : IDisposable
 {
     public static readonly ushort DynamicPortStart = 49152;
 

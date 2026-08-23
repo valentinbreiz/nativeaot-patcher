@@ -4,7 +4,7 @@ using Cosmos.Kernel.System.Keyboard;
 
 namespace Cosmos.Kernel.System.IO;
 
-public sealed class KeyboardTextReader : TextReader
+internal sealed class KeyboardTextReader : TextReader
 {
     public override int Read()
     {

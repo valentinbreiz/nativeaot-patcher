@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Represents a DHCP option.
 /// </summary>
-public class DHCPOption
+internal class DHCPOption
 {
     /// <summary>
     /// The type of the <see cref="DHCPOption"/>.
@@ -34,7 +34,7 @@ public class DHCPOption
 /// <summary>
 /// Represents a DHCP packet.
 /// </summary>
-public class DHCPPacket : UDPPacket
+internal class DHCPPacket : UDPPacket
 {
     // Simple transaction ID generator
     private static int s_idCounter = 1;

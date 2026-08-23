@@ -18,7 +18,7 @@ public static class SocketPlug
     // Store protocol type per socket (public for cross-assembly access when patched)
     public static readonly Dictionary<int, ProtocolType> _protocolTypes = new();
     // Store TCP state machine per socket instance
-    public static readonly Dictionary<int, Tcp> _tcpStateMachines = new();
+    internal static readonly Dictionary<int, Tcp> _tcpStateMachines = new();
     // Store UDP client per socket instance
     public static readonly Dictionary<int, KernelUdpClient> _udpClients = new();
     // Store bound endpoint per socket instance
@@ -499,7 +499,7 @@ public static class SocketPlug
         return bytesSent;
     }
 
-    public static void WaitAck(Tcp sm)
+    internal static void WaitAck(Tcp sm)
     {
         bool ackReceived = false;
         uint expectedAckNumber = sm.TCB.SndNxt;

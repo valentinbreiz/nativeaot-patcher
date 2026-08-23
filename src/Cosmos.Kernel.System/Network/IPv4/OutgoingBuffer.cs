@@ -9,7 +9,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <summary>
 /// Represents an outgoing IPv4 buffer. for use by drivers
 /// </summary>
-public static class OutgoingBuffer
+internal static class OutgoingBuffer
 {
     private class BufferEntry
     {

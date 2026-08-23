@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.TCP;
 /// TCP Flags
 /// </summary>
 [Flags]
-public enum Flags : byte
+internal enum Flags : byte
 {
     /// <summary>
     /// No more data from sender.
@@ -49,7 +49,7 @@ public enum Flags : byte
 /// <summary>
 /// TCP Option
 /// </summary>
-public class TCPOption
+internal class TCPOption
 {
     public byte Kind { get; set; }
     public byte Length { get; set; }
@@ -59,7 +59,7 @@ public class TCPOption
 /// <summary>
 /// TCP Packet Class
 /// </summary>
-public class TCPPacket : IPPacket
+internal class TCPPacket : IPPacket
 {
     /// <summary>
     /// TCP handler.

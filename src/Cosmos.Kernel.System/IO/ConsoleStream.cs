@@ -4,7 +4,7 @@ using Cosmos.Kernel.System.Keyboard;
 
 namespace Cosmos.Kernel.System.IO;
 
-public sealed class ConsoleStream : Stream
+internal sealed class ConsoleStream : Stream
 {
     private readonly StringBuilder _readLineSB;
     private bool _canRead, _canWrite;
