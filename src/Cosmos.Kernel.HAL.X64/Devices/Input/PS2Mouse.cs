@@ -172,12 +172,13 @@ public class PS2Mouse : MouseDevice
             bool rightButton = (s_packet[0] & 0x02) != 0;
             bool middleButton = (s_packet[0] & 0x04) != 0;
 
-            // X/Y (9-bit signed values) and Z movement
+            // X/Y (9-bit signed values, sign bits in the header byte) and Z movement.
+            // IntelliMouse (device ID 3): the 4th byte is a full signed 8-bit Z delta.
             int deltaX = s_packet[1];
             int deltaY = s_packet[2];
-            int deltaZ = s_hasScrollWheel ? s_packet[3] & 0x0F : 0;
+            int deltaZ = s_hasScrollWheel ? (sbyte)s_packet[3] : 0;
 
-            // Sign-extend X, Y and Z if negative
+            // Sign-extend X and Y if negative
             if ((s_packet[0] & 0x10) != 0)
             {
                 deltaX |= unchecked((int)0xFFFFFF00);
@@ -186,11 +187,6 @@ public class PS2Mouse : MouseDevice
             if ((s_packet[0] & 0x20) != 0)
             {
                 deltaY |= unchecked((int)0xFFFFFF00);
-            }
-
-            if ((deltaZ & 0x08) != 0)
-            {
-                deltaZ |= unchecked((int)0xFFFFFF00);
             }
 
             // Y is inverted on PS/2 mice
