@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" role="img" aria-label="The thread registry: SchedulerManager.s_allThreads, a flat array of 256 slots allocated once at Initialize. Slots 0 to 3 point down at thread boxes: Thr 0 (idle, Running), Thr 1 (Ready), Thr 2 (Blocked), Thr 3 (Sleeping). Slot 4 is null, free. The elided middle leads to slot 255. The GC's mark phase iterates this array directly.">
+  <style>
+    svg { color: #d0d7de; }
+    .bg { fill: #1c2128; }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="300"/>
+  <defs>
+    <marker id="reg-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- caption + outer dashed array allocation -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">the thread registry: SchedulerManager.Threads, a Thread?[256] allocated once at Initialize</text>
+  <rect x="10" y="28" width="726" height="240" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <!-- slot indices -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="85" y="62">[0]</text>
+    <text x="200" y="62">[1]</text>
+    <text x="315" y="62">[2]</text>
+    <text x="430" y="62">[3]</text>
+    <text x="545" y="62">[4]</text>
+    <text x="672" y="62">[255]</text>
+  </g>
+  <!-- slot cells -->
+  <g fill="currentColor" fill-opacity="0.12" stroke="currentColor">
+    <rect x="50" y="68" width="70" height="30"/>
+    <rect x="165" y="68" width="70" height="30"/>
+    <rect x="280" y="68" width="70" height="30"/>
+    <rect x="395" y="68" width="70" height="30"/>
+    <rect x="510" y="68" width="70" height="30"/>
+    <rect x="637" y="68" width="70" height="30"/>
+  </g>
+  <text x="608" y="88" text-anchor="middle" font-size="13" fill="currentColor" fill-opacity="0.7">…</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="545" y="88">null</text>
+    <text x="672" y="88">null</text>
+  </g>
+  <!-- arrows from occupied slots down to thread boxes -->
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="85" y1="98" x2="85" y2="135" marker-end="url(#reg-ah)"/>
+    <line x1="200" y1="98" x2="200" y2="135" marker-end="url(#reg-ah)"/>
+    <line x1="315" y1="98" x2="315" y2="135" marker-end="url(#reg-ah)"/>
+    <line x1="430" y1="98" x2="430" y2="135" marker-end="url(#reg-ah)"/>
+  </g>
+  <!-- thread boxes -->
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="40" y="138" width="90" height="46"/>
+    <rect x="155" y="138" width="90" height="46"/>
+    <rect x="270" y="138" width="90" height="46"/>
+    <rect x="385" y="138" width="90" height="46"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
+    <text x="85" y="157">Thr 0</text>
+    <text x="200" y="157">Thr 1</text>
+    <text x="315" y="157">Thr 2</text>
+    <text x="430" y="157">Thr 3</text>
+  </g>
+  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="85" y="173">(idle, Running)</text>
+    <text x="200" y="173">(Ready)</text>
+    <text x="315" y="173">(Blocked)</text>
+    <text x="430" y="173">(Sleeping)</text>
+  </g>
+  <!-- footer notes -->
+  <text x="30" y="222" font-size="11.5" fill="currentColor" fill-opacity="0.8">a thread holds its slot from CreateThread to ExitThread; parked threads stay registered, Dead threads are removed</text>
+  <text x="30" y="244" font-size="11.5" fill="currentColor" fill-opacity="0.8">the GC's mark phase iterates this array directly: no interface dispatch, no allocation</text>
+</svg>

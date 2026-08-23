@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 364" role="img" aria-label="The policy-mechanism split. Top box, mechanism, fixed: SchedulerManager for lifecycle dispatch, thread registry and tick entry; Thread and PerCpuState as extensible TCB and per-CPU state; the IRQ stubs in assembly for register save and restore; Mutex, ConditionVariable, Monitor and InterruptEvent parking and unparking through SchedulerManager; the GC stack-scan bridge walking the thread registry during collections. An arrow labeled IScheduler interface leads to the bottom box, policy, pluggable: StrideScheduler, the default virtual-time fair-share, and alternatives such as RoundRobin, MLFQ, EDF or FIFO sketched in Writing a scheduler.">
+  <style>
+    svg { color: #24292f; }
+    .bg { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      svg { color: #d0d7de; }
+      .bg { fill: #1c2128; }
+    }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="364"/>
+  <defs>
+    <marker id="mp-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- caption -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">the split: mechanism is fixed and shared, policy is one interface any algorithm can implement</text>
+  <!-- mechanism layer -->
+  <rect x="10" y="28" width="726" height="166" rx="4" fill="currentColor" fill-opacity="0.05" stroke="currentColor"/>
+  <text x="30" y="52" font-size="13" fill="currentColor">Mechanism (fixed)</text>
+  <line x1="30" y1="60" x2="140" y2="60" stroke="currentColor" stroke-opacity="0.35"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+    <text x="30" y="86">SchedulerManager</text>
+    <text x="30" y="110">Thread, PerCpuState</text>
+    <text x="30" y="134">IRQ stubs (asm)</text>
+    <text x="30" y="158">Mutex, CV, Monitor, InterruptEvent</text>
+    <text x="30" y="182">GC stack-scan bridge</text>
+  </g>
+  <g font-size="11.5" font-style="italic" fill="currentColor" fill-opacity="0.7">
+    <text x="330" y="86">lifecycle dispatch, thread registry, tick entry</text>
+    <text x="330" y="110">extensible TCB and per-CPU state</text>
+    <text x="330" y="134">register save and restore</text>
+    <text x="330" y="158">park and unpark via SchedulerManager</text>
+    <text x="330" y="182">walks the thread registry during collections</text>
+  </g>
+  <!-- the IScheduler seam -->
+  <line x1="373" y1="194" x2="373" y2="241" stroke="currentColor" stroke-width="1.4" marker-end="url(#mp-ah)"/>
+  <text x="386" y="222" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor">IScheduler<tspan font-family="system-ui, sans-serif" font-size="11" font-style="italic" fill-opacity="0.7"> interface</tspan></text>
+  <!-- policy layer -->
+  <rect x="10" y="246" width="726" height="94" rx="4" fill="currentColor" fill-opacity="0.05" stroke="currentColor"/>
+  <text x="30" y="270" font-size="13" fill="currentColor">Policy (pluggable)</text>
+  <line x1="30" y1="278" x2="143" y2="278" stroke="currentColor" stroke-opacity="0.35"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+    <text x="30" y="302">StrideScheduler</text>
+    <text x="30" y="326">RoundRobin, MLFQ, EDF, FIFO, …</text>
+  </g>
+  <g font-size="11.5" font-style="italic" fill="currentColor" fill-opacity="0.7">
+    <text x="330" y="302">the default: virtual-time fair-share</text>
+    <text x="330" y="326">sketches in Writing a scheduler</text>
+  </g>
+  <!-- footer note -->
+  <text x="30" y="358" font-size="11.5" fill="currentColor" fill-opacity="0.8">the policy is swapped with SchedulerManager.SetScheduler; at boot LibraryInitializer installs the StrideScheduler</text>
+</svg>
