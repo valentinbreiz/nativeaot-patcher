@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Mouse | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Mouse | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/mouse.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="mouse">Mouse</h1>
+
+<p>In this article, we will discuss mouse input on Cosmos Gen3: how to track the pointer position, react to button presses and the scroll wheel, and draw a cursor with the graphics API.</p>
+<p>The main differences if you come from Gen2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gen2</th>
+<th>Gen3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Manager API</td>
+<td><code>Cosmos.System.MouseManager</code></td>
+<td>Same model, in <code>Cosmos.Kernel.System.Mouse</code></td>
+</tr>
+<tr>
+<td>Button state</td>
+<td><code>MouseState</code> flags enum</td>
+<td><code>LeftButton</code>, <code>RightButton</code>, <code>MiddleButton</code> booleans</td>
+</tr>
+<tr>
+<td>Position</td>
+<td><code>X</code>, <code>Y</code> clamped to the screen size</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Scroll wheel</td>
+<td><code>ScrollDelta</code> + <code>ResetScrollDelta()</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td>Drawn by your code</td>
+<td>Drawn by your code</td>
+</tr>
+<tr>
+<td>Devices</td>
+<td>PS/2 mouse</td>
+<td>PS/2 mouse with scroll wheel (x64), virtio-mouse (x64 PCI and ARM64 MMIO)</td>
+</tr>
+</tbody>
+</table>
+<p>If you find bugs or something abnormal, please <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/new">submit an issue</a> on our repository.</p>
+<h2 id="enable-the-mouse-in-your-kernel">Enable the mouse in your kernel</h2>
+<p>Mouse support is behind a feature switch. Make sure your kernel's <code>.csproj</code> does not turn it off (it defaults to <code>true</code>):</p>
+<pre><code class="lang-xml">&lt;PropertyGroup&gt;
+  &lt;CosmosEnableMouse&gt;true&lt;/CosmosEnableMouse&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p>These are the <code>using</code>s the snippets below rely on; the drawing types come from the <a href="graphics.html">Graphics</a> article:</p>
+<pre><code class="lang-csharp">using System.Drawing;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Graphics.Fonts;
+using Cosmos.Kernel.System.Mouse;
+</code></pre>
+<p>Like the keyboard, the mouse is detected and registered at boot; <code>MouseManager</code> is ready as soon as your kernel runs.</p>
+<h2 id="position-and-buttons">Position and buttons</h2>
+<p><code>MouseManager</code> is a set of static properties that the interrupt handler keeps current: <code>X</code> and <code>Y</code> for the pointer position, <code>LeftButton</code>, <code>RightButton</code> and <code>MiddleButton</code> for the buttons. There is no cursor on screen until you draw one, so mouse code is a render loop that reads the properties each frame:</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+Font font = PCScreenFont.DefaultFont;
+
+/* Clamp the pointer to the actual screen */
+MouseManager.SetScreenSize(canvas.Width, canvas.Height);
+
+while (true)
+{
+    canvas.Clear(Color.MidnightBlue);
+
+    canvas.DrawString(&quot;X: &quot; + MouseManager.X + &quot;   Y: &quot; + MouseManager.Y,
+        font, Color.White, 40, 40);
+    canvas.DrawString(&quot;Buttons: &quot;
+        + (MouseManager.LeftButton ? &quot;L&quot; : &quot;-&quot;)
+        + (MouseManager.MiddleButton ? &quot;M&quot; : &quot;-&quot;)
+        + (MouseManager.RightButton ? &quot;R&quot; : &quot;-&quot;),
+        font, Color.White, 40, 100);
+
+    /* A minimal cursor: a white dot with a black outline */
+    canvas.DrawFilledCircle(Color.White, MouseManager.X, MouseManager.Y, 6);
+    canvas.DrawCircle(Color.Black, MouseManager.X, MouseManager.Y, 6);
+
+    canvas.Display();
+    Thread.Sleep(15);
+}
+</code></pre>
+<!-- video: the cursor dot following the mouse while the position readout updates and the L, M and R indicators light up as each button is pressed -->
+<p><video src="images/mouse-cursor.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
+<p>Call <code>SetScreenSize</code> once at startup: the manager clamps <code>X</code> and <code>Y</code> to those bounds (the default is 1024x768, which rarely matches the framebuffer). For a real arrow cursor, blit a small bitmap instead of the circle; the DevKernel has a ready-made one in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/examples/DevKernel/Graphics/MouseCursor.cs">MouseCursor.cs</a>.</p>
+<h2 id="painting-with-the-mouse">Painting with the mouse</h2>
+<p>Buttons are plain booleans, so a paint program is a couple of <code>if</code>s. The strokes accumulate on an off-screen canvas (see <a href="graphics.html#off-screen-canvases">Off-screen canvases</a>) so the cursor can be drawn on top without erasing them:</p>
+<pre><code class="lang-csharp">Canvas screen = Canvas.GetFullScreen();
+MouseManager.SetScreenSize(screen.Width, screen.Height);
+
+Canvas paint = new Canvas(screen.Width, screen.Height);
+paint.Clear(Color.MidnightBlue);
+
+while (true)
+{
+    if (MouseManager.LeftButton)
+    {
+        paint.DrawFilledCircle(Color.Gold, MouseManager.X, MouseManager.Y, 6);
+    }
+
+    if (MouseManager.RightButton)
+    {
+        paint.Clear(Color.MidnightBlue);
+    }
+
+    screen.DrawCanvas(paint, 0, 0);
+    screen.DrawFilledCircle(Color.White, MouseManager.X, MouseManager.Y, 6);
+    screen.DrawCircle(Color.Black, MouseManager.X, MouseManager.Y, 6);
+    screen.Display();
+
+    Thread.Sleep(15);
+}
+</code></pre>
+<!-- video: painting gold strokes while holding the left button, clearing the canvas with a right click, then painting again -->
+<p><video src="images/mouse-paint.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
+<h2 id="the-scroll-wheel">The scroll wheel</h2>
+<p>Wheel movement accumulates in <code>MouseManager.ScrollDelta</code>, one unit per click. The driver never clears it: read it, apply it, then call <code>ResetScrollDelta()</code> so the same movement is not applied twice.</p>
+<pre><code class="lang-csharp">Canvas canvas = Canvas.GetFullScreen();
+Font font = PCScreenFont.DefaultFont;
+
+int radius = 60;
+
+while (true)
+{
+    int delta = MouseManager.ScrollDelta;
+    if (delta != 0)
+    {
+        radius = Math.Clamp(radius + delta * 10, 12, 320);
+        MouseManager.ResetScrollDelta();
+    }
+
+    canvas.Clear(Color.MidnightBlue);
+    canvas.DrawString(&quot;Scroll to resize the circle. Radius: &quot; + radius,
+        font, Color.White, 40, 40);
+    canvas.DrawFilledCircle(Color.DeepSkyBlue,
+        canvas.Width / 2, canvas.Height / 2, radius);
+    canvas.Display();
+
+    Thread.Sleep(15);
+}
+</code></pre>
+<!-- video: the circle growing and shrinking as the wheel scrolls in both directions -->
+<p><video src="images/mouse-scroll.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
+<h2 id="sensitivity-and-pointer-control">Sensitivity and pointer control</h2>
+<p>Two more knobs on <code>MouseManager</code>:</p>
+<ul>
+<li><code>Sensitivity</code> multiplies every movement delta (default <code>1.0f</code>); values below 1 slow the pointer down, values above speed it up.</li>
+<li><code>SetPosition(x, y)</code> moves the pointer programmatically, clamped to the screen bounds, for example to center it when a scene opens.</li>
+</ul>
+<h2 id="current-limitations">Current limitations</h2>
+<ul>
+<li>Only relative pointing devices are supported. There is no absolute (tablet) input, so inside a VM window the guest pointer does not track the host cursor one to one.</li>
+<li>Horizontal wheel tilt is ignored; only the vertical wheel reaches <code>ScrollDelta</code>.</li>
+<li>Devices are detected once at boot; there is no mouse hotplug.</li>
+</ul>
+<h2 id="how-it-works">How it works</h2>
+<p>On x64 the PS/2 mouse raises IRQ12 for every byte of a movement packet: 3 bytes of buttons and X/Y deltas, extended to 4 by the scroll wheel byte once the driver has enabled the IntelliMouse protocol (the magic sample-rate sequence 200, 100, 80 at boot). On ARM64 (and over PCI on x64) the virtio-input device delivers the same information as event records. Either way the driver hands the deltas to <code>MouseManager</code>, which applies <code>Sensitivity</code>, adds them to <code>X</code> and <code>Y</code>, clamps to the screen size and updates the button booleans; wheel deltas accumulate in <code>ScrollDelta</code> until a poller consumes them. Your render loop only ever reads state, which is why no locking is needed.</p>
+<pre><code>Render loop (reads X/Y, buttons, ScrollDelta)
+        │
+MouseManager ── Sensitivity, screen clamping, ScrollDelta accumulation
+        │
+PS/2 mouse, IRQ12 (x64)  /  virtio-mouse (x64 PCI, ARM64 MMIO)
+</code></pre>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/user/mouse.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

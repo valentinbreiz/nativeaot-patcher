@@ -7788,6 +7788,66 @@
     },
     {
       "type": "Resource",
+      "source_relative_path": "articles/user/images/keyboard-layouts.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/keyboard-layouts.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/keyboard-readkey.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/keyboard-readkey.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/keyboard-readline.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/keyboard-readline.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/keyboard-square.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/keyboard-square.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/mouse-cursor.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/mouse-cursor.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/user/images/mouse-paint.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/mouse-paint.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
       "source_relative_path": "articles/user/images/network-device.png",
       "output": {
         "resource": {
@@ -7852,6 +7912,26 @@
       "output": {
         ".html": {
           "relative_path": "articles/user/install.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/keyboard.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/keyboard.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/user/mouse.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/user/mouse.html"
         }
       },
       "version": ""
