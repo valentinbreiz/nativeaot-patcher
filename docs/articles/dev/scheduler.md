@@ -4,22 +4,7 @@ The scheduler is **preemptive**, **pluggable**, and by default **virtual-time fa
 
 The design splits **policy** from **mechanism**. Mechanism is fixed and shared: the thread registry, the lifecycle transitions, the timer-tick entry, the assembly that saves and restores registers, and the bridge the GC scans threads through. Policy, everything that decides *which* thread runs *when*, is a single interface, [`IScheduler`](../../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs), that any algorithm can implement. The default implementation is [Stride](#the-stride-policy), a virtual-time fair-share scheduler; [Writing a scheduler](scheduler-plugging.md) shows how to replace it.
 
-```mermaid
-flowchart TD
-    subgraph M["Mechanism (fixed)"]
-        SM["SchedulerManager: lifecycle, registry, tick entry"]
-        TCB["Thread, PerCpuState, ThreadContext"]
-        ASM["IRQ stubs (asm): register save and restore"]
-        SYNC["Mutex, ConditionVariable, Monitor, InterruptEvent"]
-        GCB["GC stack-scan bridge"]
-    end
-    subgraph P["Policy (pluggable)"]
-        IS["IScheduler interface"]
-        STR["StrideScheduler (default)"]
-    end
-    SM -->|"hooks, PickNext, OnTick"| IS
-    IS --> STR
-```
+<img src="images/diagrams/sched-mechanism-policy.svg" alt="The policy-mechanism split. Top box, mechanism, fixed: SchedulerManager for lifecycle dispatch, thread registry and tick entry; Thread and PerCpuState as extensible TCB and per-CPU state; the IRQ stubs in assembly for register save and restore; Mutex, ConditionVariable, Monitor and InterruptEvent parking and unparking through SchedulerManager; the GC stack-scan bridge walking the thread registry during collections. An arrow labeled IScheduler interface leads to the bottom box, policy, pluggable: StrideScheduler, the default virtual-time fair-share, and alternatives such as RoundRobin, MLFQ, EDF or FIFO sketched in Writing a scheduler." style="width:100%;min-width:620px;max-width:760px">
 
 At boot, [`LibraryInitializer`](../../../src/Cosmos.Kernel/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs) wires the whole thing up when the feature switch is on: it calls `SchedulerManager.Initialize` with the CPU count, installs a `StrideScheduler`, creates one idle thread per CPU (the idle thread is the booting kernel itself, so it owns no separate stack), flips `SchedulerManager.Enabled`, and finally starts the scheduler timer with a 10 ms quantum. From that first tick on, the kernel's main flow is just the idle thread, preempted like any other.
 
