@@ -4,7 +4,7 @@
 // light (LibreWolf's resistFingerprinting, older engines) would otherwise
 // always show the light variant; keying on data-bs-theme follows the site
 // toggle everywhere.
-const diagramSrc = /^(.*\/images\/diagrams\/gc-[a-z-]+?)(-dark)?\.svg$/;
+const diagramSrc = /^(.*\/images\/diagrams\/(?:gc|sched)-[a-z-]+?)(-dark)?\.svg$/;
 
 function applyDiagramTheme() {
     const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';

@@ -1,6 +1,6 @@
 # Garbage Collector Glossary
 
-Short background notes on the general GC concepts the [Garbage Collector](garbage-collector.md) and [Precise Stack Scanning](garbage-collector-gcinfo.md) articles build on. Each page explains the concept on its own, then closes with one line on how OrionGC applies it.
+Short background notes on the general GC concepts the [Garbage Collector](garbage-collector.md) and [Precise Stack Scanning](garbage-collector-gcinfo.md) articles build on. Each page explains the concept on its own, then closes with one line on how OrionGC applies it. The scheduling counterparts live in the [Scheduler Glossary](scheduler-glossary.md).
 
 | Concept | Summary |
 |---------|---------|
