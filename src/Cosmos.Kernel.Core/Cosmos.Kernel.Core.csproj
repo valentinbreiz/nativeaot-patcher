@@ -14,7 +14,7 @@
     <PackageTags>cosmos;kernel;core;memory;heap;allocation;kernel-services;runtime</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
   </PropertyGroup>
 
   <!-- Architecture-specific source files (defines are set by Cosmos.ArchitecturePicker.props) -->

@@ -12,7 +12,7 @@
   
   <PropertyGroup>
     <PackageId>Cosmos.Kernel.SourceGenerators</PackageId>
-    <PackageLicenseUrl>https://github.com/valentinbreiz/nativeaot-patcher/blob/main/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</PackageProjectUrl>
     <!-- <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl> -->
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher.git</RepositoryUrl>

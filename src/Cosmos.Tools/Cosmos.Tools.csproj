@@ -18,7 +18,7 @@
     <PackageTags>cosmos;kernel;os;tools;cli;qemu;nativeaot</PackageTags>
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <Authors>CosmosOS</Authors>
   </PropertyGroup>
 

@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 // Mirror of CoreLib's Interop.Error — see Interop.Sys.cs for how these
 // global-namespace mirror declarations work and why they must match CoreLib

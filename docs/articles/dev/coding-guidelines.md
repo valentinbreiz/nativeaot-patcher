@@ -815,7 +815,7 @@ NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.*
 Every `.cs` file must start with the license header (enforced by `.editorconfig`):
 
 ```csharp
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 ```
 
 ### XML Documentation

@@ -96,4 +96,4 @@ See the live list on the [Contributors page](https://github.com/CosmosOS/Cosmos/
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2024 Kaleb McGhie (zarlo) and contributors.
+[BSD 3-Clause](LICENSE), the original Cosmos license. Copyright (c) 2007-2026, CosmosOS, COSMOS Project.
