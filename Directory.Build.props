@@ -88,6 +88,9 @@
   <PropertyGroup Condition="'$(CosmosTrackPublicApi)' == 'true'">
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselineVersion Condition="'$(CosmosApiBaselineVersion)' != ''">$(CosmosApiBaselineVersion)</PackageValidationBaselineVersion>
+    <!-- RS0017 (stale txt entry) has no source location, so the .editorconfig
+         [*.cs] severity=error never applies to it; promote both here. -->
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup Condition="'$(CosmosTrackPublicApi)' == 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
