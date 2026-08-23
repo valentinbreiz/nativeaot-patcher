@@ -20,6 +20,8 @@ Everything you need to create, build and run your own Cosmos kernel:
  - [File System](articles/user/filesystem.md): mount a disk and use the standard .NET `System.IO` API (`File`, `Directory`, streams).
  - [Network](articles/user/network.md): DHCP, UDP and TCP through the standard .NET `System.Net.Sockets` API, plus DNS.
  - [Graphics](articles/user/graphics.md): draw shapes, text and images on the screen with the Canvas API.
+ - [Keyboard](articles/user/keyboard.md): read lines, key events and layouts through `Console` and `KeyboardManager`.
+ - [Mouse](articles/user/mouse.md): pointer position, buttons and scroll wheel through `MouseManager`.
  - [Debugging with VSCode and QEMU](articles/user/debugging.md): set breakpoints in your kernel with remote GDB.
 
 ## Contributor Docs
