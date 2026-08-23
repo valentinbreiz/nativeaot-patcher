@@ -1,7 +1,7 @@
 # File System
 
 In this article, we will discuss using the Cosmos Gen3 VFS (virtual file system).
-Unlike Gen2, where you talked to `CosmosVFS` and a plugged subset of `System.IO`, Gen3 gives you the **standard .NET `System.IO` API** — `File`, `Directory`, `FileStream`, `StreamReader`/`StreamWriter`, `FileInfo`/`DirectoryInfo` — running unmodified on top of the kernel's VFS. You mount a filesystem at a Unix-style mount point and use ordinary rooted paths.
+Unlike Gen2, where you talked to `CosmosVFS` and a plugged subset of `System.IO`, Gen3 gives you the **standard .NET `System.IO` API** (`File`, `Directory`, `FileStream`, `StreamReader`/`StreamWriter`, `FileInfo`/`DirectoryInfo`) running unmodified on top of the kernel's VFS. You mount a filesystem at a Unix-style mount point and use ordinary rooted paths.
 
 The main differences if you come from Gen2:
 
@@ -69,11 +69,11 @@ if (VfsManager.TryMount("fat", "0", MountFlags.None, "/mnt", out VfsManager.VfsM
 
 From this point on, everything under `/mnt` is served by the FAT driver, and everything in this article is plain `System.IO`.
 
-**Note**: `/` itself is a *virtual root*. It always exists — even with nothing mounted — and enumerating it lists the mount points. You cannot create files directly in it (`IOException`, read-only file system); create them under a mount point like `/mnt`.
+**Note**: `/` itself is a *virtual root*. It always exists, even with nothing mounted, and enumerating it lists the mount points. You cannot create files directly in it (`IOException`, read-only file system); create them under a mount point like `/mnt`.
 
 ### Alternative: a RAM disk
 
-For quick experiments you don't need a disk image at all. A block device is just an `IBlockDevice` (from `Cosmos.Kernel.HAL.Interfaces.Devices`), and a RAM-backed one fits in a few lines — this is exactly what the kernel test suites use:
+For quick experiments you don't need a disk image at all. A block device is just an `IBlockDevice` (from `Cosmos.Kernel.HAL.Interfaces.Devices`), and a RAM-backed one fits in a few lines; this is exactly what the kernel test suites use:
 
 ```csharp
 internal sealed class MemoryBlockDevice : IBlockDevice
@@ -131,7 +131,7 @@ if (!VfsManager.TryFormat("fat", "0", options))
 }
 ```
 
-Formatting is refused while the source is mounted — unmount first with `VfsManager.TryUnmount("/mnt")`.
+Formatting is refused while the source is mounted: unmount first with `VfsManager.TryUnmount("/mnt")`.
 
 ## List mounted volumes
 
@@ -160,7 +160,7 @@ foreach (string file in files)
 }
 ```
 
-Search patterns work too — this is the stock BCL enumeration engine:
+Search patterns work too; this is the stock BCL enumeration engine:
 
 ```csharp
 string[] logs = Directory.GetFiles("/mnt", "*.txt");
@@ -190,7 +190,7 @@ foreach (string directory in directories)
 
 ## Read all the files in a directory
 
-We get the file list and print the content of each file. As in Gen2, keep filesystem code inside `try`/`catch` — the exceptions are the standard `System.IO` ones and they are catchable:
+We get the file list and print the content of each file. As in Gen2, keep filesystem code inside `try`/`catch`: the exceptions are the standard `System.IO` ones and they are catchable:
 
 ```csharp
 try
@@ -281,7 +281,7 @@ Console.WriteLine("Read " + data.Length + " bytes");
 
 ## Copy, move, delete
 
-Unlike Gen2, `File.Move` is fully supported — no copy-and-delete workaround needed. A move onto an existing destination throws `IOException` unless you pass `overwrite: true`; the overwrite is crash-safe (the destination is kept as a backup until the rename lands).
+Unlike Gen2, `File.Move` is fully supported, no copy-and-delete workaround needed. A move onto an existing destination throws `IOException` unless you pass `overwrite: true`; the overwrite is crash-safe (the destination is kept as a backup until the rename lands).
 
 ```csharp
 try
@@ -356,7 +356,7 @@ The standard `System.IO` exception contract applies, so you can catch precisely:
 - Deleting a non-empty directory without `recursive: true` → `IOException`
 - `File.Copy`/`File.Move` onto an existing file without overwrite → `IOException`
 
-With **nothing mounted at all**, `System.IO` still degrades gracefully: `Directory.Exists("/")` is `true`, enumerating `/` returns an empty list, and every access to another path fails with one of the exceptions above — never a kernel fault.
+With **nothing mounted at all**, `System.IO` still degrades gracefully: `Directory.Exists("/")` is `true`, enumerating `/` returns an empty list, and every access to another path fails with one of the exceptions above, never a kernel fault.
 
 ## Current limitations
 
@@ -367,14 +367,14 @@ With **nothing mounted at all**, `System.IO` still degrades gracefully: `Directo
 
 ## How it works
 
-Your code calls the stock BCL, which bottoms out in the Unix PAL (`Interop.Sys.*` P/Invokes). Those ~45 entry points are [plugged](../dev/plugs.md) in `Cosmos.Kernel.Plugs` — a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to `VfsManager`, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an `IBlockDevice` (AHCI or NVMe via `StorageManager`, RAM via `MemoryBlockDevice`).
+Your code calls the stock BCL, which bottoms out in the Unix PAL (`Interop.Sys.*` P/Invokes). Those ~45 entry points are [plugged](../dev/plugs.md) in `Cosmos.Kernel.Plugs`: a file-descriptor table adapts the PAL contract (fds, dir streams, PAL errnos) and delegates to `VfsManager`, which owns path resolution, the mount table, the current directory and open-handle semantics, and dispatches to the mounted filesystem driver, which reads and writes an `IBlockDevice` (AHCI or NVMe via `StorageManager`, RAM via `MemoryBlockDevice`).
 
 ```
 File / Directory / FileStream          (stock BCL)
         │
 Interop.Sys.* PAL calls                (stock BCL, plugged)
         │
-FileDescriptorTable                    (Cosmos.Kernel.Plugs — fds, dir streams, errno)
+FileDescriptorTable                    (Cosmos.Kernel.Plugs: fds, dir streams, errno)
         │
 VfsManager                             (mounts, paths, CWD, open handles)
         │

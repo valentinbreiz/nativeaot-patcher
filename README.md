@@ -46,7 +46,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 ## Documentation
 
-[Documentation site](https://cosmosos.github.io/index.html)
+[Documentation site](https://cosmosos.github.io/index.html): split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
 
 **User Guide**
 
@@ -97,3 +97,4 @@ See the live list on the [Contributors page](https://github.com/CosmosOS/Cosmos/
 ## License
 
 [BSD 3-Clause](LICENSE), the original Cosmos license. Copyright (c) 2007-2026, CosmosOS, COSMOS Project.
+

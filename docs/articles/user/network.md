@@ -120,14 +120,14 @@ Console.WriteLine(NetworkConfigManager.Get(device).IPAddress.ToString());
 
 ## UDP
 
-UDP uses the standard .NET `UdpClient` — no Cosmos-specific classes. Sends go out immediately; for receives, poll `Available` (a receive with nothing pending would block):
+UDP uses the standard .NET `UdpClient`, no Cosmos-specific classes. Sends go out immediately; for receives, poll `Available` (a receive with nothing pending would block):
 
 ```csharp
 using System.Net.Sockets;
 
 var udpClient = new UdpClient(4242);
 
-/* Send data — 10.0.2.2 is the host under QEMU user networking */
+/* Send data: 10.0.2.2 is the host under QEMU user networking */
 byte[] message = Encoding.ASCII.GetBytes("Hello from CosmosOS!");
 udpClient.Send(message, message.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), 4242));
 
@@ -244,15 +244,15 @@ dnsClient.Close();
 
 ## Current limitations
 
-- ICMP is not implemented yet — no ping, in either direction.
+- ICMP is not implemented yet: no ping, in either direction.
 - `System.Net.Dns` is not plugged; use the Cosmos `DnsClient` shown above.
-- No TLS, so no `HttpClient`/HTTPS — raw TCP only.
+- No TLS, so no `HttpClient`/HTTPS: raw TCP only.
 - One NIC: the stack talks to `NetworkManager.PrimaryDevice`.
 - Half-close is not supported: `Close()` on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.
 
 ## How it works
 
-Your code calls the standard .NET socket classes, whose PAL bottoms out in `Socket`-level [plugs](../dev/plugs.md) in `Cosmos.Kernel.Plugs` (`SocketPlug`, `TcpClientPlug`, `TcpListenerPlug`, `UdpClientPlug`, `NetworkStreamPlug`). Those delegate to the Cosmos network stack — the TCP state machine and UDP layer over IPv4, ARP and Ethernet — which sends and receives frames through the `NetworkDevice` driver registered with `NetworkManager`. The Cosmos `DHCPClient` and `DnsClient` sit directly on the Cosmos UDP layer.
+Your code calls the standard .NET socket classes, whose PAL bottoms out in `Socket`-level [plugs](../dev/plugs.md) in `Cosmos.Kernel.Plugs` (`SocketPlug`, `TcpClientPlug`, `TcpListenerPlug`, `UdpClientPlug`, `NetworkStreamPlug`). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over IPv4, ARP and Ethernet), which sends and receives frames through the `NetworkDevice` driver registered with `NetworkManager`. The Cosmos `DHCPClient` and `DnsClient` sit directly on the Cosmos UDP layer.
 
 ```
 TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)

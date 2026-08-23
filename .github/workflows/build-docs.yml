@@ -48,6 +48,11 @@ jobs:
     - name: Verify output
       run: find docs/_site -type f | head -50
 
+    # keep_files: the dev site lives at the root of the published branch, next
+    # to the frozen per-release copies (v*/ subfolders, latest/, versions.json)
+    # that release.yml publishes on tags. Without it every dev deploy would
+    # wipe them. Tradeoff: files deleted from docs/ linger on the branch until
+    # overwritten; acceptable, they are unreachable from the rebuilt site.
     - name: Publish to GitHub Pages
       if: github.repository == 'valentinbreiz/nativeaot-patcher'
       uses: peaceiris/actions-gh-pages@v3
@@ -55,6 +60,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_branch: gh-pages
         publish_dir: ./docs/_site
+        keep_files: true
 
     # Same mechanism as the gen2 docs CD, but authenticated with a write
     # deploy key of the org Pages repository instead of the expired GH_PAGES
@@ -67,3 +73,4 @@ jobs:
         external_repository: CosmosOS/cosmosos.github.io
         publish_branch: master
         publish_dir: ./docs/_site
+        keep_files: true

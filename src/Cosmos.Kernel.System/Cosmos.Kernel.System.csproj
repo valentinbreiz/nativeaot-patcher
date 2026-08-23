@@ -4,6 +4,9 @@
     <IsMultiArchPackage>true</IsMultiArchPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props) -->
+    <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System</PackageId>
     <Title>Cosmos Kernel System</Title>
