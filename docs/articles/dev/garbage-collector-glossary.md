@@ -1,6 +1,6 @@
 # Garbage Collector Glossary
 
-Short background notes on the general GC concepts the [Garbage Collector](garbage-collector.md) and [Precise Stack Scanning](garbage-collector-gcinfo.md) articles build on. Each page explains the concept on its own, then closes with one line on how OrionGC applies it.
+Short background notes on the general concepts the [Garbage Collector](garbage-collector.md), [Precise Stack Scanning](garbage-collector-gcinfo.md) and [Scheduler](scheduler.md) articles build on. Each page explains the concept on its own, then closes with one line on how the kernel applies it.
 
 | Concept | Summary |
 |---------|---------|
@@ -16,4 +16,5 @@ Short background notes on the general GC concepts the [Garbage Collector](garbag
 | [Funclet](gc-concepts/funclet.md) | Exception handlers compiled as small separate functions with frames of their own |
 | [Finalization and resurrection](gc-concepts/finalization.md) | Cleanup code before reclaim, and dead objects becoming reachable again |
 | [Runtime object header](gc-concepts/object-header.md) | The bookkeeping word just before every object (hash code, thin lock) |
+| [Interrupts at instruction boundaries](gc-concepts/instruction-boundary.md) | An interrupt lands after one instruction and before the next; nothing longer is atomic against it |
 | [ABA problem](gc-concepts/aba-problem.md) | Why lock-free code needs version tags when values can be recycled |
