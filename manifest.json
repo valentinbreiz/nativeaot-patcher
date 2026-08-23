@@ -7848,6 +7848,16 @@
     },
     {
       "type": "Resource",
+      "source_relative_path": "articles/user/images/mouse-scroll.mp4",
+      "output": {
+        "resource": {
+          "relative_path": "articles/user/images/mouse-scroll.mp4"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
       "source_relative_path": "articles/user/images/network-device.png",
       "output": {
         "resource": {
