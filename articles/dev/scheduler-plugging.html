@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/scheduler-plugging.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="overview">Overview</h2>
+<p>This guide shows how to replace the kernel's scheduling policy. The mechanism side (context switching, the thread registry, the timer entry, the synchronization primitives, the GC bridge) never changes; everything an algorithm decides goes through one interface, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs"><code>IScheduler</code></a>. How the mechanism works, and how the default Stride policy uses this interface, is covered in <a href="scheduler.html">the scheduler article</a>; this page assumes it.</p>
+<p>Replacing the policy takes three steps:</p>
+<ol>
+<li>Implement <code>IScheduler</code>, using the per-thread and per-CPU data slots for the algorithm's bookkeeping. The slots' setter is <code>internal</code>, so today a policy lives inside <code>Cosmos.Kernel.Core</code>, next to <code>Stride/</code>.</li>
+<li>Respect the <a href="#kernel-constraints">kernel constraints</a>: the hooks run in interrupt context or under disabled interrupts, on live scheduler state.</li>
+<li>Install it with <code>SchedulerManager.SetScheduler(new MyScheduler())</code>. The manager calls <code>ShutdownCpu</code> on the outgoing policy and <code>InitializeCpu</code> on the incoming one for every CPU. Install at boot, before threads exist (as <code>LibraryInitializer</code> does): nothing migrates queued threads or their attached bookkeeping into the new policy, so a mid-flight swap strands them.</li>
+</ol>
+<hr>
+<h2 id="the-interface">The interface</h2>
+<p>Most hooks receive the <code>PerCpuState</code> they operate on, and run either under the manager's interrupt-masked lifecycle entries or in interrupt context itself; the exceptions are noted below. A policy that does not need a hook leaves it a no-op.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Called from</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Name</code></td>
+<td>logging</td>
+<td>A display name for boot logs</td>
+</tr>
+<tr>
+<td><code>InitializeCpu(state)</code></td>
+<td><code>SetScheduler</code></td>
+<td>Allocate the per-CPU bookkeeping into <code>state.SchedulerData</code></td>
+</tr>
+<tr>
+<td><code>ShutdownCpu(state)</code></td>
+<td><code>SetScheduler</code></td>
+<td>Release it (the incoming policy gets a clean slot)</td>
+</tr>
+<tr>
+<td><code>OnThreadCreate(state, thread)</code></td>
+<td><code>CreateThread</code></td>
+<td>Allocate the per-thread bookkeeping into <code>thread.SchedulerData</code>; do not queue the thread yet</td>
+</tr>
+<tr>
+<td><code>OnThreadReady(state, thread)</code></td>
+<td><code>ReadyThread</code> (wakes, first start, sleep expiry)</td>
+<td>Make the thread runnable: place it and insert it into the run structure</td>
+</tr>
+<tr>
+<td><code>OnThreadBlocked(state, thread)</code></td>
+<td><code>BlockThread</code> and <code>MarkSleeping</code></td>
+<td>Remove the thread from the run structure; save whatever must survive the park</td>
+</tr>
+<tr>
+<td><code>OnThreadYield(state, thread)</code></td>
+<td><code>ScheduleFromInterrupt</code> (the preempted thread, if it stayed <code>Ready</code>) and <code>YieldThread</code></td>
+<td>Re-insert a thread that gave up the CPU</td>
+</tr>
+<tr>
+<td><code>OnThreadExit(state, thread)</code></td>
+<td><code>ExitThread</code></td>
+<td>Remove it everywhere and drop its bookkeeping</td>
+</tr>
+<tr>
+<td><code>OnTick(state, current, elapsedNs)</code></td>
+<td>the timer interrupt</td>
+<td>Account the elapsed time; return <code>true</code> to request a reschedule. <code>elapsedNs</code> is the configured tick interval, not a measurement</td>
+</tr>
+<tr>
+<td><code>PickNext(state)</code></td>
+<td><code>ScheduleFromInterrupt</code></td>
+<td>Return the next thread to run, or <code>null</code> to run the idle thread</td>
+</tr>
+<tr>
+<td><code>OnPickFailed(state, thread)</code></td>
+<td>nothing yet</td>
+<td>Declared for a pick the mechanism cannot honor; put the thread back. No caller today</td>
+</tr>
+<tr>
+<td><code>SelectCpu(thread, currentCpu, cpuCount)</code></td>
+<td>nothing yet</td>
+<td>Choose a starting CPU for a thread; honor <code>ThreadFlags.Pinned</code></td>
+</tr>
+<tr>
+<td><code>OnThreadMigrate(thread, fromState, toState)</code></td>
+<td><code>Balance</code> implementations</td>
+<td>Move the thread's bookkeeping (and any virtual-time base) between CPUs</td>
+</tr>
+<tr>
+<td><code>Balance(state, allCpuStates)</code></td>
+<td>nothing yet</td>
+<td>Rebalance load across CPUs; honor <code>Pinned</code></td>
+</tr>
+<tr>
+<td><code>SetPriority(state, thread, priority)</code> / <code>GetPriority(thread)</code></td>
+<td>nothing in-tree today (a DevKernel diagnostic reads <code>GetPriority</code>)</td>
+<td>Priority is policy-defined: Stride reads it as tickets, a real-time policy would read it as a priority level. Called under a spinlock, not with interrupts masked</td>
+</tr>
+<tr>
+<td><code>GetRunQueueCount(state)</code> / <code>GetRunQueueThread(state, index)</code></td>
+<td>diagnostics</td>
+<td>Read-only introspection of the run structure</td>
+</tr>
+</tbody>
+</table>
+<p><code>SelectCpu</code>, <code>Balance</code>, <code>OnPickFailed</code>, and <code>SetPriority</code> have no mechanism-side caller today (the kernel runs on one CPU, and nothing sets priorities yet). Implement them for completeness, but do not rely on them being exercised. Note also that <code>Name</code>, <code>SelectCpu</code>, and <code>GetPriority</code> receive no <code>PerCpuState</code>, and that <code>InitializeCpu</code>/<code>ShutdownCpu</code> run from <code>SetScheduler</code> under a plain spinlock, in thread context with interrupts enabled.</p>
+<hr>
+<h2 id="attaching-state">Attaching state</h2>
+<p><code>Thread</code> and <code>PerCpuState</code> both inherit <code>SchedulerExtensible</code>, which carries exactly one <code>object?</code> slot, <code>SchedulerData</code>, reserved for the active policy. Its setter is <code>internal</code> to <code>Cosmos.Kernel.Core</code>, which is why a policy currently has to live in that assembly. Allocate in the creation hooks, read with the typed accessor, and tolerate <code>null</code> (a thread can exit between a tick and the hook that observes it):</p>
+<pre><code class="lang-csharp">public sealed class MyThreadData { public ulong Deadline; }
+public sealed class MyCpuData { public List&lt;Thread&gt; Queue { get; } = new(); }
+
+public void OnThreadCreate(PerCpuState state, Thread thread)
+    =&gt; thread.SchedulerData = new MyThreadData();
+
+public bool OnTick(PerCpuState state, Thread current, ulong elapsedNs)
+{
+    MyThreadData? data = current.GetSchedulerData&lt;MyThreadData&gt;();
+    if (data == null) { return true; }   // thread already exited; just reschedule
+    ...
+}
+</code></pre>
+<p>One slot per object is the whole budget. A policy that needs several values defines one class holding them, as <code>StrideThreadData</code> and <code>StrideCpuData</code> do.</p>
+<hr>
+<h2 id="kernel-constraints">Kernel constraints</h2>
+<p>The hooks run inside the kernel's most sensitive window, so four rules are not optional:</p>
+<ul>
+<li><strong>You are in interrupt context.</strong> <code>OnTick</code> and <code>PickNext</code> run inside the timer interrupt; the lifecycle hooks run under <code>DisableInterruptsScope</code> from whatever thread called the manager. Nothing may block, park, or wait in a hook.</li>
+<li><strong>Do not allocate on the tick path.</strong> Allocation is technically interrupt-safe in this kernel, but an allocation in <code>OnTick</code> or <code>PickNext</code> can trigger a collection inside the tick. Allocate in <code>OnThreadCreate</code> and <code>InitializeCpu</code>, where creation already pays for it, and pre-size collections there.</li>
+<li><strong>No <code>List&lt;T&gt;.Remove</code>, <code>Contains</code>, or <code>IndexOf</code> on scheduler paths.</strong> They route through <code>EqualityComparer&lt;T&gt;.Default</code>, which needs runtime helpers the kernel does not provide. Scan with <code>ReferenceEquals</code> and use <code>RemoveAt</code>, as <code>StrideScheduler.RemoveThreadFromQueue</code> does.</li>
+<li><strong>Guard structure mutations against the tick.</strong> A hook mutating the run structure can itself be interrupted by the timer unless interrupts are masked. The lifecycle hooks and the tick hooks get that masking from the manager, but <code>InitializeCpu</code>/<code>ShutdownCpu</code> and <code>SetPriority</code> do not (spinlocks only), and any <em>additional</em> entry point a policy exposes (a diagnostics read, a tuning setter) must take <code>InternalCpu.DisableInterruptsScope()</code> itself.</li>
+</ul>
+<p>Bookkeeping the mechanism already does, so a policy does not have to: <code>Thread.State</code> transitions, the thread registry, <code>_needReschedule</code> on wakes, TLAB return on exit, and the idle-thread fallback when <code>PickNext</code> returns <code>null</code>.</p>
+<hr>
+<h2 id="worked-sketches">Worked sketches</h2>
+<p>The same questions recur for every algorithm: what to store per thread and per CPU, what shape the run structure takes, what triggers preemption in <code>OnTick</code>, and what must survive a park. The sketches below answer them for the classic algorithms.</p>
+<h3 id="round-robin">Round-Robin</h3>
+<p>A FIFO queue with fixed-quantum preemption.</p>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PerCpuState.SchedulerData</code></td>
+<td>A queue of threads</td>
+</tr>
+<tr>
+<td><code>Thread.SchedulerData</code></td>
+<td>A remaining-quantum counter</td>
+</tr>
+<tr>
+<td><code>OnThreadReady</code></td>
+<td>Enqueue at the tail</td>
+</tr>
+<tr>
+<td><code>OnThreadBlocked</code></td>
+<td>Remove from the queue (a running thread is not in it; removal covers a queued thread going to sleep)</td>
+</tr>
+<tr>
+<td><code>OnTick</code></td>
+<td>Charge <code>elapsedNs</code> against the quantum; return <code>true</code> at zero</td>
+</tr>
+<tr>
+<td><code>OnThreadYield</code></td>
+<td>Re-enqueue at the tail, reset the quantum</td>
+</tr>
+<tr>
+<td><code>PickNext</code></td>
+<td>Dequeue the head</td>
+</tr>
+</tbody>
+</table>
+<p>FIFO order already bounds latency at <code>quantum * queue depth</code>, so Round-Robin needs no wakeup placement logic at all.</p>
+<h3 id="multi-level-feedback-queue-mlfq">Multi-Level Feedback Queue (MLFQ)</h3>
+<p>Several priority levels; threads demote when they burn a full quantum and promote when they block early.</p>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PerCpuState.SchedulerData</code></td>
+<td>An array of queues, one per level</td>
+</tr>
+<tr>
+<td><code>Thread.SchedulerData</code></td>
+<td>Current level and quantum-used counter</td>
+</tr>
+<tr>
+<td><code>OnThreadReady</code></td>
+<td>Enqueue at the thread's current level</td>
+</tr>
+<tr>
+<td><code>OnThreadBlocked</code></td>
+<td>Promote one level (it blocked before its quantum ran out: treat as interactive)</td>
+</tr>
+<tr>
+<td><code>OnTick</code></td>
+<td>Charge time; a full quantum at this level demotes on the next yield</td>
+</tr>
+<tr>
+<td><code>PickNext</code></td>
+<td>Scan levels top-down, dequeue the first non-empty head</td>
+</tr>
+<tr>
+<td>periodic (e.g. every N ticks in <code>OnTick</code>)</td>
+<td>Reset all threads to the top level, the classic anti-starvation boost</td>
+</tr>
+</tbody>
+</table>
+<p>MLFQ tracks no virtual time; its whole bookkeeping is integer levels.</p>
+<h3 id="fixed-priority-preemptive-fpp">Fixed-priority preemptive (FPP)</h3>
+<p>The default policy of most RTOSes (FreeRTOS, Zephyr, ThreadX): the highest-priority runnable thread always runs, FIFO within a level.</p>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PerCpuState.SchedulerData</code></td>
+<td>An array of queues indexed by priority</td>
+</tr>
+<tr>
+<td><code>Thread.SchedulerData</code></td>
+<td>A static priority</td>
+</tr>
+<tr>
+<td><code>OnThreadReady</code></td>
+<td>Enqueue at the thread's level; the <code>_needReschedule</code> the manager sets makes a higher-priority wake preempt on the next interrupt exit</td>
+</tr>
+<tr>
+<td><code>OnTick</code></td>
+<td>Return <code>true</code> if any level above the current thread's is non-empty (pure priority, no quantum)</td>
+</tr>
+<tr>
+<td><code>PickNext</code></td>
+<td>Top-down scan, dequeue the first head</td>
+</tr>
+<tr>
+<td><code>SetPriority</code></td>
+<td>Move the thread between levels</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rate Monotonic</strong> is FPP with one extra rule in <code>OnThreadCreate</code>: assign priority from <code>1 / period</code> (shorter period, higher priority), and reject the thread if total utilization crosses the schedulability bound.</p>
+<h3 id="earliest-deadline-first-edf">Earliest-Deadline-First (EDF)</h3>
+<p>Dynamic priority by absolute deadline; optimal on one CPU (100% utilization against Rate Monotonic's ~69%), harder to reason about under overload.</p>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PerCpuState.SchedulerData</code></td>
+<td>A min-heap keyed on absolute deadline</td>
+</tr>
+<tr>
+<td><code>Thread.SchedulerData</code></td>
+<td>Period, relative deadline, absolute deadline</td>
+</tr>
+<tr>
+<td><code>OnThreadReady</code></td>
+<td><code>absolute = now + relative</code>, insert into the heap</td>
+</tr>
+<tr>
+<td><code>OnTick</code></td>
+<td>Return <code>true</code> if the heap root's deadline is earlier than the current thread's</td>
+</tr>
+<tr>
+<td><code>PickNext</code></td>
+<td>Pop the root</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fifo-cooperative">FIFO (cooperative)</h3>
+<p>A debugging policy: one queue, <code>OnTick</code> always returns <code>false</code>, threads run until they block or exit. Useful when chasing a race that disappears under preemption. Note the limits of &quot;cooperative&quot; here: with no working voluntary switch, a compute-bound thread that never blocks never leaves the CPU.</p>
+<hr>
+<h2 id="real-time-notes">Real-time notes</h2>
+<p>The policy/mechanism split makes the framework a plausible base for a real-time kernel: the context switch is deterministic (no allocation on the switch path), <code>Pinned</code> gives per-thread affinity, <code>Sleep</code> provides the wakeup deadline a periodic task needs, and <code>SetPriority</code> is the handle a priority protocol would use. What a hard-RT build still has to add sits on both sides of the interface:</p>
+<ol>
+<li><strong>Bounded hook cost.</strong> Everything in <code>OnTick</code> and <code>PickNext</code> is worst-case interrupt latency. Stride's linear sorted insert would not qualify; per-priority FIFOs or a heap keep the hooks O(log n) or better.</li>
+<li><strong>Priority inheritance.</strong> The kernel <code>Mutex</code> wakes FIFO and hands ownership directly to the head waiter, with no priority boost for the holder. Fair, but it inverts priorities. The inheritance protocol (boost the holder to the highest waiter's priority via <code>SetPriority</code>, restore on release) has its hook available and no implementation.</li>
+<li><strong>A deadline-driven tick.</strong> The scheduler tick is a fixed 10 ms interval. On ARM64 its driver (the Generic Timer) already re-arms a one-shot every interrupt; on x64 the tick is the hardware-periodic LAPIC timer, which would need switching to one-shot re-arm. On top of either sits the missing piece: the policy feedback that programs the next interrupt to the next deadline instead of a fixed period, a scheduler-to-timer channel that does not exist yet.</li>
+<li><strong>Admission control.</strong> Nothing stops oversubscription; a Rate Monotonic or EDF policy has to enforce its own utilization bound in <code>OnThreadCreate</code>.</li>
+</ol>
+<hr>
+<h2 id="checklist">Checklist</h2>
+<ol>
+<li>Define the per-thread and per-CPU records; allocate them in <code>OnThreadCreate</code> and <code>InitializeCpu</code>, read them with <code>GetSchedulerData&lt;T&gt;()</code>, tolerate <code>null</code>.</li>
+<li>Pick the run structure (queue, sorted list, heap, multi-level). The mechanism only ever asks <code>PickNext</code>.</li>
+<li>Put the preemption decision, and nothing slow, in <code>OnTick</code>'s return value.</li>
+<li>Decide what survives a park: whatever <code>OnThreadBlocked</code> saves is what wakeup placement in <code>OnThreadReady</code> has to work with.</li>
+<li>Use <code>ReferenceEquals</code> scans, pre-sized collections, and <code>DisableInterruptsScope</code> on any entry the manager does not already guard.</li>
+<li>Implement <code>SelectCpu</code>, <code>OnThreadMigrate</code>, and <code>Balance</code> honoring <code>Pinned</code>, and treat them as dormant until SMP lands.</li>
+</ol>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/scheduler-plugging.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

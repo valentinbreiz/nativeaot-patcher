@@ -7405,6 +7405,86 @@
     },
     {
       "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-mechanism-policy-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-mechanism-policy-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-mechanism-policy.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-mechanism-policy.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-run-queue-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-run-queue-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-run-queue.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-run-queue.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-thread-registry-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-thread-registry-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-thread-registry.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-thread-registry.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-thread-stack-dark.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-thread-stack-dark.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/dev/images/diagrams/sched-thread-stack.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/dev/images/diagrams/sched-thread-stack.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
       "source_relative_path": "articles/dev/images/orion-gc.jpg",
       "output": {
         "resource": {
@@ -7439,6 +7519,56 @@
       "output": {
         ".html": {
           "relative_path": "articles/dev/plugs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/sched-concepts/instruction-boundary.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/sched-concepts/instruction-boundary.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/sched-concepts/preemption.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/sched-concepts/preemption.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/sched-concepts/virtual-time-fair-share.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/sched-concepts/virtual-time-fair-share.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/scheduler-glossary.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/scheduler-glossary.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/dev/scheduler-plugging.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/dev/scheduler-plugging.html"
         }
       },
       "version": ""

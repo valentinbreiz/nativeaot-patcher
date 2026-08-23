@@ -87,206 +87,276 @@
         <article data-uid="">
 
 <h2 id="overview">Overview</h2>
-<p>The scheduler is <strong>preemptive, pluggable, virtual-time</strong>. It manages thread lifecycle (create, ready, run, block, sleep, exit), drives context switches from the timer interrupt, exposes blocking sync primitives (Mutex, ConditionVariable, Monitor) and a non-blocking SpinLock, and feeds the GC's stack-scanning phase through a global thread registry.</p>
-<p>The design splits <strong>policy</strong> from <strong>mechanism</strong>. Mechanism (context switching, the timer-tick entry, the thread registry, the GC bridge) is fixed and shared. Policy (what to pick next, what to do on a tick, how to balance CPUs) is a single interface, <code>IScheduler</code>, that any algorithm can implement. The default algorithm is <strong>Stride</strong>, a virtual-time fair-share scheduler. It is one of many possible plug-ins. See <a href="#plugging-in-a-scheduling-algorithm">Plugging in a scheduling algorithm</a> for examples.</p>
-<pre><code> ┌──────────────────────────────────────────────────────────────────┐
- │  Mechanism (fixed)                                               │
- │  ─────────────────                                               │
- │  - SchedulerManager:    lifecycle dispatch, thread registry      │
- │  - PerCpuState, Thread: extensible TCB and per-CPU state         │
- │  - IRQ stub + asm:      register save and restore                │
- │  - Mutex, CV, Monitor:  park and unpark via SchedulerManager     │
- │  - GC stack-scan bridge                                          │
- └──────────────────────────┬───────────────────────────────────────┘
-                            │ IScheduler interface
- ┌──────────────────────────┴───────────────────────────────────────┐
- │  Policy (pluggable)                                              │
- │  ───────────────────                                             │
- │  - StrideScheduler (default)                                     │
- │  - RoundRobin, MLFQ, EDF, FIFO, ...  (see examples below)        │
- └──────────────────────────────────────────────────────────────────┘
-</code></pre>
-<p>The architecture-specific assembly (<code>Interrupts.s</code> on x64, <code>ContextSwitch.s</code> on ARM64) handles the actual register save and restore. It is the only part of the system that knows about register layouts.</p>
+<p>The scheduler is <strong><a href="sched-concepts/preemption.html">preemptive</a></strong>, <strong><a href="scheduler-plugging.html">pluggable</a></strong>, and by default <strong><a href="sched-concepts/virtual-time-fair-share.html">virtual-time fair-share</a></strong>. Every context switch happens in interrupt context: the hardware tick lands, the interrupt stub has already saved the current thread's registers on its stack, and the scheduler decides which saved stack the interrupt returns into. There is no dedicated scheduler thread and, today, no working voluntary switch: a thread runs until an interrupt exit switches away from it (the tick, or a device interrupt whose handler woke another thread), until it parks on a blocking primitive, or until it exits. Each linked term has a short background note in the <a href="scheduler-glossary.html">glossary</a>; pluggable links to the how-to instead.</p>
+<p>The design splits <strong>policy</strong> from <strong>mechanism</strong>. Mechanism is fixed and shared: the thread registry, the lifecycle transitions, the timer-tick entry, the assembly that saves and restores registers, and the bridge the GC scans threads through. Policy, everything that decides <em>which</em> thread runs <em>when</em>, is a single interface, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs"><code>IScheduler</code></a>, that any algorithm can implement. The default implementation is <a href="#the-stride-policy">Stride</a>, a virtual-time fair-share scheduler; <a href="scheduler-plugging.html">Writing a scheduler</a> shows how to replace it.</p>
+<img src="images/diagrams/sched-mechanism-policy.svg" alt="The policy-mechanism split. Top box, mechanism, fixed: SchedulerManager for lifecycle dispatch, thread registry and tick entry; Thread and PerCpuState as extensible TCB and per-CPU state; the IRQ stubs in assembly for register save and restore; Mutex, ConditionVariable, Monitor and InterruptEvent parking and unparking through SchedulerManager; the GC stack-scan bridge walking the thread registry during collections. An arrow labeled IScheduler interface leads to the bottom box, policy, pluggable: StrideScheduler, the default virtual-time fair-share, and alternatives such as RoundRobin, MLFQ, EDF or FIFO sketched in Writing a scheduler." style="width:100%;min-width:620px;max-width:760px">
+<p>At boot, <a href="../../../src/Cosmos.Kernel/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs"><code>LibraryInitializer</code></a> wires the whole thing up when the feature switch is on: it calls <code>SchedulerManager.Initialize</code> with the CPU count, installs a <code>StrideScheduler</code>, creates one idle thread per CPU (the idle thread is the booting kernel itself, so it owns no separate stack), flips <code>SchedulerManager.Enabled</code>, and finally starts the scheduler timer with a 10 ms quantum. From that first tick on, the kernel's main flow is just the idle thread, preempted like any other.</p>
+<p>Everything the scheduler does is constrained by the two consumers that see its state from the outside: the timer interrupt and the garbage collector. The interrupt can fire at any <a href="sched-concepts/instruction-boundary.html">instruction boundary</a>: after one machine instruction, before the next, anywhere in the stream, splitting any code sequence longer than one instruction. So every state transition runs with interrupts disabled, and the blocking primitives follow a strict <a href="#the-park-protocol">park protocol</a> so a wake-up arriving mid-transition is never lost. And the <a href="garbage-collector.html">garbage collector</a> walks the <a href="#thread-registry">thread registry</a> during collections, so every live thread must be registered and its saved state must be exactly where the registry says it is.</p>
+<p>The code lives in <code>src/Cosmos.Kernel.Core/Scheduler/</code>. <a href="../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs"><code>SchedulerManager</code></a> is the mechanism; <code>Stride/</code> holds the default policy; the synchronization primitives and the alarm service sit in their own files next to them. The architecture-specific register save and restore lives in the native projects. The full file map is in <a href="#source-files">Source files</a> at the end of this article.</p>
 <hr>
-<h2 id="layers">Layers</h2>
+<h2 id="thread-model">Thread model</h2>
+<p>This section answers what a thread physically is: the control block, the stack it runs on, the register snapshot that preserves it across preemption, and the registry that makes it visible to the scheduler and the GC.</p>
+<h3 id="the-thread-control-block">The Thread control block</h3>
+<p>A <a href="../../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs"><code>Thread</code></a> is a managed class on the GC heap:</p>
 <table>
 <thead>
 <tr>
-<th>Layer</th>
-<th>Responsibility</th>
+<th>Field</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>IScheduler</code></td>
-<td>Pluggable policy interface: lifecycle hooks, <code>PickNext</code>, <code>OnTick</code>, load balancing</td>
+<td><code>Id</code>, <code>CpuId</code></td>
+<td>Globally unique id (a bare incrementing counter) and the assigned CPU</td>
 </tr>
 <tr>
-<td><code>SchedulerManager</code></td>
-<td>Mechanism: thread registry, lifecycle dispatch, timer-tick handler, GC bridge</td>
+<td><code>State</code></td>
+<td>One of <code>Created</code>, <code>Ready</code>, <code>Running</code>, <code>Blocked</code>, <code>Sleeping</code>, <code>Dead</code></td>
 </tr>
 <tr>
-<td><code>SchedulerExtensible</code></td>
-<td>Base class with a single per-instance slot used by the active scheduler to attach its bookkeeping to <code>Thread</code> and <code>PerCpuState</code></td>
+<td><code>Flags</code></td>
+<td><code>KernelThread</code>, <code>IdleThread</code>, <code>Pinned</code>, <code>Managed</code>; bits 8 to 15 are reserved for schedulers</td>
 </tr>
 <tr>
-<td><code>Thread</code></td>
-<td>Thread Control Block: identity, state, stack layout, TLAB</td>
+<td><code>StackBase</code>, <code>StackSize</code>, <code>StackPointer</code></td>
+<td>The stack allocation and the saved stack pointer (see below)</td>
 </tr>
 <tr>
-<td><code>ThreadContext</code> (x64, ARM64)</td>
-<td>Saved-register layout that mirrors the IRQ stub</td>
+<td><code>InstructionPointer</code></td>
+<td>The entry point, staged into the initial context</td>
 </tr>
 <tr>
-<td><code>PerCpuState</code></td>
-<td>Per-CPU state: <code>CurrentThread</code>, <code>IdleThread</code>, lock, scheduler's per-CPU slot</td>
+<td><code>CreatedAt</code>, <code>LastScheduledAt</code>, <code>TotalRuntime</code>, <code>WakeupTime</code></td>
+<td>Accounting; <code>WakeupTime</code> is the sleep deadline in <code>Stopwatch</code> ticks</td>
 </tr>
 <tr>
-<td>Sync primitives (<code>SpinLock</code>, <code>Mutex</code>, <code>ConditionVariable</code>, <code>Monitor</code>)</td>
-<td>Park and unpark on top of <code>BlockThread</code> and <code>ReadyThread</code></td>
+<td><code>AllocContext</code></td>
+<td>The thread's <a href="gc-concepts/tlab.html">TLAB</a> (see <a href="garbage-collector.html#alloccontext-tlab">the GC article</a>)</td>
 </tr>
 <tr>
-<td><code>Stride/*</code></td>
-<td>The default <code>IScheduler</code> implementation</td>
+<td><code>_threadStaticStorage</code></td>
+<td>The backing store for <code>[ThreadStatic]</code> fields, handed to CoreLib by ref</td>
 </tr>
 <tr>
-<td><code>Bridge/Import</code> and <code>Bridge/Export</code></td>
-<td>Native trampolines and the stable initial-RIP entry stub</td>
-</tr>
-<tr>
-<td><code>Runtime/Thread.cs</code></td>
-<td>Runtime exports (<code>RhYield</code>, stack bounds, thread-static storage)</td>
+<td><code>SchedulerData</code></td>
+<td>A single <code>object?</code> slot the active scheduler attaches its bookkeeping to (inherited from <code>SchedulerExtensible</code>)</td>
 </tr>
 </tbody>
 </table>
-<p>The complete file map is at the bottom under <a href="#source-files">Source files</a>.</p>
-<hr>
-<h2 id="thread-model">Thread model</h2>
-<p>A <code>Thread</code> is a managed class that lives on the GC heap. It carries:</p>
+<p>Two flags change behavior elsewhere:</p>
 <ul>
-<li>Identity and state: a globally unique <code>Id</code>, the assigned <code>CpuId</code>, a <code>ThreadState</code> (Created, Ready, Running, Blocked, Sleeping, Dead), and a <code>ThreadFlags</code> bitfield (<code>KernelThread</code>, <code>IdleThread</code>, <code>Pinned</code>, <code>Managed</code>).</li>
-<li>Stack: <code>StackBase</code>, <code>StackSize</code>, <code>StackPointer</code>. The saved <code>ThreadContext</code> lives at the bottom of the stack; <code>StackPointer</code> points into it.</li>
-<li>Accounting: <code>CreatedAt</code>, <code>LastScheduledAt</code>, <code>TotalRuntime</code>, <code>WakeupTime</code>.</li>
-<li>GC: a thread-local bump allocator (<code>AllocContext</code>).</li>
-<li>Scheduler slot: <code>SchedulerData</code>, an <code>object?</code> reserved for the active scheduler. Stride stores <code>StrideThreadData</code> here; another algorithm would store something different (see examples).</li>
-</ul>
-<p>Two flags affect policy:</p>
-<ul>
-<li><code>Pinned</code>: the thread cannot migrate. Both <code>SelectCpu</code> and <code>Balance</code> skip it.</li>
-<li><code>Managed</code>: the entry parameter is a <code>GCHandle&lt;System.Threading.Thread&gt;</code>; the entry trampoline forwards into managed <code>Thread.StartThread</code> instead of decoding the parameter as a free <code>Action</code>.</li>
+<li><code>Pinned</code>: the thread must not migrate between CPUs. Stride's <code>SelectCpu</code> and <code>Balance</code> honor it.</li>
+<li><code>Managed</code>: the entry parameter is a <code>GCHandle</code> of a <code>System.Threading.Thread</code>, and the entry trampoline calls into CoreLib's <code>Thread.StartThread</code> instead of decoding the parameter as a free <code>Action</code>.</li>
 </ul>
 <h3 id="per-thread-stack">Per-thread stack</h3>
-<p><code>Thread.InitializeStack</code> allocates one contiguous chunk and lays the saved <code>ThreadContext</code> at the bottom (low address). The usable call/locals stack grows downward from <code>StackBase + StackSize</code> toward the context.</p>
-<pre><code>              one stack (StackSize bytes)
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-
-│   StackBase                                 StackBase + StackSize   │
-    │                                                       │
-│   ▼                                                       ▼         │
-    ┌──────────────────────────┬────────────────────────────┐
-│   │ ThreadContext            │  usable stack              │         │
-    │  (saved registers,       │  (grows downward from top) │
-│   │   IRQ frame)             │                            │         │
-    │                          │                            │
-│   └──────────────────────────┴────────────────────────────┘         │
-    ▲
-│   │                                                                 │
-    StackPointer (saved RSP; the IRQ stub restores from here)
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-</code></pre>
-<p>The context address is rounded up so the SIMD save area is naturally aligned. The initial saved SP inside the new context is set so the first <code>call</code> inside the new thread lands on a 16-byte-aligned RSP after the prologue's <code>push rbp</code>.</p>
-<p>The saved-context layout itself differs by architecture: x64 saves XMM, GPRs, and an <code>iretq</code> frame; ARM64 saves NEON, X0–X30, and Sp/Elr/Spsr. The scheduler does not look inside the context. Only the IRQ stub indexes into it.</p>
-<h3 id="global-thread-registry">Global thread registry</h3>
-<p><code>SchedulerManager</code> owns a flat fixed-size array (<code>Thread?[]</code>) allocated once at boot. Every live thread, regardless of state, occupies one slot until it dies. The GC reads the array directly during the mark phase, with no interface dispatch (which could allocate during a collection).</p>
-<pre><code> SchedulerManager._allThreads (one slot per live thread)
- ═══════════════════════════════════════════════════════════════════════
-
-  [0] -&gt; Thread { Flags=IdleThread, State=Running   }   (idle)
-  [1] -&gt; Thread { Flags=Managed,    State=Ready     }
-  [2] -&gt; Thread { Flags=Managed,    State=Blocked   }   (waiting on Mutex)
-  [3] -&gt; Thread { Flags=None,       State=Sleeping  }   (WakeupTime set)
-  [4] -&gt; null                                            (free slot)
-  ...
-</code></pre>
-<p>Blocked, sleeping, and dead threads are not in any scheduler-owned run queue, but they remain in <code>_allThreads</code>. This is what keeps the GC correct: stack roots on parked threads must remain reachable.</p>
+<p><code>Thread.InitializeStack</code> allocates one contiguous block, <code>DefaultStackSize</code> = 256 KiB when the creator does not specify a size (explicit requests are honored down to a 64 KiB floor; see <a href="#creation-and-first-run">Creation and first run</a>). The register context of a thread that has not yet run is fabricated at the bottom (the lowest address, rounded up to 16 bytes), and the usable call stack grows downward from the top toward it:</p>
+<div style="overflow-x:auto">
+<img src="images/diagrams/sched-thread-stack.svg" alt="Layout of one thread stack at creation. The fabricated ThreadContext sits at the base, at StackBase rounded up to 16 bytes, and the initial StackPointer points at it. The usable stack occupies the rest, with live frames at the top growing downward. StackBase + StackSize marks the top. There is no guard page. After the first run, each preemption saves a fresh context at the interrupted stack position instead." style="width:100%;min-width:620px;max-width:760px">
+</div>
+<p><code>StackPointer</code> always points at the current saved context, so the IRQ stub knows where to restore from and the GC knows where a parked thread's saved state begins. For a <code>Created</code> thread that is the fabricated context at the base shown above, which the first run consumes; from then on, every preemption saves a fresh context at whatever stack position the interrupt hit, and <code>StackPointer</code> follows it. Two size floors matter (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/433">#433</a>):</p>
+<ul>
+<li><code>DefaultStackSize</code> must stay above 128 KiB, CoreLib's <code>MinExecutionStackSize</code>: <code>RuntimeHelpers.EnsureSufficientExecutionStack</code> compares the live stack pointer against the bounds the runtime reports, and a smaller stack makes it throw on every call.</li>
+<li>The boot stack is separate: the kernel asks Limine for 1 MiB, and <a href="../../../src/Cosmos.Kernel.Core/Runtime/BootStack.cs"><code>BootStack</code></a> captures its top before any managed code runs. Code running before the scheduler starts (and the idle thread, which owns no allocation of its own) reports these bounds instead.</li>
+</ul>
+<p>There is no guard page: a thread that recurses past <code>StackBase</code> runs straight into whatever the allocator placed below it, and nothing detects the overflow.</p>
+<h3 id="the-saved-context">The saved context</h3>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>ThreadContext</code></a> mirrors, field for field, the frame the IRQ stub pushes when an interrupt fires. That equivalence is the core trick: preempting a thread and creating a thread produce the same structure, so resuming either is the same code path.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>x64 (448 bytes)</th>
+<th>ARM64 (816 bytes)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SIMD area</td>
+<td><code>Xmm[256]</code> (XMM0 to XMM15)</td>
+<td><code>Neon[512]</code> (Q0 to Q31)</td>
+</tr>
+<tr>
+<td>General registers</td>
+<td>R15 up to RAX (15 slots in memory order; the stub pushes RAX first)</td>
+<td>X0 to X30</td>
+</tr>
+<tr>
+<td>Fault info</td>
+<td><code>Interrupt</code>, <code>CpuFlags</code>, <code>Cr2</code>, plus a <code>TempRcx</code> relay slot</td>
+<td><code>Interrupt</code>, <code>CpuFlags</code> (ESR_EL1), <code>Far</code> (FAR_EL1)</td>
+</tr>
+<tr>
+<td>Return frame</td>
+<td><code>Rip</code>, <code>Cs</code>, <code>Rflags</code>, <code>Rsp</code>, <code>Ss</code> (the <code>iretq</code> frame)</td>
+<td><code>Sp</code>, <code>Elr</code>, <code>Spsr</code></td>
+</tr>
+</tbody>
+</table>
+<p>(The rows follow x64's memory order; on ARM64 the return frame sits before the fault info.)</p>
+<p>For a new thread, <code>ThreadContext.Initialize</code> fabricates the snapshot a preempted thread would have: every register zeroed except the entry argument (RDI on x64, X0 on ARM64), a zero frame pointer so stack walks terminate, the entry point in the resume slot (<code>Rip</code> / <code>Elr</code>), and an aligned initial stack pointer (on x64, top aligned to 16 then minus 8, the post-<code>call</code> state the ABI expects; on ARM64, just aligned, since AArch64 keeps SP 16-aligned at all times).</p>
+<h3 id="thread-registry">Thread registry</h3>
+<p><code>SchedulerManager</code> owns a flat, fixed <code>Thread?[256]</code> array (<code>Thread.MaxThreadCount</code>), allocated once at <code>Initialize</code> and exposed as <code>SchedulerManager.Threads</code>. Every live thread occupies one slot from <code>CreateThread</code> until <code>ExitThread</code> clears it; blocked and sleeping threads stay registered even though no run queue holds them.</p>
+<div style="overflow-x:auto">
+<img src="images/diagrams/sched-thread-registry.svg" alt="The thread registry: SchedulerManager.s_allThreads, a flat array of 256 slots allocated once at Initialize. Slots 0 to 3 point down at thread boxes: Thr 0 (idle, Running), Thr 1 (Ready), Thr 2 (Blocked), Thr 3 (Sleeping). Slot 4 is null, free. The elided middle leads to slot 255. The GC's mark phase iterates this array directly." style="width:100%;min-width:620px;max-width:760px">
+</div>
+<p>The registry exists for the GC. During a collection the mark phase iterates the array directly, with no interface dispatch (interface dispatch can allocate, and nothing may allocate mid-collection), and scans every registered thread's stack; a thread missing from the registry would keep running while the GC frees the objects its stack points to. That is also the sharp edge of the fixed capacity: on a full registry, <code>RegisterThread</code> logs a warning and drops the registration, but the thread is still queued and still runs, unscanned (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/444">#444</a>).</p>
 <hr>
 <h2 id="lifecycle">Lifecycle</h2>
+<p>Every transition runs with interrupts masked: the <code>SchedulerManager</code> entry points below take <code>InternalCpu.DisableInterruptsScope()</code>, and the switch itself (<code>ScheduleFromInterrupt</code>) relies on already running in interrupt context. Each entry point notifies the active policy through the matching <code>IScheduler</code> hook; the table lists what else it does:</p>
 <pre><code class="lang-mermaid">stateDiagram-v2
-    [*] --&gt; Created: CreateThread
-    Created --&gt; Running: ScheduleFromInterrupt picks new thread
-    Running --&gt; Ready: preempted
-    Ready --&gt; Running: ScheduleFromInterrupt
-    Running --&gt; Blocked: BlockThread (Mutex / CV.Wait)
-    Running --&gt; Sleeping: Sleep(timeoutMs)
-    Blocked --&gt; Ready: ReadyThread (Mutex.Release / CV.Signal)
-    Sleeping --&gt; Ready: CheckSleepingThreads (WakeupTime &lt;= now)
-    Sleeping --&gt; Ready: ReadyThread (signaled)
+    [*] --&gt; Created: InitializeStack
+    Created --&gt; Running: first pick (new-thread tail)
+    Running --&gt; Ready: preempted (OnTick says reschedule)
+    Ready --&gt; Running: ScheduleFromInterrupt picks it
+    Running --&gt; Blocked: BlockThread (Mutex, CV.Wait, InterruptEvent)
+    Running --&gt; Sleeping: MarkSleeping (Sleep, CV.WaitTimeout)
+    Blocked --&gt; Ready: ReadyThread (Release / Signal)
+    Sleeping --&gt; Ready: CheckSleepingThreads (deadline) or ReadyThread
     Running --&gt; Dead: ExitThread
-    Dead --&gt; [*]
+    Dead --&gt; [*]: registry slot cleared
 </code></pre>
-<p><code>SchedulerManager</code> owns every state transition. Each transition does two things: update <code>Thread.State</code> under interrupt-disabled scope, and notify the active <code>IScheduler</code> via the matching hook (<code>OnThreadCreate</code>, <code>OnThreadReady</code>, <code>OnThreadBlocked</code>, <code>OnThreadYield</code>, <code>OnThreadExit</code>). The scheduler uses these hooks to update its own data structures (run queue, priority bookkeeping, etc.).</p>
-<p>The first run of a freshly created thread is a special case. Instead of resuming a saved frame with <code>iretq</code>, the IRQ exit path loads the configured RSP and jumps directly to the configured RIP. That RIP is always a single trampoline, <code>ThreadNative.EntryPointStub</code>, which forwards to the manager's invoke routine. The invoke routine then either runs an <code>Action</code> delegate or calls into managed <code>System.Threading.Thread.StartThread</code>, depending on the <code>Managed</code> flag. After this first entry, every thread (kernel or managed) has the same shape.</p>
-<p>On exit, the manager flushes the TLAB back to the GC, calls <code>OnThreadExit</code> on the scheduler, and clears the registry slot. The thread's accumulated runtime is rolled into a global counter so the <code>GetBusyCpuTimeNs</code> metric stays monotonic across thread death.</p>
+<table>
+<thead>
+<tr>
+<th>Entry point</th>
+<th>State change</th>
+<th>Policy hook</th>
+<th>Also</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CreateThread</code></td>
+<td>none (<code>InitializeStack</code> already set <code>Created</code>)</td>
+<td><code>OnThreadCreate</code></td>
+<td>registers the thread in the registry</td>
+</tr>
+<tr>
+<td><code>ReadyThread</code></td>
+<td><code>Ready</code>, unless the thread is still <code>Created</code></td>
+<td><code>OnThreadReady</code></td>
+<td>sets the per-CPU <code>_needReschedule</code> flag</td>
+</tr>
+<tr>
+<td><code>BlockThread</code></td>
+<td><code>Blocked</code></td>
+<td><code>OnThreadBlocked</code></td>
+<td>sets <code>_needReschedule</code></td>
+</tr>
+<tr>
+<td><code>MarkSleeping</code></td>
+<td><code>Sleeping</code>, after computing <code>WakeupTime</code></td>
+<td><code>OnThreadBlocked</code></td>
+<td>no halt; the caller parks itself (see <a href="#the-park-protocol">the park protocol</a>)</td>
+</tr>
+<tr>
+<td><code>Sleep</code></td>
+<td>via <code>MarkSleeping</code></td>
+<td></td>
+<td>then halts once, only if still <code>Sleeping</code></td>
+</tr>
+<tr>
+<td><code>YieldThread</code></td>
+<td>none</td>
+<td><code>OnThreadYield</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>ExitThread</code></td>
+<td><code>Dead</code></td>
+<td><code>OnThreadExit</code></td>
+<td>runs the exit callback, returns the TLAB to the GC, clears the registry slot</td>
+</tr>
+</tbody>
+</table>
+<p>Three details are deliberate:</p>
+<ul>
+<li>A <code>Created</code> thread keeps that state even after <code>ReadyThread</code> queues it. <code>ScheduleFromInterrupt</code> uses <code>State == Created</code> to detect a first run, which needs the special exit path described below.</li>
+<li><code>ReadyThread</code> and <code>BlockThread</code> set <code>_needReschedule</code> so the next interrupt exit reschedules immediately. Without it, a thread woken by a device interrupt would sit in the run queue for up to a full quantum, and a thread that just blocked would spin in its halt loop for the rest of its quantum.</li>
+<li><code>WakeupTime</code> is stored in <code>Stopwatch</code> ticks, not nanoseconds. The tick check compares against <code>Stopwatch.GetTimestamp()</code>, and converting through nanoseconds distorted timeouts by 16x on ARM64's 62.5 MHz timer.</li>
+</ul>
+<h3 id="creation-and-first-run">Creation and first run</h3>
+<p>Threads are created through one seam: the <code>SystemNative_CreateThread</code> export in <a href="../../../src/Cosmos.Kernel.Core/Bridge/Interop/libSystemNative.cs"><code>libSystemNative.cs</code></a>, which backs CoreLib's <code>Interop.Sys.CreateThread</code> P/Invoke. So <code>new System.Threading.Thread(...).Start()</code> in kernel code flows through CoreLib into this export, which rounds the requested stack size up to a page multiple (floor 64 KiB), builds a <code>Scheduler.Thread</code> flagged <code>Managed</code>, points its context at the <code>ThreadNative.EntryPointStub</code> trampoline, and calls <code>CreateThread</code> plus <code>ReadyThread</code>. (<a href="../../../src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs"><code>ThreadPlug</code></a> plugs only <code>Thread.Yield</code>, which reports success without yielding; <code>Thread.CreateThread</code> itself runs CoreLib's unmodified body.)</p>
+<p>The first run of a <code>Created</code> thread cannot end in <code>iretq</code>, because there is no interrupted frame to return into. Instead the IRQ exit path is told (via a flag staged from C#) to take the new-thread tail: it loads the entry point and the fabricated initial stack pointer from the context, re-enabling interrupts along the way, and jumps. The landing point is always <code>EntryPointStub</code>, which forwards to <code>SchedulerManager.InvokeCurrentThreadStart</code>: it decodes the parameter (CoreLib <code>Thread.StartThread</code> for <code>Managed</code> threads, a <code>GCHandle&lt;Action&gt;</code> otherwise), runs it inside a catch-all so a throwing thread exits with code 1 instead of taking down the kernel, and ends in <code>ExitThread</code> followed by a halt loop. After that first entry, the thread is indistinguishable from any preempted thread.</p>
 <hr>
-<h2 id="preemption-flow">Preemption flow</h2>
+<h2 id="preemption">Preemption</h2>
+<p>This section answers how the tick becomes a context switch: which hardware fires it, what the interrupt path saves, how the policy's decision is staged, and how the exit path consumes it.</p>
+<h3 id="timer-sources">Timer sources</h3>
+<p>The scheduler does not own a timer; it exposes <code>OnTimerInterrupt</code> and lets the platform call it. The wiring differs per architecture:</p>
+<table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>Scheduler tick</th>
+<th>Software timers (<a href="#timers-and-alarms">Timers and alarms</a>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x64</td>
+<td>LAPIC timer, vector 239, periodic, 10 ms</td>
+<td>PIT on IRQ 0, one-shot re-armed per interrupt</td>
+</tr>
+<tr>
+<td>ARM64</td>
+<td>Generic Timer, INTID 30, re-armed per interrupt, 10 ms</td>
+<td>same interrupt, dispatched before the scheduler tick</td>
+</tr>
+</tbody>
+</table>
+<p>In both cases the handler passes the <em>configured</em> interval as <code>elapsedNs</code>, not a measured elapsed time, and computes the saved-context address itself: the managed IRQ entry receives a pointer to the general-register block, and the handler subtracts the SIMD save area (256 bytes on x64, 512 on ARM64) to recover the <code>ThreadContext</code> base. That address is what a preempted thread's <code>StackPointer</code> will hold.</p>
+<h3 id="the-tick">The tick</h3>
 <pre><code class="lang-mermaid">sequenceDiagram
     participant ASM as IRQ stub (asm)
-    participant IM as InterruptManager
+    participant TH as Timer handler (LocalApic / GenericTimer)
     participant SM as SchedulerManager
     participant SC as IScheduler (policy)
 
     Note over ASM: Timer IRQ, interrupts disabled
-    ASM-&gt;&gt;ASM: Save registers + IRQ frame at RSP
-    ASM-&gt;&gt;IM: __managed__irq(rdi = saved-context*)
-    IM-&gt;&gt;SM: OnTimerInterrupt(cpuId, currentRsp, elapsedNs)
-    SM-&gt;&gt;SM: CheckSleepingThreads (wake any expired Sleeping threads)
+    ASM-&gt;&gt;ASM: push GPRs, fault info, SIMD registers (a ThreadContext at RSP)
+    ASM-&gt;&gt;TH: __managed__irq(GPR block pointer)
+    TH-&gt;&gt;SM: OnTimerInterrupt(cpuId, contextBase, intervalNs)
+    SM-&gt;&gt;SM: CheckSleepingThreads (ReadyThread every expired sleeper)
     SM-&gt;&gt;SC: OnTick(state, current, elapsedNs)
-    SC--&gt;&gt;SM: needsReschedule (bool)
+    SC--&gt;&gt;SM: needsReschedule
     alt needsReschedule
+        SM-&gt;&gt;SM: ScheduleFromInterrupt
         SM-&gt;&gt;SC: PickNext(state)
-        SC--&gt;&gt;SM: next (or null, fall back to IdleThread)
-        SM-&gt;&gt;SM: prev.StackPointer = currentRsp, prev.State = Ready
-        SM-&gt;&gt;SC: OnThreadYield(state, prev)
-        SM-&gt;&gt;ASM: stage target RSP + new-thread flag
+        SC--&gt;&gt;SM: next (null means idle thread)
+        alt next is not prev
+            SM-&gt;&gt;SM: prev.StackPointer = contextBase, demote Running to Ready
+            SM-&gt;&gt;SC: OnThreadYield(state, prev) if prev stayed Ready
+            SM-&gt;&gt;ASM: stage new-thread flag, then target stack pointer
+        end
     end
-    SM--&gt;&gt;ASM: return
-    Note over ASM: Check staged target RSP
-    alt switch requested
-        ASM-&gt;&gt;ASM: load target RSP, restore registers
+    SM--&gt;&gt;TH: return
+    TH--&gt;&gt;ASM: return
+    alt a switch is staged
+        ASM-&gt;&gt;ASM: switch RSP to the target context, restore registers
         alt new thread
-            ASM-&gt;&gt;ASM: jmp to entry RIP (skip iretq)
+            ASM-&gt;&gt;ASM: load entry RIP and initial RSP, jump (no iretq)
         else
-            ASM-&gt;&gt;ASM: iretq (resume saved frame)
+            ASM-&gt;&gt;ASM: iretq into the resumed thread
         end
     else
-        ASM-&gt;&gt;ASM: iretq (resume current thread)
+        ASM-&gt;&gt;ASM: restore registers, iretq into the same thread
     end
 </code></pre>
-<p>Two notes on this flow:</p>
-<ol>
-<li>The policy never touches registers. The IRQ stub captures the outgoing RSP and hands it to the manager; the manager hands a target RSP back. Everything in between (<code>OnTick</code>, <code>PickNext</code>, <code>OnThreadYield</code>) is plain managed C# operating on <code>Thread</code> and <code>PerCpuState</code>.</li>
-<li>The new-thread tail is what bootstraps a fresh thread. Because a <code>Created</code> thread has no saved IRQ frame to <code>iretq</code> into, the IRQ exit path is told (via a flag staged from C#) to load the saved RSP and jump to the saved RIP instead. After that first entry, the thread is indistinguishable from any resumed thread.</li>
-</ol>
-<p>Voluntary (non-IRQ) switches go through <code>SchedulerManager.Schedule</code> and <code>ContextSwitch.Switch</code>. They use the same target-RSP mechanism but are not the hot path; preemption dominates.</p>
+<p>The policy never touches a register. Everything between the stub's save and restore is plain managed C# operating on <code>Thread</code> and <code>PerCpuState</code>; the handoff in each direction is one pointer. Two conditions guard the switch-out bookkeeping: <code>prev</code> is demoted to <code>Ready</code> only if it was <code>Running</code>, and <code>OnThreadYield</code> (the policy's re-queue hook) runs only if it ended up <code>Ready</code>. A thread that blocked or went to sleep just before the tick keeps its parked state and is not re-queued.</p>
+<p>The staging itself is two writes into native globals: the new-thread flag first, then the target stack pointer (<code>_context_switch_target_rsp</code>; nonzero means switch). Every one of the 256 interrupt vectors checks that global on exit, so any interrupt can carry out a staged switch, not just the timer. The staging variables are single globals, one more thing that pins the kernel to one CPU for now.</p>
+<h3 id="waking-from-an-interrupt-handler">Waking from an interrupt handler</h3>
+<p>Device interrupt handlers wake threads too: an NVMe completion fires on its MSI-X vector and signals an <a href="#interruptevent"><code>InterruptEvent</code></a> whose waiter must run. The tick path alone would leave that thread queued for up to a full quantum, so wake-ups take a shortcut. <code>ReadyThread</code> (and <code>BlockThread</code>) set a per-CPU <code>_needReschedule</code> flag, and the interrupt dispatcher calls <code>ReschedulePendingFromIrq</code> when a handled hardware interrupt exits: if the flag is set and no switch is already staged for this interrupt, it runs <code>ScheduleFromInterrupt</code> right there, on the device interrupt's own exit path. The already-staged check matters: the timer handler may have staged a switch during the same interrupt, and a second <code>ScheduleFromInterrupt</code> would save this frame's stack pointer into a thread whose real context lives elsewhere.</p>
+<h3 id="what-there-is-not-a-voluntary-switch">What there is not: a voluntary switch</h3>
+<p><code>SchedulerManager.Schedule</code> and <code>ContextSwitch.Switch</code> exist in the tree but have no callers, and neither can complete a synchronous switch: they only <em>stage</em> a target stack pointer, the staged switch is consumed on an interrupt exit, and a voluntary caller has no interrupt-saved register frame for that exit to restore (<code>Schedule</code>'s helper does not even save the outgoing stack pointer). The one voluntary-yield entry that works, the runtime's <code>RhYield</code>, re-queues the current thread through <code>OnThreadYield</code> and then halts; the actual switch happens at the next tick. A true synchronous switch would need its own save path (the equivalent of the IRQ stub's, entered from a call instead of an interrupt), which does not exist yet.</p>
 <hr>
-<h2 id="default-algorithm-stride">Default algorithm: Stride</h2>
-<p>Stride scheduling is virtual-time fair-share. Each thread has a weight (<code>Tickets</code>) and a stride (<code>Stride1 / Tickets</code>). Each scheduling round, the chosen thread's <code>Pass</code> advances by its stride. The run queue stays sorted by <code>Pass</code>, so the lowest-pass thread always runs next. Higher tickets means smaller stride, so <code>Pass</code> advances more slowly, so the thread gets more total CPU.</p>
-<p>The per-CPU run queue is a single list sorted ascending by <code>Pass</code>:</p>
-<pre><code> StrideCpuData.RunQueue (one per CPU)
- ═══════════════════════════════════════════════════════════════════════
-
-   Pass = 1042            Pass = 1130           Pass = 1320
-   ┌─────────────┐        ┌─────────────┐       ┌─────────────┐
-   │ Thread A    │        │ Thread B    │       │ Thread C    │
-   │ Stride=10485│        │ Stride=10485│       │ Stride=5242 │
-   └─────────────┘        └─────────────┘       └─────────────┘
-        ▲                                              ▲
-        │                                              │
-   PickNext() pops here                       Tail (highest Pass);
-                                              also the migration victim
-                                              picked by Balance()
-</code></pre>
-<p>What Stride does in each <code>IScheduler</code> hook:</p>
+<h2 id="the-stride-policy">The Stride policy</h2>
+<p><a href="https://web.eecs.umich.edu/%7Emosharaf/Readings/Stride.pdf">Stride scheduling</a> is proportional-share scheduling with deterministic, virtual-time bookkeeping. Each thread holds <code>Tickets</code> (default 100), its share weight. From the tickets follows a <code>Stride</code>, the constant <code>Stride1</code> (2^20) divided by tickets, and a <code>Pass</code>, the thread's virtual time. The run queue stays sorted by <code>Pass</code> and <code>PickNext</code> always pops the lowest: the thread that has consumed the least of its share runs next. As a thread runs, its <code>Pass</code> advances proportionally to runtime (<code>Stride * elapsed / quantum</code>, so exactly one stride per full 10 ms quantum), and more tickets mean a smaller stride, a slower-rising <code>Pass</code>, and more CPU.</p>
+<p>Each CPU carries a <code>StrideCpuData</code>: the run queue (a <code>List&lt;Thread&gt;</code> kept sorted ascending by <code>Pass</code>), <code>TotalTickets</code> (the aggregate share, which doubles as the load metric), and <code>GlobalPass</code>, the CPU's own virtual clock, advanced at the aggregate rate (<code>Stride1 / TotalTickets</code> per quantum). <code>GlobalPass</code> is the reference point that wakeup placement and priority changes are computed against.</p>
+<div style="overflow-x:auto">
+<img src="images/diagrams/sched-run-queue.svg" alt="One Stride run queue: StrideCpuData.RunQueue, a List of threads kept sorted ascending by Pass. Thr A with Pass 1042 sits at index 0, where PickNext pops. Thr B with Pass 1130 follows, then an elided middle, then Thr T with Pass 1320 at the tail, where Balance steals from. Each thread's StrideThreadData carries Tickets, Stride and Pass." style="width:100%;min-width:620px;max-width:760px">
+</div>
+<p>What Stride does in each hook:</p>
 <table>
 <thead>
 <tr>
@@ -295,426 +365,299 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>InitializeCpu</code> / <code>ShutdownCpu</code></td>
+<td>Create / drop the per-CPU <code>StrideCpuData</code></td>
+</tr>
 <tr>
 <td><code>OnThreadCreate</code></td>
-<td>Allocate <code>StrideThreadData</code> with default tickets, set <code>Pass = 0</code></td>
+<td>Attach <code>StrideThreadData</code> (100 tickets, <code>Pass = 0</code>); the thread is not queued yet</td>
 </tr>
 <tr>
 <td><code>OnThreadReady</code></td>
-<td>Choose between an interactive boost (<code>Pass = GlobalPass - Stride/2</code>) or a CFS-style starvation cap, then insert into the queue sorted by <code>Pass</code></td>
+<td>Place the thread (see wakeup placement below), insert sorted by <code>Pass</code>, add its tickets to <code>TotalTickets</code></td>
 </tr>
 <tr>
 <td><code>OnThreadBlocked</code></td>
-<td>Remove from run queue, save <code>Remain = Pass - GlobalPass</code> to restore on wakeup</td>
+<td>Save <code>Remain = Pass - GlobalPass</code>, remove from the queue, subtract tickets</td>
+</tr>
+<tr>
+<td><code>OnThreadExit</code></td>
+<td>Remove from the queue, subtract tickets, drop the thread's bookkeeping</td>
 </tr>
 <tr>
 <td><code>OnTick</code></td>
-<td>Advance current thread's <code>Pass</code> and the CPU's <code>GlobalPass</code>; signal preempt if the head of the queue now has a lower <code>Pass</code> or the quantum has elapsed</td>
+<td>Advance the current thread's <code>Pass</code> and the CPU's <code>GlobalPass</code>; reschedule if the queue head's <code>Pass</code> is strictly lower, or the quantum elapsed</td>
 </tr>
 <tr>
 <td><code>OnThreadYield</code></td>
-<td>Re-insert the yielding thread, but clamp <code>Pass</code> upward to <code>GlobalPass</code> so a long-blocked thread cannot perpetually outrank others</td>
+<td>Clamp <code>Pass</code> up to <code>GlobalPass</code> if it fell behind, then re-insert</td>
 </tr>
 <tr>
 <td><code>PickNext</code></td>
-<td>Pop the head of the run queue (lowest <code>Pass</code>); return null if empty (manager runs the idle thread)</td>
+<td>Pop the head (lowest <code>Pass</code>); null on an empty queue, and the manager runs the idle thread</td>
+</tr>
+<tr>
+<td><code>OnPickFailed</code></td>
+<td>Re-insert a thread the manager could not switch to</td>
 </tr>
 <tr>
 <td><code>SelectCpu</code></td>
-<td>Honor <code>Pinned</code>; otherwise prefer any CPU under 80% of the current CPU's load</td>
+<td>Honor <code>Pinned</code>; otherwise accept a CPU whose load (<code>TotalTickets</code>) is under 80% of the best load found so far</td>
 </tr>
 <tr>
 <td><code>Balance</code></td>
-<td>Idle CPUs steal the tail thread (highest <code>Pass</code>, least hot) from the busiest peer</td>
+<td>Only when this CPU's queue is empty: steal the tail thread (highest <code>Pass</code>) from the peer with the longest queue, if that queue holds at least two and the tail is not <code>Pinned</code></td>
 </tr>
 <tr>
-<td><code>SetPriority</code></td>
-<td>Re-ticket without losing relative position by scaling <code>Remain</code> by the stride ratio</td>
-</tr>
-</tbody>
-</table>
-<p>Two refinements are reused by other algorithms:</p>
-<ul>
-<li>Interactive boost: a thread that blocks frequently relative to its runtime is treated as I/O-bound and gets a head-start <code>Pass</code> on wakeup. The boost decays after a few ms.</li>
-<li>Starvation cap: a long-blocked thread cannot wake with a <code>Pass</code> so far behind <code>GlobalPass</code> that it monopolizes the CPU. The cap is <code>Pass = max(GlobalPass + Remain, GlobalPass - 2 * Stride1)</code>.</li>
-</ul>
-<hr>
-<h2 id="plugging-in-a-scheduling-algorithm">Plugging in a scheduling algorithm</h2>
-<p>Any algorithm that implements <code>IScheduler</code> is a drop-in replacement. The mechanism layer never assumes virtual time, run queues, or priorities. Switching the active scheduler is a single call:</p>
-<pre><code>SchedulerManager.SetScheduler(new MyScheduler());
-</code></pre>
-<p>The manager calls <code>ShutdownCpu</code> on the outgoing scheduler and <code>InitializeCpu</code> on the incoming one for every CPU.</p>
-<p>The algorithm decides what data to attach to threads and CPUs by storing whatever it wants in <code>Thread.SchedulerData</code> and <code>PerCpuState.SchedulerData</code> (both inherited from <code>SchedulerExtensible</code>). Below are sketches of how a few classic algorithms map onto this interface.</p>
-<h3 id="round-robin">Round-Robin</h3>
-<p>A FIFO queue with fixed-quantum preemption.</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PerCpuState.SchedulerData</code></td>
-<td>A <code>Queue&lt;Thread&gt;</code></td>
-</tr>
-<tr>
-<td><code>Thread.SchedulerData</code></td>
-<td>None, or a remaining-quantum counter</td>
-</tr>
-<tr>
-<td><code>OnThreadReady</code></td>
-<td>Enqueue at the tail</td>
-</tr>
-<tr>
-<td><code>OnThreadBlocked</code></td>
-<td>No-op (the thread is not in the queue while it runs)</td>
-</tr>
-<tr>
-<td><code>OnTick</code></td>
-<td>Decrement remaining quantum; preempt when it hits zero</td>
-</tr>
-<tr>
-<td><code>OnThreadYield</code></td>
-<td>Re-enqueue at the tail, reset quantum</td>
-</tr>
-<tr>
-<td><code>PickNext</code></td>
-<td>Dequeue the head</td>
-</tr>
-<tr>
-<td><code>SelectCpu</code></td>
-<td>Round-robin or shortest-queue</td>
-</tr>
-<tr>
-<td><code>Balance</code></td>
-<td>Steal half the queue from the busiest CPU</td>
+<td><code>OnThreadMigrate</code></td>
+<td>Move the tickets between CPUs and rebase <code>Pass</code> on the destination's <code>GlobalPass + Remain</code></td>
 </tr>
 <tr>
 <td><code>SetPriority</code> / <code>GetPriority</code></td>
-<td>No-op / constant</td>
+<td>Set / read tickets; on a change, the current offset from <code>GlobalPass</code> is scaled by the stride ratio so relative position survives</td>
 </tr>
 </tbody>
 </table>
-<p>Round-Robin does not need an interactive boost or starvation cap. The FIFO order already bounds latency at <code>quantum * queue_depth</code>.</p>
-<h3 id="multi-level-feedback-queue-mlfq">Multi-Level Feedback Queue (MLFQ)</h3>
-<p>Several priority queues. Threads demote when they use a full quantum and promote when they block early.</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PerCpuState.SchedulerData</code></td>
-<td>An array of <code>Queue&lt;Thread&gt;</code>, one per priority level</td>
-</tr>
-<tr>
-<td><code>Thread.SchedulerData</code></td>
-<td>Current level + quantum-used counter</td>
-</tr>
-<tr>
-<td><code>OnThreadReady</code></td>
-<td>Enqueue at the thread's current level</td>
-</tr>
-<tr>
-<td><code>OnThreadBlocked</code></td>
-<td>Promote one level (the thread blocked, treat it as interactive)</td>
-</tr>
-<tr>
-<td><code>OnTick</code></td>
-<td>Charge time to the running thread; if it consumed a full quantum at this level, demote one level on next yield</td>
-</tr>
-<tr>
-<td><code>PickNext</code></td>
-<td>Scan levels top-down for a non-empty queue</td>
-</tr>
-<tr>
-<td><code>Balance</code></td>
-<td>Periodically reset all threads to top priority (anti-starvation)</td>
-</tr>
-</tbody>
-</table>
-<p>MLFQ does not track virtual time. Its bookkeeping is just integer levels.</p>
-<h3 id="real-time-scheduling-rtos">Real-time scheduling (RTOS)</h3>
-<p>The framework is suitable for building a hard- or soft-real-time kernel. The policy/mechanism split lets you swap in a real-time algorithm without touching context switching or sync primitives. The three classic families all map onto <code>IScheduler</code>.</p>
-<p><strong>Fixed-priority preemptive (FPP).</strong> Every thread has a static priority. The highest-priority runnable thread always runs. Ties are broken by FIFO at each level. This is the default policy in most RTOSes (FreeRTOS, Zephyr, ThreadX).</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PerCpuState.SchedulerData</code></td>
-<td>An array of <code>Queue&lt;Thread&gt;</code> indexed by priority</td>
-</tr>
-<tr>
-<td><code>Thread.SchedulerData</code></td>
-<td>Static priority</td>
-</tr>
-<tr>
-<td><code>OnThreadReady</code></td>
-<td>Enqueue at the tail of the thread's priority level</td>
-</tr>
-<tr>
-<td><code>OnTick</code></td>
-<td>Preempt if a higher-priority queue is non-empty (no quantum, pure priority)</td>
-</tr>
-<tr>
-<td><code>PickNext</code></td>
-<td>Scan top-down for the first non-empty level, dequeue head</td>
-</tr>
-<tr>
-<td><code>SetPriority</code></td>
-<td>Move between levels</td>
-</tr>
-<tr>
-<td><code>Balance</code></td>
-<td>Usually disabled. RT threads are pinned (see below)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rate Monotonic (RM).</strong> Periodic tasks. Priority is statically assigned by frequency: shorter period gets higher priority. Optimal among static-priority schedulers when periods equal deadlines and the system is under the Liu/Layland bound.</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Thread.SchedulerData</code></td>
-<td><code>Period</code>, derived static priority</td>
-</tr>
-<tr>
-<td><code>OnThreadCreate</code></td>
-<td>Assign priority from <code>1 / Period</code>; reject if total utilization exceeds the schedulability bound</td>
-</tr>
-<tr>
-<td>Otherwise</td>
-<td>Same as FPP. RM is just FPP with a specific priority-assignment rule</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Earliest-Deadline-First (EDF).</strong> Dynamic priority based on absolute deadline. Theoretically optimal on a single CPU (achieves 100% utilization vs. RM's ~69%) but harder to analyze under overload.</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PerCpuState.SchedulerData</code></td>
-<td>A min-heap keyed on absolute deadline</td>
-</tr>
-<tr>
-<td><code>Thread.SchedulerData</code></td>
-<td><code>Period</code>, <code>RelativeDeadline</code>, <code>AbsoluteDeadline</code>, <code>WCET</code></td>
-</tr>
-<tr>
-<td><code>OnThreadReady</code></td>
-<td>Recompute <code>AbsoluteDeadline = now + RelativeDeadline</code>, insert into the heap</td>
-</tr>
-<tr>
-<td><code>OnTick</code></td>
-<td>Preempt if the heap root's deadline is earlier than the current thread's</td>
-</tr>
-<tr>
-<td><code>PickNext</code></td>
-<td>Pop the heap root</td>
-</tr>
-<tr>
-<td><code>SelectCpu</code></td>
-<td>Partitioned EDF: pin tasks per-CPU so per-CPU utilization stays under 1.0</td>
-</tr>
-</tbody>
-</table>
-<h4 id="hard-real-time-requirements">Hard-real-time requirements</h4>
-<p>Any of these algorithms is only as deterministic as the surrounding mechanism. For a hard-RT build, four things matter:</p>
-<ol>
-<li>Bounded interrupt latency. The IRQ stub captures RSP, calls into managed code, and returns. There is no unbounded loop on the path. Anything you add to <code>OnTick</code> or <code>PickNext</code> becomes part of worst-case latency, so RT algorithms keep these O(log n) or better. Stride's linear <code>InsertByPass</code> would not be acceptable; a heap or per-priority FIFO is.</li>
-<li>Priority inheritance in <code>Mutex</code>. The current <code>Mutex</code> is FIFO-wake. This is fine for fair-share, but a low-priority holder of a mutex contended by a high-priority waiter causes priority inversion. A real-time mutex must temporarily boost the holder to the highest waiter's priority via <code>SetPriority</code>, then restore on release. The hooks for this exist; the policy does not.</li>
-<li><code>Pinned</code> for IRQ-affine threads. RT threads typically must not migrate (caches, deadline analysis, and partitioned EDF all assume affinity). The <code>Pinned</code> flag is the contract; <code>SelectCpu</code> and <code>Balance</code> already honor it.</li>
-<li>Tickless or event-driven timer. The current timer is periodic. A hard-RT build replaces it with a one-shot timer programmed to the next deadline (or next quantum, whichever is sooner). This is a HAL change, not a scheduler change. <code>OnTimerInterrupt</code> does not care whether ticks are periodic.</li>
-</ol>
-<p>The mechanism already provides a deterministic context switch (no allocation on the hot path), per-thread <code>Pinned</code>, the <code>SetPriority</code> hook, sleep with a wakeup deadline (<code>Sleep(timeoutMs)</code> is what a periodic task needs), and stack-bounded thread state (no dynamic stack growth to perturb timing).</p>
-<p>What an RTOS build still has to add: the priority-inheritance protocol on <code>Mutex</code>, a tickless timer driver, and a worst-case-execution-time (WCET) budget on <code>OnTick</code> and <code>PickNext</code> of the chosen scheduler.</p>
-<h3 id="fifo-cooperative">FIFO (cooperative)</h3>
-<p>A debugging policy: one global queue, no preemption. Threads run until they block or yield.</p>
-<table>
-<thead>
-<tr>
-<th>Hook</th>
-<th>Behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>OnTick</code></td>
-<td>Always return <code>false</code> (never preempt)</td>
-</tr>
-<tr>
-<td><code>OnThreadYield</code></td>
-<td>Move to the tail</td>
-</tr>
-<tr>
-<td><code>PickNext</code></td>
-<td>Pop the head</td>
-</tr>
-</tbody>
-</table>
-<p>Useful when chasing a race that disappears under preemption.</p>
-<h3 id="common-patterns">Common patterns</h3>
-<p>The same shape recurs across all of these:</p>
-<ol>
-<li>Define what to store per thread and per CPU. Allocate it in <code>OnThreadCreate</code> and <code>InitializeCpu</code>, retrieve with <code>GetSchedulerData&lt;T&gt;()</code>.</li>
-<li>Decide queue shape (FIFO, sorted list, heap, multi-level). The mechanism layer does not care; it only calls <code>PickNext</code>.</li>
-<li>Decide the preemption trigger (quantum exhaustion, queue-head priority, deadline, never). That logic lives in <code>OnTick</code>'s return value.</li>
-<li>Decide migration policy: which CPU to start on (<code>SelectCpu</code>) and how to rebalance (<code>Balance</code>). Honor the <code>Pinned</code> flag.</li>
-<li>Hook into block/wake so threads leave and re-enter the runnable set correctly. Anything that needs to survive a sleep (saved progress, queue position, remaining quantum) is what <code>OnThreadBlocked</code> should stash.</li>
-</ol>
-<p>A scheduler that does not need a hook can leave it as a no-op. The interface is wide so the mechanism can drive any algorithm without per-algorithm special cases. Not every hook is mandatory.</p>
+<p>Wakeup placement is where fairness needs judgment. A woken thread cannot keep its old <code>Pass</code>: it fell far behind <code>GlobalPass</code> while parked, and running it until it caught up would starve everyone else. The code carries two placements for this:</p>
+<ul>
+<li>a <strong>starvation cap</strong>, <code>Pass = max(GlobalPass + Remain, GlobalPass - 2 * Stride1)</code>: <code>Remain</code> restores the fraction of its quantum the thread had left when it blocked, and the cap bounds how far behind <code>GlobalPass</code> any waker can be placed;</li>
+<li>an <strong>interactive boost</strong>, <code>Pass = GlobalPass - Stride / 2</code>, half a quantum of head start for threads classified interactive (sleeps long relative to accumulated runtime), so input-driven threads preempt batch work promptly.</li>
+</ul>
+<p>Neither runs today: the placement branch tests for <code>State == Blocked</code>, but the manager marks the thread <code>Ready</code> before calling the hook, so every wakeup takes the fallback path, <code>Pass = GlobalPass</code> (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/445">#445</a>). That is still fair (a waker rejoins at the virtual present, with no catch-up advantage and no starvation), just blunter than designed.</p>
+<p>Two implementation notes carry over to anyone touching this code. Queue removal runs under <code>DisableInterruptsScope</code> and scans with <code>ReferenceEquals</code> instead of <code>List.Remove</code>, because <code>EqualityComparer&lt;T&gt;.Default</code> needs runtime helpers the kernel does not have. And <code>OnTick</code> tolerates a thread whose <code>SchedulerData</code> is already null (it exited mid-quantum) by rescheduling if anything else is queued.</p>
 <hr>
 <h2 id="synchronization-primitives">Synchronization primitives</h2>
-<p>Synchronization sits on top of <code>BlockThread</code>, <code>ReadyThread</code>, and <code>Sleep</code>, so it is policy-agnostic.</p>
-<ul>
-<li><code>SpinLock</code>: pure CAS, no scheduler interaction. Used internally by <code>Mutex</code> and <code>ConditionVariable</code> to protect their wait queues.</li>
-<li><code>Mutex</code>: recursive blocking lock. Owner ID, recursion depth, and a wait queue. On contention, the caller is parked via <code>BlockThread</code>. On release, the manager wakes the head of the queue. A bounded spin precedes parking so brief contention does not take the slow path.</li>
-<li><code>ConditionVariable</code>: signal/wait with mutex hand-off. <code>Wait</code> releases the mutex, parks, and re-acquires on wakeup. <code>WaitTimeout</code> parks with a wakeup deadline (<code>Sleep</code>) so the thread also resumes on expiry.</li>
-<li><code>Monitor</code>: Java-style composite of <code>Mutex</code> and <code>ConditionVariable</code>.</li>
-</ul>
-<p>All three blocking primitives delegate the actual state transition to the manager, which wraps it in a disable-interrupts scope so the timer interrupt cannot observe a half-finished park.</p>
+<p>Blocking synchronization sits on top of three manager calls, <code>BlockThread</code>, <code>ReadyThread</code>, and <code>MarkSleeping</code>, so it works unchanged under any policy. The primitives are: <code>SpinLock</code> (non-blocking), <code>Mutex</code>, <code>ConditionVariable</code>, <code>Monitor</code> (their composition), and <code>InterruptEvent</code> (interrupt-to-thread completion). All of them live next to the scheduler because their correctness depends on scheduler internals, most of all on the park protocol below.</p>
+<h3 id="spinlock-and-the-irq-safe-scope">SpinLock and the IRQ-safe scope</h3>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs"><code>SpinLock</code></a> is a single-word CAS lock with two acquire forms, and choosing the right one is the whole contract. Plain <code>Acquire</code>/<code>Release</code> is only safe for locks never touched from interrupt context: on one CPU, an interrupt handler that spins on a lock its own interrupted thread holds spins forever. <code>AcquireIrqSafe</code> returns a scope that disables interrupts before taking the lock and restores them after releasing it, in that order on both ends, so an interrupt can never fire while the lock is held on this CPU. Every lock in <code>Mutex</code>, <code>ConditionVariable</code>, and <code>InterruptEvent</code> is taken exclusively through <code>AcquireIrqSafe</code>: their wait sides hold the lock with interrupts masked, so a plain-acquire holder preempted mid-section would deadlock every other spinner, and <code>InterruptEvent</code>'s signal side additionally does run from interrupt handlers.</p>
+<h3 id="the-park-protocol">The park protocol</h3>
+<p>A blocking primitive must move a thread from running to parked while a wake-up can arrive at any instruction, from the timer path or from a device interrupt. The failure mode is the lost wakeup: the waiter is readied <em>before</em> it finishes blocking, the block then lands on top, and the thread never wakes (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/357">#357</a>, which was exactly this race in <code>ConditionVariable.Wait</code>). Every blocking path in the kernel follows the same three rules:</p>
+<pre><code class="lang-mermaid">flowchart TD
+    A[&quot;Take the primitive's lock with AcquireIrqSafe
+    (interrupts now masked)&quot;] --&gt; B[&quot;Insert self into the wait queue&quot;]
+    B --&gt; C[&quot;Release any covering lock (CV releases the mutex)&quot;]
+    C --&gt; D[&quot;BlockThread / MarkSleeping (state flips while IRQs are still masked)&quot;]
+    D --&gt; E[&quot;Dispose the scope (interrupts back on: a pending wake can land now)&quot;]
+    E --&gt; F{&quot;Still Blocked / Sleeping?&quot;}
+    F --&gt;|yes| G[&quot;Halt until an interrupt&quot;]
+    F --&gt;|no| H[&quot;Already woken: continue&quot;]
+</code></pre>
+<ol>
+<li><strong>One atomic section.</strong> Queue insertion, any covering release, and the state flip happen inside a single <code>AcquireIrqSafe</code> scope. A wake cannot interleave, because the signal side needs the same lock and interrupts are masked.</li>
+<li><strong>State-guarded halt.</strong> The halt after the scope is conditional on the thread still being parked. A wake that lands in the window between scope exit and halt flips the state back to <code>Ready</code>, and the guard sees it; an unconditional halt would sleep through it.</li>
+<li><strong>Membership-based results.</strong> For timed waits, &quot;was I signaled or did I time out&quot; is answered by wait-queue membership, not by flags: a signal removes the thread from the queue, so after waking, still-in-queue means timeout (and the thread removes its own stale entry so a later signal cannot be spent on it).</li>
+</ol>
+<p><code>MarkSleeping</code> exists as a separate entry precisely for rule 1: <code>Sleep</code> is <code>MarkSleeping</code> plus its own guarded halt, but <code>ConditionVariable.WaitTimeout</code> needs the state flip inside <em>its</em> lock scope, so it calls <code>MarkSleeping</code> there and halts itself afterwards.</p>
+<h3 id="mutex">Mutex</h3>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs"><code>Mutex</code></a> is a recursive blocking lock: an owner reference, a recursion depth, and a FIFO wait list. A contended acquire parks by the protocol above on the first failed attempt; there is no spin-then-park stage. Release at depth zero performs a <strong>direct hand-off</strong>: still under the lock, it dequeues the head waiter and makes it the owner before readying it, so a running thread cannot barge in and retake the mutex during the waiter's wake-up latency. The woken waiter recognizes the hand-off (it owns the mutex it never explicitly acquired) and returns.</p>
+<p>Two special cases: the idle thread never parks (blocking it would just get it re-picked as the idle fallback), so it spin-acquires with interrupts enabled between attempts. And with no thread context at all (scheduler off or not yet ready), <code>Acquire</code>/<code>Release</code> are no-ops and <code>TryAcquire</code> succeeds, so early-boot code can run through mutex-protected paths.</p>
+<h3 id="conditionvariable-and-monitor">ConditionVariable and Monitor</h3>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs"><code>ConditionVariable</code></a> is wait/signal with mutex integration. <code>Wait(mutex)</code> inserts itself, releases the mutex, and blocks, all in one scope (rule 1; releasing the mutex outside the scope is the #357 bug), then re-acquires the mutex on wake. <code>WaitTimeout</code> parks through <code>MarkSleeping</code> with the deadline, and reports signaled-vs-timeout by membership (rule 3). <code>Signal</code> readies the FIFO head; <code>SignalAll</code> readies everyone.</p>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs"><code>Monitor</code></a> composes one <code>Mutex</code> and one <code>ConditionVariable</code> into the classic monitor shape; its <code>Signal</code>/<code>SignalAll</code> also release the mutex, so signaling exits the monitor.</p>
+<h3 id="interruptevent">InterruptEvent</h3>
+<p><a href="../../../src/Cosmos.Kernel.Core/Scheduler/InterruptEvent.cs"><code>InterruptEvent</code></a> is the interrupt-to-thread completion primitive: an interrupt handler signals it, a thread waits on it. The NVMe driver hangs one on every command slot and signals it from the MSI-X completion handler.</p>
+<p>Signals are <strong>counted</strong>, not latched: two signals wake two waiters, and signals arriving with no waiter are banked and consumed one per future wait (auto-reset). The signal side is interrupt-safe by construction: it takes the IRQ-safe lock, bumps the count, dequeues one waiter, and calls <code>ReadyThread</code>, with no allocation and no interface dispatch on the path (the waiter list is pre-sized to four, so typical waits do not allocate under the lock the interrupt handler spins on either). The <code>ReadyThread</code> sets <code>_needReschedule</code>, so the woken waiter runs on this same interrupt's exit path (see <a href="#waking-from-an-interrupt-handler">Waking from an interrupt handler</a>).</p>
+<p>The wait side follows the park protocol, with two twists. Callers without park capability (the idle thread, or code running before the scheduler is ready) poll the signal count with interrupts enabled between checks and deliberately never halt: if the signaling interrupt fired just before a halt, no further interrupt might ever arrive to end it. And <code>Wait(maxIterations)</code> bounds the wait by loop passes, a hang-breaker for lost device interrupts rather than a clock.</p>
+<hr>
+<h2 id="timers-and-alarms">Timers and alarms</h2>
+<p>Deferred work has two tiers, split by execution context. The rule is in the API docs of both: interrupt context must not block, thread context may.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><a href="../../../src/Cosmos.Kernel.System/Timer/TimerManager.cs"><code>TimerManager.Schedule</code></a></th>
+<th><a href="../../../src/Cosmos.Kernel.Core/Scheduler/AlarmSystem.cs"><code>AlarmSystem</code></a></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Callback runs in</td>
+<td>interrupt context (the timer tick)</td>
+<td>a dedicated kernel thread</td>
+</tr>
+<tr>
+<td>May block, take a Mutex</td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>the timer device's tick</td>
+<td>the scheduler tick</td>
+</tr>
+<tr>
+<td>Backed by</td>
+<td><code>SoftwareTimer</code> registry on the timer device</td>
+<td>a deadline-sorted list, a <code>Mutex</code>, a <code>ConditionVariable</code></td>
+</tr>
+<tr>
+<td>One-shot / recurring</td>
+<td>both</td>
+<td>both (recurring minimum 1 ms)</td>
+</tr>
+</tbody>
+</table>
+<p>The first tier is hardware-near: <code>TimerDevice</code> keeps a registry of <code>SoftwareTimer</code> countdowns and drives them from its tick interrupt (<code>HandleTick</code>), invoking due callbacks right there in interrupt context. On x64 the PIT provides this tick, separate from the LAPIC scheduler tick; on ARM64 the single Generic Timer interrupt drives both, software timers first.</p>
+<p>The second tier is a service built entirely on the primitives above, and doubles as a reference use of them. <code>AlarmSystem</code> keeps its alarms in a list sorted by deadline, guarded by a <code>Mutex</code>; a lazily started kernel thread waits on a <code>ConditionVariable</code> with <code>WaitTimeout</code> clamped to the next deadline (or a 1 s heartbeat when idle), fires due alarms outside the lock inside a catch-all, and re-arms recurring alarms from <em>now</em> rather than from their nominal due time, so a late wake does not produce a catch-up burst. <code>Add</code> signals the condition variable so a new nearest deadline shortens the running wait. Because insertion and waiting share the mutex, no alarm can slip in unseen between the deadline computation and the park (rule 1 again, one level up).</p>
 <hr>
 <h2 id="gc-integration">GC integration</h2>
-<p>The scheduler is the GC's source of truth for stack roots. Two invariants matter:</p>
-<ol>
-<li>Every registered thread is scanned, not just the running one. Stack locals on a thread blocked on a mutex are still reachable and must be marked. Earlier versions only scanned <code>CurrentThread</code> and lost objects whose only reference was on a parked stack.</li>
-<li>Mark-phase iteration goes directly through the array, not via any interface. Interface dispatch can allocate, and the mark phase cannot allocate. This is why the registry is a flat array, not a <code>List&lt;Thread&gt;</code> exposed through <code>IEnumerable</code>.</li>
-</ol>
-<p>For each non-<code>Dead</code> thread, the mark phase scans the saved <code>ThreadContext</code> (every saved register is a root candidate) and conservatively scans stack memory between the saved SP and <code>StackBase + StackSize</code>. The currently running thread is scanned via the live SP captured by the IRQ stub, not the cached <code>StackPointer</code>.</p>
-<p>A defensive check rejects any candidate <code>MethodTable*</code> outside kernel higher-half (<code>&gt;= 0xFFFF800000000000</code>). Without it, a stack-resident integer that lands in heap range can crash a downstream type-info read.</p>
-<hr>
-<h2 id="runtime-and-managed-thread-bridge">Runtime and managed-thread bridge</h2>
-<p>The scheduler exposes a thin runtime surface so the .NET runtime and BCL see it as a real threading implementation:</p>
+<p>The scheduler is the GC's source of truth for stack roots; the full story is in <a href="garbage-collector.html#mark-phase">the GC article</a>. The scheduler-side contract has three parts:</p>
 <ul>
-<li>Runtime exports (<code>RhYield</code>, <code>RhGetCurrentThreadStackBounds</code>, <code>RhGetThreadStaticStorage</code>, <code>RhSetThreadExitCallback</code>) live in <code>Runtime/Thread.cs</code>. They delegate to <code>SchedulerManager</code>, or fall back to single-threaded behavior when the scheduler feature switch is off.</li>
-<li><code>ThreadPlug</code> redirects <code>System.Threading.Thread.CreateThread</code> so <code>new Thread(action).Start()</code> in a kernel project allocates a kernel <code>Thread</code> flagged <code>Managed</code>, sets the entry point to <code>EntryPointStub</code>, and registers it with the manager.</li>
-<li><code>ContextSwitchNative</code> is the C# side of the four native symbols that stage the IRQ exit path (<code>set_context_switch_sp</code>, <code>get_context_switch_sp</code>, <code>set_context_switch_new_thread</code>, <code>get_sp</code>). All four are <code>[SuppressGCTransition]</code> because they are pure register operations.</li>
+<li><strong>The registry is the root set.</strong> The mark phase iterates <code>SchedulerManager.Threads</code> directly, a flat array walk with no interface dispatch and no allocation. Every registered, non-<code>Dead</code> thread gets scanned; a thread the registry does not hold does not exist for the GC.</li>
+<li><strong>Parked threads are scanned conservatively from their saved state.</strong> For each thread that is not currently running, the GC reads the saved <code>ThreadContext</code> through <code>Thread.GetContext()</code> and treats the saved general registers as root candidates (the SIMD area and the flags are skipped), then scans every pointer-sized word from <code>StackPointer</code> to the stack top. Precise scanning of parked threads needs return-address hijacking, tracked in issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/385">#385</a>.</li>
+<li><strong>The triggering thread is scanned precisely.</strong> The thread that entered <code>Collect</code> reached it through a managed call chain, so its stack is walked frame by frame from GCInfo (see <a href="garbage-collector-gcinfo.html">Precise Stack Scanning</a>); the scheduler contributes the stack bounds.</li>
 </ul>
+<p>Conservative scanning is also why <code>TryMarkRoot</code> validates aggressively: a stack word is only a candidate if it points into the GC heap, and the <code>MethodTable</code> pointer found there must lie outside the heap and above <code>AddressSpace.KernelSpaceStart</code> (the kernel higher half) before it is dereferenced.</p>
+<p>Collections run with interrupts disabled on the triggering thread, so no tick, no switch, and no interrupt handler can mutate thread state mid-scan. The same discipline protects the other direction: because <code>AllocObject</code> is interrupt-atomic too, interrupt handlers (the tick itself, input drivers) may allocate.</p>
+<hr>
+<h2 id="runtime-bridge">Runtime bridge</h2>
+<p>The runtime and CoreLib see the scheduler through exports in <a href="../../../src/Cosmos.Kernel.Core/Runtime/Thread.cs"><code>Runtime/Thread.cs</code></a>:</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RhGetCurrentThreadStackBounds</code></td>
+<td>The current thread's real <code>[StackBase, StackBase + StackSize)</code>; the boot stack's bounds before the scheduler runs, for the idle thread, and when the switch is off (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/433">#433</a>)</td>
+</tr>
+<tr>
+<td><code>RhGetThreadStaticStorage</code></td>
+<td>Ref to the current thread's <code>[ThreadStatic]</code> backing store (a static spine when the switch is off)</td>
+</tr>
+<tr>
+<td><code>RhGetDefaultStackSize</code></td>
+<td><code>Thread.DefaultStackSize</code>, 256 KiB</td>
+</tr>
+<tr>
+<td><code>RhSetThreadExitCallback</code></td>
+<td>Stores the callback <code>ExitThread</code> invokes; CoreLib uses it for managed thread cleanup</td>
+</tr>
+<tr>
+<td><code>RhYield</code></td>
+<td>Re-queues the current thread (<code>YieldThread</code>) and halts until the next tick; see <a href="#what-there-is-not-a-voluntary-switch">What there is not</a></td>
+</tr>
+<tr>
+<td><code>RhSpinWait</code></td>
+<td>A counted empty loop</td>
+</tr>
+<tr>
+<td><code>RhGetThreadEntryPointAddress</code>, <code>RhSetCurrentThreadName</code></td>
+<td>Stubs: zero, and a serial log</td>
+</tr>
+</tbody>
+</table>
+<p>The native side of switching is <a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>ContextSwitchNative</code></a>: five tiny <code>[SuppressGCTransition]</code> imports, identical on both architectures. The staging pair (<code>_native_set_context_switch_sp</code>, <code>_native_set_context_switch_new_thread</code>) and the staged-pointer getter (whose nonzero read doubles as the &quot;switch already staged&quot; guard) drive the exit path; <code>_native_get_sp</code> reads the live stack pointer for the GC's scan of a running thread; and <code>_native_capture_regdisplay</code> bootstraps the GC's precise stack walk.</p>
 <hr>
 <h2 id="feature-switch">Feature switch</h2>
-<p>The scheduler is gated by <code>CosmosEnableScheduler</code> in the kernel <code>.csproj</code>, surfaced as <code>CosmosFeatures.SchedulerEnabled</code>. Two checkpoints honor it:</p>
+<p>The scheduler is gated by <code>CosmosEnableScheduler</code> in the kernel <code>.csproj</code>, surfaced as <code>CosmosFeatures.SchedulerEnabled</code> and checked at three levels:</p>
 <ul>
-<li><code>SchedulerManager.IsEnabled</code>: every public manager entry point that mutates state checks it.</li>
-<li><code>Runtime/Thread.cs</code>: runtime exports fall back to single-threaded behavior when off.</li>
+<li><code>SchedulerManager.IsEnabled</code> mirrors the switch. The creation entry points (<code>Initialize</code>, <code>CreateThread</code>, <code>ReadyThread</code>) throw when it is off; with the switch off nothing else is reachable, since no thread ever exists.</li>
+<li><code>SchedulerManager.Enabled</code> is the runtime arm switch. <code>LibraryInitializer</code> flips it only after the manager, the policy, and the idle threads are fully wired, and the interrupt-side entries (<code>OnTimerInterrupt</code>, <code>ReschedulePendingFromIrq</code>) return early until it is set, so the first tick cannot race a half-built scheduler.</li>
+<li><code>SchedulerManager.IsReady</code> (<code>IsEnabled</code> plus initialized state) is the guard for touching per-CPU state. <code>Mutex</code> and <code>InterruptEvent</code> check it literally; <code>ConditionVariable</code> and the runtime exports reach the same effect through the feature check plus null propagation on the CPU state. When the scheduler is not ready they degrade: <code>Mutex</code> becomes a no-op, <code>InterruptEvent</code> polls instead of parking, the stack bounds fall back to the boot stack.</li>
 </ul>
-<p>A separate runtime flag <code>SchedulerManager.Enabled</code> is set after <code>Initialize</code>, <code>SetScheduler</code>, and idle-thread wiring complete. The timer interrupt path returns early until it flips. This avoids racing the very first context switch against a half-built scheduler state.</p>
+<hr>
+<h2 id="limitations-and-evolution">Limitations and evolution</h2>
+<ul>
+<li><strong>One CPU.</strong> <code>GetCurrentCpuId()</code> returns 0, the switch-staging variables are single globals, and nothing ever calls <code>SelectCpu</code> or <code>Balance</code>. The structures are per-CPU-shaped (that is what <code>PerCpuState</code> is for), but SMP needs per-CPU staging, a real CPU id source, and a balancing call site.</li>
+<li><strong>No voluntary switch.</strong> A yielding or blocking thread waits for the next interrupt to actually switch away; on an idle system that is up to one quantum of latency, mitigated by <code>_needReschedule</code> on any interrupt exit. The fix is a synchronous save path symmetrical to the IRQ stub's.</li>
+<li><strong>The registry caps at 256 threads and fails open.</strong> Registration is dropped with a log line while the thread still runs; the GC then never scans its stack, which is a use-after-free generator, not a graceful degradation (issue <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/444">#444</a>).</li>
+<li><strong>No stack protection.</strong> No guard page, and the saved context sits in the overflow path of the thread's own frames.</li>
+<li><strong>No priority inheritance.</strong> <code>Mutex</code> wakes FIFO and hands off directly, which is fair but inverts priorities: a low-tickets holder is not boosted while a high-tickets thread waits. The <code>SetPriority</code> hook is the raw material for an inheritance protocol; no policy implements one.</li>
+<li><strong>Parked threads pin their referents.</strong> The conservative scan of parked stacks is the GC-side cost of preemption at arbitrary instructions; return-address hijacking (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/385">#385</a>) is the exit.</li>
+<li><strong>Stride's wakeup placement is inert.</strong> The starvation cap and the interactive boost are coded but unreachable (<a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/445">#445</a>): the state flip lands before the hook that tests it, so every wakeup rebases to <code>GlobalPass</code>. Reviving the branch also means fixing the heuristic's own quirks, catalogued in the issue.</li>
+<li><strong>The tick is nominal.</strong> <code>OnTimerInterrupt</code> receives the configured interval, not a measurement, so time accounting drifts by whatever the hardware does between ticks.</li>
+</ul>
+<hr>
+<h2 id="tests">Tests</h2>
+<p>Two kernel test suites cover this article. <a href="../../../tests/Kernels/Cosmos.Kernel.Tests.Threading/Kernel.cs"><code>Cosmos.Kernel.Tests.Threading</code></a> runs 58 tests (<code>make test KERNEL=Threading</code>):</p>
+<ul>
+<li>thread lifecycle and concurrency (<code>Thread_Start_ExecutesDelegate</code>, <code>Thread_Multiple_CanRunConcurrently</code>),</li>
+<li>stack sizing and the #433 floor (<code>Thread_MaxStackSize_IsHonored</code>, <code>Thread_MaxStackSize_TinyRequestIsFloored</code>, <code>Thread_EnsureSufficientExecutionStack_Passes</code>),</li>
+<li>thread statics (<code>Thread_ThreadStatics</code>),</li>
+<li>mutex contention, hand-off, and idle accounting (<code>Mutex_ThreeContenders_AllAcquire</code>, <code>Mutex_ReleaseHandsOffToParkedWaiter</code>, <code>Mutex_IdleThreadContention_KeepsTicketAccounting</code>),</li>
+<li>spinlocks, monitors and the <code>lock</code> statement (<code>SpinLock_*</code>, <code>Monitor_*</code>, <code>Lock_Statement_*</code>),</li>
+<li>interrupt events (<code>InterruptEvent_TwoWaiters_BothWake</code>),</li>
+<li>the BCL surface above it all: delegates, <code>Task</code>, <code>async</code>/<code>await</code>, <code>ThreadPool</code>.</li>
+</ul>
+<p><a href="../../../tests/Kernels/Cosmos.Kernel.Tests.Timer/Kernel.cs"><code>Cosmos.Kernel.Tests.Timer</code></a> runs 24 tests on x64 and 18 on ARM64 (<code>make test KERNEL=Timer</code>), covering both deferred-work tiers (<code>TimerManager_Schedule_*</code>, <code>AlarmSystem_*</code>), the BCL <code>System.Threading.Timer</code> on top of them, <code>Stopwatch</code>, <code>DateTime</code>, and the per-architecture timer hardware (PIT and LAPIC on x64).</p>
 <hr>
 <h2 id="source-files">Source files</h2>
 <table>
 <thead>
 <tr>
-<th>File</th>
+<th>Area</th>
 <th>Path</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Scheduler interface</td>
+<td>Policy interface</td>
 <td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs"><code>src/Cosmos.Kernel.Core/Scheduler/IScheduler.cs</code></a></td>
 </tr>
 <tr>
-<td>Scheduler manager</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs"><code>src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs</code></a></td>
+<td>Mechanism</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerManager.cs"><code>SchedulerManager.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs"><code>SchedulerExtensible.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs"><code>PerCpuState.cs</code></a></td>
 </tr>
 <tr>
-<td>Extensible base</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs"><code>src/Cosmos.Kernel.Core/Scheduler/SchedulerExtensible.cs</code></a></td>
+<td>Thread control block</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs"><code>Thread.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs"><code>ThreadState.cs</code></a></td>
 </tr>
 <tr>
-<td>Thread TCB</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Thread.cs</code></a></td>
+<td>Saved context</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>ThreadContext.X64.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs"><code>ThreadContext.ARM64.cs</code></a></td>
 </tr>
 <tr>
-<td>Thread state</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs"><code>src/Cosmos.Kernel.Core/Scheduler/ThreadState.cs</code></a></td>
+<td>Stride policy</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs"><code>Stride/StrideScheduler.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs"><code>Stride/StrideThreadData.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs"><code>Stride/StrideCpuData.cs</code></a></td>
 </tr>
 <tr>
-<td>Per-CPU state</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs"><code>src/Cosmos.Kernel.Core/Scheduler/PerCpuState.cs</code></a></td>
+<td>Synchronization</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs"><code>SpinLock.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs"><code>Mutex.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs"><code>ConditionVariable.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs"><code>Monitor.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Scheduler/InterruptEvent.cs"><code>InterruptEvent.cs</code></a></td>
 </tr>
 <tr>
-<td>Thread context (x64)</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs"><code>src/Cosmos.Kernel.Core/Scheduler/ThreadContext.X64.cs</code></a></td>
+<td>Alarms</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/AlarmSystem.cs"><code>AlarmSystem.cs</code></a></td>
 </tr>
 <tr>
-<td>Thread context (ARM64)</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs"><code>src/Cosmos.Kernel.Core/Scheduler/ThreadContext.ARM64.cs</code></a></td>
+<td>Software timers</td>
+<td><a href="../../../src/Cosmos.Kernel.HAL.Interfaces/Devices/SoftwareTimer.cs"><code>src/Cosmos.Kernel.HAL.Interfaces/Devices/SoftwareTimer.cs</code></a>, <a href="../../../src/Cosmos.Kernel.HAL/Devices/Timer/TimerDevice.cs"><code>src/Cosmos.Kernel.HAL/Devices/Timer/TimerDevice.cs</code></a>, <a href="../../../src/Cosmos.Kernel.System/Timer/TimerManager.cs"><code>src/Cosmos.Kernel.System/Timer/TimerManager.cs</code></a></td>
 </tr>
 <tr>
-<td>Voluntary switch</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs"><code>src/Cosmos.Kernel.Core/Scheduler/ContextSwitch.cs</code></a></td>
+<td>Boot wiring</td>
+<td><a href="../../../src/Cosmos.Kernel/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs"><code>src/Cosmos.Kernel/Internal/Runtime/CompilerHelpers/LibraryInitializer.cs</code></a></td>
 </tr>
 <tr>
-<td>SpinLock</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs"><code>src/Cosmos.Kernel.Core/Scheduler/SpinLock.cs</code></a></td>
-</tr>
-<tr>
-<td>Mutex</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Mutex.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Mutex.cs</code></a></td>
-</tr>
-<tr>
-<td>Condition variable</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs"><code>src/Cosmos.Kernel.Core/Scheduler/ConditionVariable.cs</code></a></td>
-</tr>
-<tr>
-<td>Monitor</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Monitor.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Monitor.cs</code></a></td>
-</tr>
-<tr>
-<td>Stride scheduler</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs</code></a></td>
-</tr>
-<tr>
-<td>Stride thread data</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Stride/StrideThreadData.cs</code></a></td>
-</tr>
-<tr>
-<td>Stride CPU data</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs"><code>src/Cosmos.Kernel.Core/Scheduler/Stride/StrideCpuData.cs</code></a></td>
-</tr>
-<tr>
-<td>Native imports</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs</code></a></td>
-</tr>
-<tr>
-<td>Entry trampoline</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs"><code>src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs</code></a></td>
+<td>Thread creation seam</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Bridge/Interop/libSystemNative.cs"><code>src/Cosmos.Kernel.Core/Bridge/Interop/libSystemNative.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs"><code>src/Cosmos.Kernel.Core/Bridge/Export/ThreadNative.cs</code></a></td>
 </tr>
 <tr>
 <td>Runtime exports</td>
-<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/Thread.cs"><code>src/Cosmos.Kernel.Core/Runtime/Thread.cs</code></a></td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Runtime/Thread.cs"><code>src/Cosmos.Kernel.Core/Runtime/Thread.cs</code></a>, <a href="../../../src/Cosmos.Kernel.Core/Runtime/BootStack.cs"><code>src/Cosmos.Kernel.Core/Runtime/BootStack.cs</code></a></td>
+</tr>
+<tr>
+<td>Native staging imports</td>
+<td><a href="../../../src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs"><code>src/Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs</code></a></td>
 </tr>
 <tr>
 <td>Managed Thread plug</td>
 <td><a href="../../../src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs"><code>src/Cosmos.Kernel.Plugs/System/Threading/ThreadPlug.cs</code></a></td>
 </tr>
 <tr>
-<td>x64 IRQ + switch asm</td>
+<td>x64 IRQ stub and exit paths</td>
 <td><a href="../../../src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s"><code>src/Cosmos.Kernel.Native.X64/CPU/Interrupts.s</code></a></td>
 </tr>
 <tr>
-<td>ARM64 switch asm</td>
-<td><a href="../../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s"><code>src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s</code></a></td>
+<td>ARM64 IRQ stub and exit paths</td>
+<td><a href="../../../src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s"><code>src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s</code></a>, <a href="../../../src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s"><code>src/Cosmos.Kernel.Native.ARM64/CPU/ContextSwitch.s</code></a></td>
+</tr>
+<tr>
+<td>Timer hardware</td>
+<td><a href="../../../src/Cosmos.Kernel.Core.X64/Cpu/LocalApic.cs"><code>src/Cosmos.Kernel.Core.X64/Cpu/LocalApic.cs</code></a>, <a href="../../../src/Cosmos.Kernel.HAL.X64/Devices/Timer/PIT.cs"><code>src/Cosmos.Kernel.HAL.X64/Devices/Timer/PIT.cs</code></a>, <a href="../../../src/Cosmos.Kernel.HAL.ARM64/Devices/Timer/GenericTimer.cs"><code>src/Cosmos.Kernel.HAL.ARM64/Devices/Timer/GenericTimer.cs</code></a></td>
 </tr>
 <tr>
 <td>GC mark integration</td>
@@ -726,9 +669,9 @@
 <h2 id="references">References</h2>
 <p>The scheduler design draws on three primary sources:</p>
 <ol>
-<li><em>Stride Scheduling: Deterministic Proportional-Share Resource Management</em>, Waldspurger and Weihl (MIT/LCS/TM-528). <a href="https://web.eecs.umich.edu/%7Emosharaf/Readings/Stride.pdf">PDF</a>. The virtual-time fair-share algorithm in <code>StrideScheduler</code> (pass, stride, tickets, sorted-by-<code>Pass</code> run queue) comes from this paper.</li>
-<li><em>Ekiben: a pluggable scheduler API.</em> <a href="https://arxiv.org/pdf/2306.15076">arXiv:2306.15076</a>. The shape of <code>IScheduler</code> (lifecycle hooks, <code>PickNext</code>, <code>OnTick</code>, per-CPU state slot, policy/mechanism split) is modeled on Ekiben's <code>EkibenScheduler</code> trait. <code>IScheduler.cs</code> notes this inline.</li>
-<li><em>Multithreading in .NET at the CLR Level: What Really Happens Under the Hood</em>. <a href="https://medium.com/codetodeploy/multithreading-in-net-at-the-clr-level-what-really-happens-under-the-hood-5699528b6e55">codetodeploy on Medium</a>. Background on how the CLR models threads. Used while wiring <code>RhYield</code>, thread-static storage, and the <code>ThreadPlug</code> for <code>System.Threading.Thread.CreateThread</code>.</li>
+<li><em>Stride Scheduling: Deterministic Proportional-Share Resource Management</em>, Waldspurger and Weihl (MIT/LCS/TM-528). <a href="https://web.eecs.umich.edu/%7Emosharaf/Readings/Stride.pdf">PDF</a>. The virtual-time fair-share algorithm in <code>StrideScheduler</code> (pass, stride, tickets, the sorted run queue) comes from this paper.</li>
+<li><em>Ekiben: a pluggable scheduler API.</em> <a href="https://arxiv.org/pdf/2306.15076">arXiv:2306.15076</a>. The shape of <code>IScheduler</code> (lifecycle hooks, <code>PickNext</code>, <code>OnTick</code>, per-CPU state slot, the policy/mechanism split) is modeled on Ekiben's <code>EkibenScheduler</code> trait. <code>IScheduler.cs</code> notes this inline.</li>
+<li><em>Multithreading in .NET at the CLR Level: What Really Happens Under the Hood</em>. <a href="https://medium.com/codetodeploy/multithreading-in-net-at-the-clr-level-what-really-happens-under-the-hood-5699528b6e55">codetodeploy on Medium</a>. Background on how the CLR models threads; used while wiring <code>RhYield</code>, thread-static storage, and the managed thread creation seam.</li>
 </ol>
 
 </article>

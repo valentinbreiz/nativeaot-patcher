@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Garbage Collector Glossary | Cosmos Gen 3 </title>
+      <title>Scheduler Glossary | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Garbage Collector Glossary | Cosmos Gen 3 ">
+      <meta name="title" content="Scheduler Glossary | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../../images/favicon.ico">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-glossary.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/scheduler-glossary.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -85,9 +85,9 @@
         </div>
 
         <article data-uid="">
-<h1 id="garbage-collector-glossary">Garbage Collector Glossary</h1>
+<h1 id="scheduler-glossary">Scheduler Glossary</h1>
 
-<p>Short background notes on the general GC concepts the <a href="garbage-collector.html">Garbage Collector</a> and <a href="garbage-collector-gcinfo.html">Precise Stack Scanning</a> articles build on. Each page explains the concept on its own, then closes with one line on how OrionGC applies it. The scheduling counterparts live in the <a href="scheduler-glossary.html">Scheduler Glossary</a>.</p>
+<p>Short background notes on the general scheduling concepts the <a href="scheduler.html">Scheduler</a> article builds on. Each page explains the concept on its own, then closes with one line on how the Cosmos scheduler applies it. Replacing the policy itself is not a concept but a how-to: see <a href="scheduler-plugging.html">Writing a scheduler</a>.</p>
 <table>
 <thead>
 <tr>
@@ -97,56 +97,16 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="gc-concepts/stop-the-world.html">Stop-the-world</a></td>
-<td>All threads pause for the full duration of a collection</td>
+<td><a href="sched-concepts/preemption.html">Preemption</a></td>
+<td>The kernel takes the CPU away on an interrupt; threads never have to volunteer</td>
 </tr>
 <tr>
-<td><a href="gc-concepts/mark-and-sweep.html">Mark-and-sweep</a></td>
-<td>Mark what is reachable, sweep the rest in place</td>
+<td><a href="sched-concepts/virtual-time-fair-share.html">Virtual-time fair-share</a></td>
+<td>Weighted CPU shares, enforced by always running the thread whose virtual clock is furthest behind</td>
 </tr>
 <tr>
-<td><a href="gc-concepts/non-moving.html">Moving vs. non-moving</a></td>
-<td>Whether live objects can ever be relocated</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/gc-generations.html">Generations</a></td>
-<td>Age-segregated heaps, and what a single generation avoids</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/bump-allocation.html">Bump allocation</a></td>
-<td>Allocation by advancing a pointer through fresh space</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/tlab.html">TLAB</a></td>
-<td>Per-thread buffers that make the allocation fast path synchronization-free</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/gc-roots.html">GC roots</a></td>
-<td>Where reachability starts</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/conservative-vs-precise.html">Precise vs. conservative scanning</a></td>
-<td>Knowing which stack words are references, or guessing</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/safepoint.html">Safepoint</a></td>
-<td>Code locations where the compiler's tables describe the GC state exactly</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/funclet.html">Funclet</a></td>
-<td>Exception handlers compiled as small separate functions with frames of their own</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/finalization.html">Finalization and resurrection</a></td>
-<td>Cleanup code before reclaim, and dead objects becoming reachable again</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/object-header.html">Runtime object header</a></td>
-<td>The bookkeeping word just before every object (hash code, thin lock)</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/aba-problem.html">ABA problem</a></td>
-<td>Why lock-free code needs version tags when values can be recycled</td>
+<td><a href="sched-concepts/instruction-boundary.html">Interrupts at instruction boundaries</a></td>
+<td>An interrupt lands after one instruction and before the next; nothing longer is atomic against it</td>
 </tr>
 </tbody>
 </table>
@@ -154,7 +114,7 @@
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-glossary.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/scheduler-glossary.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

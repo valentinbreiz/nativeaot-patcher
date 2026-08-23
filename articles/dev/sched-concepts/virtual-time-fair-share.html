@@ -2,21 +2,21 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Garbage Collector Glossary | Cosmos Gen 3 </title>
+      <title>Virtual-time fair-share | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Garbage Collector Glossary | Cosmos Gen 3 ">
+      <meta name="title" content="Virtual-time fair-share | Cosmos Gen 3 ">
       
       
-      <link rel="icon" href="../../images/favicon.ico">
-      <link rel="stylesheet" href="../../public/docfx.min.css">
-      <link rel="stylesheet" href="../../public/main.css">
-      <meta name="docfx:navrel" content="../../toc.html">
-      <meta name="docfx:tocrel" content="toc.html">
+      <link rel="icon" href="../../../images/favicon.ico">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
       
-      <meta name="docfx:rel" content="../../">
+      <meta name="docfx:rel" content="../../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-glossary.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/sched-concepts/virtual-time-fair-share.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -30,7 +30,7 @@
       <meta name="loc:copy" content="Copy">
       <meta name="loc:downloadPdf" content="Download PDF">
 
-      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script type="module" src="./../../../public/docfx.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -43,8 +43,8 @@
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
-          <a class="navbar-brand" href="../../index.html">
-            <img id="logo" class="svg" src="../../images/logo.png" alt="Cosmos Gen 3">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../images/logo.png" alt="Cosmos Gen 3">
             Cosmos Gen 3
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,76 +85,16 @@
         </div>
 
         <article data-uid="">
-<h1 id="garbage-collector-glossary">Garbage Collector Glossary</h1>
+<h1 id="virtual-time-fair-share">Virtual-time fair-share</h1>
 
-<p>Short background notes on the general GC concepts the <a href="garbage-collector.html">Garbage Collector</a> and <a href="garbage-collector-gcinfo.html">Precise Stack Scanning</a> articles build on. Each page explains the concept on its own, then closes with one line on how OrionGC applies it. The scheduling counterparts live in the <a href="scheduler-glossary.html">Scheduler Glossary</a>.</p>
-<table>
-<thead>
-<tr>
-<th>Concept</th>
-<th>Summary</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="gc-concepts/stop-the-world.html">Stop-the-world</a></td>
-<td>All threads pause for the full duration of a collection</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/mark-and-sweep.html">Mark-and-sweep</a></td>
-<td>Mark what is reachable, sweep the rest in place</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/non-moving.html">Moving vs. non-moving</a></td>
-<td>Whether live objects can ever be relocated</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/gc-generations.html">Generations</a></td>
-<td>Age-segregated heaps, and what a single generation avoids</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/bump-allocation.html">Bump allocation</a></td>
-<td>Allocation by advancing a pointer through fresh space</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/tlab.html">TLAB</a></td>
-<td>Per-thread buffers that make the allocation fast path synchronization-free</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/gc-roots.html">GC roots</a></td>
-<td>Where reachability starts</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/conservative-vs-precise.html">Precise vs. conservative scanning</a></td>
-<td>Knowing which stack words are references, or guessing</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/safepoint.html">Safepoint</a></td>
-<td>Code locations where the compiler's tables describe the GC state exactly</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/funclet.html">Funclet</a></td>
-<td>Exception handlers compiled as small separate functions with frames of their own</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/finalization.html">Finalization and resurrection</a></td>
-<td>Cleanup code before reclaim, and dead objects becoming reachable again</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/object-header.html">Runtime object header</a></td>
-<td>The bookkeeping word just before every object (hash code, thin lock)</td>
-</tr>
-<tr>
-<td><a href="gc-concepts/aba-problem.html">ABA problem</a></td>
-<td>Why lock-free code needs version tags when values can be recycled</td>
-</tr>
-</tbody>
-</table>
+<p>Fair-share (or proportional-share) scheduling divides CPU time by weight instead of by rank. Each thread holds a weight, and the scheduler's goal is that over any window, threads receive CPU time in proportion to their weights: a thread with twice the weight gets twice the time, and no weight, however small, is starved. Fixed-priority scheduling answers a different question, who runs first; fair-share answers how much everyone gets.</p>
+<p>Virtual time is the accounting that enforces this. Each thread carries its own clock that advances only while it runs, and advances at a rate inversely proportional to its weight: a heavy thread's clock ticks slowly, a light thread's ticks fast. The scheduler always runs the thread whose clock is furthest behind, so heavy threads accumulate more real time before their clock catches up. A global virtual clock marks &quot;now&quot;: a thread waking from sleep is re-synced against it, close enough to run soon, not so far behind that it monopolizes the CPU repaying its sleep. Stride scheduling and Linux's CFS are the best-known members of this family.</p>
+<p>In the Cosmos kernel the default policy, <a href="../../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs"><code>StrideScheduler</code></a>, is exactly this scheme: the weight is <code>Tickets</code>, the clock rate is the stride (a constant divided by tickets), the per-thread clock is the <code>Pass</code>, and <code>PickNext</code> always pops the lowest Pass from a queue sorted by it. See <a href="../scheduler.html#the-stride-policy">The Stride policy</a>.</p>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/garbage-collector-glossary.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/docs/articles/dev/sched-concepts/virtual-time-fair-share.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
