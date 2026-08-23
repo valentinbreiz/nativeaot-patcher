@@ -1,0 +1,7 @@
+# Virtual-time fair-share
+
+Fair-share (or proportional-share) scheduling divides CPU time by weight instead of by rank. Each thread holds a weight, and the scheduler's goal is that over any window, threads receive CPU time in proportion to their weights: a thread with twice the weight gets twice the time, and no weight, however small, is starved. Fixed-priority scheduling answers a different question, who runs first; fair-share answers how much everyone gets.
+
+Virtual time is the accounting that enforces this. Each thread carries its own clock that advances only while it runs, and advances at a rate inversely proportional to its weight: a heavy thread's clock ticks slowly, a light thread's ticks fast. The scheduler always runs the thread whose clock is furthest behind, so heavy threads accumulate more real time before their clock catches up. A global virtual clock marks "now": a thread waking from sleep is re-synced against it, close enough to run soon, not so far behind that it monopolizes the CPU repaying its sleep. Stride scheduling and Linux's CFS are the best-known members of this family.
+
+In the Cosmos kernel the default policy, [`StrideScheduler`](../../../../src/Cosmos.Kernel.Core/Scheduler/Stride/StrideScheduler.cs), is exactly this scheme: the weight is `Tickets`, the clock rate is the stride (a constant divided by tickets), the per-thread clock is the `Pass`, and `PickNext` always pops the lowest Pass from a queue sorted by it. See [The Stride policy](../scheduler.md#the-stride-policy).

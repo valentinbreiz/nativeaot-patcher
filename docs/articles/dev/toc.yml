@@ -18,6 +18,8 @@
   href: scheduler.md
 - name: Scheduler - Writing a Scheduler
   href: scheduler-plugging.md
+- name: Scheduler - Glossary
+  href: scheduler-glossary.md
 - name: Kernel Compilation Steps
   href: build/kernel-compilation-steps.md
 - name: Cosmos.Build.Asm
