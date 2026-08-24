@@ -22,6 +22,10 @@ public enum ID : uint
     /// </summary>
     V2 = Magic << 8 | 2,
     /// <summary>
+    /// V3.
+    /// </summary>
+    V3 = Magic << 8 | 3,
+    /// <summary>
     /// Invalid
     /// </summary>
     Invalid = 0xFFFFFFFF
