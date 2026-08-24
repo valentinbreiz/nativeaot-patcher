@@ -9,10 +9,17 @@ namespace Cosmos.Kernel.System.Vfs;
 /// </summary>
 public interface IVfsNodeHandle
 {
+    /// <summary>The name of the node inside its parent directory.</summary>
     string Name { get; }
 
+    /// <summary>The underlying HAL VFS inode.</summary>
     IVfsInode Inode { get; }
 
+    /// <summary>
+    /// Reads the node's metadata (size, timestamps, mode).
+    /// </summary>
+    /// <param name="stat">The node's metadata when the call succeeds.</param>
+    /// <returns><see langword="true"/> when the driver produced the metadata.</returns>
     bool TryStat(out VfsStat stat);
 }
 
@@ -21,14 +28,35 @@ public interface IVfsNodeHandle
 /// </summary>
 public interface IVfsFileHandle : IVfsNodeHandle, IDisposable
 {
+    /// <summary>The current byte offset of the file cursor.</summary>
     long Position { get; }
 
+    /// <summary>
+    /// Reads bytes at the current position, advancing it by the amount read.
+    /// </summary>
+    /// <param name="buffer">The destination buffer.</param>
+    /// <returns>The number of bytes read; 0 at end of file.</returns>
     long Read(Span<byte> buffer);
 
+    /// <summary>
+    /// Writes bytes at the current position, advancing it by the amount written.
+    /// </summary>
+    /// <param name="buffer">The bytes to write.</param>
+    /// <returns>The number of bytes written.</returns>
     long Write(ReadOnlySpan<byte> buffer);
 
+    /// <summary>
+    /// Moves the file cursor.
+    /// </summary>
+    /// <param name="offset">The offset relative to <paramref name="whence"/>.</param>
+    /// <param name="whence">The origin the offset is applied from.</param>
+    /// <returns><see langword="true"/> when the resulting position is valid.</returns>
     bool TrySeek(long offset, SeekWhence whence);
 
+    /// <summary>
+    /// Flushes buffered writes to the underlying device.
+    /// </summary>
+    /// <returns><see langword="true"/> when the driver flushed successfully.</returns>
     bool Flush();
 }
 

@@ -36,6 +36,14 @@ public static partial class VfsManager
     /// </summary>
     public sealed class VfsMount
     {
+        /// <summary>
+        /// Creates a mount record.
+        /// </summary>
+        /// <param name="name">The registered driver name.</param>
+        /// <param name="source">The driver-specific backing-store identifier.</param>
+        /// <param name="mountPoint">The absolute path the filesystem is mounted at.</param>
+        /// <param name="filesystemType">The filesystem driver.</param>
+        /// <param name="superblock">The mounted filesystem instance.</param>
         public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
         {
             Name = name;
@@ -51,10 +59,13 @@ public static partial class VfsManager
         /// <summary>Driver-specific backing-store identifier passed to <see cref="TryMount"/> — for the FAT driver, this is the global partition index in <c>StorageManager.Partitions</c> as a decimal string.</summary>
         public string Source { get; }
 
+        /// <summary>Absolute path the filesystem is mounted at (e.g. "/").</summary>
         public string MountPoint { get; }
 
+        /// <summary>The filesystem driver that produced this mount.</summary>
         public IVfsFilesystemType FilesystemType { get; }
 
+        /// <summary>The mounted filesystem instance.</summary>
         public IVfsSuperblock Superblock { get; }
     }
 

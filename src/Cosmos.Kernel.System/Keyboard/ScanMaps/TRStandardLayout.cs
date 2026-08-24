@@ -15,6 +15,7 @@ public class TRStandardLayout : ScanMapBase
     {
     }
 
+    /// <inheritdoc />
     protected override void InitKeys()
     {
         Keys = new List<KeyMapping>(100);

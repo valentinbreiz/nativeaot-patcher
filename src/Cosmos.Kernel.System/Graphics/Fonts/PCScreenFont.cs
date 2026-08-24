@@ -41,13 +41,29 @@ public class PCScreenFont : Font
     // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     // POSSIBILITY OF SUCH DAMAGE.
 
+    /// <summary>
+    /// Names identifying the default font resource.
+    /// </summary>
     public static class Default
     {
+        /// <summary>
+        /// The <see cref="AppContext"/> data key checked for an overriding
+        /// embedded-resource name before falling back to <see cref="DefaultFontName"/>.
+        /// </summary>
         public const string DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.DefaultFont";
+
+        /// <summary>
+        /// The embedded-resource name of the default PSF font.
+        /// </summary>
         public const string DefaultFontName = $"{DefaultFontKey}.psf";
     }
 
     static PCScreenFont? s_default = null;
+
+    /// <summary>
+    /// The default console font, loaded lazily from the embedded PSF resource,
+    /// or from a built-in fallback font when the resource is absent.
+    /// </summary>
     public static PCScreenFont DefaultFont
     {
         get
