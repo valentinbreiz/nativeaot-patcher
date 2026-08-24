@@ -73,18 +73,18 @@ public class DnsClient : UdpClient
     {
         // Wait in 100ms intervals, checking for data each time
         int waited = 0;
-        while (rxBuffer.Count < 1 && waited < timeout)
+        while (_rxBuffer.Count < 1 && waited < timeout)
         {
             TimerManager.Wait(100);
             waited += 100;
         }
 
-        if (rxBuffer.Count < 1)
+        if (_rxBuffer.Count < 1)
         {
             return null;
         }
 
-        DnsPacketAnswer packet = new(rxBuffer.Dequeue().RawData);
+        DnsPacketAnswer packet = new(_rxBuffer.Dequeue().RawData);
 
         if ((ushort)(packet.DNSFlags & 0x0F) != (ushort)ReplyCode.OK)
         {

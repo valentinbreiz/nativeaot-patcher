@@ -47,18 +47,18 @@ public class DhcpClient : UdpClient
     {
         int waited = 0;
 
-        while (rxBuffer.Count < 1 && waited < timeout)
+        while (_rxBuffer.Count < 1 && waited < timeout)
         {
             TimerManager.Wait(100);
             waited += 100;
         }
 
-        if (rxBuffer.Count < 1)
+        if (_rxBuffer.Count < 1)
         {
             return -1;
         }
 
-        var packet = new DhcpPacket(rxBuffer.Dequeue().RawData);
+        var packet = new DhcpPacket(_rxBuffer.Dequeue().RawData);
 
         if (packet.MessageType == 2) //Boot Reply
         {

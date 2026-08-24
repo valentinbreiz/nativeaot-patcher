@@ -121,7 +121,7 @@ public static class SocketPlug
             if (_udpClients.TryGetValue(id, out var client))
             {
                 // Return approximate bytes available (count of packets in buffer)
-                return client.rxBuffer.Count > 0 ? client.rxBuffer.Count : 0;
+                return client._rxBuffer.Count > 0 ? client._rxBuffer.Count : 0;
             }
         }
 
@@ -169,7 +169,7 @@ public static class SocketPlug
             {
                 if (_udpClients.TryGetValue(id, out var client))
                 {
-                    return client.rxBuffer.Count > 0;
+                    return client._rxBuffer.Count > 0;
                 }
             }
         }
@@ -604,12 +604,12 @@ public static class SocketPlug
 
         // Wait for data
         int timeout = 0;
-        while (client.rxBuffer.Count < 1 && timeout < 100000)
+        while (client._rxBuffer.Count < 1 && timeout < 100000)
         {
             timeout++;
         }
 
-        if (client.rxBuffer.Count < 1)
+        if (client._rxBuffer.Count < 1)
         {
             return 0;
         }
@@ -705,12 +705,12 @@ public static class SocketPlug
 
         // Wait for data
         int timeout = 0;
-        while (client.rxBuffer.Count < 1 && timeout < 100000)
+        while (client._rxBuffer.Count < 1 && timeout < 100000)
         {
             timeout++;
         }
 
-        if (client.rxBuffer.Count < 1)
+        if (client._rxBuffer.Count < 1)
         {
             return 0;
         }

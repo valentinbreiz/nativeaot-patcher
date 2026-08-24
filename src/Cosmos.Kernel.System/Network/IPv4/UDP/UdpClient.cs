@@ -47,7 +47,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// The RX buffer queue.
     /// </summary>
-    internal Queue<UdpPacket> rxBuffer;
+    internal Queue<UdpPacket> _rxBuffer;
 
     /// <summary>
     /// Gets a UDP client running on the given port.
@@ -76,7 +76,7 @@ public class UdpClient : IDisposable
     /// <param name="_localPort">Local port.</param>
     public UdpClient(int _localPort)
     {
-        rxBuffer = new Queue<UdpPacket>(8);
+        _rxBuffer = new Queue<UdpPacket>(8);
 
         this._localPort = _localPort;
         if (_localPort > 0)
@@ -173,12 +173,12 @@ public class UdpClient : IDisposable
     /// <param name="source">The source end point.</param>
     public byte[]? NonBlockingReceive(ref EndPoint source)
     {
-        if (rxBuffer.Count < 1)
+        if (_rxBuffer.Count < 1)
         {
             return null;
         }
 
-        var packet = new UdpPacket(rxBuffer.Dequeue().RawData);
+        var packet = new UdpPacket(_rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
@@ -191,12 +191,12 @@ public class UdpClient : IDisposable
     /// <param name="source">The source end point.</param>
     public byte[] Receive(ref EndPoint source)
     {
-        while (rxBuffer.Count < 1)
+        while (_rxBuffer.Count < 1)
         {
             ;
         }
 
-        var packet = new UdpPacket(rxBuffer.Dequeue().RawData);
+        var packet = new UdpPacket(_rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
@@ -209,7 +209,7 @@ public class UdpClient : IDisposable
     /// <param name="packet">Packet to receive.</param>
     internal void ReceiveData(UdpPacket packet)
     {
-        rxBuffer.Enqueue(packet);
+        _rxBuffer.Enqueue(packet);
     }
 
     public void Dispose()
