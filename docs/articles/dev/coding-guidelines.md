@@ -659,7 +659,7 @@ Every constructor must leave all non-nullable members initialized. Delete unused
 
 ```csharp
 // Bad: leaves RawData null and forces nullable noise on every user of the class
-internal ICMPPacket()
+internal IcmpPacket()
 {
 }
 ```

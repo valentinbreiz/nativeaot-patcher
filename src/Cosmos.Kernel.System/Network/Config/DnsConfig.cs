@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Network.Config;
 /// <summary>
 /// Represents DNS configuration.
 /// </summary>
-public class DNSConfig
+public class DnsConfig
 {
     private static readonly List<Address> s_nameservers = new();
 
@@ -20,7 +20,7 @@ public class DNSConfig
     /// The list of known DNS nameserver addresses. Use <see cref="Add"/> and
     /// <see cref="Remove"/> to change it.
     /// </summary>
-    public static IReadOnlyList<Address> DNSNameservers => s_nameservers;
+    public static IReadOnlyList<Address> Nameservers => s_nameservers;
 
     /// <summary>
     /// Registers a given DNS server.
@@ -28,9 +28,9 @@ public class DNSConfig
     /// <param name="nameserver">The IP address of the target DNS server.</param>
     public static void Add(Address nameserver)
     {
-        for (int i = 0; i < DNSNameservers.Count; i++)
+        for (int i = 0; i < Nameservers.Count; i++)
         {
-            if (DNSNameservers[i].Id == nameserver.Id)
+            if (Nameservers[i].Id == nameserver.Id)
             {
                 return;
             }
@@ -45,11 +45,11 @@ public class DNSConfig
     public static void Remove(Address nameserver)
     {
         Address? toRemove = null;
-        for (int i = 0; i < DNSNameservers.Count; i++)
+        for (int i = 0; i < Nameservers.Count; i++)
         {
-            if (DNSNameservers[i].Id == nameserver.Id)
+            if (Nameservers[i].Id == nameserver.Id)
             {
-                toRemove = DNSNameservers[i];
+                toRemove = Nameservers[i];
                 break;
             }
         }

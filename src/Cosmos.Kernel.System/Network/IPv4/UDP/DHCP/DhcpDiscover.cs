@@ -13,18 +13,18 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Represents a DHCP discovery packet.
 /// </summary>
-internal class DHCPDiscover : DHCPPacket
+internal class DhcpDiscover : DhcpPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPDiscover"/> class.
+    /// Initializes a new instance of the <see cref="DhcpDiscover"/> class.
     /// </summary>
-    internal DHCPDiscover(byte[] rawData) : base(rawData)
+    internal DhcpDiscover(byte[] rawData) : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPDiscover"/> class.
+    /// Initializes a new instance of the <see cref="DhcpDiscover"/> class.
     /// </summary>
-    internal DHCPDiscover(MACAddress sourceMAC) : base(sourceMAC, 10) //discover packet size
+    internal DhcpDiscover(MACAddress sourceMAC) : base(sourceMAC, 10) //discover packet size
     {
         //Discover
         RawData[282] = 0x35;

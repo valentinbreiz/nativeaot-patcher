@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Network.ARP;
 /// <summary>
 /// Represents an ARP (Address Resolution Protocol) packet.
 /// </summary>
-internal class ARPPacket : EthernetPacket
+internal class ArpPacket : EthernetPacket
 {
     protected ushort hardwareType;
     protected ushort protocolType;
@@ -20,21 +20,21 @@ internal class ARPPacket : EthernetPacket
     /// <param name="packetData">Packet data.</param>
     internal static void ARPHandler(byte[] packetData)
     {
-        var arpPacket = new ARPPacket(packetData);
+        var arpPacket = new ArpPacket(packetData);
 
         if (arpPacket.Operation == 0x01)
         {
             // ARP Request
             if (arpPacket.HardwareType == 1 && arpPacket.ProtocolType == 0x0800)
             {
-                var arpRequest = new ARPRequestEthernet(packetData);
+                var arpRequest = new ArpRequestEthernet(packetData);
                 if (arpRequest.SenderIP == null)
                 {
                     Serial.WriteString("[ARP] SenderIP null in ARPHandler!\n");
                     return;
                 }
 
-                ARPCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC!);
+                ArpCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC!);
 
                 if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP!.Id))
                 {
@@ -45,7 +45,7 @@ internal class ARPPacket : EthernetPacket
                     var nic = NetworkStack.AddressMap[arpRequest.TargetIP.Id];
                     var nicMac = new MACAddress(nic.MacAddress);
 
-                    var reply = new ARPReplyEthernet(
+                    var reply = new ArpReplyEthernet(
                         nicMac,
                         arpRequest.TargetIP,
                         arpRequest.SenderMAC!,
@@ -61,27 +61,27 @@ internal class ARPPacket : EthernetPacket
             // ARP Reply
             if (arpPacket.HardwareType == 1 && arpPacket.ProtocolType == 0x0800)
             {
-                var arpReply = new ARPReplyEthernet(packetData);
+                var arpReply = new ArpReplyEthernet(packetData);
                 Serial.WriteString("[ARP] Reply received from ");
                 Serial.WriteString(arpReply.SenderIP!.ToString());
                 Serial.WriteString("\n");
-                ARPCache.Update(arpReply.SenderIP, arpReply.SenderMAC!);
+                ArpCache.Update(arpReply.SenderIP, arpReply.SenderMAC!);
             }
         }
     }
 
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="ARPPacket"/> class.
+    // /// Initializes a new instance of the <see cref="ArpPacket"/> class.
     // /// </summary>
-    // internal ARPPacket()
+    // internal ArpPacket()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPPacket"/> class.
+    /// Initializes a new instance of the <see cref="ArpPacket"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    public ARPPacket(byte[] rawData)
+    public ArpPacket(byte[] rawData)
         : base(rawData)
     { }
 
@@ -96,7 +96,7 @@ internal class ARPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPPacket"/> class.
+    /// Initializes a new instance of the <see cref="ArpPacket"/> class.
     /// </summary>
     /// <param name="dest">Destination MAC address.</param>
     /// <param name="src">Source MAC address.</param>
@@ -106,7 +106,7 @@ internal class ARPPacket : EthernetPacket
     /// <param name="protoLen">Protocol length.</param>
     /// <param name="operation">Operation.</param>
     /// <param name="packet_size">Packet size.</param>
-    protected ARPPacket(MACAddress dest, MACAddress src, ushort hwType, ushort protoType,
+    protected ArpPacket(MACAddress dest, MACAddress src, ushort hwType, ushort protoType,
         byte hwLen, byte protoLen, ushort operation, int packet_size)
         : base(dest, src, 0x0806, packet_size)
     {

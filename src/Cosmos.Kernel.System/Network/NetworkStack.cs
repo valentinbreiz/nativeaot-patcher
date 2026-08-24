@@ -150,7 +150,7 @@ public static class NetworkStack
         {
             case 0x0806: // ARP
                 Serial.WriteString("[NetworkStack] -> ARP\n");
-                ARPPacket.ARPHandler(packetData);
+                ArpPacket.ARPHandler(packetData);
                 break;
             case 0x0800: // IPv4
                 Serial.WriteString("[NetworkStack] -> IPv4\n");

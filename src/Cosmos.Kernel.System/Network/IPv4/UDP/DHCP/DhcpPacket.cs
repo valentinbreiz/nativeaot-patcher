@@ -13,20 +13,20 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Represents a DHCP option.
 /// </summary>
-internal class DHCPOption
+internal class DhcpOption
 {
     /// <summary>
-    /// The type of the <see cref="DHCPOption"/>.
+    /// The type of the <see cref="DhcpOption"/>.
     /// </summary>
     public required byte Type { get; init; }
 
     /// <summary>
-    /// The length of the <see cref="DHCPOption"/>.
+    /// The length of the <see cref="DhcpOption"/>.
     /// </summary>
     public byte Length => (byte)Data.Length;
 
     /// <summary>
-    /// The raw data of the <see cref="DHCPOption"/>.
+    /// The raw data of the <see cref="DhcpOption"/>.
     /// </summary>
     public required byte[] Data { get; init; }
 }
@@ -34,7 +34,7 @@ internal class DHCPOption
 /// <summary>
 /// Represents a DHCP packet.
 /// </summary>
-internal class DHCPPacket : UDPPacket
+internal class DhcpPacket : UdpPacket
 {
     // Simple transaction ID generator
     private static int s_idCounter = 1;
@@ -44,30 +44,30 @@ internal class DHCPPacket : UDPPacket
     /// </summary>
     public static void DHCPHandler(byte[] packetData)
     {
-        var dhcpPacket = new DHCPPacket(packetData);
+        var dhcpPacket = new DhcpPacket(packetData);
 
         var receiver = UdpClient.GetClient(dhcpPacket.DestinationPort);
         receiver?.ReceiveData(dhcpPacket);
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
     /// </summary>
-    public DHCPPacket(byte[] rawData)
+    public DhcpPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
     /// </summary>
-    internal DHCPPacket(MACAddress mac_src, ushort dhcpDataSize)
+    internal DhcpPacket(MACAddress mac_src, ushort dhcpDataSize)
         : this(Address.Zero, Address.Broadcast, mac_src, dhcpDataSize)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
     /// </summary>
-    internal DHCPPacket(Address client, Address server, MACAddress sourceMAC, ushort dhcpDataSize)
+    internal DhcpPacket(Address client, Address server, MACAddress sourceMAC, ushort dhcpDataSize)
         : base(client, server, 68, 67, (ushort)(dhcpDataSize + 240), MACAddress.Broadcast)
     {
         RawData[42] = 0x01; // Request
@@ -124,7 +124,7 @@ internal class DHCPPacket : UDPPacket
     }
 
     /// <summary>
-    /// Init DHCPPacket fields.
+    /// Init DhcpPacket fields.
     /// </summary>
     protected override void InitializeFields()
     {
@@ -138,11 +138,11 @@ internal class DHCPPacket : UDPPacket
 
         if (RawData[282] != 0)
         {
-            Options = new List<DHCPOption>();
+            Options = new List<DhcpOption>();
 
             for (int i = 0; i < RawData.Length - 282 && RawData[282 + i] != 0xFF; i += 2) //0xFF is DHCP packet end
             {
-                var option = new DHCPOption
+                var option = new DhcpOption
                 {
                     Type = RawData[282 + i],
                     Data = new byte[RawData[282 + i + 1]]
@@ -187,7 +187,7 @@ internal class DHCPPacket : UDPPacket
     /// <summary>
     /// Gets the DHCP options.
     /// </summary>
-    internal List<DHCPOption>? Options { get; private set; }
+    internal List<DhcpOption>? Options { get; private set; }
 
     /// <summary>
     /// Get Subnet IPv4 Address

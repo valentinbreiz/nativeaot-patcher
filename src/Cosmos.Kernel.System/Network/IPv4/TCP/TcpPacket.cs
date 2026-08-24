@@ -49,7 +49,7 @@ internal enum Flags : byte
 /// <summary>
 /// TCP Option
 /// </summary>
-internal class TCPOption
+internal class TcpOption
 {
     public byte Kind { get; set; }
     public byte Length { get; set; }
@@ -59,7 +59,7 @@ internal class TCPOption
 /// <summary>
 /// TCP Packet Class
 /// </summary>
-internal class TCPPacket : IPPacket
+internal class TcpPacket : IPPacket
 {
     /// <summary>
     /// TCP handler.
@@ -67,7 +67,7 @@ internal class TCPPacket : IPPacket
     /// <param name="packetData">Packet data.</param>
     internal static void TCPHandler(byte[] packetData)
     {
-        var packet = new TCPPacket(packetData);
+        var packet = new TcpPacket(packetData);
 
         if (packet.CheckCRC())
         {
@@ -82,24 +82,24 @@ internal class TCPPacket : IPPacket
     }
 
     // /// <summary>
-    // /// Create new instance of the <see cref="TCPPacket"/> class.
+    // /// Create new instance of the <see cref="TcpPacket"/> class.
     // /// </summary>
-    // internal TCPPacket()
+    // internal TcpPacket()
     //     : base()
     // { }
 
     /// <summary>
-    /// Create new instance of the <see cref="TCPPacket"/> class.
+    /// Create new instance of the <see cref="TcpPacket"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    public TCPPacket(byte[] rawData)
+    public TcpPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Create new instance of the <see cref="TCPPacket"/> class.
+    /// Create new instance of the <see cref="TcpPacket"/> class.
     /// </summary>
-    public TCPPacket(Address source, Address dest, ushort srcPort, ushort destPort,
+    public TcpPacket(Address source, Address dest, ushort srcPort, ushort destPort,
         ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags,
         ushort WSValue, ushort UrgentPointer, byte[] data)
         : base((ushort)(20 + data.Length), 6, source, dest, 0x40)
@@ -110,9 +110,9 @@ internal class TCPPacket : IPPacket
     }
 
     /// <summary>
-    /// Create new instance of the <see cref="TCPPacket"/> class.
+    /// Create new instance of the <see cref="TcpPacket"/> class.
     /// </summary>
-    public TCPPacket(Address source, Address dest, ushort srcPort, ushort destPort,
+    public TcpPacket(Address source, Address dest, ushort srcPort, ushort destPort,
         ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags,
         ushort WSValue, ushort UrgentPointer)
         : base(20, 6, source, dest, 0x40)
@@ -177,7 +177,7 @@ internal class TCPPacket : IPPacket
     }
 
     /// <summary>
-    /// Init TCPPacket fields.
+    /// Init TcpPacket fields.
     /// </summary>
     protected override void InitializeFields()
     {
@@ -201,11 +201,11 @@ internal class TCPPacket : IPPacket
 
         if (TCPHeaderLength > 20) //options
         {
-            Options = new List<TCPOption>();
+            Options = new List<TcpOption>();
 
             for (int i = 0; i < TCP_DataLength; i++)
             {
-                var option = new TCPOption();
+                var option = new TcpOption();
                 option.Kind = RawData[DataOffset + 20 + i];
 
                 if (option.Kind != 1) //NOP
@@ -232,7 +232,7 @@ internal class TCPPacket : IPPacket
     /// <summary>
     /// Add Option to TCP Packet.
     /// </summary>
-    internal void AddOption(TCPOption option)
+    internal void AddOption(TcpOption option)
     {
         throw new NotImplementedException();
     }
@@ -292,7 +292,7 @@ internal class TCPPacket : IPPacket
     /// <summary>
     /// TCP Options
     /// </summary>
-    public List<TCPOption>? Options { get; set; }
+    public List<TcpOption>? Options { get; set; }
 
     /// <summary>
     /// Is SYN Flag set.

@@ -155,7 +155,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Starting DHCP auto-configuration...\n");
 
         // Use DHCP to auto-assign IP address
-        var dhcpClient = new DHCPClient();
+        var dhcpClient = new DhcpClient();
 
         Serial.WriteString("[Test] Sending DHCP Discover packet...\n");
         int result = dhcpClient.SendDiscoverPacket();
@@ -222,7 +222,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteString(target.ToString());
         Serial.WriteString("...\n");
 
-        var icmpClient = new ICMPClient();
+        var icmpClient = new IcmpClient();
         icmpClient.Connect(target);
         icmpClient.SendEcho();
 
@@ -268,13 +268,13 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Test] Waiting for ICMP echo request from host...\n");
 
         int waited = 0;
-        while (ICMPPacket.EchoRequestsReplied < 1 && waited < 10000)
+        while (IcmpPacket.EchoRequestsReplied < 1 && waited < 10000)
         {
             TimerManager.Wait(100);
             waited += 100;
         }
 
-        if (ICMPPacket.EchoRequestsReplied < 1)
+        if (IcmpPacket.EchoRequestsReplied < 1)
         {
             Serial.WriteString("[Test] No echo request received from host within timeout\n");
             Assert.True(false, "Host echo request should reach the kernel and be answered");
@@ -282,7 +282,7 @@ public class Kernel : Sys.Kernel
         }
 
         Serial.WriteString("[Test] Answered ");
-        Serial.WriteNumber((ulong)ICMPPacket.EchoRequestsReplied);
+        Serial.WriteNumber((ulong)IcmpPacket.EchoRequestsReplied);
         Serial.WriteString(" echo request(s) from host\n");
         Assert.True(true, "Host echo request received and answered");
 
@@ -295,7 +295,7 @@ public class Kernel : Sys.Kernel
         waited = 0;
         while (!hostAck && waited < 10000)
         {
-            byte[]? data = ICMPPacket.LastEchoRequestData;
+            byte[]? data = IcmpPacket.LastEchoRequestData;
             if (data != null && data.Length >= 7 &&
                 data[0] == (byte)'H' && data[1] == (byte)'O' && data[2] == (byte)'S' &&
                 data[3] == (byte)'T' && data[4] == (byte)'_' && data[5] == (byte)'O' &&
@@ -822,15 +822,15 @@ public class Kernel : Sys.Kernel
 
         // Configure DNS server (Cloudflare's public DNS)
         var dnsServer = new Address(1, 1, 1, 1);
-        DNSConfig.Add(dnsServer);
+        DnsConfig.Add(dnsServer);
 
-        Assert.True(DNSConfig.DNSNameservers.Count > 0, "DNS nameservers should be configured");
+        Assert.True(DnsConfig.Nameservers.Count > 0, "DNS nameservers should be configured");
 
         // Verify the DNS server was added correctly (1.1.1.1)
         bool foundCloudflare = false;
-        for (int i = 0; i < DNSConfig.DNSNameservers.Count; i++)
+        for (int i = 0; i < DnsConfig.Nameservers.Count; i++)
         {
-            var ns = DNSConfig.DNSNameservers[i];
+            var ns = DnsConfig.Nameservers[i];
             var parts = ns.Parts;
             if (parts[0] == 1 && parts[1] == 1 && parts[2] == 1 && parts[3] == 1)
             {
@@ -867,7 +867,7 @@ public class Kernel : Sys.Kernel
 
         // Configure DNS server (Cloudflare's public DNS)
         var dnsServer = new Address(1, 1, 1, 1);
-        DNSConfig.Add(dnsServer);
+        DnsConfig.Add(dnsServer);
 
         // Create DNS client and connect to DNS server
         var dnsClient = new DnsClient();

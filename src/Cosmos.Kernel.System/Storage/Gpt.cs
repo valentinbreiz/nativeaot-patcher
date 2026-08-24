@@ -166,31 +166,6 @@ public static class Gpt
     public static readonly Guid BasicDataPartitionType = new(
         0xEBD0A0A2, 0xB9E5, 0x4433, 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7);
 
-    /// <summary>Single parsed partition. Sector positions are absolute on the host disk.</summary>
-    public sealed class PartitionEntry
-    {
-        /// <summary>Partition type GUID (see <see cref="Gpt.BasicDataPartitionType"/>).</summary>
-        public Guid PartitionType { get; }
-
-        /// <summary>Unique partition GUID.</summary>
-        public Guid PartitionGuid { get; }
-
-        /// <summary>First absolute LBA of the partition on the host disk.</summary>
-        public ulong StartSector { get; }
-
-        /// <summary>Length of the partition in sectors.</summary>
-        public ulong SectorCount { get; }
-
-        /// <summary>Creates a GPT partition entry.</summary>
-        public PartitionEntry(Guid partitionType, Guid partitionGuid, ulong startSector, ulong sectorCount)
-        {
-            PartitionType = partitionType;
-            PartitionGuid = partitionGuid;
-            StartSector = startSector;
-            SectorCount = sectorCount;
-        }
-    }
-
     /// <summary>True if the GPT header at LBA 1 starts with the EFI PART signature.</summary>
     public static bool IsGpt(IBlockDevice device)
     {
@@ -211,9 +186,9 @@ public static class Gpt
     /// Walk the GPT partition entry array. Empty slots (zero PartitionType
     /// GUID) are skipped.
     /// </summary>
-    public static List<PartitionEntry> Parse(IBlockDevice device)
+    public static List<GptPartitionEntry> Parse(IBlockDevice device)
     {
-        List<PartitionEntry> partitions = new();
+        List<GptPartitionEntry> partitions = new();
         if (device.BlockCount < MinGptBlockCount)
         {
             return partitions;
@@ -285,7 +260,7 @@ public static class Gpt
                 }
                 ulong count = endLba + 1 - startLba;
 
-                partitions.Add(new PartitionEntry(partType, partGuid, startLba, count));
+                partitions.Add(new GptPartitionEntry(partType, partGuid, startLba, count));
             }
         }
 
@@ -647,5 +622,30 @@ public static class Gpt
             }
         }
         return true;
+    }
+}
+
+/// <summary>Single parsed partition. Sector positions are absolute on the host disk.</summary>
+public sealed class GptPartitionEntry
+{
+    /// <summary>Partition type GUID (see <see cref="Gpt.BasicDataPartitionType"/>).</summary>
+    public Guid PartitionType { get; }
+
+    /// <summary>Unique partition GUID.</summary>
+    public Guid PartitionGuid { get; }
+
+    /// <summary>First absolute LBA of the partition on the host disk.</summary>
+    public ulong StartSector { get; }
+
+    /// <summary>Length of the partition in sectors.</summary>
+    public ulong SectorCount { get; }
+
+    /// <summary>Creates a GPT partition entry.</summary>
+    public GptPartitionEntry(Guid partitionType, Guid partitionGuid, ulong startSector, ulong sectorCount)
+    {
+        PartitionType = partitionType;
+        PartitionGuid = partitionGuid;
+        StartSector = startSector;
+        SectorCount = sectorCount;
     }
 }

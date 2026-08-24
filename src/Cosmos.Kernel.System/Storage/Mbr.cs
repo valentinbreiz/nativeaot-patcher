@@ -91,27 +91,6 @@ public static class Mbr
     /// <summary>System ID 0xEE - GPT protective/hybrid MBR entry (the real table is the GPT).</summary>
     internal const byte SystemIdGptProtective = 0xEE;
 
-    /// <summary>Single MBR partition entry. Sector positions are absolute on the host disk.</summary>
-    public sealed class PartitionEntry
-    {
-        /// <summary>MBR partition type byte (e.g. 0x83 Linux, 0x0B FAT32).</summary>
-        public byte SystemId { get; }
-
-        /// <summary>First absolute LBA of the partition on the host disk.</summary>
-        public ulong StartSector { get; }
-
-        /// <summary>Length of the partition in sectors.</summary>
-        public ulong SectorCount { get; }
-
-        /// <summary>Creates an MBR partition entry.</summary>
-        public PartitionEntry(byte systemId, ulong startSector, ulong sectorCount)
-        {
-            SystemId = systemId;
-            StartSector = startSector;
-            SectorCount = sectorCount;
-        }
-    }
-
     /// <summary>True if LBA 0 ends with the 0xAA55 MBR signature.</summary>
     public static bool IsMbr(IBlockDevice device)
     {
@@ -126,9 +105,9 @@ public static class Mbr
     /// here; use <see cref="TryGetExtendedPartition(IBlockDevice, out ulong)"/>
     /// to walk logicals via <see cref="Ebr"/>.
     /// </summary>
-    public static List<PartitionEntry> Parse(IBlockDevice device)
+    public static List<MbrPartitionEntry> Parse(IBlockDevice device)
     {
-        List<PartitionEntry> partitions = new(MaxPartitions);
+        List<MbrPartitionEntry> partitions = new(MaxPartitions);
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(MbrSectorLba, 1, mbr);
 
@@ -163,7 +142,7 @@ public static class Mbr
             {
                 continue;
             }
-            partitions.Add(new PartitionEntry(systemId, startSector, sectorCount));
+            partitions.Add(new MbrPartitionEntry(systemId, startSector, sectorCount));
         }
 
         return partitions;
@@ -407,5 +386,26 @@ public static class Mbr
             }
         }
         return false;
+    }
+}
+
+/// <summary>Single MBR partition entry. Sector positions are absolute on the host disk.</summary>
+public sealed class MbrPartitionEntry
+{
+    /// <summary>MBR partition type byte (e.g. 0x83 Linux, 0x0B FAT32).</summary>
+    public byte SystemId { get; }
+
+    /// <summary>First absolute LBA of the partition on the host disk.</summary>
+    public ulong StartSector { get; }
+
+    /// <summary>Length of the partition in sectors.</summary>
+    public ulong SectorCount { get; }
+
+    /// <summary>Creates an MBR partition entry.</summary>
+    public MbrPartitionEntry(byte systemId, ulong startSector, ulong sectorCount)
+    {
+        SystemId = systemId;
+        StartSector = startSector;
+        SectorCount = sectorCount;
     }
 }

@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Used to manage the DHCP connection to a server.
 /// </summary>
-public class DHCPClient : UdpClient
+public class DhcpClient : UdpClient
 {
     /// <summary>
     /// Is DHCP asked check variable
@@ -32,9 +32,9 @@ public class DHCPClient : UdpClient
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPClient"/> class.
+    /// Initializes a new instance of the <see cref="DhcpClient"/> class.
     /// </summary>
-    public DHCPClient() : base(68)
+    public DhcpClient() : base(68)
     {
     }
 
@@ -58,7 +58,7 @@ public class DHCPClient : UdpClient
             return -1;
         }
 
-        var packet = new DHCPPacket(rxBuffer.Dequeue().RawData);
+        var packet = new DhcpPacket(rxBuffer.Dequeue().RawData);
 
         if (packet.MessageType == 2) //Boot Reply
         {
@@ -97,7 +97,7 @@ public class DHCPClient : UdpClient
             var destIp = DHCPServerAddress(networkDevice) ?? throw new Exception($"IP can not be null");
             Address source = IPConfig.FindNetwork(destIp)
                 ?? throw new Exception($"Address can not be null");
-            var dhcpRelease = new DHCPRelease(source, destIp, networkDevice.MacAddress);
+            var dhcpRelease = new DhcpRelease(source, destIp, networkDevice.MacAddress);
 
             OutgoingBuffer.AddPacket(dhcpRelease);
             NetworkStack.Update();
@@ -129,7 +129,7 @@ public class DHCPClient : UdpClient
 
             IPConfig.Enable(networkDevice, new Address(0, 0, 0, 0), new Address(0, 0, 0, 0), new Address(0, 0, 0, 0));
 
-            var dhcpDiscover = new DHCPDiscover(networkDevice.MacAddress);
+            var dhcpDiscover = new DhcpDiscover(networkDevice.MacAddress);
             OutgoingBuffer.AddPacket(dhcpDiscover);
             NetworkStack.Update();
 
@@ -153,7 +153,7 @@ public class DHCPClient : UdpClient
                 continue;
             }
 
-            var dhcpRequest = new DHCPRequest(networkDevice.MacAddress, requestedAddress);
+            var dhcpRequest = new DhcpRequest(networkDevice.MacAddress, requestedAddress);
             OutgoingBuffer.AddPacket(dhcpRequest);
             NetworkStack.Update();
         }
@@ -165,7 +165,7 @@ public class DHCPClient : UdpClient
     /// </summary>
     /// <param name="packet">The DHCP ACK packet.</param>
     /// <param name="message">Enable/Disable the displaying of messages about DHCP applying and conf.</param>
-    private void Apply(DHCPPacket packet, bool message = false)
+    private void Apply(DhcpPacket packet, bool message = false)
     {
         if (_applied == false)
         {
@@ -194,7 +194,7 @@ public class DHCPClient : UdpClient
                     IPConfig.Enable(networkDevice, packet.Client, packet.Subnet ?? new Address(255, 255, 255, 0), packet.Server ?? Address.Zero);
                     if (packet.DNS != null)
                     {
-                        DNSConfig.Add(packet.DNS);
+                        DnsConfig.Add(packet.DNS);
                     }
 
                     Serial.WriteString("[DHCP CONFIG] IP configuration _applied.\n");

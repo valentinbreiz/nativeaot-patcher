@@ -47,7 +47,7 @@ public class DnsClient : UdpClient
         Address source = IPConfig.FindNetwork(_destination)
             ?? throw new InvalidOperationException("No network route to DNS server. Run 'netconfig' or 'dhcp' first.");
         _queryUrl = url;
-        var askpacket = new DNSPacketAsk(source, _destination!, url);
+        var askpacket = new DnsPacketAsk(source, _destination!, url);
 
         OutgoingBuffer.AddPacket(askpacket);
         NetworkStack.Update();
@@ -84,7 +84,7 @@ public class DnsClient : UdpClient
             return null;
         }
 
-        DNSPacketAnswer packet = new(rxBuffer.Dequeue().RawData);
+        DnsPacketAnswer packet = new(rxBuffer.Dequeue().RawData);
 
         if ((ushort)(packet.DNSFlags & 0x0F) != (ushort)ReplyCode.OK)
         {
@@ -110,7 +110,7 @@ public class DnsClient : UdpClient
     /// <summary>
     /// Follows a CNAME chain from <paramref name="name"/>, then collects the final A records.
     /// </summary>
-    private static List<Address>? ResolveAddresses(List<DNSAnswer> answers, string name)
+    private static List<Address>? ResolveAddresses(List<DnsAnswer> answers, string name)
     {
         string current = name;
 
@@ -120,8 +120,8 @@ public class DnsClient : UdpClient
         // At most one CNAME hop per answer record.
         for (int i = 0; i < answers.Count; i++)
         {
-            DNSAnswer? cname = answers.Find(a =>
-                a.Type == DNSRecordType.CNAME &&
+            DnsAnswer? cname = answers.Find(a =>
+                a.Type == DnsRecordType.CNAME &&
                 a.ResolvedName != null &&
                 string.Equals(a.ResolvedName, current, StringComparison.OrdinalIgnoreCase));
 
@@ -141,9 +141,9 @@ public class DnsClient : UdpClient
 
         // Collect the A records for the final name.
         List<Address> results = new();
-        foreach (DNSAnswer record in answers)
+        foreach (DnsAnswer record in answers)
         {
-            if (record.Type == DNSRecordType.A &&
+            if (record.Type == DnsRecordType.A &&
                 record.Address is { Length: 4 } &&
                 record.ResolvedName != null &&
                 string.Equals(record.ResolvedName, current, StringComparison.OrdinalIgnoreCase))

@@ -281,7 +281,7 @@ public static class PartitionManager
     {
         if (Gpt.IsGpt(device))
         {
-            List<Gpt.PartitionEntry> entries = Gpt.Parse(device);
+            List<GptPartitionEntry> entries = Gpt.Parse(device);
             for (int i = 0; i < entries.Count; i++)
             {
                 if (IsExcluded(entries[i].StartSector, entries[i].SectorCount, exclude))
@@ -301,7 +301,7 @@ public static class PartitionManager
             return false;
         }
 
-        List<Mbr.PartitionEntry> primaries = Mbr.Parse(device);
+        List<MbrPartitionEntry> primaries = Mbr.Parse(device);
         for (int i = 0; i < primaries.Count; i++)
         {
             if (IsExcluded(primaries[i].StartSector, primaries[i].SectorCount, exclude))
@@ -333,7 +333,7 @@ public static class PartitionManager
         // other logicals (each with the EBR sector preceding its data)
         // and the chain's first EBR sector. The mover's own EBR stays put
         // and Ebr.MoveLogical already enforces newStart past it.
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(device, extStart);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(device, extStart);
         for (int i = 0; i < logicals.Count; i++)
         {
             if (IsExcluded(logicals[i].StartSector, logicals[i].SectorCount, exclude))
@@ -413,7 +413,7 @@ public static class PartitionManager
             return false;
         }
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(device, extStart);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(device, extStart);
         for (int i = 0; i < logicals.Count; i++)
         {
             if (logicals[i].StartSector == location.StartSector && logicals[i].SectorCount == location.SectorCount)
@@ -429,7 +429,7 @@ public static class PartitionManager
 
     private static int FindGptIndex(IBlockDevice device, PartitionLocation location)
     {
-        List<Gpt.PartitionEntry> entries = Gpt.Parse(device);
+        List<GptPartitionEntry> entries = Gpt.Parse(device);
         for (int i = 0; i < entries.Count; i++)
         {
             if (entries[i].StartSector == location.StartSector && entries[i].SectorCount == location.SectorCount)

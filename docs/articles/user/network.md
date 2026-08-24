@@ -82,10 +82,10 @@ Like on any operating system, the kernel needs an IPv4 configuration (address, s
 
 ### Dynamically through DHCP
 
-`DHCPClient.SendDiscoverPacket()` runs the whole DISCOVER → OFFER → REQUEST → ACK exchange and applies the resulting configuration. It returns the elapsed milliseconds, or `-1` on timeout:
+`DhcpClient.SendDiscoverPacket()` runs the whole DISCOVER → OFFER → REQUEST → ACK exchange and applies the resulting configuration. It returns the elapsed milliseconds, or `-1` on timeout:
 
 ```csharp
-var dhcpClient = new DHCPClient();
+var dhcpClient = new DhcpClient();
 
 if (dhcpClient.SendDiscoverPacket() != -1)
 {
@@ -221,7 +221,7 @@ To reach a listener inside QEMU user networking from your host, forward a host p
 DNS uses the Cosmos `DnsClient` (the .NET `Dns` class is not plugged yet). Register a nameserver, ask for one domain, and read the answer back:
 
 ```csharp
-DNSConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
+DnsConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
 
 var dnsClient = new DnsClient();
 dnsClient.Connect(new Address(1, 1, 1, 1));
@@ -252,7 +252,7 @@ dnsClient.Close();
 
 ## How it works
 
-Your code calls the standard .NET socket classes, whose PAL bottoms out in `Socket`-level [plugs](../dev/plugs.md) in `Cosmos.Kernel.Plugs` (`SocketPlug`, `TcpClientPlug`, `TcpListenerPlug`, `UdpClientPlug`, `NetworkStreamPlug`). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over IPv4, ARP and Ethernet), which sends and receives frames through the `NetworkDevice` driver registered with `NetworkManager`. The Cosmos `DHCPClient` and `DnsClient` sit directly on the Cosmos UDP layer.
+Your code calls the standard .NET socket classes, whose PAL bottoms out in `Socket`-level [plugs](../dev/plugs.md) in `Cosmos.Kernel.Plugs` (`SocketPlug`, `TcpClientPlug`, `TcpListenerPlug`, `UdpClientPlug`, `NetworkStreamPlug`). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over IPv4, ARP and Ethernet), which sends and receives frames through the `NetworkDevice` driver registered with `NetworkManager`. The Cosmos `DhcpClient` and `DnsClient` sit directly on the Cosmos UDP layer.
 
 ```
 TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)
@@ -260,7 +260,7 @@ TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)
 Socket plugs                                            (Cosmos.Kernel.Plugs)
         │
 Cosmos TCP state machine / UDP                          (Cosmos.Kernel.System.Network.IPv4)
-        │                                    DHCPClient / DnsClient ride UDP directly
+        │                                    DhcpClient / DnsClient ride UDP directly
 IPv4 / ARP / Ethernet
         │
 NetworkDevice driver                                    (Intel E1000E, virtio-net)

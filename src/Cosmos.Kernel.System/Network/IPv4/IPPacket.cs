@@ -32,7 +32,7 @@ internal class IPPacket : EthernetPacket
         Serial.WriteNumber((ulong)ipPacket.Protocol);
         Serial.WriteString("\n");
 
-        ARPCache.Update(ipPacket.SourceIP, ipPacket.SourceMAC);
+        ArpCache.Update(ipPacket.SourceIP, ipPacket.SourceMAC);
 
         // Check if packet is for us
         bool isForUs = false;
@@ -47,13 +47,13 @@ internal class IPPacket : EthernetPacket
             switch (ipPacket.Protocol)
             {
                 case 1: // ICMP
-                    ICMPPacket.ICMPHandler(packetData);
+                    IcmpPacket.ICMPHandler(packetData);
                     break;
                 case 6: // TCP
-                    TCPPacket.TCPHandler(packetData);
+                    TcpPacket.TCPHandler(packetData);
                     break;
                 case 17: // UDP
-                    UDPPacket.UDPHandler(packetData);
+                    UdpPacket.UDPHandler(packetData);
                     break;
             }
         }

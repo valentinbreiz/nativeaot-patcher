@@ -121,16 +121,16 @@ internal static class OutgoingBuffer
                             continue;
                         }
 
-                        if (ARPCache.Contains(entry.NextHop))
+                        if (ArpCache.Contains(entry.NextHop))
                         {
-                            entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop ?? throw new Exception($"{nameof(entry.NextHop)} can not be null"))
+                            entry.Packet.DestinationMAC = ArpCache.Resolve(entry.NextHop ?? throw new Exception($"{nameof(entry.NextHop)} can not be null"))
                                 ?? throw new Exception("DestinationMAC can not be null");
                             entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
                             s_queue.RemoveAt(e);
                         }
                         else
                         {
-                            var arpRequest = new ARPRequestEthernet(
+                            var arpRequest = new ArpRequestEthernet(
                                 entry.NIC.MacAddress,
                                 entry.Packet.SourceIP,
                                 MACAddress.Broadcast,
@@ -143,9 +143,9 @@ internal static class OutgoingBuffer
                         continue;
                     }
 
-                    if (ARPCache.Contains(entry.Packet.DestinationIP))
+                    if (ArpCache.Contains(entry.Packet.DestinationIP))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP)
+                        entry.Packet.DestinationMAC = ArpCache.Resolve(entry.Packet.DestinationIP)
                                                       ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
                         Serial.WriteString("[OutgoingBuffer] Sent via ARP cache\n");
@@ -154,7 +154,7 @@ internal static class OutgoingBuffer
                     else
                     {
                         Serial.WriteString("[OutgoingBuffer] Sending ARP request\n");
-                        var arpRequest = new ARPRequestEthernet(
+                        var arpRequest = new ArpRequestEthernet(
                             entry.NIC.MacAddress,
                             entry.Packet.SourceIP,
                             MACAddress.Broadcast,
@@ -172,9 +172,9 @@ internal static class OutgoingBuffer
                 }
                 else if (entry.Status == BufferEntry.EntryStatus.ARP_SENT)
                 {
-                    if (ARPCache.Contains(entry.Packet.DestinationIP))
+                    if (ArpCache.Contains(entry.Packet.DestinationIP))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.Packet.DestinationIP)
+                        entry.Packet.DestinationMAC = ArpCache.Resolve(entry.Packet.DestinationIP)
                             ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
                         s_queue.RemoveAt(e);
@@ -182,9 +182,9 @@ internal static class OutgoingBuffer
                 }
                 else if (entry.Status == BufferEntry.EntryStatus.ROUTE_ARP_SENT)
                 {
-                    if (entry.NextHop is not null && ARPCache.Contains(entry.NextHop))
+                    if (entry.NextHop is not null && ArpCache.Contains(entry.NextHop))
                     {
-                        entry.Packet.DestinationMAC = ARPCache.Resolve(entry.NextHop)
+                        entry.Packet.DestinationMAC = ArpCache.Resolve(entry.NextHop)
                                                       ?? throw new Exception("DestinationMAC can not be null");
                         entry.NIC.Send(entry.Packet.RawData, entry.Packet.RawData.Length);
                         s_queue.RemoveAt(e);
@@ -214,7 +214,7 @@ internal static class OutgoingBuffer
     /// Updates the ARP cache with the given ARP reply.
     /// </summary>
     /// <param name="arpReply">The ARP reply.</param>
-    internal static void UpdateARPCache(ARPReplyEthernet arpReply)
+    internal static void UpdateARPCache(ArpReplyEthernet arpReply)
     {
         EnsureQueueExists();
         for (int e = 0; e < s_queue.Count; e++)

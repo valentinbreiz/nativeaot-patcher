@@ -47,7 +47,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// The RX buffer queue.
     /// </summary>
-    internal Queue<UDPPacket> rxBuffer;
+    internal Queue<UdpPacket> rxBuffer;
 
     /// <summary>
     /// Gets a UDP client running on the given port.
@@ -76,7 +76,7 @@ public class UdpClient : IDisposable
     /// <param name="_localPort">Local port.</param>
     public UdpClient(int _localPort)
     {
-        rxBuffer = new Queue<UDPPacket>(8);
+        rxBuffer = new Queue<UdpPacket>(8);
 
         this._localPort = _localPort;
         if (_localPort > 0)
@@ -161,8 +161,8 @@ public class UdpClient : IDisposable
         Serial.WriteString(source.ToString());
         Serial.WriteString("\n");
 
-        var packet = new UDPPacket(source, dest, (ushort)_localPort, (ushort)destPort, data);
-        Serial.WriteString("[UdpClient] UDPPacket created, adding to outgoing buffer\n");
+        var packet = new UdpPacket(source, dest, (ushort)_localPort, (ushort)destPort, data);
+        Serial.WriteString("[UdpClient] UdpPacket created, adding to outgoing buffer\n");
         OutgoingBuffer.AddPacket(packet);
         Serial.WriteString("[UdpClient] Packet added to outgoing buffer\n");
     }
@@ -178,7 +178,7 @@ public class UdpClient : IDisposable
             return null;
         }
 
-        var packet = new UDPPacket(rxBuffer.Dequeue().RawData);
+        var packet = new UdpPacket(rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
@@ -196,7 +196,7 @@ public class UdpClient : IDisposable
             ;
         }
 
-        var packet = new UDPPacket(rxBuffer.Dequeue().RawData);
+        var packet = new UdpPacket(rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
@@ -207,7 +207,7 @@ public class UdpClient : IDisposable
     /// Receives data from the given packet.
     /// </summary>
     /// <param name="packet">Packet to receive.</param>
-    internal void ReceiveData(UDPPacket packet)
+    internal void ReceiveData(UdpPacket packet)
     {
         rxBuffer.Enqueue(packet);
     }

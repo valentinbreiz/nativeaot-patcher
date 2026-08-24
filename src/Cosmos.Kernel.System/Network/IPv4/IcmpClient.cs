@@ -6,9 +6,9 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <summary>
 /// Used to manage the ICMP connection to a client.
 /// </summary>
-public class ICMPClient : IDisposable
+public class IcmpClient : IDisposable
 {
-    private static readonly Dictionary<uint, ICMPClient> s_clients = new();
+    private static readonly Dictionary<uint, IcmpClient> s_clients = new();
 
     /// <summary>
     /// The _destination address.
@@ -18,14 +18,14 @@ public class ICMPClient : IDisposable
     /// <summary>
     /// The RX buffer queue.
     /// </summary>
-    internal Queue<ICMPPacket> _rxBuffer;
+    internal Queue<IcmpPacket> _rxBuffer;
 
     /// <summary>
     /// Gets a client by its IP address hash.
     /// </summary>
     /// <param name="iphash">The IP address hash.</param>
-    /// <returns>If a client is connected to the given address, the <see cref="ICMPClient"/>; otherwise, <see langword="null"/>.</returns>
-    internal static ICMPClient? GetClient(uint iphash)
+    /// <returns>If a client is connected to the given address, the <see cref="IcmpClient"/>; otherwise, <see langword="null"/>.</returns>
+    internal static IcmpClient? GetClient(uint iphash)
     {
         if (s_clients.TryGetValue(iphash, out var client))
         {
@@ -35,11 +35,11 @@ public class ICMPClient : IDisposable
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPClient"/> class.
+    /// Initializes a new instance of the <see cref="IcmpClient"/> class.
     /// </summary>
-    public ICMPClient()
+    public IcmpClient()
     {
-        _rxBuffer = new Queue<ICMPPacket>(8);
+        _rxBuffer = new Queue<IcmpPacket>(8);
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class ICMPClient : IDisposable
         }
 
         Address source = IPConfig.FindNetwork(_destination) ?? throw new InvalidOperationException("No network route to _destination");
-        var request = new ICMPEchoRequest(source, _destination, id, sequence);
+        var request = new IcmpEchoRequest(source, _destination, id, sequence);
         OutgoingBuffer.AddPacket(request);
         NetworkStack.Update();
     }
@@ -101,7 +101,7 @@ public class ICMPClient : IDisposable
             return -1;
         }
 
-        var packet = new ICMPEchoReply(_rxBuffer.Dequeue().RawData);
+        var packet = new IcmpEchoReply(_rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
 
         return waited;
@@ -111,7 +111,7 @@ public class ICMPClient : IDisposable
     /// Receives data from the given packet.
     /// </summary>
     /// <param name="packet">The packet to receive.</param>
-    internal void ReceiveData(ICMPPacket packet)
+    internal void ReceiveData(IcmpPacket packet)
     {
         _rxBuffer.Enqueue(packet);
     }

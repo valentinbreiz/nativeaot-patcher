@@ -363,7 +363,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Handles incoming TCP packets according to the current connection status.
     /// </summary>
-    internal void ReceiveData(TCPPacket packet)
+    internal void ReceiveData(TcpPacket packet)
     {
         ReceiveDataInternal(packet);
 
@@ -376,7 +376,7 @@ internal class Tcp : IDisposable
         }
     }
 
-    private void ReceiveDataInternal(TCPPacket packet)
+    private void ReceiveDataInternal(TcpPacket packet)
     {
         Serial.WriteString($"[{Table[(int)Status]}] {packet}\n");
 
@@ -450,7 +450,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Processes a TCP LISTEN state packet and updates the connection status accordingly.
     /// </summary>
-    public void ProcessListen(TCPPacket packet)
+    public void ProcessListen(TcpPacket packet)
     {
         if (packet._rst)
         {
@@ -499,7 +499,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Processes a TCP SYN_RECEIVED state packet and updates the connection status accordingly.
     /// </summary>
-    public void ProcessSynReceived(TCPPacket packet)
+    public void ProcessSynReceived(TcpPacket packet)
     {
         if (packet._ack)
         {
@@ -521,7 +521,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Processes a SYN_SENT state TCP packet and updates the connection state accordingly.
     /// </summary>
-    public void ProcessSynSent(TCPPacket packet)
+    public void ProcessSynSent(TcpPacket packet)
     {
         if (packet._syn)
         {
@@ -581,7 +581,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Processes a ESTABLISHED state TCP packet.
     /// </summary>
-    public void ProcessEstablished(TCPPacket packet)
+    public void ProcessEstablished(TcpPacket packet)
     {
         if (packet._ack)
         {
@@ -693,7 +693,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Process FIN_WAIT1 Status.
     /// </summary>
-    public void ProcessFinWait1(TCPPacket packet)
+    public void ProcessFinWait1(TcpPacket packet)
     {
         if (packet._ack)
         {
@@ -723,7 +723,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Process FIN_WAIT2 Status.
     /// </summary>
-    public void ProcessFinWait2(TCPPacket packet)
+    public void ProcessFinWait2(TcpPacket packet)
     {
         if (packet._fin)
         {
@@ -744,7 +744,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Process CLOSING Status.
     /// </summary>
-    public void ProcessClosing(TCPPacket packet)
+    public void ProcessClosing(TcpPacket packet)
     {
         if (packet._ack)
         {
@@ -755,7 +755,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Process Close_WAIT Status.
     /// </summary>
-    public void ProcessCloseWait(TCPPacket packet)
+    public void ProcessCloseWait(TcpPacket packet)
     {
         if (packet._ack)
         {
@@ -837,7 +837,7 @@ internal class Tcp : IDisposable
     /// </summary>
     public void SendEmptyPacket(Flags flag)
     {
-        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
+        SendPacket(new TcpPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
             TCB.SndNxt, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
     }
 
@@ -846,14 +846,14 @@ internal class Tcp : IDisposable
     /// </summary>
     internal void SendEmptyPacket(Flags flag, uint sequenceNumber)
     {
-        SendPacket(new TCPPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
+        SendPacket(new TcpPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
             sequenceNumber, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
     }
 
     /// <summary>
     /// Sends a TCP packet.
     /// </summary>
-    private void SendPacket(TCPPacket packet)
+    private void SendPacket(TcpPacket packet)
     {
         OutgoingBuffer.AddPacket(packet);
 

@@ -13,18 +13,18 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Represents a DHCP release packet.
 /// </summary>
-internal class DHCPRelease : DHCPPacket
+internal class DhcpRelease : DhcpPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRelease"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRelease"/> class.
     /// </summary>
-    internal DHCPRelease(byte[] rawData) : base(rawData)
+    internal DhcpRelease(byte[] rawData) : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRelease"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRelease"/> class.
     /// </summary>
-    internal DHCPRelease(Address client, Address server, MACAddress source) : base(client, server, source, 19)
+    internal DhcpRelease(Address client, Address server, MACAddress source) : base(client, server, source, 19)
     {
         //Release
         RawData[282] = 0x35;

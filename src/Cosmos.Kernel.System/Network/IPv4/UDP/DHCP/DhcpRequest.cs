@@ -13,18 +13,18 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 /// <summary>
 /// Represents a DHCP request packet.
 /// </summary>
-internal class DHCPRequest : DHCPPacket
+internal class DhcpRequest : DhcpPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRequest"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRequest"/> class.
     /// </summary>
-    internal DHCPRequest(byte[] rawData) : base(rawData)
+    internal DhcpRequest(byte[] rawData) : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DHCPRequest"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRequest"/> class.
     /// </summary>
-    internal DHCPRequest(MACAddress sourceMAC, Address requestedAddress) : base(sourceMAC, 16)
+    internal DhcpRequest(MACAddress sourceMAC, Address requestedAddress) : base(sourceMAC, 16)
     {
         // Request
         RawData[282] = 53;

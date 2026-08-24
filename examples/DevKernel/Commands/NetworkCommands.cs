@@ -23,7 +23,7 @@ internal static class NetworkCommands
     /// <summary>UDP port used for the netsend/netlisten test traffic.</summary>
     private const ushort TestUdpPort = 5555;
 
-    /// <summary>Sentinel returned by <see cref="DHCPClient.SendDiscoverPacket"/> when no server answered before the timeout.</summary>
+    /// <summary>Sentinel returned by <see cref="DhcpClient.SendDiscoverPacket"/> when no server answered before the timeout.</summary>
     private const int DhcpTimeoutResult = -1;
 
     /// <summary>Octet value of the Cloudflare public DNS resolver 1.1.1.1.</summary>
@@ -271,7 +271,7 @@ internal static class NetworkCommands
 
         NetworkStack.Initialize();
 
-        DHCPClient dhcpClient = new();
+        DhcpClient dhcpClient = new();
         if (dhcpClient.SendDiscoverPacket() == DhcpTimeoutResult)
         {
             Terminal.Error("DHCP timeout - no response from server");
@@ -310,7 +310,7 @@ internal static class NetworkCommands
         Terminal.Info("Resolving " + domain + "...");
 
         Address dnsServer = new(CloudflareDnsOctet, CloudflareDnsOctet, CloudflareDnsOctet, CloudflareDnsOctet);
-        DNSConfig.Add(dnsServer);
+        DnsConfig.Add(dnsServer);
 
         DnsClient dnsClient = new();
         dnsClient.Connect(dnsServer);

@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <remarks>
 /// See also: <seealso cref="IPPacket"/>.
 /// </remarks>
-internal class ICMPPacket : IPPacket
+internal class IcmpPacket : IPPacket
 {
     protected byte icmpType;
     protected byte icmpCode;
@@ -33,7 +33,7 @@ internal class ICMPPacket : IPPacket
     /// <param name="packetData">The data of the packet.</param>
     internal static void ICMPHandler(byte[] packetData)
     {
-        var icmpPacket = new ICMPPacket(packetData);
+        var icmpPacket = new IcmpPacket(packetData);
 
         switch (icmpPacket.ICMPType)
         {
@@ -42,12 +42,12 @@ internal class ICMPPacket : IPPacket
                 Serial.WriteString(icmpPacket.SourceIP.ToString());
                 Serial.WriteString("\n");
 
-                var receiver = ICMPClient.GetClient(icmpPacket.SourceIP.Id);
+                var receiver = IcmpClient.GetClient(icmpPacket.SourceIP.Id);
                 receiver?.ReceiveData(icmpPacket);
                 break;
             case 8: // Echo request
-                var request = new ICMPEchoRequest(packetData);
-                var reply = new ICMPEchoReply(request);
+                var request = new IcmpEchoRequest(packetData);
+                var reply = new IcmpEchoReply(request);
 
                 Serial.WriteString("[ICMP] Sending echo reply to ");
                 Serial.WriteString(reply.DestinationIP.ToString());
@@ -63,10 +63,10 @@ internal class ICMPPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IcmpPacket"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ICMPPacket(byte[] rawData)
+    internal IcmpPacket(byte[] rawData)
         : base(rawData)
     {
     }
@@ -80,7 +80,7 @@ internal class ICMPPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IcmpPacket"/> class.
     /// </summary>
     /// <param name="source">Source address.</param>
     /// <param name="dest">Destination address.</param>
@@ -90,7 +90,7 @@ internal class ICMPPacket : IPPacket
     /// <param name="seq">SEQ.</param>
     /// <param name="icmpDataSize">Data size.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ICMPPacket(Address source, Address dest, byte type, byte code, ushort id, ushort seq, ushort icmpDataSize)
+    internal IcmpPacket(Address source, Address dest, byte type, byte code, ushort id, ushort seq, ushort icmpDataSize)
         : base(icmpDataSize, 1, source, dest, 0x00)
     {
         RawData[DataOffset] = type;
@@ -163,31 +163,31 @@ internal class ICMPPacket : IPPacket
 /// Represents an ICMP echo request packet.
 /// </summary>
 /// <remarks>
-/// See also: <seealso cref="ICMPPacket"/>.
+/// See also: <seealso cref="IcmpPacket"/>.
 /// </remarks>
-internal class ICMPEchoRequest : ICMPPacket
+internal class IcmpEchoRequest : IcmpPacket
 {
     protected ushort icmpID;
     protected ushort icmpSequence;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoRequest"/> class.
+    /// Initializes a new instance of the <see cref="IcmpEchoRequest"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ICMPEchoRequest(byte[] rawData)
+    internal IcmpEchoRequest(byte[] rawData)
         : base(rawData)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoRequest"/> class.
+    /// Initializes a new instance of the <see cref="IcmpEchoRequest"/> class.
     /// </summary>
     /// <param name="source">Source address.</param>
     /// <param name="dest">Destination address.</param>
     /// <param name="id">ID.</param>
     /// <param name="sequence">Sequence.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ICMPEchoRequest(Address source, Address dest, ushort id, ushort sequence)
+    internal IcmpEchoRequest(Address source, Address dest, ushort id, ushort sequence)
         : base(source, dest, 8, 0, id, sequence, 40)
     {
         for (int b = 8; b < ICMPDataLength; b++)
@@ -229,28 +229,28 @@ internal class ICMPEchoRequest : ICMPPacket
 /// Represents an ICMP echo reply packet.
 /// </summary>
 /// <remarks>
-/// See also: <seealso cref="ICMPPacket"/>.
+/// See also: <seealso cref="IcmpPacket"/>.
 /// </remarks>
-internal class ICMPEchoReply : ICMPPacket
+internal class IcmpEchoReply : IcmpPacket
 {
     protected ushort icmpID;
     protected ushort icmpSequence;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoReply"/> class.
+    /// Initializes a new instance of the <see cref="IcmpEchoReply"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ICMPEchoReply(byte[] rawData)
+    internal IcmpEchoReply(byte[] rawData)
         : base(rawData)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ICMPEchoReply"/> class.
+    /// Initializes a new instance of the <see cref="IcmpEchoReply"/> class.
     /// </summary>
     /// <param name="request">ICMP echo request.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ICMPEchoReply(ICMPEchoRequest request)
+    internal IcmpEchoReply(IcmpEchoRequest request)
         : base(request.DestinationIP, request.SourceIP, 0, 0, request.ICMPID, request.ICMPSequence, (ushort)(request.ICMPDataLength + 8))
     {
         for (int b = 0; b < ICMPDataLength; b++)

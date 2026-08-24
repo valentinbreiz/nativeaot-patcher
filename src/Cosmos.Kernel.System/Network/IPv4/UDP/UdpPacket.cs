@@ -8,19 +8,19 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 /// <summary>
 /// Delegate for UDP data received events.
 /// </summary>
-internal delegate void UDPDataReceivedHandler(UDPPacket packet);
+internal delegate void UdpDataReceivedHandler(UdpPacket packet);
 
 /// <summary>
 /// Represents a UDP packet.
 /// </summary>
-internal class UDPPacket : IPPacket
+internal class UdpPacket : IPPacket
 {
     private ushort _udpCRC;
 
     /// <summary>
     /// Callback for receiving UDP data.
     /// </summary>
-    public static UDPDataReceivedHandler? OnUDPDataReceived { get; set; }
+    public static UdpDataReceivedHandler? OnUDPDataReceived { get; set; }
 
     /// <summary>
     /// Handles UDP packets.
@@ -28,7 +28,7 @@ internal class UDPPacket : IPPacket
     /// <param name="packetData">The raw packet data.</param>
     internal static void UDPHandler(byte[] packetData)
     {
-        var udpPacket = new UDPPacket(packetData);
+        var udpPacket = new UdpPacket(packetData);
 
         Serial.WriteString("[UDP] Received from ");
         Serial.WriteString(udpPacket.SourceIP.ToString());
@@ -43,11 +43,11 @@ internal class UDPPacket : IPPacket
         // Route to specific protocol handlers based on port
         if (udpPacket.DestinationPort == 68) // DHCP client
         {
-            DHCPPacket.DHCPHandler(packetData);
+            DhcpPacket.DHCPHandler(packetData);
         }
         else if (udpPacket.SourcePort == 53 || udpPacket.DestinationPort == 53) // DNS
         {
-            DNSPacket.DNSHandler(packetData);
+            DnsPacket.DNSHandler(packetData);
             // Also route to UdpClient (DnsClient) if listening on the destination port
             var client = UdpClient.GetClient(udpPacket.DestinationPort);
             client?.ReceiveData(udpPacket);
@@ -64,22 +64,22 @@ internal class UDPPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UDPPacket"/> class.
+    /// Initializes a new instance of the <see cref="UdpPacket"/> class.
     /// </summary>
     /// <param name="rawData">The raw data.</param>
-    public UDPPacket(byte[] rawData)
+    public UdpPacket(byte[] rawData)
         : base(rawData)
     {
     }
 
-    public UDPPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength)
+    public UdpPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength)
         : base((ushort)(datalength + 8), 17, source, dest, 0x00)
     {
         MakePacket(srcport, destport, datalength);
         InitializeFields();
     }
 
-    public UDPPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength, MACAddress destmac)
+    public UdpPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength, MACAddress destmac)
         : base((ushort)(datalength + 8), 17, source, dest, 0x00, destmac)
     {
         MakePacket(srcport, destport, datalength);
@@ -87,7 +87,7 @@ internal class UDPPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UDPPacket"/> class.
+    /// Initializes a new instance of the <see cref="UdpPacket"/> class.
     /// </summary>
     /// <param name="source">The source address.</param>
     /// <param name="dest">The destination address.</param>
@@ -96,7 +96,7 @@ internal class UDPPacket : IPPacket
     /// <param name="data">The data array.</param>
     /// <exception cref="OverflowException">Thrown if data array length is greater than Int32.MaxValue.</exception>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    public UDPPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data)
+    public UdpPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data)
         : base((ushort)(data.Length + 8), 17, source, dest, 0x00)
     {
         MakePacket(srcPort, destPort, (ushort)data.Length);
@@ -110,9 +110,9 @@ internal class UDPPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UDPPacket"/> class with destination MAC.
+    /// Initializes a new instance of the <see cref="UdpPacket"/> class with destination MAC.
     /// </summary>
-    public UDPPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data, MACAddress destmac)
+    public UdpPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data, MACAddress destmac)
         : base((ushort)(data.Length + 8), 17, source, dest, 0x00, destmac)
     {
         MakePacket(srcPort, destPort, (ushort)data.Length);

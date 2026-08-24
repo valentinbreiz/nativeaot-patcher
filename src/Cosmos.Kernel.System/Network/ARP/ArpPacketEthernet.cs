@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Network.ARP;
 /// <summary>
 /// Represents an ARP Ethernet packet.
 /// </summary>
-internal abstract class ARPPacketEthernet : ARPPacket
+internal abstract class ArpPacketEthernet : ArpPacket
 {
     /// <summary>
     /// The sender MAC address.
@@ -29,17 +29,17 @@ internal abstract class ARPPacketEthernet : ARPPacket
     protected Address targetIP = null!;
 
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    // /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     // /// </summary>
-    // internal ARPPacketEthernet()
+    // internal ArpPacketEthernet()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ARPPacketEthernet(byte[] rawData)
+    internal ArpPacketEthernet(byte[] rawData)
         : base(rawData)
     { }
 
@@ -53,7 +53,7 @@ internal abstract class ARPPacketEthernet : ARPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     /// </summary>
     /// <param name="operation">The operation.</param>
     /// <param name="senderMAC">The source MAC address.</param>
@@ -63,7 +63,7 @@ internal abstract class ARPPacketEthernet : ARPPacket
     /// <param name="packetSize">The packet size.</param>
     /// <param name="arpTargetMAC">The ARP destination MAC address.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    protected ARPPacketEthernet(ushort operation, MACAddress senderMAC, Address senderIP,
+    protected ArpPacketEthernet(ushort operation, MACAddress senderMAC, Address senderIP,
         MACAddress targetMAC, Address targetIP, int packetSize, MACAddress arpTargetMAC)
         : base(targetMAC, senderMAC, 1, 0x0800, 6, 4, operation, packetSize)
     {
@@ -112,34 +112,34 @@ internal abstract class ARPPacketEthernet : ARPPacket
 /// Represents an ARP reply Ethernet packet.
 /// </summary>
 /// <remarks>
-/// See also: <seealso cref="ARPPacketEthernet"/>.
+/// See also: <seealso cref="ArpPacketEthernet"/>.
 /// </remarks>
-internal class ARPReplyEthernet : ARPPacketEthernet
+internal class ArpReplyEthernet : ArpPacketEthernet
 {
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
+    // /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
     // /// </summary>
-    // internal ARPReplyEthernet()
+    // internal ArpReplyEthernet()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ARPReplyEthernet(byte[] rawData)
+    internal ArpReplyEthernet(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPReplyEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
     /// </summary>
     /// <param name="ourMAC">The source MAC address.</param>
     /// <param name="ourIP">The source IP address.</param>
     /// <param name="targetMAC">The destination MAC address.</param>
     /// <param name="targetIP">The destination IP address.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ARPReplyEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP)
+    internal ArpReplyEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP)
         : base(2, ourMAC, ourIP, targetMAC, targetIP, 42, MACAddress.None)
     { }
 
@@ -153,28 +153,28 @@ internal class ARPReplyEthernet : ARPPacketEthernet
 /// Represents an ARP request Ethernet packet.
 /// </summary>
 /// <remarks>
-/// See also: <seealso cref="ARPPacketEthernet"/>.
+/// See also: <seealso cref="ArpPacketEthernet"/>.
 /// </remarks>
-internal class ARPRequestEthernet : ARPPacketEthernet
+internal class ArpRequestEthernet : ArpPacketEthernet
 {
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    // /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     // /// </summary>
-    // internal ARPRequestEthernet()
+    // internal ArpRequestEthernet()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
-    internal ARPRequestEthernet(byte[] rawData)
+    internal ArpRequestEthernet(byte[] rawData)
         : base(rawData)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ARPRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
     /// </summary>
     /// <param name="ourMAC">The source MAC address.</param>
     /// <param name="ourIP">The source IP address.</param>
@@ -182,7 +182,7 @@ internal class ARPRequestEthernet : ARPPacketEthernet
     /// <param name="targetIP">The destination IP address.</param>
     /// <param name="arpTargetMAC">The ARP destination MAC address.</param>
     /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ARPRequestEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP, MACAddress arpTargetMAC)
+    internal ArpRequestEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP, MACAddress arpTargetMAC)
         : base(1, ourMAC, ourIP, targetMAC, targetIP, 42, arpTargetMAC)
     { }
 

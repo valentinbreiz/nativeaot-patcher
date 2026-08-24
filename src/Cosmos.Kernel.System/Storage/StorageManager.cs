@@ -197,10 +197,10 @@ public static class StorageManager
                 Serial.WriteString("[StorageManager] GPT detected on ");
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
-                List<Gpt.PartitionEntry> entries = Gpt.Parse(device);
+                List<GptPartitionEntry> entries = Gpt.Parse(device);
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    Gpt.PartitionEntry e = entries[i];
+                    GptPartitionEntry e = entries[i];
                     s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, (uint)i));
                 }
                 return;
@@ -211,11 +211,11 @@ public static class StorageManager
                 Serial.WriteString("[StorageManager] MBR detected on ");
                 Serial.WriteString(device.Name);
                 Serial.WriteString("\n");
-                List<Mbr.PartitionEntry> entries = Mbr.Parse(device);
+                List<MbrPartitionEntry> entries = Mbr.Parse(device);
                 uint slot = 0;
                 for (int i = 0; i < entries.Count; i++)
                 {
-                    Mbr.PartitionEntry e = entries[i];
+                    MbrPartitionEntry e = entries[i];
                     s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
                     slot++;
                 }
@@ -223,10 +223,10 @@ public static class StorageManager
                 if (Mbr.TryGetExtendedPartition(device, out ulong extendedStart))
                 {
                     Serial.WriteString("[StorageManager] Extended partition found, walking EBR chain\n");
-                    List<Mbr.PartitionEntry> logicals = Ebr.Parse(device, extendedStart);
+                    List<MbrPartitionEntry> logicals = Ebr.Parse(device, extendedStart);
                     for (int i = 0; i < logicals.Count; i++)
                     {
-                        Mbr.PartitionEntry e = logicals[i];
+                        MbrPartitionEntry e = logicals[i];
                         s_partitions.Add(new Partition(device, e.StartSector, e.SectorCount, slot));
                         slot++;
                     }

@@ -26,7 +26,7 @@ internal enum ReplyCode
 /// <summary>
 /// DNS resource record types this stack understands (RFC 1035).
 /// </summary>
-internal static class DNSRecordType
+internal static class DnsRecordType
 {
     public const ushort A = 1;
     public const ushort CNAME = 5;
@@ -35,7 +35,7 @@ internal static class DNSRecordType
 /// <summary>
 /// Represents a DNS query.
 /// </summary>
-internal class DNSQuery
+internal class DnsQuery
 {
     public string? Name { get; set; }
     public ushort Type { get; set; }
@@ -45,7 +45,7 @@ internal class DNSQuery
 /// <summary>
 /// Represents a DNS answer (response).
 /// </summary>
-internal class DNSAnswer
+internal class DnsAnswer
 {
     public ushort Name { get; set; }
     public string? ResolvedName { get; set; }
@@ -60,7 +60,7 @@ internal class DNSAnswer
 /// <summary>
 /// Represents a DNS packet.
 /// </summary>
-internal class DNSPacket : UDPPacket
+internal class DnsPacket : UdpPacket
 {
     // Simple transaction ID generator
     private static byte s_transactionCounter = 1;
@@ -70,29 +70,29 @@ internal class DNSPacket : UDPPacket
     /// </summary>
     internal static void DNSHandler(byte[] packetData)
     {
-        var dnsPacket = new DNSPacket(packetData);
+        var dnsPacket = new DnsPacket(packetData);
         var receiver = (DnsClient?)UdpClient.GetClient(dnsPacket.DestinationPort);
         receiver?.ReceiveData(dnsPacket);
     }
 
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="DNSPacket"/> class.
+    // /// Initializes a new instance of the <see cref="DnsPacket"/> class.
     // /// </summary>
-    // internal DNSPacket()
+    // internal DnsPacket()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacket"/> class.
+    /// Initializes a new instance of the <see cref="DnsPacket"/> class.
     /// </summary>
-    public DNSPacket(byte[] rawData)
+    public DnsPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacket"/> class.
+    /// Initializes a new instance of the <see cref="DnsPacket"/> class.
     /// </summary>
-    public DNSPacket(Address source, Address dest, ushort urlnb, ushort len)
+    public DnsPacket(Address source, Address dest, ushort urlnb, ushort len)
         : base(source, dest, 53, 53, (ushort)(len + 12))
     {
         byte transactionID = s_transactionCounter++;
@@ -252,12 +252,12 @@ internal class DNSPacket : UDPPacket
     /// <summary>
     /// The DNS queries.
     /// </summary>
-    internal List<DNSQuery>? Queries { get; set; }
+    internal List<DnsQuery>? Queries { get; set; }
 
     /// <summary>
     /// The DNS answers (responses).
     /// </summary>
-    internal List<DNSAnswer>? Answers { get; set; }
+    internal List<DnsAnswer>? Answers { get; set; }
 
     public override string ToString()
     {
@@ -268,26 +268,26 @@ internal class DNSPacket : UDPPacket
 /// <summary>
 /// Represents a DNS translation request packet.
 /// </summary>
-internal class DNSPacketAsk : DNSPacket
+internal class DnsPacketAsk : DnsPacket
 {
     // /// <summary>
-    // /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
+    // /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
     // /// </summary>
-    // internal DNSPacketAsk()
+    // internal DnsPacketAsk()
     //     : base()
     // { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
+    /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
     /// </summary>
-    public DNSPacketAsk(byte[] rawData)
+    public DnsPacketAsk(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacketAsk"/> class.
+    /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
     /// </summary>
-    public DNSPacketAsk(Address source, Address dest, string url)
+    public DnsPacketAsk(Address source, Address dest, string url)
         : base(source, dest, 1, (ushort)(url.Length + url.Split('.').Length + 1 + 4))
     {
         int b = 0;
@@ -320,12 +320,12 @@ internal class DNSPacketAsk : DNSPacket
 /// <summary>
 /// Represents a DNS translation result packet.
 /// </summary>
-internal class DNSPacketAnswer : DNSPacket
+internal class DnsPacketAnswer : DnsPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DNSPacketAnswer"/> class.
+    /// Initializes a new instance of the <see cref="DnsPacketAnswer"/> class.
     /// </summary>
-    public DNSPacketAnswer(byte[] rawData)
+    public DnsPacketAnswer(byte[] rawData)
         : base(rawData)
     { }
 
@@ -342,11 +342,11 @@ internal class DNSPacketAnswer : DNSPacket
         int index = DataOffset + 20;
         if (Questions > 0)
         {
-            Queries = new List<DNSQuery>();
+            Queries = new List<DnsQuery>();
 
             for (int i = 0; i < Questions; i++)
             {
-                var query = new DNSQuery();
+                var query = new DnsQuery();
                 query.Name = ParseName(RawData, ref index);
                 query.Type = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
                 query.Class = (ushort)((RawData[index + 2] << 8) | RawData[index + 3]);
@@ -356,11 +356,11 @@ internal class DNSPacketAnswer : DNSPacket
         }
         if (AnswerRRs > 0)
         {
-            Answers = new List<DNSAnswer>();
+            Answers = new List<DnsAnswer>();
 
             for (int i = 0; i < AnswerRRs; i++)
             {
-                var answer = new DNSAnswer();
+                var answer = new DnsAnswer();
                 answer.Name = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
                 answer.ResolvedName = ResolveRRName(answer.Name, RawData, DataOffset + 8);
                 answer.Type = (ushort)((RawData[index + 2] << 8) | RawData[index + 3]);
@@ -377,7 +377,7 @@ internal class DNSPacketAnswer : DNSPacket
                     answer.Address[j] = RawData[index];
                 }
 
-                if (answer.Type == DNSRecordType.CNAME)
+                if (answer.Type == DnsRecordType.CNAME)
                 {
                     answer.CanonicalName = ParseNameAt(RawData, rdataStart, DataOffset + 8);
                 }

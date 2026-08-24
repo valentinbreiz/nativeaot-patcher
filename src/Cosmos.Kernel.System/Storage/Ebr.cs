@@ -43,9 +43,9 @@ public static class Ebr
     /// return one entry per logical partition. <c>StartSector</c> values are
     /// absolute LBAs on <paramref name="device"/>.
     /// </summary>
-    public static List<Mbr.PartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
+    public static List<MbrPartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
     {
-        List<Mbr.PartitionEntry> logicals = new();
+        List<MbrPartitionEntry> logicals = new();
         if (device == null)
         {
             return logicals;
@@ -59,7 +59,7 @@ public static class Ebr
             {
                 continue;
             }
-            logicals.Add(new Mbr.PartitionEntry(
+            logicals.Add(new MbrPartitionEntry(
                 node.LogicalSystemId,
                 node.EbrLba + node.LogicalRelativeStart,
                 node.LogicalSectorCount));

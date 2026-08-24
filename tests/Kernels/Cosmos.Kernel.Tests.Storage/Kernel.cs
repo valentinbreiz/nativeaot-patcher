@@ -615,7 +615,7 @@ public class Kernel : Sys.Kernel
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrBogusPastEndSectorCount);
         s_dev!.WriteBlock(MbrLba, 1, mbr);
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev!);
+        List<MbrPartitionEntry> parts = Mbr.Parse(s_dev!);
         Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
     }
 
@@ -1039,7 +1039,7 @@ public class Kernel : Sys.Kernel
         Mbr.WritePartition(s_dev, 0, systemId: MbrLinuxSystemId, startSector: MbrPartAStartSector, sectorCount: MbrPartASectorCount);
         Mbr.WritePartition(s_dev, 1, systemId: MbrFat32SystemId, startSector: MbrPartBStartSector, sectorCount: MbrPartBSectorCount);
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(s_dev);
+        List<MbrPartitionEntry> parts = Mbr.Parse(s_dev);
         Assert.Equal(2, parts.Count);
         Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
         Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
@@ -1061,7 +1061,7 @@ public class Kernel : Sys.Kernel
         Assert.True(Gpt.AddPartition(s_dev, GptAlignedStartLba, countA, Gpt.BasicDataPartitionType));
         Assert.True(Gpt.AddPartition(s_dev, startB, countB, Gpt.BasicDataPartitionType));
 
-        List<Gpt.PartitionEntry> parts = Gpt.Parse(s_dev);
+        List<GptPartitionEntry> parts = Gpt.Parse(s_dev);
         Assert.Equal(2, parts.Count);
         Assert.Equal(Gpt.BasicDataPartitionType, parts[0].PartitionType);
         Assert.Equal<ulong>(GptAlignedStartLba, parts[0].StartSector);
@@ -1264,7 +1264,7 @@ public class Kernel : Sys.Kernel
         const uint resizedSectorCount = 350;
         Mbr.ResizePartition(host, 0, resizedSectorCount);
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(2, parts.Count);
         Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
         Assert.Equal<ulong>(resizedSectorCount, parts[0].SectorCount);
@@ -1283,7 +1283,7 @@ public class Kernel : Sys.Kernel
 
         Mbr.DeletePartition(host, 1);
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
         Assert.Equal<ulong>(MbrPartAStartSector, parts[0].StartSector);
@@ -1314,7 +1314,7 @@ public class Kernel : Sys.Kernel
         WriteEbrSector(host, extendedStart, logicalRelStart, logicalSectorCount, hasNext: true, nextRelativeLba: nextRelativeLba);
         WriteEbrSector(host, extendedStart + nextRelativeLba, logicalRelStart, logicalSectorCount, hasNext: false, nextRelativeLba: 0);
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, extendedStart);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, extendedStart);
         Assert.Equal(2, logicals.Count);
         Assert.Equal<ulong>(extendedStart + logicalRelStart, logicals[0].StartSector);
         Assert.Equal<ulong>(logicalSectorCount, logicals[0].SectorCount);
@@ -1349,7 +1349,7 @@ public class Kernel : Sys.Kernel
         const uint count = 100;
         Assert.True(PartitionManager.Create(host, start, count, MbrLinuxSystemId, Gpt.BasicDataPartitionType));
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<byte>(MbrLinuxSystemId, parts[0].SystemId);
         Assert.Equal<ulong>(start, parts[0].StartSector);
@@ -1367,7 +1367,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(start, count), resized));
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(start, parts[0].StartSector);
         Assert.Equal<ulong>(resized, parts[0].SectorCount);
@@ -1386,7 +1386,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(startA, countA)));
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(startB, parts[0].StartSector);
         Assert.Equal<ulong>(countB, parts[0].SectorCount);
@@ -1411,7 +1411,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(oldStart, count), newStart));
 
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(newStart, parts[0].StartSector);
         Assert.Equal<ulong>(count, parts[0].SectorCount);
@@ -1443,7 +1443,7 @@ public class Kernel : Sys.Kernel
         // Same table assertions as the non-overlapping variant: an
         // overlap-specific slot-resolution regression would keep the data
         // pattern intact while rewriting the wrong entry.
-        List<Mbr.PartitionEntry> parts = Mbr.Parse(host);
+        List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(newStart, parts[0].StartSector);
         Assert.Equal<ulong>(count, parts[0].SectorCount);
@@ -1461,7 +1461,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.Resize(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count), resized));
 
-        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        List<GptPartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(GptAlignedStartLba, parts[0].StartSector);
         Assert.Equal<ulong>(resized, parts[0].SectorCount);
@@ -1477,7 +1477,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.Delete(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count)));
 
-        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        List<GptPartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(GptAlignedStartLba + count, parts[0].StartSector);
     }
@@ -1500,7 +1500,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(PartitionManager.MoveWithData(host, new PartitionManager.PartitionLocation(GptAlignedStartLba, count), newStart));
 
-        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        List<GptPartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(newStart, parts[0].StartSector);
         Assert.Equal<ulong>(count, parts[0].SectorCount);
@@ -1524,7 +1524,7 @@ public class Kernel : Sys.Kernel
         ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
         Assert.True(logical1Start != 0);
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(2, logicals.Count);
         Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countA, logicals[0].SectorCount);
@@ -1542,7 +1542,7 @@ public class Kernel : Sys.Kernel
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countA, logicals[0].SectorCount);
@@ -1558,7 +1558,7 @@ public class Kernel : Sys.Kernel
         ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(logical1Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countB, logicals[0].SectorCount);
@@ -1576,7 +1576,7 @@ public class Kernel : Sys.Kernel
         ulong logical2Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(2, logicals.Count);
         Assert.Equal<ulong>(logical0Start, logicals[0].StartSector);
         Assert.Equal<ulong>(countA, logicals[0].SectorCount);
@@ -1592,7 +1592,7 @@ public class Kernel : Sys.Kernel
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(0, logicals.Count);
     }
 
@@ -1605,7 +1605,7 @@ public class Kernel : Sys.Kernel
         Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
 
         Assert.True(Ebr.ResizeLogical(host, ExtPartStartSector, 0, resized));
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(resized, logicals[0].SectorCount);
     }
@@ -1624,7 +1624,7 @@ public class Kernel : Sys.Kernel
         ulong newStart = logicalStart + moveDelta;
         Assert.True(Ebr.MoveLogical(host, ExtPartStartSector, 0, newStart));
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(newStart, logicals[0].StartSector);
         Assert.Equal<ulong>(count, logicals[0].SectorCount);
@@ -1907,7 +1907,7 @@ public class Kernel : Sys.Kernel
         // Index 0 in Parse's space is the surviving partition — resize and
         // delete must land on it, not on the corrupt slot ahead of it.
         Assert.True(Gpt.ResizePartition(host, 0, resized));
-        List<Gpt.PartitionEntry> parts = Gpt.Parse(host);
+        List<GptPartitionEntry> parts = Gpt.Parse(host);
         Assert.Equal(1, parts.Count);
         Assert.Equal<ulong>(resized, parts[0].SectorCount);
         Assert.True(Gpt.RemovePartition(host, 0));
@@ -2110,7 +2110,7 @@ public class Kernel : Sys.Kernel
         ulong logical1 = PartitionManager.CreateLogical(host, MbrFat32SystemId, countB);
         Assert.True(logical1 != 0);
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(2, logicals.Count);
         Assert.Equal<byte>(MbrLinuxSystemId, logicals[0].SystemId);
         Assert.Equal<byte>(MbrFat32SystemId, logicals[1].SystemId);
@@ -2129,7 +2129,7 @@ public class Kernel : Sys.Kernel
             new PartitionManager.PartitionLocation(logicalStart, count),
             resized));
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(resized, logicals[0].SectorCount);
     }
@@ -2147,7 +2147,7 @@ public class Kernel : Sys.Kernel
             host,
             new PartitionManager.PartitionLocation(l0, countA)));
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(countB, logicals[0].SectorCount);
     }
@@ -2175,7 +2175,7 @@ public class Kernel : Sys.Kernel
             new PartitionManager.PartitionLocation(logicalStart, logicalCount),
             newStart));
 
-        List<Mbr.PartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
+        List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
         Assert.Equal(1, logicals.Count);
         Assert.Equal<ulong>(newStart, logicals[0].StartSector);
         Assert.Equal<ulong>(logicalCount, logicals[0].SectorCount);

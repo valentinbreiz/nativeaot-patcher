@@ -7,7 +7,7 @@ namespace Cosmos.Kernel.System.Network.ARP;
 /// <summary>
 /// Manages the ARP (Address Resolution Protocol) cache.
 /// </summary>
-internal static class ARPCache
+internal static class ArpCache
 {
     /// <summary>
     /// The cache map.
