@@ -21,7 +21,10 @@ public sealed class Address : IComparable<Address>
     /// </summary>
     public ImmutableArray<byte> Parts { get; }
 
+    /// <summary>Whether this is a 4-byte IPv4 address.</summary>
     public bool IsIpv4 => Parts.Length == 4;
+
+    /// <summary>Whether this is an IPv6 address (not 4 bytes long).</summary>
     public bool IsIpv6 => !IsIpv4;
 
     /// <summary>
@@ -149,11 +152,17 @@ public sealed class Address : IComparable<Address>
     /// </summary>
     public bool IsAPIPA() => Parts[0] == 169 && Parts[1] == 254;
 
+    /// <summary>
+    /// Formats the address in dotted-decimal notation (e.g. <c>192.168.1.1</c>).
+    /// </summary>
     public override string ToString()
     {
         return $"{Parts[0]}.{Parts[1]}.{Parts[2]}.{Parts[3]}";
     }
 
+    /// <summary>
+    /// The address bytes in network order, as a span over <see cref="Parts"/>.
+    /// </summary>
     public ReadOnlySpan<byte> ToSpan() => Parts.AsSpan();
 
     /// <summary>
@@ -180,6 +189,12 @@ public sealed class Address : IComparable<Address>
         }
     }
 
+    /// <summary>
+    /// Orders addresses by their numeric value (<see cref="Id"/>); a
+    /// <see langword="null"/> address sorts first.
+    /// </summary>
+    /// <param name="other">The address to compare with.</param>
+    /// <exception cref="Exception">The two addresses are not the same family.</exception>
     public int CompareTo(Address? other)
     {
         if (other is null)
@@ -194,6 +209,7 @@ public sealed class Address : IComparable<Address>
         return Id.CompareTo(other.Id);
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is Address other)
@@ -205,6 +221,7 @@ public sealed class Address : IComparable<Address>
 
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return HashCode.Combine(Id);

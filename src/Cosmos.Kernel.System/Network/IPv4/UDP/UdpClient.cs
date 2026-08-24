@@ -212,6 +212,9 @@ public class UdpClient : IDisposable
         _rxBuffer.Enqueue(packet);
     }
 
+    /// <summary>
+    /// Closes the client, like <see cref="Close"/>.
+    /// </summary>
     public void Dispose()
     {
         Close();

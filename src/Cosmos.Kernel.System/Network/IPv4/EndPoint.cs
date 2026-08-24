@@ -37,11 +37,19 @@ public class EndPoint : IComparable
         Port = port;
     }
 
+    /// <summary>
+    /// Formats the end point as <c>address:port</c>.
+    /// </summary>
     public override string ToString()
     {
         return Address.ToString() + ":" + Port.ToString();
     }
 
+    /// <summary>
+    /// Compares this end point with another: 0 when address and port both
+    /// match, -1 otherwise; non-<see cref="EndPoint"/> arguments sort after.
+    /// </summary>
+    /// <param name="obj">The object to compare with.</param>
     public int CompareTo(object? obj)
     {
         if (obj is EndPoint other)

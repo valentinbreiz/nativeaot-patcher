@@ -18,9 +18,17 @@ public static class PartitionManager
     /// <summary>Identifies a partition by its absolute LBA range on the host disk.</summary>
     public readonly struct PartitionLocation
     {
+        /// <summary>Absolute LBA on the host disk where the partition begins.</summary>
         public ulong StartSector { get; }
+
+        /// <summary>Length of the partition in sectors.</summary>
         public ulong SectorCount { get; }
 
+        /// <summary>
+        /// Creates a location from an absolute LBA range.
+        /// </summary>
+        /// <param name="startSector">Absolute LBA on the host disk where the partition begins.</param>
+        /// <param name="sectorCount">Length of the partition in sectors.</param>
         public PartitionLocation(ulong startSector, ulong sectorCount)
         {
             StartSector = startSector;

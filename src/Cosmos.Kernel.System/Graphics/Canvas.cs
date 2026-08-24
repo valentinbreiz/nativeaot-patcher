@@ -1160,6 +1160,14 @@ public unsafe class Canvas
         }
     }
 
+    /// <summary>
+    /// Clamps the line's two endpoints so the segment fits inside the canvas
+    /// boundaries, preserving its slope.
+    /// </summary>
+    /// <param name="x1">The start point X coordinate.</param>
+    /// <param name="y1">The start point Y coordinate.</param>
+    /// <param name="x2">The end point X coordinate.</param>
+    /// <param name="y2">The end point Y coordinate.</param>
     protected void TrimLine(ref int x1, ref int y1, ref int x2, ref int y2)
     {
         // in case of vertical lines, no need to perform complex operations

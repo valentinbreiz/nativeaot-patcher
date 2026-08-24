@@ -23,21 +23,25 @@ public sealed class Partition : BlockDevice
     /// <inheritdoc />
     public override string Name => _name;
 
-    /// <summary>Creates a block-device view of a partition on a host disk.</summary>
-    /// <param name="host">The disk this partition lives on.</param>
-    /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
-    /// <param name="sectorCount">Length of the partition in sectors.</param>
-    /// <param name="name">Display name for the partition.</param>
     /// <summary>
     /// Index-based naming ctor: builds "&lt;host&gt;p&lt;index&gt;" digit by
     /// digit so partition naming matches the device-naming convention and
     /// stays safe if registration ever moves earlier in boot.
     /// </summary>
+    /// <param name="host">The disk this partition lives on.</param>
+    /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
+    /// <param name="sectorCount">Length of the partition in sectors.</param>
+    /// <param name="index">Zero-based partition index on the host disk.</param>
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)
         : this(host, startSector, sectorCount, BuildDeviceName(host.Name, "p", index))
     {
     }
 
+    /// <summary>Creates a block-device view of a partition on a host disk.</summary>
+    /// <param name="host">The disk this partition lives on.</param>
+    /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
+    /// <param name="sectorCount">Length of the partition in sectors.</param>
+    /// <param name="name">Display name for the partition.</param>
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)
     {
         _host = host;

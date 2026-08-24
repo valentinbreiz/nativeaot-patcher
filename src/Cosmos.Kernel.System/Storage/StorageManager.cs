@@ -102,14 +102,14 @@ public static class StorageManager
         }
     }
 
+    private static SchedSpinLock s_mutationLock;
+
     /// <summary>
     /// Registers a block device with the manager and scans it for a GPT or
     /// MBR partition table. Discovered partitions are appended to
     /// <see cref="Partitions"/>.
     /// </summary>
     /// <param name="device">The block device to register.</param>
-    private static SchedSpinLock s_mutationLock;
-
     public static void RegisterDevice(IBlockDevice device)
     {
         if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)

@@ -13,7 +13,9 @@ namespace Cosmos.Kernel.System.Keyboard
         /// </summary>
         public enum KeyEventType
         {
+            /// <summary>The key was pressed.</summary>
             Make,
+            /// <summary>The key was released.</summary>
             Break
         }
 

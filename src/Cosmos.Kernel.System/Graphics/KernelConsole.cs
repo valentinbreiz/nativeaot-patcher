@@ -88,6 +88,11 @@ public class KernelConsole
         ClearCells();
     }
 
+    /// <summary>
+    /// Throws when <see cref="Initialize"/> has not run yet, guaranteeing
+    /// <see cref="Default"/> is non-null to callers that return normally.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The kernel console is not initialized.</exception>
     [MemberNotNull(nameof(Default))]
     public static void ThrowIfKernelConsoleNotInitialized()
     {

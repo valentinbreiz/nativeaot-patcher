@@ -51,5 +51,6 @@ public abstract class Image
 /// </summary>
 public enum ImageFormat
 {
+    /// <summary>The Windows bitmap (.bmp) format.</summary>
     BMP
 }

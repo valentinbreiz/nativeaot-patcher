@@ -33,11 +33,22 @@ public class SVGAII3DCanvas : Canvas
     /// </summary>
     public VMWareSVGAII3D? Driver3D { get; }
 
+    /// <summary>
+    /// Creates a canvas on the given SVGA II PCI device in the default
+    /// 1024x768x32 mode.
+    /// </summary>
+    /// <param name="device">The VMware SVGA II PCI device.</param>
     public SVGAII3DCanvas(PciDevice device)
         : this(device, s_defaultMode)
     {
     }
 
+    /// <summary>
+    /// Creates a canvas on the given SVGA II PCI device in the given mode.
+    /// </summary>
+    /// <param name="device">The VMware SVGA II PCI device.</param>
+    /// <param name="aMode">The graphics mode to set; must be one of <see cref="AvailableModes"/>.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The mode is not supported by this driver.</exception>
     public SVGAII3DCanvas(PciDevice device, Mode aMode)
         : base(aMode)
     {
@@ -48,6 +59,7 @@ public class SVGAII3DCanvas : Canvas
         Driver3D = Driver.Is3DEnabled ? new VMWareSVGAII3D(Driver) : null;
     }
 
+    /// <inheritdoc />
     public override string Name() => "VMWareSVGAII";
 
     /// <summary>
@@ -67,13 +79,16 @@ public class SVGAII3DCanvas : Canvas
         }
     }
 
+    /// <inheritdoc />
     public override Mode DefaultGraphicsMode => s_defaultMode;
 
+    /// <inheritdoc />
     public override void Disable()
     {
         Driver.Disable();
     }
 
+    /// <inheritdoc />
     public override void DrawPoint(Color color, int x, int y)
     {
         if (color.A < 255)
@@ -89,16 +104,19 @@ public class SVGAII3DCanvas : Canvas
         Driver.DrawPixel((uint)color.ToArgb(), x, y);
     }
 
+    /// <inheritdoc />
     public override void DrawPoint(uint color, int x, int y)
     {
         Driver.DrawPixel(color, x, y);
     }
 
+    /// <inheritdoc />
     public override void DrawPoint(int color, int x, int y)
     {
         Driver.DrawPixel((uint)color, x, y);
     }
 
+    /// <inheritdoc />
     public override void DrawArray(Color[] colors, int x, int y, int width, int height)
     {
         ThrowIfCoordNotValid(x, y);
@@ -118,16 +136,19 @@ public class SVGAII3DCanvas : Canvas
         return (x * _stride) + (y * _pitch);
     }
 
+    /// <inheritdoc />
     public override void DrawArray(int[] colors, int x, int y, int width, int height)
     {
         Driver.CopyBuffer(colors.AsMemory(), x, y, width, height);
     }
 
+    /// <inheritdoc />
     public override void DrawArray(int[] colors, int x, int y, int width, int height, int startIndex)
     {
         Driver.CopyBuffer(colors.AsMemory(startIndex), x, y, width, height);
     }
 
+    /// <inheritdoc />
     public override void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true)
     {
         int argb = color.ToArgb();
@@ -144,6 +165,7 @@ public class SVGAII3DCanvas : Canvas
         }
     }
 
+    /// <inheritdoc />
     public override void DrawRectangle(Color color, int x, int y, int width, int height)
     {
         if (color.A < 255)
@@ -172,6 +194,7 @@ public class SVGAII3DCanvas : Canvas
         }
     }
 
+    /// <inheritdoc />
     public override List<Mode> AvailableModes { get; } = new List<Mode>
     {
         /* VmWare may support 16-bit resolutions but CGS does not yet.
@@ -215,16 +238,23 @@ public class SVGAII3DCanvas : Canvas
         Driver.SetMode(width, height, colorDepth);
     }
 
+    /// <inheritdoc />
     public override void Clear(int color)
     {
         Driver.ClearScreen((uint)color);
     }
 
+    /// <inheritdoc />
     public override void Clear(Color color)
     {
         Driver.ClearScreen((uint)color.ToArgb());
     }
 
+    /// <summary>
+    /// Reads the color of the pixel at the given coordinates from video memory.
+    /// </summary>
+    /// <param name="x">The X coordinate.</param>
+    /// <param name="y">The Y coordinate.</param>
     public Color GetPixel(int x, int y)
     {
         uint argb = Driver.GetPixel(x, y);
@@ -239,6 +269,12 @@ public class SVGAII3DCanvas : Canvas
     /// </summary>
     public bool HasHardwareCursor => Driver.HasAlphaCursor;
 
+    /// <summary>
+    /// Moves the hardware cursor and toggles its visibility.
+    /// </summary>
+    /// <param name="visible">Whether the cursor is shown.</param>
+    /// <param name="x">The X coordinate of the cursor.</param>
+    /// <param name="y">The Y coordinate of the cursor.</param>
     public void SetCursor(bool visible, int x, int y)
     {
         Driver.SetCursor(visible, (uint)x, (uint)y);
@@ -253,32 +289,56 @@ public class SVGAII3DCanvas : Canvas
         Driver.DefineAlphaCursor((uint)hotspotX, (uint)hotspotY, (uint)width, (uint)height, data);
     }
 
+    /// <summary>
+    /// Defines the default hardware cursor shape on the device.
+    /// </summary>
     public void CreateCursor()
     {
         Driver.DefineCursor();
     }
 
+    /// <summary>
+    /// Copies a rectangle of pixels from one screen position to another using
+    /// the device's accelerated copy operation.
+    /// </summary>
+    /// <param name="srcX">The X coordinate of the source rectangle.</param>
+    /// <param name="srcY">The Y coordinate of the source rectangle.</param>
+    /// <param name="dstX">The X coordinate of the destination rectangle.</param>
+    /// <param name="dstY">The Y coordinate of the destination rectangle.</param>
+    /// <param name="width">The width of the rectangle in pixels.</param>
+    /// <param name="height">The height of the rectangle in pixels.</param>
     public void CopyPixels(int srcX, int srcY, int dstX, int dstY, int width = 1, int height = 1)
     {
         Driver.Copy((uint)srcX, (uint)srcY, (uint)dstX, (uint)dstY, (uint)width, (uint)height);
     }
 
+    /// <summary>
+    /// Moves a single pixel to a new position and clears its old position to
+    /// black.
+    /// </summary>
+    /// <param name="x">The X coordinate of the pixel.</param>
+    /// <param name="y">The Y coordinate of the pixel.</param>
+    /// <param name="newX">The X coordinate to move the pixel to.</param>
+    /// <param name="newY">The Y coordinate to move the pixel to.</param>
     public void MovePixel(int x, int y, int newX, int newY)
     {
         Driver.Copy((uint)x, (uint)y, (uint)newX, (uint)newY, 1, 1);
         Driver.DrawPixel(0, x, y);
     }
 
+    /// <inheritdoc />
     public override Color GetPointColor(int x, int y)
     {
         return Color.FromArgb((int)Driver.GetPixel(x, y));
     }
 
+    /// <inheritdoc />
     public override int GetRawPointColor(int x, int y)
     {
         return (int)Driver.GetPixel(x, y);
     }
 
+    /// <inheritdoc />
     public override Bitmap GetImage(int x, int y, int width, int height)
     {
         int[] all = new int[width * height];
@@ -296,11 +356,13 @@ public class SVGAII3DCanvas : Canvas
         return bitmap;
     }
 
+    /// <inheritdoc />
     public override void Display()
     {
         Driver.Swap();
     }
 
+    /// <inheritdoc />
     public override void DrawImage(Image image, int x, int y, bool preventOffBoundPixels = true)
     {
         int width = (int)image.Width;
@@ -344,6 +406,7 @@ public class SVGAII3DCanvas : Canvas
         }
     }
 
+    /// <inheritdoc />
     public override void CroppedDrawImage(Image image, int x, int y, int width, int height, bool preventOffBoundPixels = true)
     {
         int[] data = image.RawData;

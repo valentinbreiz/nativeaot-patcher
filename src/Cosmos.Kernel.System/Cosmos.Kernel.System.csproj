@@ -44,6 +44,7 @@
       <_KernelVersionCsLine Include="namespace Cosmos.Kernel.System%3B" />
       <_KernelVersionCsLine Include="public abstract partial class Kernel" />
       <_KernelVersionCsLine Include="{" />
+      <_KernelVersionCsLine Include="    /// &lt;summary&gt;The version of the Cosmos packages this kernel was built against.&lt;/summary&gt;" />
       <_KernelVersionCsLine Include="    public const string VersionString = &quot;$(VersionPrefix)&quot;%3B" />
       <_KernelVersionCsLine Include="}" />
     </ItemGroup>
