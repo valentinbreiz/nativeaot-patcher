@@ -3,7 +3,7 @@ namespace Cosmos.Kernel.Core.Scheduler.Stride;
 /// <summary>
 /// Stride scheduler per-CPU extension data.
 /// </summary>
-public class StrideCpuData
+internal class StrideCpuData
 {
     /// <summary>
     /// Sum of tickets in run queue.

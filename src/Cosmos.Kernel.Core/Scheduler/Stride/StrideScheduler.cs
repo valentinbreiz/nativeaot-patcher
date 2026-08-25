@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.Core.Scheduler.Stride;
 /// <summary>
 /// Stride scheduler with interactive process support.
 /// </summary>
-public class StrideScheduler : IScheduler
+internal class StrideScheduler : IScheduler
 {
     public string Name => "Stride";
 

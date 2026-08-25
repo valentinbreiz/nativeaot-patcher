@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
 /// Thread execution state.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public enum ThreadState : byte
 {
     Created,    // Just created, not yet scheduled
@@ -17,6 +20,7 @@ public enum ThreadState : byte
 /// Thread flags.
 /// </summary>
 [Flags]
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public enum ThreadFlags : ushort
 {
     /// <summary>

@@ -7,6 +7,9 @@
     <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props) -->
     <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
 
+    <!-- SchedulerInfo fronts the experimental scheduler seam (COSMOS0001). -->
+    <NoWarn>$(NoWarn);COSMOS0001</NoWarn>
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System</PackageId>
     <Title>Cosmos Kernel System</Title>

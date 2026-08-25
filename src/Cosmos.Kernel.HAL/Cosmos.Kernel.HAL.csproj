@@ -10,6 +10,8 @@
     <RepositoryUrl>https://github.com/valentinbreiz/nativeaot-patcher</RepositoryUrl>
     <PackageProjectUrl>https://github.com/valentinbreiz/nativeaot-patcher</PackageProjectUrl>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <!-- NVMe I/O waits block and wake threads through the experimental scheduler seam (COSMOS0001). -->
+    <NoWarn>$(NoWarn);COSMOS0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
