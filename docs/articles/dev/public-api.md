@@ -9,7 +9,7 @@ The public surface of the kernel packages is declared in text files checked into
 Three rules decide what is public:
 
 1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against: tracked, documented, frozen at release, with deprecation cycles applying there and only there. Contract types that the ring's own signatures expose ride along as public: the device interfaces in `Cosmos.Kernel.HAL.Interfaces`, the VFS contracts in `Cosmos.Kernel.HAL.Vfs`, and the platform interfaces in `Cosmos.Kernel.Core` (`IPortIO`, `ICpuOps`, `IPowerOps`, `IInterruptController`).
-2. **Chosen experimental seams.** Extension points are opened deliberately and marked `[Experimental]`: public and usable now, no compatibility promise, promoted to stable by removing the attribute once proven. Referencing one is a build error until the consuming project suppresses its diagnostic ID, which is the consumer's acknowledgement of that contract. The scheduler policy seam in Core is the first; a driver kit in the HAL is the planned second.
+2. **Chosen experimental seams.** Extension points are opened deliberately and marked `[Experimental]`: public and usable now, no compatibility promise, promoted to stable by removing the attribute once proven. Referencing one is a build error until the consuming project suppresses its diagnostic ID, which is the consumer's acknowledgement of that contract. The scheduler policy seam in Core is the first, the packet seam in System is the second; a driver kit in the HAL is the planned third.
 3. **Everything else is internal.** Visibility is never the extension mechanism; seams are. First-party assemblies and the white-box test kernels reach internals through `InternalsVisibleTo`; anyone else goes through `[UnsafeAccessor]`/`[UnsafeAccessorType]` ([Accessing internals](accessing-internals.md)) and accepts that internals change without notice.
 
 The enforcement test is mechanical: `examples/DevKernel` must compile with no `InternalsVisibleTo` grant. If DevKernel needs a symbol, the symbol becomes public or gets a `Cosmos.Kernel.System` facade; if it does not, the symbol stays internal.
@@ -29,6 +29,7 @@ Experimental seams carry diagnostic IDs:
 | ID | Seam |
 |----|------|
 | `COSMOS0001` | The scheduler policy seam: `IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `ThreadState`, `ThreadFlags` ([Scheduler - Writing a Scheduler](scheduler-plugging.md)) |
+| `COSMOS0002` | The packet seam: the protocol packet types (`EthernetPacket`, ARP, `IPPacket`, ICMP, `UdpPacket`, DHCP, DNS, `TcpPacket`), `NetworkStack.Send`/`HandlePacket`, and the client members that take or return packets ([Network - Crafting packets](../user/network.md#crafting-packets)) |
 
 ---
 

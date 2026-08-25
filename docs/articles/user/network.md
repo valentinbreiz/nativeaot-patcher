@@ -242,9 +242,55 @@ dnsClient.Close();
 <!-- screenshot: console showing github.com resolved to an IP address -->
 ![DNS](images/network-dns.png)
 
+## Crafting packets
+
+The packet types behind the clients are public as an experimental seam: a kernel can build protocol packets itself, transmit them through the stack, and receive the parsed packet objects instead of payload bytes. The seam carries the `COSMOS0002` diagnostic ([Public API Tracking](../dev/public-api.md)); referencing it is a build error until the kernel project acknowledges the missing compatibility promise:
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);COSMOS0002</NoWarn>
+</PropertyGroup>
+```
+
+The seam has three parts:
+
+| Part | Members |
+|------|---------|
+| Packet types | `EthernetPacket`, `ArpRequestEthernet`/`ArpReplyEthernet`, `IPPacket`, `IcmpEchoRequest`/`IcmpEchoReply`, `UdpPacket`, `DhcpDiscover`/`DhcpRequest`/`DhcpRelease`, `DnsPacketAsk`/`DnsPacketAnswer`, `TcpPacket` |
+| Transmit and inject | `NetworkStack.Send(IPPacket)` queues a built packet with ARP resolution; `NetworkStack.HandlePacket` injects a raw frame into the receive path |
+| Packet-level client I/O | `UdpClient.Send(UdpPacket)` / `UdpClient.ReceivePacket(timeout)`, `IcmpClient.Send(IcmpPacket)` / `IcmpClient.ReceivePacket(timeout)` |
+
+A crafted echo request, correlated with its reply by the identifier and sequence number the caller chose:
+
+```csharp
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.IPv4;
+
+IcmpClient icmp = new IcmpClient();
+icmp.Connect(gateway);
+
+IcmpEchoRequest request = new IcmpEchoRequest(localIp, gateway, id: 0x1234, sequence: 7);
+NetworkStack.Send(request);
+
+if (icmp.ReceivePacket(5000) is IcmpEchoReply reply
+    && reply.ICMPID == 0x1234 && reply.ICMPSequence == 7)
+{
+    Console.WriteLine("reply from " + reply.SourceIP.ToString());
+}
+
+icmp.Close();
+```
+
+The contract the packet types actually implement:
+
+- A build constructor writes the complete frame, including lengths and checksums, at construction time; nothing is recomputed later, so header bytes must not be modified after construction.
+- Header properties are snapshots parsed from `RawData` at construction; writing to `RawData` does not refresh them.
+- A parse constructor (`new XxxPacket(byte[])`) aliases the caller's array without copying.
+- `NetworkStack.Send` resolves the sending device from the packet's source IP and returns `false` when no configured interface matches it; the destination MAC is resolved by ARP unless the destination is a broadcast.
+- A custom IP protocol is a subclass of `IPPacket`: pass the protocol number and payload length to a build constructor and write the payload at `DataOffset`.
+
 ## Current limitations
 
-- ICMP is not implemented yet: no ping, in either direction.
 - `System.Net.Dns` is not plugged; use the Cosmos `DnsClient` shown above.
 - No TLS, so no `HttpClient`/HTTPS: raw TCP only.
 - One NIC: the stack talks to `NetworkManager.PrimaryDevice`.
