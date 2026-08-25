@@ -437,7 +437,7 @@ internal class Tcp : IDisposable
             {
                 if (!packet._rst)
                 {
-                    SendEmptyPacket(Flags.ACK);
+                    SendEmptyPacket(TcpFlags.ACK);
                 }
 
                 Serial.WriteString("[TCP] Sequence number or segment data invalid, packet passed.\n");
@@ -490,7 +490,7 @@ internal class Tcp : IDisposable
             TCB.RcvUp = 0;
             TCB.IRS = packet.SequenceNumber;
 
-            SendEmptyPacket(Flags.SYN | Flags.ACK);
+            SendEmptyPacket(TcpFlags.SYN | TcpFlags.ACK);
 
             Status = Status.SYN_RECEIVED;
         }
@@ -513,7 +513,7 @@ internal class Tcp : IDisposable
             }
             else
             {
-                SendEmptyPacket(Flags.RST, packet.AckNumber);
+                SendEmptyPacket(TcpFlags.RST, packet.AckNumber);
             }
         }
     }
@@ -535,11 +535,11 @@ internal class Tcp : IDisposable
                 TCB.SndWl1 = packet.SequenceNumber;
                 TCB.SndWl2 = packet.AckNumber;
 
-                SendEmptyPacket(Flags.ACK);
+                SendEmptyPacket(TcpFlags.ACK);
 
                 Status = Status.ESTABLISHED;
             }
-            else if (packet.TCPFlags == (byte)Flags.SYN)
+            else if (packet.TCPFlags == (byte)TcpFlags.SYN)
             {
                 Status = Status.CLOSED;
                 Serial.WriteString("[TCP] Simultaneous open not supported.\n");
@@ -555,7 +555,7 @@ internal class Tcp : IDisposable
             //Check for bad ACK packet
             if ((int)packet.AckNumber - TCB.ISS < 0 || packet.AckNumber - TCB.SndNxt > 0)
             {
-                SendEmptyPacket(Flags.RST, packet.AckNumber);
+                SendEmptyPacket(TcpFlags.RST, packet.AckNumber);
                 Serial.WriteString("[TCP] Bad ACK received at SYN_SENT.\n");
             }
             else
@@ -609,7 +609,7 @@ internal class Tcp : IDisposable
             if (packet.AckNumber > TCB.SndNxt)
             {
                 Serial.WriteString("[TCP] ACK for unsent data, sending ACK\n");
-                SendEmptyPacket(Flags.ACK);
+                SendEmptyPacket(TcpFlags.ACK);
                 return;
             }
 
@@ -633,19 +633,19 @@ internal class Tcp : IDisposable
                     Serial.WriteString("[TCP] PSH+FIN received, closing\n");
                     TCB.RcvNxt++;
 
-                    SendEmptyPacket(Flags.ACK);
+                    SendEmptyPacket(TcpFlags.ACK);
 
                     Status = Status.CLOSE_WAIT;
 
                     SimpleWait(300);
 
-                    SendEmptyPacket(Flags.FIN);
+                    SendEmptyPacket(TcpFlags.FIN);
 
                     Status = Status.LAST_ACK;
                 }
                 else
                 {
-                    SendEmptyPacket(Flags.ACK);
+                    SendEmptyPacket(TcpFlags.ACK);
                 }
                 return;
             }
@@ -654,7 +654,7 @@ internal class Tcp : IDisposable
                 Serial.WriteString("[TCP] FIN received, closing connection\n");
                 TCB.RcvNxt++;
 
-                SendEmptyPacket(Flags.ACK);
+                SendEmptyPacket(TcpFlags.ACK);
 
                 WaitAndClose();
 
@@ -678,13 +678,13 @@ internal class Tcp : IDisposable
         {
             TCB.RcvNxt++;
 
-            SendEmptyPacket(Flags.ACK);
+            SendEmptyPacket(TcpFlags.ACK);
 
             Status = Status.CLOSE_WAIT;
 
             SimpleWait(300);
 
-            SendEmptyPacket(Flags.FIN);
+            SendEmptyPacket(TcpFlags.FIN);
 
             Status = Status.LAST_ACK;
         }
@@ -701,7 +701,7 @@ internal class Tcp : IDisposable
             {
                 TCB.RcvNxt++;
 
-                SendEmptyPacket(Flags.ACK);
+                SendEmptyPacket(TcpFlags.ACK);
 
                 WaitAndClose();
             }
@@ -714,7 +714,7 @@ internal class Tcp : IDisposable
         {
             TCB.RcvNxt++;
 
-            SendEmptyPacket(Flags.ACK);
+            SendEmptyPacket(TcpFlags.ACK);
 
             Status = Status.CLOSING;
         }
@@ -729,7 +729,7 @@ internal class Tcp : IDisposable
         {
             TCB.RcvNxt++;
 
-            SendEmptyPacket(Flags.ACK);
+            SendEmptyPacket(TcpFlags.ACK);
 
             WaitAndClose();
         }
@@ -835,7 +835,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Sends an empty packet.
     /// </summary>
-    public void SendEmptyPacket(Flags flag)
+    public void SendEmptyPacket(TcpFlags flag)
     {
         SendPacket(new TcpPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
             TCB.SndNxt, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));
@@ -844,7 +844,7 @@ internal class Tcp : IDisposable
     /// <summary>
     /// Sends an empty packet.
     /// </summary>
-    internal void SendEmptyPacket(Flags flag, uint sequenceNumber)
+    internal void SendEmptyPacket(TcpFlags flag, uint sequenceNumber)
     {
         SendPacket(new TcpPacket(LocalEndPoint.Address, RemoteEndPoint.Address, LocalEndPoint.Port, RemoteEndPoint.Port,
             sequenceNumber, TCB.RcvNxt, 20, (byte)flag, TCB.SndWnd, 0));

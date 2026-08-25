@@ -60,7 +60,7 @@ public class DhcpClient : UdpClient
 
         var packet = new DhcpPacket(_rxBuffer.Dequeue().RawData);
 
-        if (packet.MessageType == 2) //Boot Reply
+        if (packet.Operation == 2) //Boot Reply
         {
             if (packet.RawData[284] == 0x02) //Offer packet received
             {
@@ -188,10 +188,10 @@ public class DhcpClient : UdpClient
                     Serial.WriteString("[DHCP ACK] Packet received, applying IP configuration...\n");
                     Serial.WriteString("   IP Address  : " + packet.Client.ToString() + "\n");
                     Serial.WriteString("   Subnet mask : " + (packet.Subnet?.ToString() ?? "null") + "\n");
-                    Serial.WriteString("   Gateway     : " + (packet.Server?.ToString() ?? "null") + "\n");
+                    Serial.WriteString("   Gateway     : " + (packet.Gateway?.ToString() ?? "null") + "\n");
                     Serial.WriteString("   DNS server  : " + (packet.DNS?.ToString() ?? "null") + "\n");
 
-                    IPConfig.Enable(networkDevice, packet.Client, packet.Subnet ?? new Address(255, 255, 255, 0), packet.Server ?? Address.Zero);
+                    IPConfig.Enable(networkDevice, packet.Client, packet.Subnet ?? new Address(255, 255, 255, 0), packet.Gateway ?? Address.Zero);
                     if (packet.DNS != null)
                     {
                         DnsConfig.Add(packet.DNS);

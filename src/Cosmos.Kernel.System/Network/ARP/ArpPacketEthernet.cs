@@ -1,12 +1,17 @@
-﻿using Cosmos.Kernel.HAL.Devices.Network;
+using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.ARP;
 
 /// <summary>
-/// Represents an ARP Ethernet packet.
+/// Represents an ARP packet for IPv4 over Ethernet: hardware type 1, protocol type 0x0800,
+/// with 6-byte hardware and 4-byte protocol addresses. The address properties are snapshots
+/// parsed from <see cref="EthernetPacket.RawData"/> once, at construction, and are never
+/// re-read afterwards.
 /// </summary>
-internal abstract class ArpPacketEthernet : ArpPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public abstract class ArpPacketEthernet : ArpPacket
 {
     /// <summary>
     /// The sender MAC address.
@@ -28,21 +33,22 @@ internal abstract class ArpPacketEthernet : ArpPacket
     /// </summary>
     protected Address targetIP = null!;
 
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
-    // /// </summary>
-    // internal ArpPacketEthernet()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpPacketEthernet"/> class from a received
+    /// frame. The array is aliased without copying: <see cref="EthernetPacket.RawData"/> refers
+    /// to <paramref name="rawData"/> itself, and the address fields are parsed from it once,
+    /// at construction.
     /// </summary>
-    /// <param name="rawData">Raw data.</param>
-    internal ArpPacketEthernet(byte[] rawData)
+    /// <param name="rawData">The raw Ethernet frame, starting at the destination MAC address.</param>
+    public ArpPacketEthernet(byte[] rawData)
         : base(rawData)
     { }
 
+    /// <summary>
+    /// Parses the sender and target hardware and protocol addresses (SHA, SPA, THA, TPA) from
+    /// <see cref="EthernetPacket.RawData"/> into the protected fields. Called once during
+    /// construction; the parsed values are never refreshed afterwards.
+    /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();
@@ -53,16 +59,21 @@ internal abstract class ArpPacketEthernet : ArpPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
+    /// Initializes a new IPv4-over-Ethernet ARP packet for sending. Allocates a frame of
+    /// <paramref name="packetSize"/> bytes, writes the Ethernet header (destination
+    /// <paramref name="targetMAC"/>, source <paramref name="senderMAC"/>, EtherType 0x0806),
+    /// the fixed ARP header (hardware type 1, protocol type 0x0800, address lengths 6 and 4,
+    /// <paramref name="operation"/>), and the four address fields, then parses them back into
+    /// the properties.
     /// </summary>
-    /// <param name="operation">The operation.</param>
-    /// <param name="senderMAC">The source MAC address.</param>
-    /// <param name="senderIP">The source IP address.</param>
-    /// <param name="targetMAC">The destination MAC address.</param>
-    /// <param name="targetIP">The destination IP address.</param>
-    /// <param name="packetSize">The packet size.</param>
-    /// <param name="arpTargetMAC">The ARP destination MAC address.</param>
-    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
+    /// <param name="operation">Operation code (OPER); 1 for a request, 2 for a reply.</param>
+    /// <param name="senderMAC">Sender hardware address (SHA); also the Ethernet source address.</param>
+    /// <param name="senderIP">Sender protocol address (SPA).</param>
+    /// <param name="targetMAC">Destination MAC address of the Ethernet frame.</param>
+    /// <param name="targetIP">Target protocol address (TPA).</param>
+    /// <param name="packetSize">Total frame size in bytes.</param>
+    /// <param name="arpTargetMAC">Target hardware address (THA), the value written into the ARP
+    /// body at offset 32; it can differ from the Ethernet destination, as in a broadcast request.</param>
     protected ArpPacketEthernet(ushort operation, MACAddress senderMAC, Address senderIP,
         MACAddress targetMAC, Address targetIP, int packetSize, MACAddress arpTargetMAC)
         : base(targetMAC, senderMAC, 1, 0x0800, 6, 4, operation, packetSize)
@@ -82,25 +93,34 @@ internal abstract class ArpPacketEthernet : ArpPacket
     }
 
     /// <summary>
-    /// Gets the senders MAC address.
+    /// Gets the sender hardware address (SHA). This is a snapshot parsed from
+    /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal MACAddress SenderMAC => senderMAC;
+    public MACAddress SenderMAC => senderMAC;
 
     /// <summary>
-    /// Gets the targets MAC address.
+    /// Gets the target hardware address (THA), read from the ARP body, not from the Ethernet
+    /// header. This is a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal MACAddress TargetMAC => targetMAC;
+    public MACAddress TargetMAC => targetMAC;
 
     /// <summary>
-    /// Gets the senders IP address.
+    /// Gets the sender protocol address (SPA). This is a snapshot parsed from
+    /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal Address SenderIP => senderIP;
+    public Address SenderIP => senderIP;
 
     /// <summary>
-    /// Gets the targets IP address.
+    /// Gets the target protocol address (TPA). This is a snapshot parsed from
+    /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal Address TargetIP => targetIP;
+    public Address TargetIP => targetIP;
 
+    /// <summary>
+    /// Returns a string listing the sender and target MAC addresses, sender and target IP
+    /// addresses, and the operation code.
+    /// </summary>
+    /// <returns>A string representation of the packet.</returns>
     public override string ToString()
     {
         return "IPv4 Ethernet ARP Packet SenderMAC=" + senderMAC + ", TargetMAC=" + targetMAC + ", SenderIP=" + senderIP +
@@ -109,40 +129,45 @@ internal abstract class ArpPacketEthernet : ArpPacket
 }
 
 /// <summary>
-/// Represents an ARP reply Ethernet packet.
+/// Represents an ARP reply packet (operation code 2) for IPv4 over Ethernet.
 /// </summary>
 /// <remarks>
 /// See also: <seealso cref="ArpPacketEthernet"/>.
 /// </remarks>
-internal class ArpReplyEthernet : ArpPacketEthernet
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class ArpReplyEthernet : ArpPacketEthernet
 {
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
-    // /// </summary>
-    // internal ArpReplyEthernet()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class from a received
+    /// frame. The array is aliased without copying, and the header fields are parsed from it
+    /// once, at construction.
     /// </summary>
-    /// <param name="rawData">Raw data.</param>
-    internal ArpReplyEthernet(byte[] rawData)
+    /// <param name="rawData">The raw Ethernet frame, starting at the destination MAC address.</param>
+    public ArpReplyEthernet(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpReplyEthernet"/> class.
+    /// Initializes a new 42-byte ARP reply for sending. The frame is sent unicast to
+    /// <paramref name="targetMAC"/>, which is written both as the Ethernet destination and as
+    /// the ARP target hardware address (THA), so the reply carries the requester's MAC in both
+    /// places.
     /// </summary>
-    /// <param name="ourMAC">The source MAC address.</param>
-    /// <param name="ourIP">The source IP address.</param>
-    /// <param name="targetMAC">The destination MAC address.</param>
-    /// <param name="targetIP">The destination IP address.</param>
-    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ArpReplyEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP)
-        : base(2, ourMAC, ourIP, targetMAC, targetIP, 42, MACAddress.None)
+    /// <param name="ourMAC">Our MAC address: the sender hardware address (SHA) and the Ethernet
+    /// source address.</param>
+    /// <param name="ourIP">Our IP address: the sender protocol address (SPA).</param>
+    /// <param name="targetMAC">The requester's MAC address: the Ethernet destination and the ARP
+    /// target hardware address (THA).</param>
+    /// <param name="targetIP">The requester's IP address: the target protocol address (TPA).</param>
+    public ArpReplyEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP)
+        : base(2, ourMAC, ourIP, targetMAC, targetIP, 42, targetMAC)
     { }
 
+    /// <summary>
+    /// Returns a string listing the source and destination MAC addresses and the sender and
+    /// target IP addresses.
+    /// </summary>
+    /// <returns>A string representation of the packet.</returns>
     public override string ToString()
     {
         return "ARP Reply Src=" + srcMAC + ", Dest=" + destMAC + ", Sender=" + senderIP + ", Target=" + targetIP;
@@ -150,42 +175,48 @@ internal class ArpReplyEthernet : ArpPacketEthernet
 }
 
 /// <summary>
-/// Represents an ARP request Ethernet packet.
+/// Represents an ARP request packet (operation code 1) for IPv4 over Ethernet.
 /// </summary>
 /// <remarks>
 /// See also: <seealso cref="ArpPacketEthernet"/>.
 /// </remarks>
-internal class ArpRequestEthernet : ArpPacketEthernet
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class ArpRequestEthernet : ArpPacketEthernet
 {
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
-    // /// </summary>
-    // internal ArpRequestEthernet()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
+    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class from a received
+    /// frame. The array is aliased without copying, and the header fields are parsed from it
+    /// once, at construction.
     /// </summary>
-    /// <param name="rawData">Raw data.</param>
-    internal ArpRequestEthernet(byte[] rawData)
+    /// <param name="rawData">The raw Ethernet frame, starting at the destination MAC address.</param>
+    public ArpRequestEthernet(byte[] rawData)
         : base(rawData)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpRequestEthernet"/> class.
+    /// Initializes a new 42-byte ARP request for sending. Callers normally pass
+    /// <see cref="MACAddress.Broadcast"/> as <paramref name="targetMAC"/> (the Ethernet
+    /// destination) and <see cref="MACAddress.None"/> as <paramref name="arpTargetMAC"/>: the
+    /// target hardware address field of a request is zero because it is the value being asked for.
     /// </summary>
-    /// <param name="ourMAC">The source MAC address.</param>
-    /// <param name="ourIP">The source IP address.</param>
-    /// <param name="targetMAC">The destination MAC address.</param>
-    /// <param name="targetIP">The destination IP address.</param>
-    /// <param name="arpTargetMAC">The ARP destination MAC address.</param>
-    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
-    internal ArpRequestEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP, MACAddress arpTargetMAC)
+    /// <param name="ourMAC">Our MAC address: the sender hardware address (SHA) and the Ethernet
+    /// source address.</param>
+    /// <param name="ourIP">Our IP address: the sender protocol address (SPA).</param>
+    /// <param name="targetMAC">Destination MAC address of the Ethernet frame, normally
+    /// <see cref="MACAddress.Broadcast"/>.</param>
+    /// <param name="targetIP">The IP address being resolved: the target protocol address (TPA).</param>
+    /// <param name="arpTargetMAC">Target hardware address (THA) written into the ARP body,
+    /// normally <see cref="MACAddress.None"/>.</param>
+    public ArpRequestEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP, MACAddress arpTargetMAC)
         : base(1, ourMAC, ourIP, targetMAC, targetIP, 42, arpTargetMAC)
     { }
 
+    /// <summary>
+    /// Returns a string listing the source and destination MAC addresses and the sender and
+    /// target IP addresses.
+    /// </summary>
+    /// <returns>A string representation of the packet.</returns>
     public override string ToString()
     {
         return "ARP Request Src=" + srcMAC + ", Dest=" + destMAC + ", Sender=" + senderIP + ", Target=" + targetIP;

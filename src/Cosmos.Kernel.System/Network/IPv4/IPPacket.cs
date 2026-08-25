@@ -1,4 +1,5 @@
-﻿using Cosmos.Kernel.Core.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.ARP;
 using Cosmos.Kernel.System.Network.IPv4.TCP;
@@ -7,12 +8,20 @@ using Cosmos.Kernel.System.Network.IPv4.UDP;
 namespace Cosmos.Kernel.System.Network.IPv4;
 
 /// <summary>
-/// Represents an IP (Internet Protocol) packet.
+/// An IPv4 packet over Ethernet. The build constructors write the complete
+/// IPv4 header, including the header checksum, at construction time; the
+/// checksum is never recomputed, so the header bytes must not be modified
+/// afterwards. Derive from this class to implement a custom IP protocol:
+/// pass the protocol number and payload length to a build constructor and
+/// write the payload into <see cref="EthernetPacket.RawData"/> from
+/// <see cref="DataOffset"/> onward.
 /// </summary>
-internal class IPPacket : EthernetPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class IPPacket : EthernetPacket
 {
+    /// <summary>Header length in 32-bit words, as parsed from the IHL field.</summary>
     protected byte ipHeaderLength;
-    private static ushort s_sNextFragmentID;
+    private static ushort s_nextFragmentID;
 
     /// <summary>
     /// Handles a single IPv4 packet.
@@ -64,12 +73,14 @@ internal class IPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Gets the next IP fragment ID.
+    /// Gets the next IP fragment ID. Reading advances the counter.
     /// </summary>
-    public static ushort NextIPFragmentID => s_sNextFragmentID++;
+    internal static ushort NextIPFragmentID => s_nextFragmentID++;
 
     /// <summary>
-    /// Create new instance of the <see cref="IPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IPPacket"/> class over
+    /// existing frame bytes. The array is aliased, not copied, and neither
+    /// the length fields nor the header checksum are validated.
     /// </summary>
     /// <param name="rawData">Raw data.</param>
     public IPPacket(byte[] rawData)
@@ -100,28 +111,34 @@ internal class IPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IPPacket"/> class. The
+    /// source MAC is looked up from the configured devices by the source IP
+    /// (<see cref="MACAddress.None"/> when the address is not configured)
+    /// and the destination MAC is left unset for ARP resolution at send
+    /// time.
     /// </summary>
-    /// <param name="dataLength">Data length.</param>
-    /// <param name="protocol">Protocol.</param>
+    /// <param name="dataLength">Length of the IP payload, in bytes.</param>
+    /// <param name="protocol">IP protocol number of the payload.</param>
     /// <param name="source">Source address.</param>
-    /// <param name="dest">Destionation address.</param>
-    /// <param name="Flags">Flags.</param>
-    protected IPPacket(ushort dataLength, byte protocol, Address source, Address dest, byte Flags)
-        : this(GetSourceMAC(source), MACAddress.None, dataLength, protocol, source, dest, Flags)
+    /// <param name="dest">Destination address.</param>
+    /// <param name="flags">Raw value of header byte 20: the 3 flag bits followed by the upper 5 bits of the fragment offset.</param>
+    protected IPPacket(ushort dataLength, byte protocol, Address source, Address dest, byte flags)
+        : this(GetSourceMAC(source), MACAddress.None, dataLength, protocol, source, dest, flags)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IPPacket"/> class with
+    /// a known destination MAC (used for broadcast destinations, which skip
+    /// ARP resolution).
     /// </summary>
-    /// <param name="dataLength">Data length.</param>
-    /// <param name="protocol">Protocol.</param>
+    /// <param name="dataLength">Length of the IP payload, in bytes.</param>
+    /// <param name="protocol">IP protocol number of the payload.</param>
     /// <param name="source">Source address.</param>
-    /// <param name="dest">Destionation address.</param>
-    /// <param name="Flags">Flags.</param>
-    /// /// <param name="destMAC">Destination Mac address</param>
-    protected IPPacket(ushort dataLength, byte protocol, Address source, Address dest, byte Flags, MACAddress destMAC)
-        : this(GetSourceMAC(source), destMAC, dataLength, protocol, source, dest, Flags)
+    /// <param name="dest">Destination address.</param>
+    /// <param name="flags">Raw value of header byte 20: the 3 flag bits followed by the upper 5 bits of the fragment offset.</param>
+    /// <param name="destMAC">Destination MAC address.</param>
+    protected IPPacket(ushort dataLength, byte protocol, Address source, Address dest, byte flags, MACAddress destMAC)
+        : this(GetSourceMAC(source), destMAC, dataLength, protocol, source, dest, flags)
     { }
 
     /// <summary>
@@ -138,18 +155,19 @@ internal class IPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPPacket"/> class.
+    /// Initializes a new instance of the <see cref="IPPacket"/> class,
+    /// writing the complete IPv4 header: TTL 0x80, a fragment ID drawn from
+    /// a global counter, and the header checksum computed here.
     /// </summary>
     /// <param name="srcMAC">Source MAC address.</param>
     /// <param name="destMAC">Destination MAC address.</param>
-    /// <param name="dataLength">Data length.</param>
-    /// <param name="protocol">Protocol.</param>
+    /// <param name="dataLength">Length of the IP payload, in bytes.</param>
+    /// <param name="protocol">IP protocol number of the payload.</param>
     /// <param name="source">Source address.</param>
     /// <param name="dest">Destination address.</param>
-    /// <param name="Flags">Flags.</param>
-    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
+    /// <param name="flags">Raw value of header byte 20: the 3 flag bits followed by the upper 5 bits of the fragment offset.</param>
     public IPPacket(MACAddress srcMAC, MACAddress destMAC, ushort dataLength, byte protocol,
-        Address source, Address dest, byte Flags)
+        Address source, Address dest, byte flags)
         : base(destMAC, srcMAC, 0x0800, dataLength + 14 + 20)
     {
         RawData[14] = 0x45;
@@ -162,7 +180,7 @@ internal class IPPacket : EthernetPacket
         FragmentID = NextIPFragmentID;
         RawData[18] = (byte)((FragmentID >> 8) & 0xFF);
         RawData[19] = (byte)((FragmentID >> 0) & 0xFF);
-        RawData[20] = Flags;
+        RawData[20] = flags;
         RawData[21] = 0x00;
         RawData[22] = 0x80;
         RawData[23] = protocol;
@@ -181,14 +199,17 @@ internal class IPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Calculates the CRC of the packet.
+    /// Computes the Internet ones'-complement checksum over a range of
+    /// <see cref="EthernetPacket.RawData"/>. Available to derived packet
+    /// types for their own header checksums.
     /// </summary>
     /// <param name="offset">The offset, in bytes.</param>
     /// <param name="length">The length, in bytes.</param>
     protected ushort CalcOcCRC(ushort offset, ushort length) => CalcOcCRC(RawData, offset, length);
 
     /// <summary>
-    /// Calculates the CRC of the packet.
+    /// Computes the Internet ones'-complement checksum over a range of the
+    /// given buffer.
     /// </summary>
     /// <param name="buffer">The buffer to use.</param>
     /// <param name="offset">The offset, in bytes.</param>
@@ -198,6 +219,13 @@ internal class IPPacket : EthernetPacket
         return (ushort)~SumShortValues(buffer, offset, length);
     }
 
+    /// <summary>
+    /// Sums a range of the buffer as big-endian 16-bit words with
+    /// end-around carry, the accumulation step of the Internet checksum.
+    /// </summary>
+    /// <param name="buffer">The buffer to use.</param>
+    /// <param name="offset">The offset, in bytes.</param>
+    /// <param name="length">The length, in bytes.</param>
     protected static ushort SumShortValues(byte[] buffer, int offset, int length)
     {
         uint chksum = 0;
@@ -218,7 +246,8 @@ internal class IPPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Calculates the CRC of the packet.
+    /// Computes the IPv4 header checksum over the first
+    /// <paramref name="headerLength"/> bytes of the IP header.
     /// </summary>
     /// <param name="headerLength">The length of the header, in bytes.</param>
     protected ushort CalcIPCRC(ushort headerLength)
@@ -229,52 +258,53 @@ internal class IPPacket : EthernetPacket
     /// <summary>
     /// Gets the IP version of the packet.
     /// </summary>
-    internal byte IPVersion { get; private set; }
+    public byte IPVersion { get; private set; }
 
     /// <summary>
-    /// Gets the length of the header, in bytes.
+    /// Gets the length of the IP header, in bytes.
     /// </summary>
-    internal ushort HeaderLength => (ushort)(ipHeaderLength * 4);
+    public ushort HeaderLength => (ushort)(ipHeaderLength * 4);
 
     /// <summary>
     /// Gets the type of service.
     /// </summary>
-    internal byte TypeOfService { get; private set; }
+    public byte TypeOfService { get; private set; }
 
     /// <summary>
-    /// Gets the IP length of the packet.
+    /// Gets the total length of the IP packet (header plus payload), in bytes.
     /// </summary>
-    internal ushort IPLength { get; private set; }
+    public ushort IPLength { get; private set; }
 
     /// <summary>
     /// Gets the fragment ID.
     /// </summary>
-    internal ushort FragmentID { get; private set; }
+    public ushort FragmentID { get; private set; }
 
     /// <summary>
-    /// Gets the flags of the packet.
+    /// Gets the 3 flag bits of the packet.
     /// </summary>
-    internal byte IPFlags { get; private set; }
+    public byte IPFlags { get; private set; }
 
     /// <summary>
     /// Gets the fragment offset.
     /// </summary>
-    internal ushort FragmentOffset { get; private set; }
+    public ushort FragmentOffset { get; private set; }
 
     /// <summary>
     /// Gets the TTL (Time-To-Live) of the packet.
     /// </summary>
-    internal byte TTL { get; private set; }
+    public byte TTL { get; private set; }
 
     /// <summary>
-    /// Gets the protocol.
+    /// Gets the IP protocol number of the payload (1 ICMP, 6 TCP, 17 UDP).
     /// </summary>
-    internal byte Protocol { get; private set; }
+    public byte Protocol { get; private set; }
 
     /// <summary>
-    /// Gets the IPCRC.
+    /// Gets the IP header checksum as parsed from the header. On locally
+    /// built packets it holds the value computed at construction.
     /// </summary>
-    internal ushort IPCRC { get; private set; }
+    public ushort IPCRC { get; private set; }
 
     /// <summary>
     /// Gets the source IP address.
@@ -287,15 +317,17 @@ internal class IPPacket : EthernetPacket
     public Address DestinationIP { get; private set; } = null!;
 
     /// <summary>
-    /// Gets the offset of the data.
+    /// Gets the offset of the IP payload from the start of the frame
+    /// (Ethernet header plus IP header), in bytes.
     /// </summary>
-    internal ushort DataOffset { get; private set; }
+    public ushort DataOffset { get; private set; }
 
     /// <summary>
-    /// Gets the length of the data.
+    /// Gets the length of the IP payload, in bytes.
     /// </summary>
-    internal ushort DataLength => (ushort)(IPLength - HeaderLength);
+    public ushort DataLength => (ushort)(IPLength - HeaderLength);
 
+    /// <inheritdoc/>
     public override string ToString()
     {
         return "IP Packet Src=" + SourceIP + ", Dest=" + DestinationIP + ", Protocol=" + Protocol + ", TTL=" + TTL + ", DataLen=" + DataLength;

@@ -343,7 +343,7 @@ public static class SocketPlug
         // Set status BEFORE sending packet to avoid race condition
         // (SendEmptyPacket calls NetworkStack.Update which can process incoming packets)
         sm.Status = Status.SYN_SENT;
-        sm.SendEmptyPacket(Flags.SYN);
+        sm.SendEmptyPacket(TcpFlags.SYN);
 
         if (sm.WaitStatus(Status.ESTABLISHED, 5000) == false)
         {
@@ -447,7 +447,7 @@ public static class SocketPlug
 
             for (int i = 0; i < chunks.Length; i++)
             {
-                var packet = new TcpPacket(sm.LocalEndPoint.Address, sm.RemoteEndPoint.Address, sm.LocalEndPoint.Port, sm.RemoteEndPoint.Port, sm.TCB.SndNxt, sm.TCB.RcvNxt, 20, i == chunks.Length - 1 ? (byte)(Flags.PSH | Flags.ACK) : (byte)Flags.ACK, sm.TCB.SndWnd, 0, chunks[i]);
+                var packet = new TcpPacket(sm.LocalEndPoint.Address, sm.RemoteEndPoint.Address, sm.LocalEndPoint.Port, sm.RemoteEndPoint.Port, sm.TCB.SndNxt, sm.TCB.RcvNxt, 20, i == chunks.Length - 1 ? (byte)(TcpFlags.PSH | TcpFlags.ACK) : (byte)TcpFlags.ACK, sm.TCB.SndWnd, 0, chunks[i]);
                 OutgoingBuffer.AddPacket(packet);
 
                 // Increment SndNxt BEFORE NetworkStack.Update() so incoming packets see the correct value
@@ -467,7 +467,7 @@ public static class SocketPlug
             byte[] data = new byte[size];
             Buffer.BlockCopy(buffer, offset, data, 0, size);
 
-            var packet = new TcpPacket(sm.LocalEndPoint.Address, sm.RemoteEndPoint.Address, sm.LocalEndPoint.Port, sm.RemoteEndPoint.Port, sm.TCB.SndNxt, sm.TCB.RcvNxt, 20, (byte)(Flags.PSH | Flags.ACK), sm.TCB.SndWnd, 0, data);
+            var packet = new TcpPacket(sm.LocalEndPoint.Address, sm.RemoteEndPoint.Address, sm.LocalEndPoint.Port, sm.RemoteEndPoint.Port, sm.TCB.SndNxt, sm.TCB.RcvNxt, 20, (byte)(TcpFlags.PSH | TcpFlags.ACK), sm.TCB.SndWnd, 0, data);
             Serial.WriteString("[SocketPlug] SendTcp: adding to outgoing buffer\n");
             OutgoingBuffer.AddPacket(packet);
 
@@ -829,7 +829,7 @@ public static class SocketPlug
             // passive close all the way to CLOSED, and an assignment after the
             // send would overwrite CLOSED with FIN_WAIT1 and hang the close.
             sm.Status = Status.FIN_WAIT1;
-            sm.SendEmptyPacket(Flags.FIN | Flags.ACK);
+            sm.SendEmptyPacket(TcpFlags.FIN | TcpFlags.ACK);
 
             // Wait for the peer to ACK our FIN. Once it is ACKed the close has
             // succeeded from the caller's point of view — the peer may hold

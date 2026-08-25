@@ -1,4 +1,5 @@
-﻿using Cosmos.Kernel.Core.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
@@ -11,16 +12,18 @@ namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 internal delegate void UdpDataReceivedHandler(UdpPacket packet);
 
 /// <summary>
-/// Represents a UDP packet.
+/// Represents a UDP datagram carried in an <see cref="IPPacket"/>. Header properties are
+/// snapshots parsed from <see cref="EthernetPacket.RawData"/> when the packet is constructed;
+/// they are not re-read afterwards. The UDP checksum field is written as zero and never
+/// computed, which is legal for UDP over IPv4.
 /// </summary>
-internal class UdpPacket : IPPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class UdpPacket : IPPacket
 {
-    private ushort _udpCRC;
-
     /// <summary>
     /// Callback for receiving UDP data.
     /// </summary>
-    public static UdpDataReceivedHandler? OnUDPDataReceived { get; set; }
+    internal static UdpDataReceivedHandler? OnUDPDataReceived { get; set; }
 
     /// <summary>
     /// Handles UDP packets.
@@ -64,14 +67,28 @@ internal class UdpPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UdpPacket"/> class.
+    /// Parses a UDP packet from a raw Ethernet frame. The instance aliases
+    /// <paramref name="rawData"/> without copying, so later changes to the array are visible
+    /// through this packet. Header properties are parsed once during construction.
     /// </summary>
-    /// <param name="rawData">The raw data.</param>
+    /// <param name="rawData">The raw frame bytes, starting at the Ethernet header.</param>
     public UdpPacket(byte[] rawData)
         : base(rawData)
     {
     }
 
+    /// <summary>
+    /// Creates a UDP packet with an uninitialized payload area of
+    /// <paramref name="datalength"/> bytes. The Ethernet, IP, and UDP headers, including all
+    /// length fields and the IP header checksum, are written during construction and never
+    /// recomputed, so the payload must be filled in before the packet is sent. The UDP
+    /// checksum is written as zero and never computed, which is legal for UDP over IPv4.
+    /// </summary>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address.</param>
+    /// <param name="srcport">The source port.</param>
+    /// <param name="destport">The destination port.</param>
+    /// <param name="datalength">The payload length in bytes.</param>
     public UdpPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength)
         : base((ushort)(datalength + 8), 17, source, dest, 0x00)
     {
@@ -79,6 +96,19 @@ internal class UdpPacket : IPPacket
         InitializeFields();
     }
 
+    /// <summary>
+    /// Creates a UDP packet with an uninitialized payload area of
+    /// <paramref name="datalength"/> bytes and a preset destination MAC address, bypassing ARP
+    /// resolution. Headers, length fields, and the IP header checksum are written during
+    /// construction and never recomputed. The UDP checksum is written as zero and never
+    /// computed, which is legal for UDP over IPv4.
+    /// </summary>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address.</param>
+    /// <param name="srcport">The source port.</param>
+    /// <param name="destport">The destination port.</param>
+    /// <param name="datalength">The payload length in bytes.</param>
+    /// <param name="destmac">The destination MAC address to write into the Ethernet header.</param>
     public UdpPacket(Address source, Address dest, ushort srcport, ushort destport, ushort datalength, MACAddress destmac)
         : base((ushort)(datalength + 8), 17, source, dest, 0x00, destmac)
     {
@@ -87,15 +117,16 @@ internal class UdpPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UdpPacket"/> class.
+    /// Creates a UDP packet and copies <paramref name="data"/> into its payload area. Headers,
+    /// length fields, and the IP header checksum are written during construction and never
+    /// recomputed. The UDP checksum is written as zero and never computed, which is legal for
+    /// UDP over IPv4.
     /// </summary>
-    /// <param name="source">The source address.</param>
-    /// <param name="dest">The destination address.</param>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address.</param>
     /// <param name="srcPort">The source port.</param>
     /// <param name="destPort">The destination port.</param>
-    /// <param name="data">The data array.</param>
-    /// <exception cref="OverflowException">Thrown if data array length is greater than Int32.MaxValue.</exception>
-    /// <exception cref="ArgumentException">Thrown if RawData is invalid or null.</exception>
+    /// <param name="data">The payload bytes to copy into the packet.</param>
     public UdpPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data)
         : base((ushort)(data.Length + 8), 17, source, dest, 0x00)
     {
@@ -110,8 +141,17 @@ internal class UdpPacket : IPPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UdpPacket"/> class with destination MAC.
+    /// Creates a UDP packet with a copied payload and a preset destination MAC address,
+    /// bypassing ARP resolution. Headers, length fields, and the IP header checksum are
+    /// written during construction and never recomputed. The UDP checksum is written as zero
+    /// and never computed, which is legal for UDP over IPv4.
     /// </summary>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address.</param>
+    /// <param name="srcPort">The source port.</param>
+    /// <param name="destPort">The destination port.</param>
+    /// <param name="data">The payload bytes to copy into the packet.</param>
+    /// <param name="destmac">The destination MAC address to write into the Ethernet header.</param>
     public UdpPacket(Address source, Address dest, ushort srcPort, ushort destPort, byte[] data, MACAddress destmac)
         : base((ushort)(data.Length + 8), 17, source, dest, 0x00, destmac)
     {
@@ -140,39 +180,44 @@ internal class UdpPacket : IPPacket
         RawData[this.DataOffset + 7] = (byte)((0 >> 0) & 0xFF);
     }
 
+    /// <summary>
+    /// Parses the UDP header fields (source port, destination port, UDP length) from
+    /// <see cref="EthernetPacket.RawData"/> into the header properties. Runs once during
+    /// construction; the properties are snapshots and are not refreshed afterwards.
+    /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();
         SourcePort = (ushort)((RawData[DataOffset] << 8) | RawData[DataOffset + 1]);
         DestinationPort = (ushort)((RawData[DataOffset + 2] << 8) | RawData[DataOffset + 3]);
         UDPLength = (ushort)((RawData[DataOffset + 4] << 8) | RawData[DataOffset + 5]);
-        _udpCRC = (ushort)((RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
     }
 
     /// <summary>
-    /// Gets the destination port.
+    /// Gets the destination port, a snapshot parsed from the UDP header at construction.
     /// </summary>
     public ushort DestinationPort { get; private set; }
 
     /// <summary>
-    /// Gets the source port.
+    /// Gets the source port, a snapshot parsed from the UDP header at construction.
     /// </summary>
     public ushort SourcePort { get; private set; }
 
     /// <summary>
-    /// Gets the UDP length of the packet.
+    /// Gets the value of the UDP length field: the 8-byte UDP header plus the payload. It is
+    /// a snapshot parsed from the header at construction and is never recomputed.
     /// </summary>
     public ushort UDPLength { get; private set; }
 
     /// <summary>
-    /// Get UDP data length of the packet.
+    /// Gets the payload length in bytes: <see cref="UDPLength"/> minus the 8-byte UDP header.
     /// </summary>
     public ushort UDPDataLength => (ushort)(UDPLength - 8);
 
     /// <summary>
-    /// Gets the UDP data of the packet.
+    /// Gets the UDP payload. Each access allocates and returns a fresh copy of the payload
+    /// bytes; the packet's underlying buffer is not exposed.
     /// </summary>
-    /// <exception cref="OverflowException">Thrown on fatal error.</exception>
     public byte[] UDPData
     {
         get
@@ -188,6 +233,10 @@ internal class UdpPacket : IPPacket
         }
     }
 
+    /// <summary>
+    /// Returns a string with the source and destination endpoints and the payload length.
+    /// </summary>
+    /// <returns>A human-readable summary of the packet.</returns>
     public override string ToString()
     {
         return "UDP Packet Src=" + SourceIP + ":" + SourcePort + "," +
