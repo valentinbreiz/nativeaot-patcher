@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
@@ -46,7 +46,7 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Network Tests] Starting test suite\n");
+        Log.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
         TR.Start("Network Tests", expectedTests: 15);
@@ -76,7 +76,7 @@ public class Kernel : Sys.Kernel
         TR.Run("DNS_ResolveCnameChain", TestDNSResolveCnameChain);
         TR.Run("DNS_ResolveMultipleARecords", TestDNSResolveMultipleARecords);
 
-        Serial.WriteString("[Network Tests] All tests completed\n");
+        Log.WriteString("[Network Tests] All tests completed\n");
         TR.Finish();
     }
 
@@ -102,9 +102,9 @@ public class Kernel : Sys.Kernel
 
         if (device != null)
         {
-            Serial.WriteString("[Test] Device detected: ");
-            Serial.WriteString(device.Name);
-            Serial.WriteString("\n");
+            Log.WriteString("[Test] Device detected: ");
+            Log.WriteString(device.Name);
+            Log.WriteString("\n");
         }
     }
 
@@ -125,11 +125,11 @@ public class Kernel : Sys.Kernel
             attempts++;
         }
 
-        Serial.WriteString("[Test] Link status: ");
-        Serial.WriteString(device.LinkUp ? "UP" : "DOWN");
-        Serial.WriteString(", Ready: ");
-        Serial.WriteString(device.Ready ? "YES" : "NO");
-        Serial.WriteString("\n");
+        Log.WriteString("[Test] Link status: ");
+        Log.WriteString(device.LinkUp ? "UP" : "DOWN");
+        Log.WriteString(", Ready: ");
+        Log.WriteString(device.Ready ? "YES" : "NO");
+        Log.WriteString("\n");
 
         Assert.True(device.Ready, "Network device should be ready");
     }
@@ -152,30 +152,30 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        Serial.WriteString("[Test] Starting DHCP auto-configuration...\n");
+        Log.WriteString("[Test] Starting DHCP auto-configuration...\n");
 
         // Use DHCP to auto-assign IP address
         var dhcpClient = new DhcpClient();
 
-        Serial.WriteString("[Test] Sending DHCP Discover packet...\n");
+        Log.WriteString("[Test] Sending DHCP Discover packet...\n");
         int result = dhcpClient.SendDiscoverPacket();
 
         if (result == -1)
         {
-            Serial.WriteString("[Test] DHCP timeout - no response from server\n");
+            Log.WriteString("[Test] DHCP timeout - no response from server\n");
             Assert.True(false, "DHCP should receive response from QEMU DHCP server");
             return;
         }
 
-        Serial.WriteString("[Test] DHCP completed in ");
-        Serial.WriteNumber((ulong)result);
-        Serial.WriteString(" ms\n");
+        Log.WriteString("[Test] DHCP completed in ");
+        Log.WriteNumber((ulong)result);
+        Log.WriteString(" ms\n");
 
         // Verify we got an IP configuration
         var netConfig = NetworkConfigManager.Get(device);
         if (netConfig == null)
         {
-            Serial.WriteString("[Test] No network configuration after DHCP\n");
+            Log.WriteString("[Test] No network configuration after DHCP\n");
             Assert.True(false, "Network should be configured after DHCP");
             return;
         }
@@ -184,12 +184,12 @@ public class Kernel : Sys.Kernel
         _gatewayIP = netConfig.DefaultGateway;
         _networkConfigured = true;
 
-        Serial.WriteString("[Test] DHCP assigned IP: ");
-        Serial.WriteString(_localIP.ToString());
-        Serial.WriteString("\n");
-        Serial.WriteString("[Test] Gateway: ");
-        Serial.WriteString(_gatewayIP.ToString());
-        Serial.WriteString("\n");
+        Log.WriteString("[Test] DHCP assigned IP: ");
+        Log.WriteString(_localIP.ToString());
+        Log.WriteString("\n");
+        Log.WriteString("[Test] Gateway: ");
+        Log.WriteString(_gatewayIP.ToString());
+        Log.WriteString("\n");
 
         // Verify device has packet handler registered
         Assert.True(device.OnPacketReceived != null, "Device should have packet handler registered after DHCP");
@@ -218,9 +218,9 @@ public class Kernel : Sys.Kernel
         // gateway address itself, so no host-side helper is needed.
         var target = new Address(10, 0, 2, 2);
 
-        Serial.WriteString("[Test] Pinging ");
-        Serial.WriteString(target.ToString());
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Pinging ");
+        Log.WriteString(target.ToString());
+        Log.WriteString("...\n");
 
         var icmpClient = new IcmpClient();
         icmpClient.Connect(target);
@@ -231,17 +231,17 @@ public class Kernel : Sys.Kernel
 
         if (time >= 0)
         {
-            Serial.WriteString("[Test] Echo reply from ");
-            Serial.WriteString(endpoint.Address.ToString());
-            Serial.WriteString(" in ");
-            Serial.WriteNumber((ulong)time);
-            Serial.WriteString(" ms\n");
+            Log.WriteString("[Test] Echo reply from ");
+            Log.WriteString(endpoint.Address.ToString());
+            Log.WriteString(" in ");
+            Log.WriteNumber((ulong)time);
+            Log.WriteString(" ms\n");
 
             Assert.True(endpoint.Address.CompareTo(target) == 0, "Echo reply should come from the pinged address");
         }
         else
         {
-            Serial.WriteString("[Test] No echo reply within timeout\n");
+            Log.WriteString("[Test] No echo reply within timeout\n");
             Assert.True(false, "Should receive ICMP echo reply from gateway");
         }
 
@@ -265,7 +265,7 @@ public class Kernel : Sys.Kernel
         // The test runner's IcmpTestServer pings our IP every 500 ms through
         // the raw-Ethernet hub port (slirp cannot forward host-sourced ICMP).
         // Phase 1: wait until the echo responder answered at least one request.
-        Serial.WriteString("[Test] Waiting for ICMP echo request from host...\n");
+        Log.WriteString("[Test] Waiting for ICMP echo request from host...\n");
 
         int waited = 0;
         while (IcmpPacket.EchoRequestsReplied < 1 && waited < 10000)
@@ -276,20 +276,20 @@ public class Kernel : Sys.Kernel
 
         if (IcmpPacket.EchoRequestsReplied < 1)
         {
-            Serial.WriteString("[Test] No echo request received from host within timeout\n");
+            Log.WriteString("[Test] No echo request received from host within timeout\n");
             Assert.True(false, "Host echo request should reach the kernel and be answered");
             return;
         }
 
-        Serial.WriteString("[Test] Answered ");
-        Serial.WriteNumber((ulong)IcmpPacket.EchoRequestsReplied);
-        Serial.WriteString(" echo request(s) from host\n");
+        Log.WriteString("[Test] Answered ");
+        Log.WriteNumber((ulong)IcmpPacket.EchoRequestsReplied);
+        Log.WriteString(" echo request(s) from host\n");
         Assert.True(true, "Host echo request received and answered");
 
         // Phase 2: the host validates our echo reply (checksum + payload) and
         // only then switches its request payload from COSMOS_PING to HOST_OK —
         // seeing it proves the full host->guest->host round trip.
-        Serial.WriteString("[Test] Waiting for HOST_OK acknowledgment payload...\n");
+        Log.WriteString("[Test] Waiting for HOST_OK acknowledgment payload...\n");
 
         bool hostAck = false;
         waited = 0;
@@ -312,11 +312,11 @@ public class Kernel : Sys.Kernel
 
         if (hostAck)
         {
-            Serial.WriteString("[Test] Host acknowledged a valid echo reply\n");
+            Log.WriteString("[Test] Host acknowledged a valid echo reply\n");
         }
         else
         {
-            Serial.WriteString("[Test] No HOST_OK payload within timeout\n");
+            Log.WriteString("[Test] No HOST_OK payload within timeout\n");
         }
 
         Assert.True(hostAck, "Host should confirm it received a valid echo reply");
@@ -338,7 +338,7 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Creating .NET UdpClient...\n");
+        Log.WriteString("[Test] Creating .NET UdpClient...\n");
 
         // Use .NET UdpClient (plugged by SocketPlug)
         var udpClient = new DotNetUdpClient(TestPort);
@@ -350,11 +350,11 @@ public class Kernel : Sys.Kernel
         // Gateway IP for QEMU user networking
         var gatewayEndpoint = new IPEndPoint(IPAddress.Parse("10.0.2.2"), TestPort);
 
-        Serial.WriteString("[Test] Sending UDP packet to ");
-        Serial.WriteString(gatewayEndpoint.Address.ToString());
-        Serial.WriteString(":");
-        Serial.WriteNumber(TestPort);
-        Serial.WriteString("\n");
+        Log.WriteString("[Test] Sending UDP packet to ");
+        Log.WriteString(gatewayEndpoint.Address.ToString());
+        Log.WriteString(":");
+        Log.WriteNumber(TestPort);
+        Log.WriteString("\n");
 
         int bytesSent = udpClient.Send(payload, payload.Length, gatewayEndpoint);
         if (bytesSent <= 0)
@@ -364,9 +364,9 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        Serial.WriteString("[Test] UDP packet sent (");
-        Serial.WriteNumber((ulong)bytesSent);
-        Serial.WriteString(" bytes), waiting for echo...\n");
+        Log.WriteString("[Test] UDP packet sent (");
+        Log.WriteNumber((ulong)bytesSent);
+        Log.WriteString(" bytes), waiting for echo...\n");
 
         // Wait for echo from test runner (it echoes our packet back)
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
@@ -393,13 +393,13 @@ public class Kernel : Sys.Kernel
 
         if (receivedData != null && receivedData.Length > 0)
         {
-            Serial.WriteString("[Test] Received echo from ");
-            Serial.WriteString(remoteEP.Address.ToString());
-            Serial.WriteString(":");
-            Serial.WriteNumber((ulong)remoteEP.Port);
-            Serial.WriteString(" with ");
-            Serial.WriteNumber((ulong)receivedData.Length);
-            Serial.WriteString(" bytes\n");
+            Log.WriteString("[Test] Received echo from ");
+            Log.WriteString(remoteEP.Address.ToString());
+            Log.WriteString(":");
+            Log.WriteNumber((ulong)remoteEP.Port);
+            Log.WriteString(" with ");
+            Log.WriteNumber((ulong)receivedData.Length);
+            Log.WriteString(" bytes\n");
 
             // Validate the echo matches what we sent
             string receivedMessage = Encoding.ASCII.GetString(receivedData);
@@ -407,20 +407,20 @@ public class Kernel : Sys.Kernel
 
             if (contentValid)
             {
-                Serial.WriteString("[Test] Echo validated: COSMOS_UDP_TEST\n");
+                Log.WriteString("[Test] Echo validated: COSMOS_UDP_TEST\n");
                 Assert.True(true, "UDP send and echo received with correct content");
             }
             else
             {
-                Serial.WriteString("[Test] Echo content mismatch! Expected: COSMOS_UDP_TEST, Got: ");
-                Serial.WriteString(receivedMessage);
-                Serial.WriteString("\n");
+                Log.WriteString("[Test] Echo content mismatch! Expected: COSMOS_UDP_TEST, Got: ");
+                Log.WriteString(receivedMessage);
+                Log.WriteString("\n");
                 Assert.True(false, "UDP echo content should match COSMOS_UDP_TEST");
             }
         }
         else
         {
-            Serial.WriteString("[Test] No echo received within timeout\n");
+            Log.WriteString("[Test] No echo received within timeout\n");
             Assert.True(false, "Should receive echo from test runner");
         }
 
@@ -441,14 +441,14 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Creating .NET UdpClient on port ");
-        Serial.WriteNumber(EchoPort);
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Creating .NET UdpClient on port ");
+        Log.WriteNumber(EchoPort);
+        Log.WriteString("...\n");
 
         // Use .NET UdpClient (plugged by SocketPlug)
         var udpClient = new DotNetUdpClient(EchoPort);
 
-        Serial.WriteString("[Test] Waiting for UDP packet from test runner...\n");
+        Log.WriteString("[Test] Waiting for UDP packet from test runner...\n");
 
         // Wait for packet from test runner (it sends "TEST_FROM_HOST" to port 5556)
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
@@ -475,13 +475,13 @@ public class Kernel : Sys.Kernel
 
         if (receivedData != null && receivedData.Length > 0)
         {
-            Serial.WriteString("[Test] Received UDP packet from ");
-            Serial.WriteString(remoteEP.Address.ToString());
-            Serial.WriteString(":");
-            Serial.WriteNumber((ulong)remoteEP.Port);
-            Serial.WriteString(" with ");
-            Serial.WriteNumber((ulong)receivedData.Length);
-            Serial.WriteString(" bytes\n");
+            Log.WriteString("[Test] Received UDP packet from ");
+            Log.WriteString(remoteEP.Address.ToString());
+            Log.WriteString(":");
+            Log.WriteNumber((ulong)remoteEP.Port);
+            Log.WriteString(" with ");
+            Log.WriteNumber((ulong)receivedData.Length);
+            Log.WriteString(" bytes\n");
 
             // Validate exact content from test runner
             string receivedMessage = Encoding.ASCII.GetString(receivedData);
@@ -490,20 +490,20 @@ public class Kernel : Sys.Kernel
 
             if (contentValid)
             {
-                Serial.WriteString("[Test] Content validated: TEST_FROM_HOST\n");
+                Log.WriteString("[Test] Content validated: TEST_FROM_HOST\n");
                 Assert.True(true, "UDP packet received with correct content");
             }
             else
             {
-                Serial.WriteString("[Test] Content mismatch! Expected: TEST_FROM_HOST, Got: ");
-                Serial.WriteString(receivedMessage);
-                Serial.WriteString("\n");
+                Log.WriteString("[Test] Content mismatch! Expected: TEST_FROM_HOST, Got: ");
+                Log.WriteString(receivedMessage);
+                Log.WriteString("\n");
                 Assert.True(false, "UDP packet content should match TEST_FROM_HOST");
             }
         }
         else
         {
-            Serial.WriteString("[Test] No UDP packet received within timeout\n");
+            Log.WriteString("[Test] No UDP packet received within timeout\n");
             Assert.True(false, "Should receive UDP packet from test runner");
         }
 
@@ -526,35 +526,35 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Creating .NET TcpClient...\n");
+        Log.WriteString("[Test] Creating .NET TcpClient...\n");
 
         try
         {
             // Create TCP client and connect to test runner (gateway on port 5557)
             var tcpClient = new DotNetTcpClient();
 
-            Serial.WriteString("[Test] Connecting to ");
-            Serial.WriteString("10.0.2.2:");
-            Serial.WriteNumber(TcpClientPort);
-            Serial.WriteString("...\n");
+            Log.WriteString("[Test] Connecting to ");
+            Log.WriteString("10.0.2.2:");
+            Log.WriteNumber(TcpClientPort);
+            Log.WriteString("...\n");
 
             tcpClient.Connect(IPAddress.Parse("10.0.2.2"), TcpClientPort);
 
-            Serial.WriteString("[Test] Connected! Sending data...\n");
+            Log.WriteString("[Test] Connected! Sending data...\n");
 
             // Send test message
-            Serial.WriteString("[Test] Getting stream...\n");
+            Log.WriteString("[Test] Getting stream...\n");
             var stream = tcpClient.GetStream();
-            Serial.WriteString("[Test] Got stream, preparing message...\n");
+            Log.WriteString("[Test] Got stream, preparing message...\n");
             string message = "COSMOS_TCP_TEST";
             byte[] payload = Encoding.ASCII.GetBytes(message);
-            Serial.WriteString("[Test] Writing to stream...\n");
+            Log.WriteString("[Test] Writing to stream...\n");
             stream.Write(payload, 0, payload.Length);
-            Serial.WriteString("[Test] Write complete\n");
+            Log.WriteString("[Test] Write complete\n");
 
-            Serial.WriteString("[Test] Sent '");
-            Serial.WriteString(message);
-            Serial.WriteString("', waiting for echo...\n");
+            Log.WriteString("[Test] Sent '");
+            Log.WriteString(message);
+            Log.WriteString("', waiting for echo...\n");
 
             // Wait for echo from test runner
             byte[] buffer = new byte[256];
@@ -577,35 +577,35 @@ public class Kernel : Sys.Kernel
             if (bytesRead > 0)
             {
                 string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                Serial.WriteString("[Test] Received echo: '");
-                Serial.WriteString(receivedMessage);
-                Serial.WriteString("'\n");
+                Log.WriteString("[Test] Received echo: '");
+                Log.WriteString(receivedMessage);
+                Log.WriteString("'\n");
 
                 bool contentValid = receivedMessage == message;
                 if (contentValid)
                 {
-                    Serial.WriteString("[Test] Echo validated!\n");
+                    Log.WriteString("[Test] Echo validated!\n");
                     Assert.True(true, "TCP connect and echo received with correct content");
                 }
                 else
                 {
-                    Serial.WriteString("[Test] Echo content mismatch!\n");
+                    Log.WriteString("[Test] Echo content mismatch!\n");
                     Assert.True(false, "TCP echo content should match");
                 }
             }
             else
             {
-                Serial.WriteString("[Test] No echo received within timeout\n");
+                Log.WriteString("[Test] No echo received within timeout\n");
                 Assert.True(false, "Should receive echo from test runner");
             }
 
-            Serial.WriteString("[Test] Closing TCP client...\n");
+            Log.WriteString("[Test] Closing TCP client...\n");
             tcpClient.Close();
-            Serial.WriteString("[Test] TCP client closed successfully\n");
+            Log.WriteString("[Test] TCP client closed successfully\n");
         }
         catch
         {
-            Serial.WriteString("[Test] TCP connect failed with exception\n");
+            Log.WriteString("[Test] TCP connect failed with exception\n");
             Assert.True(false, "TCP connect failed with exception");
         }
     }
@@ -624,9 +624,9 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Creating .NET TcpListener on port ");
-        Serial.WriteNumber(TcpServerPort);
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Creating .NET TcpListener on port ");
+        Log.WriteNumber(TcpServerPort);
+        Log.WriteString("...\n");
 
         try
         {
@@ -634,7 +634,7 @@ public class Kernel : Sys.Kernel
             var listener = new DotNetTcpListener(IPAddress.Any, TcpServerPort);
             listener.Start();
 
-            Serial.WriteString("[Test] Listening, waiting for connection from test runner...\n");
+            Log.WriteString("[Test] Listening, waiting for connection from test runner...\n");
 
             // Wait for connection from test runner (it connects after a delay)
             DotNetTcpClient? client = null;
@@ -655,7 +655,7 @@ public class Kernel : Sys.Kernel
 
             if (client != null)
             {
-                Serial.WriteString("[Test] Accepted connection!\n");
+                Log.WriteString("[Test] Accepted connection!\n");
 
                 var stream = client.GetStream();
 
@@ -680,30 +680,30 @@ public class Kernel : Sys.Kernel
                 if (bytesRead > 0)
                 {
                     string receivedMessage = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    Serial.WriteString("[Test] Received: '");
-                    Serial.WriteString(receivedMessage);
-                    Serial.WriteString("'\n");
+                    Log.WriteString("[Test] Received: '");
+                    Log.WriteString(receivedMessage);
+                    Log.WriteString("'\n");
 
                     // Echo back
                     stream.Write(buffer, 0, bytesRead);
-                    Serial.WriteString("[Test] Echoed data back\n");
+                    Log.WriteString("[Test] Echoed data back\n");
 
                     string expectedMessage = "TEST_FROM_HOST";
                     bool contentValid = receivedMessage == expectedMessage;
                     if (contentValid)
                     {
-                        Serial.WriteString("[Test] Content validated!\n");
+                        Log.WriteString("[Test] Content validated!\n");
                         Assert.True(true, "TCP server accept and received correct content");
                     }
                     else
                     {
-                        Serial.WriteString("[Test] Content mismatch! Expected: TEST_FROM_HOST\n");
+                        Log.WriteString("[Test] Content mismatch! Expected: TEST_FROM_HOST\n");
                         Assert.True(false, "TCP received content should match TEST_FROM_HOST");
                     }
                 }
                 else
                 {
-                    Serial.WriteString("[Test] No data received within timeout\n");
+                    Log.WriteString("[Test] No data received within timeout\n");
                     Assert.True(false, "Should receive data from test runner");
                 }
 
@@ -711,7 +711,7 @@ public class Kernel : Sys.Kernel
             }
             else
             {
-                Serial.WriteString("[Test] No connection received within timeout\n");
+                Log.WriteString("[Test] No connection received within timeout\n");
                 Assert.True(false, "Should receive connection from test runner");
             }
 
@@ -719,9 +719,9 @@ public class Kernel : Sys.Kernel
         }
         catch (Exception ex)
         {
-            Serial.WriteString("[Test] TCP server failed: ");
-            Serial.WriteString(ex.Message);
-            Serial.WriteString("\n");
+            Log.WriteString("[Test] TCP server failed: ");
+            Log.WriteString(ex.Message);
+            Log.WriteString("\n");
             Assert.True(false, "TCP server failed with exception");
         }
     }
@@ -740,9 +740,9 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Connecting to lingering host peer at 10.0.2.2:");
-        Serial.WriteNumber(TcpLingerPort);
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Connecting to lingering host peer at 10.0.2.2:");
+        Log.WriteNumber(TcpLingerPort);
+        Log.WriteString("...\n");
 
         try
         {
@@ -754,9 +754,9 @@ public class Kernel : Sys.Kernel
             byte[] payload = Encoding.ASCII.GetBytes(message);
             stream.Write(payload, 0, payload.Length);
 
-            Serial.WriteString("[Test] Sent '");
-            Serial.WriteString(message);
-            Serial.WriteString("', waiting for echo...\n");
+            Log.WriteString("[Test] Sent '");
+            Log.WriteString(message);
+            Log.WriteString("', waiting for echo...\n");
 
             // Wait for the echo so we know the peer consumed our data and is
             // now idling with its half of the connection deliberately open.
@@ -779,12 +779,12 @@ public class Kernel : Sys.Kernel
 
             if (bytesRead == 0)
             {
-                Serial.WriteString("[Test] No echo received within timeout\n");
+                Log.WriteString("[Test] No echo received within timeout\n");
                 Assert.True(false, "Should receive echo from lingering host peer");
                 return;
             }
 
-            Serial.WriteString("[Test] Echo received; closing while the peer holds the connection open...\n");
+            Log.WriteString("[Test] Echo received; closing while the peer holds the connection open...\n");
 
             // Issue #369: the peer never sends its FIN, so a synchronous close
             // waiting for CLOSED throws. Standard sockets semantics: Close()
@@ -793,18 +793,18 @@ public class Kernel : Sys.Kernel
             try
             {
                 tcpClient.Close();
-                Serial.WriteString("[Test] Close() returned without throwing\n");
+                Log.WriteString("[Test] Close() returned without throwing\n");
                 Assert.True(true, "Close() succeeds while the peer holds the connection open");
             }
             catch
             {
-                Serial.WriteString("[Test] Close() threw!\n");
+                Log.WriteString("[Test] Close() threw!\n");
                 Assert.True(false, "Close() must not throw when the peer does not FIN");
             }
         }
         catch
         {
-            Serial.WriteString("[Test] TCP lingering-close test failed with exception\n");
+            Log.WriteString("[Test] TCP lingering-close test failed with exception\n");
             Assert.True(false, "TCP lingering-close test failed with exception");
         }
     }
@@ -813,7 +813,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestDNSClientCreate()
     {
-        Serial.WriteString("[Test] Creating DNS client...\n");
+        Log.WriteString("[Test] Creating DNS client...\n");
 
         // Create DNS client
         var dnsClient = new DnsClient();
@@ -840,11 +840,11 @@ public class Kernel : Sys.Kernel
         }
         Assert.True(foundCloudflare, "DNS server 1.1.1.1 should be in nameservers list");
 
-        Serial.WriteString("[Test] DNS client created successfully\n");
-        Serial.WriteString("[Test] DNS server configured: ");
-        Serial.WriteString(dnsServer.ToString());
-        Serial.WriteString("\n");
-        Serial.WriteString("[Test] Verified 1.1.1.1 is in DNS nameservers list\n");
+        Log.WriteString("[Test] DNS client created successfully\n");
+        Log.WriteString("[Test] DNS server configured: ");
+        Log.WriteString(dnsServer.ToString());
+        Log.WriteString("\n");
+        Log.WriteString("[Test] Verified 1.1.1.1 is in DNS nameservers list\n");
 
         dnsClient.Close();
     }
@@ -863,7 +863,7 @@ public class Kernel : Sys.Kernel
             TestDHCPConfiguration();
         }
 
-        Serial.WriteString("[Test] Resolving valentin.bzh via DNS...\n");
+        Log.WriteString("[Test] Resolving valentin.bzh via DNS...\n");
 
         // Configure DNS server (Cloudflare's public DNS)
         var dnsServer = new Address(1, 1, 1, 1);
@@ -873,15 +873,15 @@ public class Kernel : Sys.Kernel
         var dnsClient = new DnsClient();
         dnsClient.Connect(dnsServer);
 
-        Serial.WriteString("[Test] Connected to DNS server: ");
-        Serial.WriteString(dnsServer.ToString());
-        Serial.WriteString("\n");
+        Log.WriteString("[Test] Connected to DNS server: ");
+        Log.WriteString(dnsServer.ToString());
+        Log.WriteString("\n");
 
         // Send DNS query for valentin.bzh
         string domain = "valentin.bzh";
-        Serial.WriteString("[Test] Sending DNS query for: ");
-        Serial.WriteString(domain);
-        Serial.WriteString("\n");
+        Log.WriteString("[Test] Sending DNS query for: ");
+        Log.WriteString(domain);
+        Log.WriteString("\n");
 
         dnsClient.SendAsk(domain);
 
@@ -890,10 +890,10 @@ public class Kernel : Sys.Kernel
 
         if (resolvedIP != null)
         {
-            Serial.WriteString("[Test] DNS resolution successful!\n");
-            Serial.WriteString("[Test] valentin.bzh resolved to: ");
-            Serial.WriteString(resolvedIP.ToString());
-            Serial.WriteString("\n");
+            Log.WriteString("[Test] DNS resolution successful!\n");
+            Log.WriteString("[Test] valentin.bzh resolved to: ");
+            Log.WriteString(resolvedIP.ToString());
+            Log.WriteString("\n");
 
             // Verify we got a valid IP (not 0.0.0.0)
             Assert.True(resolvedIP.Id != 0, "Resolved IP should not be 0.0.0.0");
@@ -901,7 +901,7 @@ public class Kernel : Sys.Kernel
         }
         else
         {
-            Serial.WriteString("[Test] DNS resolution timed out or failed\n");
+            Log.WriteString("[Test] DNS resolution timed out or failed\n");
             // Don't fail the test on timeout - network may not be available in test environment
             Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
         }
@@ -927,9 +927,9 @@ public class Kernel : Sys.Kernel
         // answer carry the canonical name, not the queried one. A non-empty
         // result proves ReceiveAll followed the CNAME chain.
         string domain = "www.github.com";
-        Serial.WriteString("[Test] Resolving CNAME chain for ");
-        Serial.WriteString(domain);
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Resolving CNAME chain for ");
+        Log.WriteString(domain);
+        Log.WriteString("...\n");
 
         var dnsServer = new Address(1, 1, 1, 1);
         var dnsClient = new DnsClient();
@@ -941,18 +941,18 @@ public class Kernel : Sys.Kernel
 
         if (addresses != null)
         {
-            Serial.WriteString("[Test] CNAME chain resolved to ");
-            Serial.WriteNumber((ulong)addresses.Count);
-            Serial.WriteString(" address(es), first: ");
-            Serial.WriteString(addresses[0].ToString());
-            Serial.WriteString("\n");
+            Log.WriteString("[Test] CNAME chain resolved to ");
+            Log.WriteNumber((ulong)addresses.Count);
+            Log.WriteString(" address(es), first: ");
+            Log.WriteString(addresses[0].ToString());
+            Log.WriteString("\n");
 
             Assert.True(addresses.Count > 0, "CNAME chain should yield at least one A record");
             Assert.True(addresses[0].Id != 0, "Resolved IP should not be 0.0.0.0");
         }
         else
         {
-            Serial.WriteString("[Test] DNS resolution timed out or failed\n");
+            Log.WriteString("[Test] DNS resolution timed out or failed\n");
             // Don't fail the test on timeout - network may not be available in test environment
             Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
         }
@@ -977,9 +977,9 @@ public class Kernel : Sys.Kernel
         // one.one.one.one stably resolves to exactly two A records:
         // 1.1.1.1 and 1.0.0.1.
         string domain = "one.one.one.one";
-        Serial.WriteString("[Test] Resolving multiple A records for ");
-        Serial.WriteString(domain);
-        Serial.WriteString("...\n");
+        Log.WriteString("[Test] Resolving multiple A records for ");
+        Log.WriteString(domain);
+        Log.WriteString("...\n");
 
         var dnsServer = new Address(1, 1, 1, 1);
         var dnsClient = new DnsClient();
@@ -991,16 +991,16 @@ public class Kernel : Sys.Kernel
 
         if (addresses != null)
         {
-            Serial.WriteString("[Test] Got ");
-            Serial.WriteNumber((ulong)addresses.Count);
-            Serial.WriteString(" address(es):\n");
+            Log.WriteString("[Test] Got ");
+            Log.WriteNumber((ulong)addresses.Count);
+            Log.WriteString(" address(es):\n");
 
             bool allCloudflare = true;
             for (int i = 0; i < addresses.Count; i++)
             {
-                Serial.WriteString("[Test]   ");
-                Serial.WriteString(addresses[i].ToString());
-                Serial.WriteString("\n");
+                Log.WriteString("[Test]   ");
+                Log.WriteString(addresses[i].ToString());
+                Log.WriteString("\n");
 
                 ImmutableArray<byte> bytes = addresses[i].Parts;
                 bool isOneOneOneOne = bytes[0] == 1 && bytes[1] == 1 && bytes[2] == 1 && bytes[3] == 1;
@@ -1016,7 +1016,7 @@ public class Kernel : Sys.Kernel
         }
         else
         {
-            Serial.WriteString("[Test] DNS resolution timed out or failed\n");
+            Log.WriteString("[Test] DNS resolution timed out or failed\n");
             // Don't fail the test on timeout - network may not be available in test environment
             Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
         }
