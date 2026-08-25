@@ -15,6 +15,7 @@ using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using CosmosEndPoint = Cosmos.Kernel.System.Network.IPv4.EndPoint;
+using CosmosUdpClient = Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient;
 using DotNetTcpClient = System.Net.Sockets.TcpClient;
 using DotNetTcpListener = System.Net.Sockets.TcpListener;
 using DotNetUdpClient = System.Net.Sockets.UdpClient;
@@ -49,7 +50,7 @@ public class Kernel : Sys.Kernel
         Log.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 15);
+        TR.Start("Network Tests", expectedTests: 18);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
@@ -64,6 +65,11 @@ public class Kernel : Sys.Kernel
         // UDP tests
         TR.Run("UDP_SendPacket", TestUDPSendPacket);
         TR.Run("UDP_ReceivePacket", TestUDPReceivePacket);
+
+        // Packet seam (COSMOS0002): crafted packets through the public packet types
+        TR.Run("PacketSeam_CraftedEchoRoundTrip", TestPacketSeamCraftedEchoRoundTrip);
+        TR.Run("PacketSeam_CraftedUdpRoundTrip", TestPacketSeamCraftedUdpRoundTrip);
+        TR.Run("PacketSeam_SendUnroutableReturnsFalse", TestPacketSeamSendUnroutable);
 
         // TCP tests
         TR.Run("TCP_ClientConnect", TestTCPClientConnect);
@@ -508,6 +514,150 @@ public class Kernel : Sys.Kernel
         }
 
         udpClient.Close();
+    }
+
+    // ==================== Packet Seam Tests ====================
+
+    private static void TestPacketSeamCraftedEchoRoundTrip()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        var target = new Address(10, 0, 2, 2);
+        const ushort echoId = 0x4242;
+        const ushort echoSequence = 9;
+
+        var icmpClient = new IcmpClient();
+        icmpClient.Connect(target);
+
+        // Build the echo request ourselves instead of going through SendEcho,
+        // so the reply can be correlated with the id/sequence we chose.
+        var request = new IcmpEchoRequest(_localIP!, target, echoId, echoSequence);
+        Log.WriteString("[Test] Sending crafted echo request id=0x4242 seq=9...\n");
+        Assert.True(NetworkStack.Send(request), "NetworkStack.Send should queue a packet with a configured source address");
+
+        IcmpPacket? replyPacket = icmpClient.ReceivePacket(5000);
+        if (replyPacket == null)
+        {
+            Log.WriteString("[Test] No reply packet within timeout\n");
+            Assert.True(false, "Crafted echo request should get a reply packet");
+            icmpClient.Close();
+            return;
+        }
+
+        if (replyPacket is IcmpEchoReply reply)
+        {
+            Log.WriteString("[Test] Echo reply id=");
+            Log.WriteNumber((ulong)reply.ICMPID);
+            Log.WriteString(" seq=");
+            Log.WriteNumber((ulong)reply.ICMPSequence);
+            Log.WriteString(" from ");
+            Log.WriteString(reply.SourceIP.ToString());
+            Log.WriteString("\n");
+
+            Assert.True(reply.ICMPID == echoId, "Echo reply should carry the identifier the request was built with");
+            Assert.True(reply.ICMPSequence == echoSequence, "Echo reply should carry the sequence number the request was built with");
+            Assert.True(reply.SourceIP.CompareTo(target) == 0, "Echo reply should come from the pinged address");
+        }
+        else
+        {
+            Assert.True(false, "Received ICMP packet should be typed as IcmpEchoReply");
+        }
+
+        icmpClient.Close();
+    }
+
+    private static void TestPacketSeamCraftedUdpRoundTrip()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        var gateway = new Address(10, 0, 2, 2);
+        const ushort seamPort = 5559;
+
+        // Bind a Cosmos UdpClient so the echo comes back as a packet object.
+        var udpClient = new CosmosUdpClient(seamPort);
+
+        byte[] payload = Encoding.ASCII.GetBytes("COSMOS_SEAM_TEST");
+        var packet = new UdpPacket(_localIP!, gateway, seamPort, TestPort, payload);
+
+        Log.WriteString("[Test] Sending crafted UDP packet to the echo server...\n");
+        Assert.True(udpClient.Send(packet), "Crafted UDP packet should be queued through the client");
+
+        UdpPacket? echo = udpClient.ReceivePacket(5000);
+        if (echo == null)
+        {
+            Log.WriteString("[Test] No echoed datagram within timeout\n");
+            Assert.True(false, "Echo of the crafted UDP packet should come back as a packet object");
+            udpClient.Close();
+            return;
+        }
+
+        Log.WriteString("[Test] Echoed datagram ");
+        Log.WriteString(echo.SourceIP.ToString());
+        Log.WriteString(":");
+        Log.WriteNumber((ulong)echo.SourcePort);
+        Log.WriteString(" -> port ");
+        Log.WriteNumber((ulong)echo.DestinationPort);
+        Log.WriteString("\n");
+
+        Assert.True(echo.DestinationPort == seamPort, "Echoed datagram should target the port the client is bound to");
+
+        byte[] echoedPayload = echo.UDPData;
+        bool payloadMatches = echoedPayload.Length == payload.Length;
+        if (payloadMatches)
+        {
+            for (int i = 0; i < payload.Length; i++)
+            {
+                if (echoedPayload[i] != payload[i])
+                {
+                    payloadMatches = false;
+                    break;
+                }
+            }
+        }
+        Assert.True(payloadMatches, "Echoed payload should match the crafted payload");
+
+        udpClient.Close();
+    }
+
+    private static void TestPacketSeamSendUnroutable()
+    {
+        var device = NetworkManager.PrimaryDevice;
+        if (device == null || !device.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        // A source address no interface carries: Send must report the drop
+        // instead of pretending the packet went out.
+        var unconfigured = new Address(192, 168, 250, 250);
+        var request = new IcmpEchoRequest(unconfigured, new Address(10, 0, 2, 2), 1, 1);
+        Assert.True(!NetworkStack.Send(request), "Send should return false for a source address no interface carries");
     }
 
     // ==================== TCP Tests ====================
