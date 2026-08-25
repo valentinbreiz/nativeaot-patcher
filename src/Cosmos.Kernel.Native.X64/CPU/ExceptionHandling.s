@@ -116,8 +116,9 @@ RhpThrowEx:
     // Link ExInfo into the global exception chain
     // (In a real OS, this would be thread-local via INLINE_GETTHREAD)
     call    __Cosmos_GetThreadExInfo
-    mov     rdx, rax
-    mov     [rsi + OFFSETOF__ExInfo__m_pPrevExInfo], rdx
+    mov     rdx, [rax]                                                       // rdx = current head
+    mov     [rsi + OFFSETOF__ExInfo__m_pPrevExInfo], rdx                     // pExInfo->m_pPrevExInfo = head
+    mov     [rax], rsi                                                       // head = pExInfo
     
     // Set the exception context pointer
     lea     rdx, [rsp + STACKSIZEOF_ExInfo]                                  // rdx = PAL_LIMITED_CONTEXT*
