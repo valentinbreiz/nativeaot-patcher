@@ -1,3 +1,4 @@
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.Diagnostics;
@@ -89,4 +90,23 @@ public static class Log
     /// </summary>
     /// <param name="args">Values to write.</param>
     public static void Write(params object?[] args) => Serial.Write(args);
+
+    /// <summary>
+    /// Writes raw bytes to the log stream as one uninterrupted sequence.
+    /// Interrupts are masked for the duration of the write, so traces
+    /// logged from IRQ handlers cannot interleave into the middle of the
+    /// data. Use this for binary wire formats that share the serial port
+    /// with text output, such as the kernel test protocol.
+    /// </summary>
+    /// <param name="bytes">Bytes to write.</param>
+    public static void WriteBytes(ReadOnlySpan<byte> bytes)
+    {
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                Serial.ComWrite(bytes[i]);
+            }
+        }
+    }
 }

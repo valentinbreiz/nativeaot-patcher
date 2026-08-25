@@ -571,6 +571,7 @@ override Cosmos.Kernel.System.Network.IPv4.Address.GetHashCode() -> int
 override Cosmos.Kernel.System.Network.IPv4.Address.ToString() -> string!
 override Cosmos.Kernel.System.Network.IPv4.EndPoint.ToString() -> string!
 static Cosmos.Kernel.System.Diagnostics.Log.Write(params object?[]! args) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.WriteBytes(System.ReadOnlySpan<byte> bytes) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(uint number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(ulong number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix(uint number) -> void
