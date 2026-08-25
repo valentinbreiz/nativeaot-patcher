@@ -1,6 +1,7 @@
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.Scheduler;
 using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
+using SchedThreadState = Cosmos.Kernel.Core.Scheduler.ThreadState;
 
 namespace Cosmos.Kernel.System.Diagnostics;
 
@@ -176,7 +177,7 @@ public static class SchedulerInfo
                     return ThreadKillResult.RefusedIdle;
                 }
 
-                current.State = ThreadState.Dead;
+                current.State = SchedThreadState.Dead;
                 return ThreadKillResult.MarkedForExit;
             }
 
@@ -218,13 +219,13 @@ public static class SchedulerInfo
             hasPriority);
     }
 
-    private static KernelThreadState MapState(ThreadState state) => state switch
+    private static KernelThreadState MapState(SchedThreadState state) => state switch
     {
-        ThreadState.Created => KernelThreadState.Created,
-        ThreadState.Ready => KernelThreadState.Ready,
-        ThreadState.Running => KernelThreadState.Running,
-        ThreadState.Blocked => KernelThreadState.Blocked,
-        ThreadState.Sleeping => KernelThreadState.Sleeping,
+        SchedThreadState.Created => KernelThreadState.Created,
+        SchedThreadState.Ready => KernelThreadState.Ready,
+        SchedThreadState.Running => KernelThreadState.Running,
+        SchedThreadState.Blocked => KernelThreadState.Blocked,
+        SchedThreadState.Sleeping => KernelThreadState.Sleeping,
         _ => KernelThreadState.Dead,
     };
 }
