@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.System.Graphics;
 /// used with virtualizers that implement SVGAII. This class will not work on
 /// regular hardware.
 /// </summary>
-public class SVGAII3DCanvas : Canvas
+internal class SVGAII3DCanvas : Canvas
 {
     private static readonly Mode s_defaultMode = new(1024, 768, ColorDepth.ColorDepth32);
 
@@ -251,17 +251,6 @@ public class SVGAII3DCanvas : Canvas
     }
 
     /// <summary>
-    /// Reads the color of the pixel at the given coordinates from video memory.
-    /// </summary>
-    /// <param name="x">The X coordinate.</param>
-    /// <param name="y">The Y coordinate.</param>
-    public Color GetPixel(int x, int y)
-    {
-        uint argb = Driver.GetPixel(x, y);
-        return Color.FromArgb((int)argb);
-    }
-
-    /// <summary>
     /// Whether the device composes a 32-bit alpha hardware cursor on the host
     /// side. When true, callers can define a shape once with
     /// <see cref="DefineAlphaCursor"/> and move it with <see cref="SetCursor"/>
@@ -298,32 +287,24 @@ public class SVGAII3DCanvas : Canvas
     }
 
     /// <summary>
-    /// Copies a rectangle of pixels from one screen position to another using
-    /// the device's accelerated copy operation.
+    /// Copies a rectangle of pixels using the device's accelerated copy
+    /// operation. See <see cref="Canvas.CopyPixels"/> for the clipping and
+    /// overlap contract.
     /// </summary>
-    /// <param name="srcX">The X coordinate of the source rectangle.</param>
-    /// <param name="srcY">The Y coordinate of the source rectangle.</param>
-    /// <param name="dstX">The X coordinate of the destination rectangle.</param>
-    /// <param name="dstY">The Y coordinate of the destination rectangle.</param>
-    /// <param name="width">The width of the rectangle in pixels.</param>
-    /// <param name="height">The height of the rectangle in pixels.</param>
-    public void CopyPixels(int srcX, int srcY, int dstX, int dstY, int width = 1, int height = 1)
+    public override void CopyPixels(int srcX, int srcY, int dstX, int dstY, int width, int height)
     {
-        Driver.Copy((uint)srcX, (uint)srcY, (uint)dstX, (uint)dstY, (uint)width, (uint)height);
-    }
+        int left = Math.Max(0, Math.Max(-srcX, -dstX));
+        int top = Math.Max(0, Math.Max(-srcY, -dstY));
+        int right = Math.Min(width, Math.Min(Width - srcX, Width - dstX));
+        int bottom = Math.Min(height, Math.Min(Height - srcY, Height - dstY));
 
-    /// <summary>
-    /// Moves a single pixel to a new position and clears its old position to
-    /// black.
-    /// </summary>
-    /// <param name="x">The X coordinate of the pixel.</param>
-    /// <param name="y">The Y coordinate of the pixel.</param>
-    /// <param name="newX">The X coordinate to move the pixel to.</param>
-    /// <param name="newY">The Y coordinate to move the pixel to.</param>
-    public void MovePixel(int x, int y, int newX, int newY)
-    {
-        Driver.Copy((uint)x, (uint)y, (uint)newX, (uint)newY, 1, 1);
-        Driver.DrawPixel(0, x, y);
+        if (left >= right || top >= bottom)
+        {
+            return;
+        }
+
+        Driver.Copy((uint)(srcX + left), (uint)(srcY + top), (uint)(dstX + left), (uint)(dstY + top),
+            (uint)(right - left), (uint)(bottom - top));
     }
 
     /// <inheritdoc />

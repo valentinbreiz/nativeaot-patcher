@@ -162,18 +162,6 @@ Cosmos.Kernel.System.Graphics.Png
 Cosmos.Kernel.System.Graphics.Png.Png(System.IO.Stream! stream) -> void
 Cosmos.Kernel.System.Graphics.Png.Png(byte[]! imageData) -> void
 Cosmos.Kernel.System.Graphics.Png.Png(string! path) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.CopyPixels(int srcX, int srcY, int dstX, int dstY, int width = 1, int height = 1) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.CreateCursor() -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DefineAlphaCursor(int hotspotX, int hotspotY, int width, int height, int[]! data) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Driver.get -> Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.SvgaIIDriver!
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Driver3D.get -> Cosmos.Kernel.HAL.Devices.Graphic.SVGAII.VMWareSVGAII3D?
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.GetPixel(int x, int y) -> System.Drawing.Color
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.HasHardwareCursor.get -> bool
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.MovePixel(int x, int y, int newX, int newY) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.SVGAII3DCanvas(Cosmos.Kernel.HAL.Pci.PciDevice! device) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.SVGAII3DCanvas(Cosmos.Kernel.HAL.Pci.PciDevice! device, Cosmos.Kernel.System.Graphics.Mode aMode) -> void
-Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.SetCursor(bool visible, int x, int y) -> void
 Cosmos.Kernel.System.Kernel
 Cosmos.Kernel.System.Kernel.Kernel() -> void
 Cosmos.Kernel.System.Kernel.Started.get -> bool
@@ -502,28 +490,6 @@ const Cosmos.Kernel.System.Storage.Gpt.ProtectiveMbrStartLba = 1 -> uint
 override Cosmos.Kernel.System.Graphics.Mode.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Graphics.Mode.GetHashCode() -> int
 override Cosmos.Kernel.System.Graphics.Mode.ToString() -> string!
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.AvailableModes.get -> System.Collections.Generic.List<Cosmos.Kernel.System.Graphics.Mode>!
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Clear(System.Drawing.Color color) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Clear(int color) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, int width, int height, bool preventOffBoundPixels = true) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DefaultGraphicsMode.get -> Cosmos.Kernel.System.Graphics.Mode
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Disable() -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Display() -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawArray(System.Drawing.Color[]! colors, int x, int y, int width, int height) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawArray(int[]! colors, int x, int y, int width, int height) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawArray(int[]! colors, int x, int y, int width, int height, int startIndex) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawFilledRectangle(System.Drawing.Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, bool preventOffBoundPixels = true) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawPoint(System.Drawing.Color color, int x, int y) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawPoint(int color, int x, int y) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawPoint(uint color, int x, int y) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.DrawRectangle(System.Drawing.Color color, int x, int y, int width, int height) -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.GetImage(int x, int y, int width, int height) -> Cosmos.Kernel.System.Graphics.Bitmap!
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.GetPointColor(int x, int y) -> System.Drawing.Color
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.GetRawPointColor(int x, int y) -> int
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Mode.get -> Cosmos.Kernel.System.Graphics.Mode
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Mode.set -> void
-override Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.Name() -> string!
 override Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys() -> void
 override Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys() -> void
 override Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys() -> void
@@ -710,6 +676,7 @@ static readonly Cosmos.Kernel.System.Storage.Gpt.BasicDataPartitionType -> Syste
 virtual Cosmos.Kernel.System.Graphics.Canvas.AvailableModes.get -> System.Collections.Generic.List<Cosmos.Kernel.System.Graphics.Mode>!
 virtual Cosmos.Kernel.System.Graphics.Canvas.Clear(System.Drawing.Color color) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.Clear(int color) -> void
+virtual Cosmos.Kernel.System.Graphics.Canvas.CopyPixels(int srcX, int srcY, int dstX, int dstY, int width, int height) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, int maxWidth, int maxHeight, bool preventOffBoundPixels = true) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DefaultGraphicsMode.get -> Cosmos.Kernel.System.Graphics.Mode
 virtual Cosmos.Kernel.System.Graphics.Canvas.Disable() -> void
@@ -742,6 +709,7 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.GetPointColor(int x, int y) -> Syst
 virtual Cosmos.Kernel.System.Graphics.Canvas.GetRawPointColor(int x, int y) -> int
 virtual Cosmos.Kernel.System.Graphics.Canvas.Mode.get -> Cosmos.Kernel.System.Graphics.Mode
 virtual Cosmos.Kernel.System.Graphics.Canvas.Mode.set -> void
+virtual Cosmos.Kernel.System.Graphics.Canvas.MovePixel(int x, int y, int newX, int newY) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.Name() -> string!
 virtual Cosmos.Kernel.System.Graphics.Canvas.RefreshRate.get -> int
 virtual Cosmos.Kernel.System.Kernel.AfterRun() -> void

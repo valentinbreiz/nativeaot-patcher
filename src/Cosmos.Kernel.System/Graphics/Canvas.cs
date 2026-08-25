@@ -384,6 +384,62 @@ public unsafe class Canvas
     }
 
     /// <summary>
+    /// Copies a rectangle of pixels from one position on the canvas to
+    /// another. The rectangle is clipped so that both the source and the
+    /// destination stay within the canvas bounds, and overlapping regions
+    /// copy correctly.
+    /// </summary>
+    /// <param name="srcX">The X coordinate of the source rectangle.</param>
+    /// <param name="srcY">The Y coordinate of the source rectangle.</param>
+    /// <param name="dstX">The X coordinate of the destination rectangle.</param>
+    /// <param name="dstY">The Y coordinate of the destination rectangle.</param>
+    /// <param name="width">The width of the rectangle in pixels.</param>
+    /// <param name="height">The height of the rectangle in pixels.</param>
+    public virtual void CopyPixels(int srcX, int srcY, int dstX, int dstY, int width, int height)
+    {
+        int left = Math.Max(0, Math.Max(-srcX, -dstX));
+        int top = Math.Max(0, Math.Max(-srcY, -dstY));
+        int right = Math.Min(width, Math.Min(Width - srcX, Width - dstX));
+        int bottom = Math.Min(height, Math.Min(Height - srcY, Height - dstY));
+
+        if (left >= right || top >= bottom)
+        {
+            return;
+        }
+
+        int copyWidth = right - left;
+        int copyHeight = bottom - top;
+
+        // Snapshot the source rectangle before writing so overlapping
+        // source and destination regions do not read already-copied pixels.
+        int[] pixels = new int[copyWidth * copyHeight];
+
+        for (int row = 0; row < copyHeight; row++)
+        {
+            for (int column = 0; column < copyWidth; column++)
+            {
+                pixels[row * copyWidth + column] = GetRawPointColor(srcX + left + column, srcY + top + row);
+            }
+        }
+
+        DrawArray(pixels, dstX + left, dstY + top, copyWidth, copyHeight);
+    }
+
+    /// <summary>
+    /// Moves a single pixel to a new position and clears its old position to
+    /// black.
+    /// </summary>
+    /// <param name="x">The X coordinate of the pixel.</param>
+    /// <param name="y">The Y coordinate of the pixel.</param>
+    /// <param name="newX">The X coordinate to move the pixel to.</param>
+    /// <param name="newY">The Y coordinate to move the pixel to.</param>
+    public virtual void MovePixel(int x, int y, int newX, int newY)
+    {
+        CopyPixels(x, y, newX, newY, 1, 1);
+        DrawPoint(0, x, y);
+    }
+
+    /// <summary>
     /// Draws a horizontal line.
     /// </summary>
     /// <param name="color">The color to draw with.</param>
