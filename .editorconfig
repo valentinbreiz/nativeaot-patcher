@@ -169,7 +169,7 @@ csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
 # License header
-file_header_template = This code is licensed under MIT license (see LICENSE for details)
+file_header_template = This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 # C++ Files
 
@@ -243,3 +243,26 @@ end_of_line = lf
 
 [*.{cmd,bat}]
 end_of_line = crlf
+
+# Public API tracking (Microsoft.CodeAnalysis.PublicApiAnalyzers, opt-in via
+# CosmosTrackPublicApi): every public surface change must land in the
+# project's PublicAPI.Unshipped.txt, reseeded with `make api`.
+[*.cs]
+dotnet_diagnostic.RS0016.severity = error
+dotnet_diagnostic.RS0017.severity = error
+# Optional-parameter overload style rules: not a goal for this surface.
+dotnet_diagnostic.RS0026.severity = none
+dotnet_diagnostic.RS0027.severity = none
+
+# Vendored code stays out of the declared surface: the tracking files list the
+# repo's own API only, and these types go internal in the pre-release surface
+# cleanup. Must come after the [*.cs] section above (later sections win).
+[src/Cosmos.Kernel.System/{IO/Compression/SharpZipLib,Graphics/Images/Png,Graphics/Fonts/TrueType}/**.cs]
+dotnet_diagnostic.RS0016.severity = none
+dotnet_diagnostic.RS0017.severity = none
+
+# Kernel.VersionString is generated from $(VersionPrefix) into the obj dir:
+# tracking a version-stamped constant would churn the file on every bump.
+[**/KernelVersion.g.cs]
+dotnet_diagnostic.RS0016.severity = none
+dotnet_diagnostic.RS0017.severity = none

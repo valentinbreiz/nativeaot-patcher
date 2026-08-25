@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
@@ -10,36 +10,6 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 /// </summary>
 public static unsafe partial class GarbageCollector
 {
-    /// <summary>
-    /// Allocates a new GC segment backed by page-allocated memory.
-    /// </summary>
-    /// <param name="requestedSize">Minimum usable size in bytes.</param>
-    /// <returns>Pointer to the initialized segment, or <c>null</c> if page allocation fails.</returns>
-    private static GCSegment* AllocateSegment(uint requestedSize)
-    {
-        uint size = requestedSize < s_maxSegmentSize ? s_maxSegmentSize : requestedSize;
-        uint totalSize = size + (uint)sizeof(GCSegment) + ReservedHeaderSlotSize;
-        ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
-
-        var memory = (byte*)PageAllocator.AllocPages(PageType.GCHeap, pageCount, true);
-        if (memory == null)
-        {
-            return null;
-        }
-
-        var segment = (GCSegment*)memory;
-        segment->Next = null;
-        // Pad Start so the first object's runtime header write (objRef-4) lands in
-        // zeroed filler instead of the segment struct's last field (UsedSize).
-        segment->Start = memory + Align((uint)sizeof(GCSegment)) + ReservedHeaderSlotSize;
-        segment->End = memory + (pageCount * PageAllocator.PageSize);
-        segment->Bump = segment->Start;
-        segment->TotalSize = (uint)(segment->End - segment->Start);
-        segment->UsedSize = 0;
-
-        return segment;
-    }
-
     /// <summary>
     /// Aligns a size up to the nearest pointer-sized boundary.
     /// </summary>
@@ -158,6 +128,7 @@ public static unsafe partial class GarbageCollector
             void* result = segment->Bump;
             segment->Bump = newBump;
             segment->UsedSize += size;
+            segment->MarkObject((nint)result);
             s_totalAllocatedBytes += size;
             s_currentSegment = segment;
             s_lastSegment = segment;
@@ -174,14 +145,14 @@ public static unsafe partial class GarbageCollector
     /// <returns>Pointer to the allocated memory, or <c>null</c> if allocation fails.</returns>
     private static void* AllocateObjectSlow(uint size)
     {
-        if (s_segments == null)
+        if (s_segmentManager.Segments == null)
         {
             return null;
         }
 
         if (s_lastSegment == null)
         {
-            s_lastSegment = s_segments;
+            s_lastSegment = s_segmentManager.Segments;
         }
 
         GCSegment* start = s_lastSegment;
@@ -197,7 +168,7 @@ public static unsafe partial class GarbageCollector
         }
 
         // Pass 2: from head to s_lastSegment (exclusive)
-        for (GCSegment* seg = s_segments; seg != start; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != start; seg = seg->Next)
         {
             void* result = BumpAllocInSegment(seg, size);
             if (result != null)
@@ -207,45 +178,18 @@ public static unsafe partial class GarbageCollector
         }
 
         // No segment fits: allocate and append a new segment at tail
-        GCSegment* newSegment = AllocateSegment(size);
+        GCSegment* newSegment = s_segmentManager.AllocateSegment(size);
+
         if (newSegment == null)
         {
             return null;
         }
-
-        AppendSegment(newSegment);
+        s_heapRangeDirty = true;
         s_lastSegment = newSegment;
         s_currentSegment = newSegment;
 
         return BumpAllocInSegment(newSegment, size);
     }
-
-    /// <summary>
-    /// Appends a segment to the end of the GC segment linked list.
-    /// </summary>
-    /// <param name="segment">The segment to append.</param>
-    private static void AppendSegment(GCSegment* segment)
-    {
-        if (segment == null)
-        {
-            return;
-        }
-
-        segment->Next = null;
-
-        if (s_segments == null)
-        {
-            s_segments = segment;
-            s_tailSegment = segment;
-            s_heapRangeDirty = true;
-            return;
-        }
-
-        s_tailSegment->Next = segment;
-        s_tailSegment = segment;
-        s_heapRangeDirty = true;
-    }
-
     // --- Raw variants (no s_totalAllocatedBytes increment) for TLAB refill ---
 
     /// <summary>
@@ -396,6 +340,7 @@ public static unsafe partial class GarbageCollector
             void* result = segment->Bump;
             segment->Bump = newBump;
             segment->UsedSize += size;
+            segment->MarkObject((nint)result);
             s_currentSegment = segment;
             s_lastSegment = segment;
             return result;
@@ -410,14 +355,14 @@ public static unsafe partial class GarbageCollector
     /// </summary>
     private static void* AllocateObjectSlowRaw(uint size)
     {
-        if (s_segments == null)
+        if (s_segmentManager.Segments == null)
         {
             return null;
         }
 
         if (s_lastSegment == null)
         {
-            s_lastSegment = s_segments;
+            s_lastSegment = s_segmentManager.Segments;
         }
 
         GCSegment* start = s_lastSegment;
@@ -431,7 +376,7 @@ public static unsafe partial class GarbageCollector
             }
         }
 
-        for (GCSegment* seg = s_segments; seg != start; seg = seg->Next)
+        for (GCSegment* seg = s_segmentManager.Segments; seg != start; seg = seg->Next)
         {
             void* result = BumpAllocInSegmentRaw(seg, size);
             if (result != null)
@@ -440,13 +385,13 @@ public static unsafe partial class GarbageCollector
             }
         }
 
-        GCSegment* newSegment = AllocateSegment(size);
+        GCSegment* newSegment = s_segmentManager.AllocateSegment(size);
         if (newSegment == null)
         {
             return null;
         }
 
-        AppendSegment(newSegment);
+        s_heapRangeDirty = true;
         s_lastSegment = newSegment;
         s_currentSegment = newSegment;
 

@@ -8,5 +8,9 @@
   href: network.md
 - name: Graphics
   href: graphics.md
+- name: Keyboard
+  href: keyboard.md
+- name: Mouse
+  href: mouse.md
 - name: Debugging with VSCode and QEMU
   href: debugging.md

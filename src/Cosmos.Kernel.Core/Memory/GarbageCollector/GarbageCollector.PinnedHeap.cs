@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.IO;
@@ -17,13 +17,6 @@ public static unsafe partial class GarbageCollector
     /// Minimum size for a pinned heap segment (one page).
     /// </summary>
     private const uint PinnedHeapMinSize = (uint)PageAllocator.PageSize;
-
-    // --- Static fields ---
-
-    /// <summary>
-    /// Head of the linked list of pinned heap segments.
-    /// </summary>
-    private static GCSegment* s_pinnedSegments;
 
     /// <summary>
     /// Current pinned segment used for bump allocation.
@@ -55,49 +48,17 @@ public static unsafe partial class GarbageCollector
         }
 
         // Need new segment
-        GCSegment* newSegment = AllocatePinnedSegment(Math.Max(PinnedHeapMinSize, allocSize + (uint)sizeof(GCSegment)));
+        GCSegment* newSegment = s_pinnedSegmentManager.AllocateSegment(allocSize);
         if (newSegment == null)
         {
             return null;
         }
 
-        // Link the segment
-        AppendPinnedSegment(newSegment);
         s_currentPinnedSegment = newSegment;
 
         // Try allocation again
         result = BumpAllocInPinnedSegment(s_currentPinnedSegment, allocSize);
         return (GCObject*)result;
-    }
-
-    /// <summary>
-    /// Allocates a new pinned heap segment backed by page-allocated memory.
-    /// </summary>
-    /// <param name="requestedSize">Minimum usable size in bytes.</param>
-    /// <returns>Pointer to the new segment, or <c>null</c> if page allocation fails.</returns>
-    private static GCSegment* AllocatePinnedSegment(uint requestedSize)
-    {
-        uint size = requestedSize < PinnedHeapMinSize ? PinnedHeapMinSize : requestedSize;
-        uint totalSize = size + (uint)sizeof(GCSegment) + ReservedHeaderSlotSize;
-        ulong pageCount = (totalSize + PageAllocator.PageSize - 1) / PageAllocator.PageSize;
-
-        var memory = (byte*)PageAllocator.AllocPages(PageType.Unmanaged, pageCount, true);
-        if (memory == null)
-        {
-            return null;
-        }
-
-        var segment = (GCSegment*)memory;
-        segment->Next = null;
-        // Pad Start so the first object's runtime header write (objRef-4) lands in
-        // zeroed filler instead of the segment struct's last field (UsedSize).
-        segment->Start = memory + Align((uint)sizeof(GCSegment)) + ReservedHeaderSlotSize;
-        segment->End = memory + (pageCount * PageAllocator.PageSize);
-        segment->Bump = segment->Start;
-        segment->TotalSize = (uint)(segment->End - segment->Start);
-        segment->UsedSize = 0;
-
-        return segment;
     }
 
     /// <summary>
@@ -117,6 +78,7 @@ public static unsafe partial class GarbageCollector
         if (newBump <= segment->End)
         {
             void* result = segment->Bump;
+            segment->MarkObject((nint)result);
             segment->Bump = newBump;
             segment->UsedSize += size;
             s_totalAllocatedBytes += size;
@@ -128,33 +90,6 @@ public static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Appends a pinned segment to the end of the pinned segment linked list.
-    /// </summary>
-    /// <param name="segment">The segment to append.</param>
-    private static void AppendPinnedSegment(GCSegment* segment)
-    {
-        if (segment == null)
-        {
-            return;
-        }
-
-        if (s_pinnedSegments == null)
-        {
-            s_pinnedSegments = segment;
-        }
-        else
-        {
-            GCSegment* tail = s_pinnedSegments;
-            while (tail->Next != null)
-            {
-                tail = tail->Next;
-            }
-
-            tail->Next = segment;
-        }
-    }
-
-    /// <summary>
     /// Checks if a pointer falls within any pinned heap segment.
     /// </summary>
     /// <param name="ptr">The pointer to test.</param>
@@ -163,7 +98,7 @@ public static unsafe partial class GarbageCollector
     private static bool IsInPinnedHeap(nint ptr)
     {
         byte* p = (byte*)ptr;
-        GCSegment* segment = s_pinnedSegments;
+        GCSegment* segment = s_pinnedSegmentManager.Segments;
         while (segment != null)
         {
             if (p >= segment->Start && p < segment->End)
@@ -184,7 +119,7 @@ public static unsafe partial class GarbageCollector
     private static int SweepPinnedHeap()
     {
         int freed = 0;
-        GCSegment* segment = s_pinnedSegments;
+        GCSegment* segment = s_pinnedSegmentManager.Segments;
         while (segment != null)
         {
             freed += SweepPinnedSegment(segment);
@@ -318,7 +253,7 @@ public static unsafe partial class GarbageCollector
         GCSegment* semiTail = null;
         GCSegment* freeHead = null;
         GCSegment* freeTail = null;
-        GCSegment* seg = s_pinnedSegments;
+        GCSegment* seg = s_pinnedSegmentManager.Segments;
 
         while (seg != null)
         {
@@ -381,7 +316,7 @@ public static unsafe partial class GarbageCollector
             tail = freeTail;
         }
 
-        s_pinnedSegments = newHead;
+        s_pinnedSegmentManager.Segments = newHead;
         s_currentPinnedSegment = semiHead != null ? semiHead : freeHead;
 
         s_heapRangeDirty = true;

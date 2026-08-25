@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 292" role="img" aria-label="Layout of one thread stack at creation. The fabricated ThreadContext sits at the base, at StackBase rounded up to 16 bytes, and the initial StackPointer points at it. The usable stack occupies the rest, with live frames at the top growing downward. StackBase + StackSize marks the top. There is no guard page. After the first run, each preemption saves a fresh context at the interrupted stack position instead.">
+  <style>
+    svg { color: #d0d7de; }
+    .bg { fill: #1c2128; }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="292"/>
+  <defs>
+    <marker id="stk-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- caption + outer dashed allocation -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one thread stack as InitializeStack builds it (DefaultStackSize = 256 KiB)</text>
+  <rect x="10" y="28" width="726" height="228" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <!-- ThreadContext block at the base (low addresses, left) -->
+  <rect x="30" y="52" width="160" height="180" fill="currentColor" fill-opacity="0.12" stroke="currentColor"/>
+  <text x="110" y="71" text-anchor="middle" font-size="13" font-weight="bold" fill="currentColor">ThreadContext</text>
+  <line x1="30" y1="80" x2="190" y2="80" stroke="currentColor" stroke-opacity="0.4"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor">
+    <text x="42" y="100">Xmm / Neon</text>
+    <text x="42" y="125">R15..Rax / X0..X30</text>
+    <text x="42" y="150">Interrupt, Cr2/Far</text>
+    <text x="42" y="175">Rip/Elr, Rflags</text>
+    <text x="42" y="200">Rsp/Sp</text>
+  </g>
+  <!-- usable stack: free middle + live frames at the top (right) -->
+  <rect x="190" y="52" width="526" height="180" fill="none" stroke="currentColor"/>
+  <rect x="540" y="52" width="176" height="180" fill="currentColor" fill-opacity="0.06"/>
+  <line x1="540" y1="52" x2="540" y2="232" stroke="currentColor" stroke-dasharray="4 4"/>
+  <text x="365" y="146" text-anchor="middle" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">(free)</text>
+  <text x="628" y="146" text-anchor="middle" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="currentColor">… [frame] [frame]</text>
+  <!-- growth arrow: frames grow downward (toward the context) -->
+  <line x1="536" y1="98" x2="420" y2="98" stroke="currentColor" stroke-width="1.4" marker-end="url(#stk-ah)"/>
+  <text x="478" y="88" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">grows downward</text>
+  <!-- no guard page callout at the boundary -->
+  <polyline points="193,232 193,244 204,244" fill="none" stroke="currentColor" stroke-opacity="0.6"/>
+  <text x="208" y="248" font-size="11.5" fill="currentColor" fill-opacity="0.8">no guard page</text>
+  <!-- extent labels -->
+  <g stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="2 3">
+    <line x1="30" y1="234" x2="30" y2="268"/>
+    <line x1="716" y1="234" x2="716" y2="268"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="currentColor">
+    <text x="36" y="272">StackBase</text>
+    <text x="710" y="272" text-anchor="end">StackBase + StackSize</text>
+  </g>
+  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">
+    <text x="36" y="286">(initial StackPointer: the fabricated first-run context)</text>
+    <text x="710" y="286" text-anchor="end">(top; a new thread's initial SP starts here)</text>
+  </g>
+</svg>

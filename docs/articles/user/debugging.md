@@ -30,7 +30,7 @@ The configuration names above are what the template generates. When working on t
 
 ## Serial log
 
-Every kernel boot phase logs to the serial port (COM1); `cosmos run` and `make run` connect it to your terminal. When a kernel does not come up, or crashes before the debugger is useful, the serial log is the first thing to read — see [Kernel Startup](startup.md) for a phase-by-phase walkthrough and how to symbolicate crash addresses.
+Every kernel boot phase logs to the serial port (COM1); `cosmos run` and `make run` connect it to your terminal. When a kernel does not come up, or crashes before the debugger is useful, the serial log is the first thing to read; see [Kernel Startup](startup.md) for a phase-by-phase walkthrough and how to symbolicate crash addresses.
 
 ---
 

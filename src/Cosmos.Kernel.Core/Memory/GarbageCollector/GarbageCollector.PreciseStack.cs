@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using System.Runtime.CompilerServices;
 using Cosmos.Kernel.Core.Bridge;
@@ -162,6 +162,50 @@ public static unsafe partial class GarbageCollector
         {
             return;
         }
+
+        if ((gcRefFlags & GcRefFlags.GC_CALL_INTERIOR) != 0)
+        {
+            // An interior pointer is reported. Find the parent object in the GC heap and mark it.
+            // Check if we are dealing with a pinned object, we need to use the correct segment list.
+            void* obj = (gcRefFlags & GcRefFlags.GC_CALL_PINNED) != 0
+                        ? GetParentObject((void*)*pObjRef, s_pinnedSegmentManager.Segments)
+                        : GetParentObject((void*)*pObjRef, s_segmentManager.Segments);
+
+            TryMarkRoot((nint)obj);
+            return;
+        }
         TryMarkRoot((nint)(*pObjRef));
+    }
+
+    private static void* GetParentObject(void* obj, GCSegment* s_segments)
+    {
+        var segment = s_segments;
+
+        while (segment != null)
+        {
+            if (obj >= segment->Start && obj < segment->End)
+            {
+                var start = segment->FindClosestObjectBelow((nint)obj);
+
+                var segEnum = new GCSegment.Enumerator((byte*)start, (byte*)obj);
+
+                while (segEnum.MoveNext())
+                {
+                    var current = segEnum.Current;
+                    if (current == obj)
+                    {
+                        return current;
+                    }
+
+                    if (obj > current && obj < (byte*)current + current->ComputeSize())
+                    {
+                        return current;
+                    }
+                }
+            }
+            segment = segment->Next;
+        }
+
+        return obj;
     }
 }

@@ -38,7 +38,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 - PCI and MMIO drivers
 - UART serial
 - [Cosmos Graphics Subsystem](https://cosmosos.github.io/articles/user/graphics.html), double-buffered Canvas API (shapes, text fonts, images) on the UEFI GOP framebuffer
-- Keyboard and Mouse input
+- [Keyboard](https://cosmosos.github.io/articles/user/keyboard.html) and [Mouse](https://cosmosos.github.io/articles/user/mouse.html) input
 - [Network stack](https://cosmosos.github.io/articles/user/network.html), standard `System.Net.Sockets` TCP/UDP over ARP, IPv4, DHCP and DNS (no HTTPS *yet*)
 - Storage drivers (AHCI/SATA, NVMe) with MBR, GPT and EBR partitioning
 - [FAT12/16/32 filesystem](https://cosmosos.github.io/articles/user/filesystem.html) on a Unix-style VFS (mount, superblocks, inodes), exposed through the standard `System.IO` API
@@ -46,35 +46,7 @@ Cosmos gen2 (the current public Cosmos OS) compiles C# IL to x86 assembly throug
 
 ## Documentation
 
-[Documentation site](https://cosmosos.github.io/index.html) — split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
-
-**User Guide**
-
-- [Installation Guide](docs/articles/user/install.md)
-- [Kernel Startup](docs/articles/user/startup.md)
-- [File System](docs/articles/user/filesystem.md)
-- [Network](docs/articles/user/network.md)
-- [Graphics](docs/articles/user/graphics.md)
-- [Debugging with VS Code and QEMU](docs/articles/user/debugging.md)
-
-**Developer Docs**
-
-- [Dev Container Setup](docs/articles/dev/install-dev.md)
-- [Kernel Project Layout](docs/articles/dev/kernel-project-layout.md)
-- [Coding Guidelines](docs/articles/dev/coding-guidelines.md)
-- [Plugs](docs/articles/dev/plugs.md)
-- [Testing](docs/articles/dev/testing.md)
-- [Garbage Collector](docs/articles/dev/garbage-collector.md), [Precise Stack Scan (GCInfo)](docs/articles/dev/garbage-collector-gcinfo.md)
-- [Scheduler](docs/articles/dev/scheduler.md)
-- [Kernel Compilation Steps](docs/articles/dev/build/kernel-compilation-steps.md)
-- [Cosmos.Build.Asm](docs/articles/dev/build/asm-build.md), [.GCC](docs/articles/dev/build/gcc-build.md), [.Patcher](docs/articles/dev/build/patcher-build.md), [.Ilc](docs/articles/dev/build/ilc-build.md)
-
-## Related resources
-
-- [Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?](https://valentin.bzh/posts/3)
-- [NativeAOT Developer Workflow](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/nativeaot.md)
-- [NativeAOT Limitations](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/limitations.md)
-- [Limine Boot Protocol](https://github.com/limine-bootloader/limine)
+[Documentation site](https://cosmosos.github.io/index.html): split into a **User Guide** (build your own OS with Cosmos) and **Developer Docs** (contribute to Cosmos itself / architecture internals).
 
 ## Contributors
 
@@ -96,4 +68,5 @@ See the live list on the [Contributors page](https://github.com/CosmosOS/Cosmos/
 
 ## License
 
-[MIT](LICENSE) — Copyright (c) 2024 Kaleb McGhie (zarlo) and contributors.
+[BSD 3-Clause](LICENSE), the original Cosmos license. Copyright (c) 2007-2026, CosmosOS, COSMOS Project.
+
