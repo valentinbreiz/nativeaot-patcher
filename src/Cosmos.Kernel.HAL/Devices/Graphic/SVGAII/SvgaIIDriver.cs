@@ -15,7 +15,7 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 /// Update through the FIFO. The SVGA3D command layer is
 /// <see cref="VMWareSVGAII3D"/>, built on top of this driver.
 /// </summary>
-public unsafe class SvgaIIDriver : GraphicDevice
+internal unsafe class SvgaIIDriver : GraphicDevice
 {
     /// <summary>
     /// Video memory block.

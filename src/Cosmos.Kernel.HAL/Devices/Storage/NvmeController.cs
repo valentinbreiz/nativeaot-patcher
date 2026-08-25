@@ -39,7 +39,7 @@ namespace Cosmos.Kernel.HAL.Devices.Storage;
 /// discovery.</item>
 /// </list>
 /// </summary>
-public unsafe class NvmeController
+internal unsafe class NvmeController
 {
     private const uint AdminQueueDepth = 8;
     private const uint IoQueueDepth = 8;
