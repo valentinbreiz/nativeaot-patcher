@@ -17,6 +17,10 @@
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <!-- This assembly declares the experimental scheduler seam and consumes it itself. -->
     <NoWarn>$(NoWarn);COSMOS0001</NoWarn>
+
+    <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
+         the scheduler seam plus the platform contract interfaces. -->
+    <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
   </PropertyGroup>
 
   <!-- Architecture-specific source files (defines are set by Cosmos.ArchitecturePicker.props) -->
@@ -62,6 +66,31 @@
       <Link>Runtime\Internal\Runtime\ExceptionIDs.cs</Link>
     </Compile>
   </ItemGroup>
+
+  <!-- Sources linked from the dotnet/runtime submodule above declare upstream
+       public types with no XML docs. The submodule's root .editorconfig
+       shields them from this repo's .editorconfig, so the API-tracking and
+       doc-requirement exclusions are handed to the compiler as a generated
+       global analyzer config naming each linked file. -->
+  <Target Name="_CosmosVendoredAnalyzerConfig" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_VendoredGlobalConfigFile>$(IntermediateOutputPath)vendored.globalconfig</_VendoredGlobalConfigFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <_VendoredCompile Include="@(Compile)"
+                        Condition="$([System.String]::Copy('%(Compile.FullPath)').Replace('\', '/').Contains('/dotnet/runtime/'))" />
+      <_VendoredConfigLine Include="is_global = true" />
+      <_VendoredConfigLine Include="[$([System.String]::Copy('%(_VendoredCompile.FullPath)').Replace('\', '/'))]%0adotnet_diagnostic.RS0016.severity = none%0adotnet_diagnostic.RS0017.severity = none%0adotnet_diagnostic.CS1591.severity = none" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_VendoredGlobalConfigFile)"
+                      Lines="@(_VendoredConfigLine)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <EditorConfigFiles Include="$(_VendoredGlobalConfigFile)" />
+      <FileWrites Include="$(_VendoredGlobalConfigFile)" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Runtime" />

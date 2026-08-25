@@ -12,6 +12,10 @@
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
     <!-- NVMe I/O waits block and wake threads through the experimental scheduler seam (COSMOS0001). -->
     <NoWarn>$(NoWarn);COSMOS0001</NoWarn>
+
+    <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
+         the VFS contract types only. -->
+    <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />
