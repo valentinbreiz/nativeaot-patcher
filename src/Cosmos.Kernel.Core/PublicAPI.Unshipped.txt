@@ -18,10 +18,6 @@ Cosmos.Kernel.Core.IO.IPortIO.WriteWord(ushort port, ushort value) -> void
 Cosmos.Kernel.Core.Power.IPowerOps
 Cosmos.Kernel.Core.Power.IPowerOps.Reboot() -> void
 Cosmos.Kernel.Core.Power.IPowerOps.Shutdown() -> void
-Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException
-Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.AmbiguousImplementationException() -> void
-Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.AmbiguousImplementationException(string! message) -> void
-Cosmos.Kernel.Core.Runtime.AmbiguousImplementationException.AmbiguousImplementationException(string! message, System.Exception! innerException) -> void
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.SchedulerManager.DefaultQuantumNs = 10000000 -> ulong
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.SchedulerManager.NanosecondsPerMillisecond = 1000000 -> ulong
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.Thread.DefaultStackSize = 262144 -> nuint

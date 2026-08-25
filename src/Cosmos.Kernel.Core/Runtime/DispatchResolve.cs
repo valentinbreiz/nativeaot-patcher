@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using Internal.Runtime;
 
@@ -11,25 +12,6 @@ using Debug = System.Diagnostics.Debug;
 
 namespace Cosmos.Kernel.Core.Runtime
 {
-    /// <summary>
-    /// Thrown by interface dispatch when default-interface-method resolution is ambiguous
-    /// (the diamond problem). Mirrors the BCL's <c>System.Runtime.AmbiguousImplementationException</c>;
-    /// catch this type to handle ambiguous dispatch in kernel code.
-    /// </summary>
-    public class AmbiguousImplementationException : Exception
-    {
-        /// <summary>Creates the exception with a default message.</summary>
-        public AmbiguousImplementationException() { }
-
-        /// <summary>Creates the exception with the given message.</summary>
-        /// <param name="message">Description of the ambiguous dispatch.</param>
-        public AmbiguousImplementationException(string message) : base(message) { }
-
-        /// <summary>Creates the exception with a message and an inner exception.</summary>
-        /// <param name="message">Description of the ambiguous dispatch.</param>
-        /// <param name="innerException">The exception that caused this one.</param>
-        public AmbiguousImplementationException(string message, Exception innerException) : base(message, innerException) { }
-    }
     internal static unsafe class DispatchResolve
     {
         public static IntPtr FindInterfaceMethodImplementationTarget(MethodTable* pTgtType,
