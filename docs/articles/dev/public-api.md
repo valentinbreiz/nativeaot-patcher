@@ -1,12 +1,40 @@
 # Public API Tracking
 
-The public surface of the kernel packages is declared in text files checked into the repository, enforced by Roslyn analyzers at build time, guarded against breaking changes at release time, and published as one frozen documentation site per release. This page describes the three mechanisms and the contributor workflow they impose.
+The public surface of the kernel packages is declared in text files checked into the repository, enforced by Roslyn analyzers at build time, guarded against breaking changes at release time, and published as one frozen documentation site per release. This page states the policy that decides what is public, then the three mechanisms and the contributor workflow they impose.
+
+---
+
+## The policy
+
+Three rules decide what is public:
+
+1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against: tracked, documented, frozen at release, with deprecation cycles applying there and only there. Contract types that the ring's own signatures expose ride along as public: the device interfaces in `Cosmos.Kernel.HAL.Interfaces`, the VFS contracts in `Cosmos.Kernel.HAL.Vfs`, and the platform interfaces in `Cosmos.Kernel.Core` (`IPortIO`, `ICpuOps`, `IPowerOps`, `IInterruptController`).
+2. **Chosen experimental seams.** Extension points are opened deliberately and marked `[Experimental]`: public and usable now, no compatibility promise, promoted to stable by removing the attribute once proven. Referencing one is a build error until the consuming project suppresses its diagnostic ID, which is the consumer's acknowledgement of that contract. The scheduler policy seam in Core is the first; a driver kit in the HAL is the planned second.
+3. **Everything else is internal.** Visibility is never the extension mechanism; seams are. First-party assemblies and the white-box test kernels reach internals through `InternalsVisibleTo`; anyone else goes through `[UnsafeAccessor]`/`[UnsafeAccessorType]` ([Accessing internals](accessing-internals.md)) and accepts that internals change without notice.
+
+The enforcement test is mechanical: `examples/DevKernel` must compile with no `InternalsVisibleTo` grant. If DevKernel needs a symbol, the symbol becomes public or gets a `Cosmos.Kernel.System` facade; if it does not, the symbol stays internal.
+
+| Assembly | Surface |
+|----------|---------|
+| `Cosmos.Kernel.System` | The supported ring |
+| `Cosmos.Kernel.HAL.Interfaces` | Device and platform contracts, tracked |
+| `Cosmos.Kernel.HAL` | VFS contracts only, tracked; drivers, PCI, ports internal |
+| `Cosmos.Kernel.Core` | The scheduler seam (`[Experimental]`) plus the platform contract interfaces, tracked |
+| Arch assemblies, Native, Plugs, Debug, Boot.Limine | Internal, `InternalsVisibleTo` for first-party |
+
+The last row is policy rather than tracked enforcement: those assemblies are untracked, and their remaining public types shrink as they are touched.
+
+Experimental seams carry diagnostic IDs:
+
+| ID | Seam |
+|----|------|
+| `COSMOS0001` | The scheduler policy seam: `IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `ThreadState`, `ThreadFlags` ([Scheduler - Writing a Scheduler](scheduler-plugging.md)) |
 
 ---
 
 ## The declared surface
 
-Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). Today that covers `Cosmos.Kernel.System`; `Cosmos.Kernel.Core` and the HAL packages follow once their surfaces are audited.
+Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). That covers `Cosmos.Kernel.System`, `Cosmos.Kernel.Core`, `Cosmos.Kernel.HAL`, and `Cosmos.Kernel.HAL.Interfaces`.
 
 An opted-in project references [Microsoft.CodeAnalysis.PublicApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md), which requires every `public` symbol to appear in one of two files next to the `.csproj`:
 
