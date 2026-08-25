@@ -1,4 +1,5 @@
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.Kernel.HAL.Pci.Enums;
 
@@ -35,16 +36,7 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver()
     {
-        if (CosmosFeatures.PCIEnabled)
-        {
-            PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
-            if (svgaDevice is not null)
-            {
-                return new SVGAII3DCanvas(svgaDevice);
-            }
-        }
-
-        return new GopCanvas();
+        return CreateVideoDriver(null);
     }
 
     /// <summary>
@@ -54,16 +46,32 @@ public static class FullScreenCanvas
     /// </summary>
     private static Canvas GetVideoDriver(Mode mode)
     {
+        return CreateVideoDriver(mode);
+    }
+
+    /// <summary>
+    /// Creates the canvas matching the detected display device. On the VMware
+    /// SVGA II adapter the canvas type depends on whether the device
+    /// negotiated 3D support, so users can discover 3D capability with
+    /// <c>canvas is Canvas3D</c>.
+    /// </summary>
+    private static Canvas CreateVideoDriver(Mode? mode)
+    {
         if (CosmosFeatures.PCIEnabled)
         {
             PciDevice? svgaDevice = PciManager.GetDevice(VendorId.VmWare, DeviceId.SvgaiiAdapter);
             if (svgaDevice is not null)
             {
-                return new SVGAII3DCanvas(svgaDevice);
+                SvgaIIDriver driver = new SvgaIIDriver(svgaDevice);
+                Mode svgaMode = mode ?? SvgaIIRender.DefaultMode;
+
+                return driver.Is3DEnabled
+                    ? new SvgaII3DCanvas(driver, svgaMode)
+                    : new SvgaIICanvas(driver, svgaMode);
             }
         }
 
-        return new GopCanvas(mode);
+        return mode is null ? new GopCanvas() : new GopCanvas(mode.Value);
     }
 
     /// <summary>
@@ -134,5 +142,50 @@ public static class FullScreenCanvas
     public static Canvas? GetCurrentFullScreenCanvas()
     {
         return s_videoDriver;
+    }
+
+    /// <summary>
+    /// Gets the screen display canvas as a <see cref="Canvas3D"/>, using the
+    /// default graphics mode.
+    /// </summary>
+    /// <exception cref="NotSupportedException">The display device does not support 3D rendering.</exception>
+    /// <exception cref="InvalidOperationException">Graphics support is disabled.</exception>
+    public static Canvas3D GetFullScreenCanvas3D()
+    {
+        return GetFullScreenCanvas() as Canvas3D
+            ?? throw new NotSupportedException("The display device does not support 3D rendering.");
+    }
+
+    /// <summary>
+    /// Gets the screen display canvas as a <see cref="Canvas3D"/>, and
+    /// changes the display mode to the given <paramref name="mode"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">The display device does not support 3D rendering.</exception>
+    /// <exception cref="InvalidOperationException">Graphics support is disabled.</exception>
+    public static Canvas3D GetFullScreenCanvas3D(Mode mode)
+    {
+        return GetFullScreenCanvas(mode) as Canvas3D
+            ?? throw new NotSupportedException("The display device does not support 3D rendering.");
+    }
+
+    /// <summary>
+    /// Attempts to get the screen display canvas as a <see cref="Canvas3D"/>,
+    /// changing the display mode to the given <paramref name="mode"/>. Fails
+    /// when the display device does not support 3D rendering.
+    /// </summary>
+    /// <returns><see langword="true"/> if the operation was successful; otherwise, <see langword="false"/>.</returns>
+    public static bool TryGetFullScreenCanvas3D(Mode mode, out Canvas3D? canvas)
+    {
+        try
+        {
+            canvas = GetFullScreenCanvas3D(mode);
+            return true;
+        }
+        catch
+        {
+        }
+
+        canvas = null;
+        return false;
     }
 }

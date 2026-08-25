@@ -297,7 +297,7 @@ public unsafe class VMWareSVGAII3D
         boxes[0].d = 1;
     }
 
-    public uint CreateStaticArrayBuffer<T>(T[] data) where T : unmanaged
+    public uint CreateStaticArrayBuffer<T>(ReadOnlySpan<T> data) where T : unmanaged
     {
         uint size = (uint)(data.Length * sizeof(T));
 
@@ -306,7 +306,7 @@ public unsafe class VMWareSVGAII3D
         SVGAGuestPtr gPtr;
         void* buffer = SVGA3DUtil_AllocDMABuffer(size, out gPtr);
 
-        fixed (T* pData = &data[0])
+        fixed (T* pData = data)
         {
             MemoryOp.MemCopy((byte*)buffer, (byte*)pData, (int)size);
         }
