@@ -1,6 +1,6 @@
 using System;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -210,28 +210,28 @@ internal static class NetworkCommands
     /// <summary>Logs the full payload to serial, and a printable preview to the console.</summary>
     private static void PrintDatagram(EndPoint source, byte[] data)
     {
-        Serial.Write("[UDP] Received datagram from ");
-        Serial.WriteString(source.Address.ToString());
-        Serial.Write(":");
-        Serial.WriteNumber((ulong)source.Port);
-        Serial.Write(" -> port ");
-        Serial.WriteNumber((ulong)TestUdpPort);
-        Serial.Write("\n");
+        Log.Write("[UDP] Received datagram from ");
+        Log.WriteString(source.Address.ToString());
+        Log.Write(":");
+        Log.WriteNumber((ulong)source.Port);
+        Log.Write(" -> port ");
+        Log.WriteNumber((ulong)TestUdpPort);
+        Log.Write("\n");
 
-        Serial.Write("[UDP] Payload (");
-        Serial.WriteNumber((ulong)data.Length);
-        Serial.Write(" bytes): ");
+        Log.Write("[UDP] Payload (");
+        Log.WriteNumber((ulong)data.Length);
+        Log.Write(" bytes): ");
 
         for (int i = 0; i < data.Length; i++)
         {
             char c = (char)data[i];
             if (Ascii.IsPrintable(c))
             {
-                Serial.Write(c.ToString());
+                Log.Write(c.ToString());
             }
         }
 
-        Serial.Write("\n");
+        Log.Write("\n");
 
         Console.ForegroundColor = ConsoleColor.Magenta;
         Console.Write("[UDP] ");

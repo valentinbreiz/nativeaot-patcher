@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory.Heap;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.TestRunner.Framework;
@@ -36,7 +35,7 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Graphic Tests] Starting test suite\n");
+        Log.WriteString("[Graphic Tests] Starting test suite\n");
         TR.Start("Graphic Tests", expectedTests: 23);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
@@ -76,7 +75,7 @@ public class Kernel : Sys.Kernel
         TR.RunIf(Canvas3DTests.Ready, "Canvas3D_CameraCaching_Fifo", Canvas3DTests.TestCameraCachingFifo, Canvas3DTests.SkipNoDevice);
         TR.Run("Canvas3D_Discovery", Canvas3DTests.TestCanvas3DDiscovery);
 
-        Serial.WriteString("[Graphic Tests] All tests completed\n");
+        Log.WriteString("[Graphic Tests] All tests completed\n");
         TR.Finish();
     }
 
@@ -215,7 +214,7 @@ public class Kernel : Sys.Kernel
         /* First test with the DefaultMode */
         Canvas canvas = KernelConsole.Default.Canvas;
 
-        Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
+        Log.Write("Testing Canvas with mode " + canvas.Mode + "\n");
         canvas.Clear(Color.Blue);
 
         /* A red Point */
@@ -335,9 +334,9 @@ public class Kernel : Sys.Kernel
         canvas.Disable();
 
         Console.WriteLine("Back in text mode");
-        Console.WriteLine("Freed: " + Heap.Collect());
+        Console.WriteLine("Freed: " + MemoryInfo.Collect());
 
-        Serial.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
+        Log.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
     }
 
     private static void TestVirtualCanvas()
@@ -391,6 +390,6 @@ public class Kernel : Sys.Kernel
 
         screen.Display();
 
-        Serial.Write("Virtual canvas tests executed successfully\n");
+        Log.Write("Virtual canvas tests executed successfully\n");
     }
 }
