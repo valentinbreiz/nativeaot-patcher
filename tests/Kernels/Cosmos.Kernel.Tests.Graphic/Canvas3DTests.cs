@@ -295,6 +295,7 @@ public static unsafe class Canvas3DTests
         at += HeaderBytes + 52;
 
         Assert.Equal(at, s_driver.GetFIFO(FIFO.NextCmd), "setup emits exactly these commands");
+        Assert.False(s_canvas.ReadsFrom3DScene, "no scene composed yet — GetImage reads the 2D framebuffer");
 
         Rewind(start);
     }
@@ -426,6 +427,7 @@ public static unsafe class Canvas3DTests
         at += HeaderBytes + 112;
 
         Assert.Equal(at, s_driver!.GetFIFO(FIFO.NextCmd), "the frame emits exactly these commands");
+        Assert.True(s_canvas.ReadsFrom3DScene, "an open scene routes GetImage to the 3D color target");
 
         Rewind(start);
     }

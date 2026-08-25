@@ -37,7 +37,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 22);
+        TR.Start("Graphic Tests", expectedTests: 23);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
@@ -59,6 +59,7 @@ public class Kernel : Sys.Kernel
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyContext_Fifo", Svga3DTests.TestDestroyContext, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroySurface_Fifo", Svga3DTests.TestDestroySurface, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyShader_Fifo", Svga3DTests.TestDestroyShader, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_SurfaceDmaReadback_Fifo", Svga3DTests.TestSurfaceDmaReadback, Svga3DTests.SkipNoDevice);
 
         // ==================== Canvas3D public API ====================
         // Camera defaults and mesh layout are host-independent. The FIFO
