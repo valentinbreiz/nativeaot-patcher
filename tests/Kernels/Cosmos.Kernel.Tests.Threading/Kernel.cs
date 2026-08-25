@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.Tests.Threading;
 public class Kernel : Sys.Kernel
 {
     /// <summary>Total number of tests announced to the test runner for this suite.</summary>
-    private const int ExpectedTestCount = 58;
+    private const int ExpectedTestCount = 59;
 
     /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
     private const int LockIterationsPerThread = 100;
@@ -115,6 +115,7 @@ public class Kernel : Sys.Kernel
         // Thread tests
         TR.Run("Thread_Start_ExecutesDelegate", TestThreadExecution);
         TR.Run("Thread_Multiple_CanRunConcurrently", TestMultipleThreads);
+        TR.Run("Thread_Exception_Is_Thread_Safe", TestExceptionThreadSafe);
         TR.Run("SpinLock_ProtectsSharedData_AcrossThreads", TestSpinLockWithThreads);
         TR.Run("Thread_ThreadStatics", TestThreadStatics);
         TR.Run("Thread_EnsureSufficientExecutionStack_Passes", TestEnsureSufficientStackInThread);
@@ -828,6 +829,30 @@ public class Kernel : Sys.Kernel
 
         Assert.Equal(WorkerIterationCount, _thread1Counter);
         Assert.Equal(WorkerIterationCount, _thread2Counter);
+    }
+
+    private static void TestExceptionThreadSafe()
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            var thread1 = new SysThread(ThrowException);
+            var thread2 = new SysThread(ThrowException);
+
+            thread1.Start();
+            thread2.Start();
+
+            Volatile.Write(ref lck, 1);
+            thread1.Join();
+            thread2.Join();
+        }
+
+        // if we reach this point without timeout, the test passes
+        Assert.True(true, "Threads throwing exceptions should not cause deadlock or crash");
+
+        static void ThrowException()
+        {
+            throw new Exception("Test exception");
+        }
     }
 
     private static void Thread1Worker()

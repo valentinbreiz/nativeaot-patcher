@@ -32,7 +32,7 @@ public unsafe class Thread : SchedulerExtensible
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private object[][] _threadStaticStorage;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-
+    private ulong _extInfo;
 
     /// <summary>
     /// Default stack size for new threads (256KB). Must stay above CoreLib's
@@ -95,6 +95,11 @@ public unsafe class Thread : SchedulerExtensible
     public ref object[][] GetThreadStaticStorage()
     {
         return ref _threadStaticStorage;
+    }
+
+    public ref ulong GetExtInfo()
+    {
+        return ref _extInfo;
     }
 
     /// <summary>

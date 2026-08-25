@@ -3,16 +3,11 @@
 
 .intel_syntax noprefix
 
-.data
-
-// Global exception info stack head (single-threaded kernel, no TLS needed)
-.global __cosmos_exinfo_stack_head
-__cosmos_exinfo_stack_head: .quad 0
-
 .text
 
 // External managed functions
 .extern RhThrowEx                   // C# exception dispatcher
+.extern __Cosmos_GetThreadExInfo
 
 //=============================================================================
 // Structure offsets (from AsmOffsetsCpu.h)
@@ -120,11 +115,10 @@ RhpThrowEx:
 
     // Link ExInfo into the global exception chain
     // (In a real OS, this would be thread-local via INLINE_GETTHREAD)
-    lea     rax, [rip + __cosmos_exinfo_stack_head]
-    mov     rdx, [rax]                                                       // rdx = current head
-    mov     [rsi + OFFSETOF__ExInfo__m_pPrevExInfo], rdx                     // pExInfo->m_pPrevExInfo = head
-    mov     [rax], rsi                                                       // head = pExInfo
-
+    call    __Cosmos_GetThreadExInfo
+    mov     rdx, rax
+    mov     [rsi + OFFSETOF__ExInfo__m_pPrevExInfo], rdx
+    
     // Set the exception context pointer
     lea     rdx, [rsp + STACKSIZEOF_ExInfo]                                  // rdx = PAL_LIMITED_CONTEXT*
     mov     [rsi + OFFSETOF__ExInfo__m_pExContext], rdx
@@ -245,7 +239,8 @@ RhpCallCatchFunclet:
 
     // Pop ExInfo entries that belong to the frames we unwound past (those below the resume SP).
     // r10/r11 are scratch — avoid rdi/rsi/rax which the resume point may rely on.
-    lea     r11, [rip + __cosmos_exinfo_stack_head]
+    call    __Cosmos_GetThreadExInfo
+    mov     r11, rax
 .Lpop_exinfo_loop:
     mov     r10, [r11]              // current ExInfo
     test    r10, r10
@@ -374,7 +369,7 @@ RhpCallFilterFunclet:
 .global RhpRethrow
 RhpRethrow:
     // Get current exception from ExInfo chain
-    lea     rax, [rip + __cosmos_exinfo_stack_head]
+    call    __Cosmos_GetThreadExInfo
     mov     rax, [rax]
     test    rax, rax
     jz      .Lhalt

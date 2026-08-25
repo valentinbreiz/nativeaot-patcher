@@ -24,7 +24,14 @@ public static unsafe partial class ExceptionHelper
     private static partial nint RhpCallFilterFunclet(nint exceptionPtr, void* filterAddress, void* pRegDisplay);
 
     // Guard against recursive exception handling.
-    private static bool s_isHandlingException = false;
+    [ThreadStatic]
+    private static bool s_isHandlingException;
+    private static readonly ThreadLocal<nuint[]> s_activeCatchFramePointers = new(()=> new nuint[MaxActiveCatchDepth]);
+    private static readonly ThreadLocal<nuint[]> s_activeCatchHandlers  = new(()=> new nuint[MaxActiveCatchDepth]);
+    [ThreadStatic]
+    private static int s_activeCatchCount;
+    [ThreadStatic]
+    private static Exception? s_activeCatchException;
 
     // The catch clauses the in-flight exception has already entered, recorded just before control
     // transfers to each funclet. A `throw;` inside a funclet re-enters dispatch with the SAME
@@ -35,16 +42,12 @@ public static unsafe partial class ExceptionHelper
     // object has visited. Records are only consulted for rethrow dispatches (same-object test),
     // so entries left behind by a catch that completed normally are harmless.
     private const int MaxActiveCatchDepth = 8;
-    private static readonly nuint[] s_activeCatchFramePointers = new nuint[MaxActiveCatchDepth];
-    private static readonly nuint[] s_activeCatchHandlers = new nuint[MaxActiveCatchDepth];
-    private static int s_activeCatchCount;
-    private static Exception? s_activeCatchException;
 
     private static bool IsActiveCatchClause(nuint framePointer, nuint handlerAddress)
     {
         for (int i = 0; i < s_activeCatchCount; i++)
         {
-            if (s_activeCatchFramePointers[i] == framePointer && s_activeCatchHandlers[i] == handlerAddress)
+            if (s_activeCatchFramePointers.Value![i] == framePointer && s_activeCatchHandlers.Value![i] == handlerAddress)
             {
                 return true;
             }
@@ -276,8 +279,8 @@ public static unsafe partial class ExceptionHelper
         // it instead of re-entering it (see s_activeCatch* above).
         if (s_activeCatchCount < MaxActiveCatchDepth)
         {
-            s_activeCatchFramePointers[s_activeCatchCount] = catchFrame.FramePointer;
-            s_activeCatchHandlers[s_activeCatchCount] = (nuint)catchClause.HandlerAddress;
+            s_activeCatchFramePointers.Value![s_activeCatchCount] = catchFrame.FramePointer;
+            s_activeCatchHandlers.Value![s_activeCatchCount] = (nuint)catchClause.HandlerAddress;
             s_activeCatchCount++;
         }
         s_activeCatchException = ex;
