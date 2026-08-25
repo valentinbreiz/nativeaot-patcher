@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// <summary>
 /// A condition variable primitive for coordinating scheduler threads around state changes.
 /// </summary>
-public class ConditionVariable : IDisposable
+internal class ConditionVariable : IDisposable
 {
     /// <summary>
     /// Protects access to the condition variable internal state.

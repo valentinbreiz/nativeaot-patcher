@@ -85,6 +85,13 @@
     <!-- White-box scheduler suite reads Stride bookkeeping and drives the
          sync primitives directly. -->
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Threading" />
+    <!-- White-box suites over Core primitives: alarms (Timer), vector
+         allocation and MSI routing (Interrupts), copy routines and page
+         allocation (Memory), MMIO probes (Storage). -->
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Timer" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Interrupts" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Memory" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Storage" />
   </ItemGroup>
 
   <ItemGroup>

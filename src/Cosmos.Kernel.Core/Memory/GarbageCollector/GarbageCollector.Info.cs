@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 /// <summary>
 /// Information methods
 /// </summary>
-public static unsafe partial class GarbageCollector
+internal static unsafe partial class GarbageCollector
 {
     /// <summary>
     /// Simple snapshot of GC memory statistics used by runtime memory queries.

@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 /// <summary>
 /// Thread-Local Allocation Buffer (TLAB) management: refill, return, and per-thread context access.
 /// </summary>
-public static unsafe partial class GarbageCollector
+internal static unsafe partial class GarbageCollector
 {
     /// <summary>
     /// Default TLAB size in bytes (8KB).

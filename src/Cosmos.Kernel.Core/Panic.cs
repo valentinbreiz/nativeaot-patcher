@@ -7,7 +7,7 @@ namespace Cosmos.Kernel.Core;
 /// <summary>
 /// Kernel panic handler for fatal errors.
 /// </summary>
-public static class Panic
+internal static class Panic
 {
     /// <summary>
     /// Triggers a kernel panic with the specified message.

@@ -14,7 +14,7 @@ namespace Cosmos.Kernel.Core.Memory.GarbageCollector;
 /// <summary>
 /// Mark phase: root scanning, reference enumeration, and mark stack management.
 /// </summary>
-public static unsafe partial class GarbageCollector
+internal static unsafe partial class GarbageCollector
 {
     /// <summary>
     /// Executes the mark phase: scans roots (stack, GC handles) and marks all reachable objects.

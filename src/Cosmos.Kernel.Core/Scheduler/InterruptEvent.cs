@@ -22,7 +22,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// two parked waiters wake both, and signals arriving while no consumer
 /// waits are consumed one per subsequent <see cref="Wait"/>.</para>
 /// </summary>
-public class InterruptEvent
+internal class InterruptEvent
 {
     /// <summary>Initial waiter-list capacity: pre-sized so Wait's first Add doesn't heap-allocate under the IRQ-off spinlock; driver flows park at most one or two waiters.</summary>
     private const int InitialWaiterCapacity = 4;

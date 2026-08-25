@@ -16,11 +16,11 @@ namespace System
             Optimized
         }
 
-        public sealed class RuntimeExportAttribute(string entry) : Attribute
+        internal sealed class RuntimeExportAttribute(string entry) : Attribute
         {
         }
 
-        public sealed class RuntimeImportAttribute : Attribute
+        internal sealed class RuntimeImportAttribute : Attribute
         {
             public string DllName { get; }
             public string EntryPoint { get; }
