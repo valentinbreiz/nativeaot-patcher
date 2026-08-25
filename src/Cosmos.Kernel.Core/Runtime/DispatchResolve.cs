@@ -18,8 +18,16 @@ namespace Cosmos.Kernel.Core.Runtime
     /// </summary>
     public class AmbiguousImplementationException : Exception
     {
+        /// <summary>Creates the exception with a default message.</summary>
         public AmbiguousImplementationException() { }
+
+        /// <summary>Creates the exception with the given message.</summary>
+        /// <param name="message">Description of the ambiguous dispatch.</param>
         public AmbiguousImplementationException(string message) : base(message) { }
+
+        /// <summary>Creates the exception with a message and an inner exception.</summary>
+        /// <param name="message">Description of the ambiguous dispatch.</param>
+        /// <param name="innerException">The exception that caused this one.</param>
         public AmbiguousImplementationException(string message, Exception innerException) : base(message, innerException) { }
     }
     internal static unsafe class DispatchResolve
