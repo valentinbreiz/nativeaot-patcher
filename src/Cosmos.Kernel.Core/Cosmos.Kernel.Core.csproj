@@ -37,18 +37,17 @@
     <Compile Remove="Runtime\ExceptionHandling\ExceptionHelper.X64.cs" />
   </ItemGroup>
 
+  <!-- The metadata readers, TypeHashingAlgorithms, and ExceptionIDs used to be
+       linked from here too, but upstream declares their types public with no
+       define to flip them. They are vendored under Runtime\Internal\ with a
+       visibility-only diff (public -> internal), same precedent as
+       ReadyToRunHeader.cs and TypeManagerHandle.cs. -->
   <ItemGroup>
     <Compile Include="$(ToolCommonPath)Internal\NativeFormat\*.cs">
       <Link>Runtime\Internal\NativeFormat\%(Filename).cs</Link>
     </Compile>
-    <Compile Include="$(ToolCommonPath)Internal\Metadata\NativeFormat\*.cs">
-      <Link>Runtime\Internal\NativeFormat\Metadata\%(Filename).cs</Link>
-    </Compile>
     <Compile Include="$(AotCommonPath)..\..\System.Private.StackTraceMetadata\src\Internal\StackTraceMetadata\MethodNameFormatter.cs">
       <Link>System.Private.StackTraceMetadata\Internal\StackTraceMetadata\MethodNameFormatter.cs</Link>
-    </Compile>
-    <Compile Include="$(ToolCommonPath)TypeSystem\Common\TypeHashingAlgorithms.cs">
-      <Link>TypeSystem\Common\TypeHashingAlgorithms.cs</Link>
     </Compile>
     <Compile Include="$(ToolCommonPath)Internal\Runtime\MetadataBlob.cs">
       <Link>Runtime\Internal\Runtime\MetadataBlob.cs</Link>
@@ -61,9 +60,6 @@
     </Compile>
     <Compile Include="$(AotCommonPath)Internal\Runtime\MethodTable.cs">
       <Link>Runtime\Internal\Runtime\MethodTable.cs</Link>
-    </Compile>
-    <Compile Include="$(AotRuntimeBasePath)System\Runtime\ExceptionIDs.cs">
-      <Link>Runtime\Internal\Runtime\ExceptionIDs.cs</Link>
     </Compile>
   </ItemGroup>
 
