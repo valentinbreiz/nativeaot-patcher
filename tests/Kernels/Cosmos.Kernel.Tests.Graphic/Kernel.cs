@@ -37,7 +37,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 15);
+        TR.Start("Graphic Tests", expectedTests: 17);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
@@ -59,6 +59,13 @@ public class Kernel : Sys.Kernel
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyContext_Fifo", Svga3DTests.TestDestroyContext, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroySurface_Fifo", Svga3DTests.TestDestroySurface, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyShader_Fifo", Svga3DTests.TestDestroyShader, Svga3DTests.SkipNoDevice);
+
+        // ==================== Canvas3D public API ====================
+        // Runs after the FIFO tests: discovery constructs the real canvas,
+        // which enables the SVGA device on the vmware-svga profile, and the
+        // FIFO tests need it disabled.
+        TR.Run("Camera3D_Defaults", Canvas3DTests.TestCamera3DDefaults);
+        TR.Run("Canvas3D_Discovery", Canvas3DTests.TestCanvas3DDiscovery);
 
         Serial.WriteString("[Graphic Tests] All tests completed\n");
         TR.Finish();
