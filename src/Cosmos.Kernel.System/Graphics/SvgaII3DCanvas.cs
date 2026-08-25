@@ -35,6 +35,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     private SVGA3dSurfaceImageId _depthTarget;
     private bool _hasRenderTargets;
     private bool _sceneOpen;
+    private bool _displaying3D;
     private bool _cameraApplied;
     private bool _textureApplied;
     private Texture? _boundTexture;
@@ -104,6 +105,8 @@ internal sealed class SvgaII3DCanvas : Canvas3D
                 _driver3D.DestroySurface(_colorTarget.sid);
                 _driver3D.DestroySurface(_depthTarget.sid);
                 CreateRenderTargets();
+                _sceneOpen = false;
+                _displaying3D = false;
             }
         }
     }
@@ -166,12 +169,22 @@ internal sealed class SvgaII3DCanvas : Canvas3D
         {
             _driver3D.Present(_colorTarget, FullRect());
             _sceneOpen = false;
+            _displaying3D = true;
         }
         else
         {
             Driver.Swap();
+            _displaying3D = false;
         }
     }
+
+    /// <summary>
+    /// Whether <see cref="GetImage"/> reads the 3D color target rather than
+    /// the 2D framebuffer: true while a scene is being composed and while
+    /// the last presented frame was a 3D scene (a 3D present bypasses the
+    /// guest framebuffer, so the VRAM never holds the rendered pixels).
+    /// </summary>
+    internal bool ReadsFrom3DScene => _sceneOpen || _displaying3D;
 
     private protected override Mesh CreateMeshCore(
         ReadOnlySpan<Vector3> positions,
@@ -498,10 +511,35 @@ internal sealed class SvgaII3DCanvas : Canvas3D
         return (int)Driver.GetPixel(x, y);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Reads back a rectangle of pixels. While a 3D scene is composed or
+    /// displayed (see <see cref="ReadsFrom3DScene"/>), the pixels come from
+    /// the 3D color target through a surface DMA readback; otherwise from
+    /// the 2D framebuffer like every other canvas.
+    /// </summary>
     public override Bitmap GetImage(int x, int y, int width, int height)
     {
-        return SvgaIIRender.GetImage(this, Driver, x, y, width, height);
+        if (!ReadsFrom3DScene)
+        {
+            return SvgaIIRender.GetImage(this, Driver, x, y, width, height);
+        }
+
+        int[] data = new int[width * height];
+        int[]? pixels = _driver3D.PresentToImage(_colorTarget, new SVGA3dRect((uint)x, (uint)y, (uint)width, (uint)height));
+
+        if (pixels != null)
+        {
+            // PresentToImage returns the driver's reused readback buffer;
+            // copy so the bitmap survives the next readback.
+            Array.Copy(pixels, data, data.Length);
+        }
+
+        Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32)
+        {
+            RawData = data,
+        };
+
+        return bitmap;
     }
 
     /// <inheritdoc />
