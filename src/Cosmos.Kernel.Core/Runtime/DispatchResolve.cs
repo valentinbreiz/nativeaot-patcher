@@ -12,7 +12,9 @@ using Debug = System.Diagnostics.Debug;
 namespace Cosmos.Kernel.Core.Runtime
 {
     /// <summary>
-    /// Exception thrown when an ambiguous interface implementation is detected (diamond problem)
+    /// Thrown by interface dispatch when default-interface-method resolution is ambiguous
+    /// (the diamond problem). Mirrors the BCL's <c>System.Runtime.AmbiguousImplementationException</c>;
+    /// catch this type to handle ambiguous dispatch in kernel code.
     /// </summary>
     public class AmbiguousImplementationException : Exception
     {
