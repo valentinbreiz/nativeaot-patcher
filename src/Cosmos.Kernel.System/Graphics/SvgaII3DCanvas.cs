@@ -52,11 +52,27 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     /// <param name="mode">The graphics mode to set; must be one of <see cref="AvailableModes"/>.</param>
     /// <exception cref="ArgumentOutOfRangeException">The mode is not supported by this driver.</exception>
     public SvgaII3DCanvas(SvgaIIDriver driver, Mode mode)
+        : this(driver, mode, applyMode: true)
+    {
+    }
+
+    /// <summary>
+    /// Creates the canvas, optionally without programming the mode.
+    /// <paramref name="applyMode"/> is false only in the FIFO wire tests:
+    /// skipping SetMode leaves the device disabled, so the 3D setup commands
+    /// sit inert in FIFO memory for inspection instead of being consumed
+    /// (QEMU's vmware-svga cannot parse them).
+    /// </summary>
+    internal SvgaII3DCanvas(SvgaIIDriver driver, Mode mode, bool applyMode)
         : base(mode)
     {
         Driver = driver;
         ThrowIfModeIsNotValid(mode);
-        SvgaIIRender.ApplyMode(this, driver, mode);
+
+        if (applyMode)
+        {
+            SvgaIIRender.ApplyMode(this, driver, mode);
+        }
 
         _driver3D = new VMWareSVGAII3D(driver);
         _context = _driver3D.DefineContext();
@@ -167,28 +183,56 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     {
         int streamCount = 1 + (colors.IsEmpty ? 0 : 1) + (uvs.IsEmpty ? 0 : 1);
         uint[] streamSids = new uint[streamCount];
-        SVGA3dVertexDecl[] decls = new SVGA3dVertexDecl[streamCount];
 
         int stream = 0;
-        streamSids[stream] = _driver3D.CreateStaticArrayBuffer(positions);
-        decls[stream] = MakeDecl(SVGA3dDeclType.SVGA3D_DECLTYPE_FLOAT3, SVGA3dDeclUsage.SVGA3D_DECLUSAGE_POSITION, streamSids[stream], 3 * sizeof(float));
-        stream++;
+        streamSids[stream++] = _driver3D.CreateStaticArrayBuffer(positions);
 
         if (!colors.IsEmpty)
         {
-            streamSids[stream] = _driver3D.CreateStaticArrayBuffer(colors);
-            decls[stream] = MakeDecl(SVGA3dDeclType.SVGA3D_DECLTYPE_D3DCOLOR, SVGA3dDeclUsage.SVGA3D_DECLUSAGE_COLOR, streamSids[stream], sizeof(uint));
-            stream++;
+            streamSids[stream++] = _driver3D.CreateStaticArrayBuffer(colors);
         }
 
         if (!uvs.IsEmpty)
         {
-            streamSids[stream] = _driver3D.CreateStaticArrayBuffer(uvs);
+            streamSids[stream++] = _driver3D.CreateStaticArrayBuffer(uvs);
+        }
+
+        uint indexSid = _driver3D.CreateStaticArrayBuffer(indices);
+
+        return new Mesh(this, positions.Length, indices.Length, texture, topology)
+        {
+            DriverData = BuildMeshData(streamSids, !colors.IsEmpty, !uvs.IsEmpty, indexSid, indices.Length, topology),
+        };
+    }
+
+    /// <summary>
+    /// Builds the draw-command payload for a mesh whose attribute streams
+    /// were uploaded to the given buffer surfaces, in stream order: position,
+    /// then colors when present, then texture coordinates when present. Pure;
+    /// separated from the upload so the FIFO wire tests can validate the
+    /// layout with known surface ids (the upload's DMA/fence path cannot run
+    /// on a disabled device).
+    /// </summary>
+    internal static SvgaMeshData BuildMeshData(uint[] streamSids, bool hasColors, bool hasUvs, uint indexSid, int indexCount, MeshTopology topology)
+    {
+        SVGA3dVertexDecl[] decls = new SVGA3dVertexDecl[streamSids.Length];
+
+        int stream = 0;
+        decls[stream] = MakeDecl(SVGA3dDeclType.SVGA3D_DECLTYPE_FLOAT3, SVGA3dDeclUsage.SVGA3D_DECLUSAGE_POSITION, streamSids[stream], 3 * sizeof(float));
+        stream++;
+
+        if (hasColors)
+        {
+            decls[stream] = MakeDecl(SVGA3dDeclType.SVGA3D_DECLTYPE_D3DCOLOR, SVGA3dDeclUsage.SVGA3D_DECLUSAGE_COLOR, streamSids[stream], sizeof(uint));
+            stream++;
+        }
+
+        if (hasUvs)
+        {
             decls[stream] = MakeDecl(SVGA3dDeclType.SVGA3D_DECLTYPE_FLOAT2, SVGA3dDeclUsage.SVGA3D_DECLUSAGE_TEXCOORD, streamSids[stream], 2 * sizeof(float));
             stream++;
         }
 
-        uint indexSid = _driver3D.CreateStaticArrayBuffer(indices);
         bool lines = topology == MeshTopology.Lines;
 
         SVGA3dPrimitiveRange[] ranges =
@@ -198,21 +242,18 @@ internal sealed class SvgaII3DCanvas : Canvas3D
                 primType = lines
                     ? SVGA3dPrimitiveType.SVGA3D_PRIMITIVE_LINELIST
                     : SVGA3dPrimitiveType.SVGA3D_PRIMITIVE_TRIANGLELIST,
-                primitiveCount = (uint)(indices.Length / (lines ? 2 : 3)),
+                primitiveCount = (uint)(indexCount / (lines ? 2 : 3)),
                 indexArray = new() { surfaceId = indexSid, stride = sizeof(ushort) },
                 indexWidth = sizeof(ushort),
             },
         ];
 
-        return new Mesh(this, positions.Length, indices.Length, texture, topology)
+        return new SvgaMeshData
         {
-            DriverData = new SvgaMeshData
-            {
-                StreamSids = streamSids,
-                IndexSid = indexSid,
-                Decls = decls,
-                Ranges = ranges,
-            },
+            StreamSids = streamSids,
+            IndexSid = indexSid,
+            Decls = decls,
+            Ranges = ranges,
         };
     }
 

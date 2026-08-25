@@ -37,7 +37,7 @@ public class Kernel : Sys.Kernel
     protected override void BeforeRun()
     {
         Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 17);
+        TR.Start("Graphic Tests", expectedTests: 22);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
@@ -61,10 +61,18 @@ public class Kernel : Sys.Kernel
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyShader_Fifo", Svga3DTests.TestDestroyShader, Svga3DTests.SkipNoDevice);
 
         // ==================== Canvas3D public API ====================
-        // Runs after the FIFO tests: discovery constructs the real canvas,
-        // which enables the SVGA device on the vmware-svga profile, and the
-        // FIFO tests need it disabled.
+        // Camera defaults and mesh layout are host-independent. The FIFO
+        // tests drive the demo cube through the public Canvas3D API with the
+        // device disabled (same technique as above). Discovery runs last:
+        // it constructs the real canvas, which enables the SVGA device on
+        // the vmware-svga profile, and every FIFO test needs it disabled.
+        Canvas3DTests.Discover();
         TR.Run("Camera3D_Defaults", Canvas3DTests.TestCamera3DDefaults);
+        TR.Run("Canvas3D_MeshLayout", Canvas3DTests.TestMeshLayout);
+        TR.RunIf(Canvas3DTests.DevicePresent, "Canvas3D_SceneSetup_Fifo", Canvas3DTests.TestSceneSetupFifo, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_MeshValidation", Canvas3DTests.TestMeshValidation, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_DrawCube_Fifo", Canvas3DTests.TestDrawCubeFifo, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_CameraCaching_Fifo", Canvas3DTests.TestCameraCachingFifo, Canvas3DTests.SkipNoDevice);
         TR.Run("Canvas3D_Discovery", Canvas3DTests.TestCanvas3DDiscovery);
 
         Serial.WriteString("[Graphic Tests] All tests completed\n");
