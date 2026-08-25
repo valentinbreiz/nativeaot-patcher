@@ -13,7 +13,7 @@ namespace Internal.Runtime.CompilerHelpers
     /// <summary>
     /// This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed.
     /// </summary>
-    public class LibraryInitializer
+    internal class LibraryInitializer
     {
         /// <summary>
         /// Miscellaneous initialization of core kernel services that depend on HAL, such as interrupts, exception handlers, and scheduler. This method is called by the runtime before any managed code is executed.
