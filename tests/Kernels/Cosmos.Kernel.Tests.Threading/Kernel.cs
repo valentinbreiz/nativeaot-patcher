@@ -841,7 +841,6 @@ public class Kernel : Sys.Kernel
             thread1.Start();
             thread2.Start();
 
-            Volatile.Write(ref lck, 1);
             thread1.Join();
             thread2.Join();
         }

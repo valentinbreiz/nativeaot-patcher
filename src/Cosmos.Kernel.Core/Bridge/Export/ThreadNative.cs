@@ -21,7 +21,7 @@ public static class ThreadNative
     {
         SchedulerManager.InvokeCurrentThreadStart(parameter);
     }
-    
+
     private static ulong s_threadExInfo;
 
     [UnmanagedCallersOnly(EntryPoint = "__Cosmos_GetThreadExInfo")]

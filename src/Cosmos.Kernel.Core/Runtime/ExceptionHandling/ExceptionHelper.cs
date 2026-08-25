@@ -26,8 +26,8 @@ public static unsafe partial class ExceptionHelper
     // Guard against recursive exception handling.
     [ThreadStatic]
     private static bool s_isHandlingException;
-    private static readonly ThreadLocal<nuint[]> s_activeCatchFramePointers = new(()=> new nuint[MaxActiveCatchDepth]);
-    private static readonly ThreadLocal<nuint[]> s_activeCatchHandlers  = new(()=> new nuint[MaxActiveCatchDepth]);
+    private static readonly ThreadLocal<nuint[]> s_activeCatchFramePointers = new(() => new nuint[MaxActiveCatchDepth]);
+    private static readonly ThreadLocal<nuint[]> s_activeCatchHandlers = new(() => new nuint[MaxActiveCatchDepth]);
     [ThreadStatic]
     private static int s_activeCatchCount;
     [ThreadStatic]
