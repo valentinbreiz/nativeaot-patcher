@@ -538,9 +538,9 @@ public static class SchedulerManager
             {
                 unsafe
                 {
-                    ulong unused = (ulong)(thread.AllocContext.AllocLimit - thread.AllocContext.AllocPtr);
+                    ulong unused = (ulong)(thread._allocContext.AllocLimit - thread._allocContext.AllocPtr);
                     GarbageCollector.AddDeadThreadNonAllocBytes(unused);
-                    GarbageCollector.ReturnAllocContext(ref thread.AllocContext);
+                    GarbageCollector.ReturnAllocContext(ref thread._allocContext);
                 }
             }
 
@@ -643,14 +643,14 @@ public static class SchedulerManager
         ThrowIfSchedulerNotSet();
 
         var state = s_cpuStates[cpuId];
-        state.Lock.Acquire();
+        state._lock.Acquire();
 
         var prev = state.CurrentThread;
         var next = s_currentScheduler.PickNext(state) ?? state.IdleThread;
 
         if (next == null)
         {
-            state.Lock.Release();
+            state._lock.Release();
             return;
         }
 
@@ -660,12 +660,12 @@ public static class SchedulerManager
             next.State = ThreadState.Running;
             next.LastScheduledAt = GetTimestamp();
 
-            state.Lock.Release();
+            state._lock.Release();
             DoContextSwitch(prev, next);
         }
         else
         {
-            state.Lock.Release();
+            state._lock.Release();
         }
     }
 
@@ -683,14 +683,14 @@ public static class SchedulerManager
         ThrowIfSchedulerNotSet();
 
         var state = s_cpuStates[cpuId];
-        state.Lock.Acquire();
+        state._lock.Acquire();
         try
         {
             s_currentScheduler.SetPriority(state, thread, priority);
         }
         finally
         {
-            state.Lock.Release();
+            state._lock.Release();
         }
     }
 

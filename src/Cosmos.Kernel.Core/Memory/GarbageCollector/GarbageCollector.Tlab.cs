@@ -33,7 +33,7 @@ internal static unsafe partial class GarbageCollector
             PerCpuState? cpuState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
             if (cpuState?.CurrentThread != null)
             {
-                return ref cpuState.CurrentThread.AllocContext;
+                return ref cpuState.CurrentThread._allocContext;
             }
         }
 
@@ -152,7 +152,7 @@ internal static unsafe partial class GarbageCollector
                     SchedulerThread? thread = threads[i];
                     if (thread != null)
                     {
-                        ReturnAllocContext(ref thread.AllocContext);
+                        ReturnAllocContext(ref thread._allocContext);
                         count--;
                     }
                 }

@@ -83,7 +83,7 @@ public unsafe class Thread : SchedulerExtensible
     public ulong WakeupTime { get; internal set; }
 
     // ===== GC Allocation Context (TLAB) =====
-    internal AllocContext AllocContext;
+    internal AllocContext _allocContext;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private object[][] _threadStaticStorage;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.

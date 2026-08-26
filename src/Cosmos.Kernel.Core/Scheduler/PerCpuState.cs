@@ -42,5 +42,5 @@ public class PerCpuState : SchedulerExtensible
     internal bool _needReschedule;
 
     // ===== Synchronization =====
-    internal SpinLock Lock;
+    internal SpinLock _lock;
 }

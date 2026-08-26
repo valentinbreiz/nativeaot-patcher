@@ -515,9 +515,9 @@ internal static unsafe partial class GarbageCollector
                     SchedulerThread? thread = threads[i];
                     if (thread != null)
                     {
-                        if (thread.AllocContext.AllocLimit != null && thread.AllocContext.AllocPtr != null)
+                        if (thread._allocContext.AllocLimit != null && thread._allocContext.AllocPtr != null)
                         {
-                            unused += (ulong)(thread.AllocContext.AllocLimit - thread.AllocContext.AllocPtr);
+                            unused += (ulong)(thread._allocContext.AllocLimit - thread._allocContext.AllocPtr);
                         }
 
                         count--;
