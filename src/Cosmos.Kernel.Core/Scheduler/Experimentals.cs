@@ -12,8 +12,9 @@ internal static class Experimentals
     /// <summary>
     /// The scheduler policy seam: <see cref="IScheduler"/>,
     /// <see cref="SchedulerManager"/>, <see cref="Thread"/>,
-    /// <see cref="PerCpuState"/>, <see cref="SchedulerExtensible"/>, and
-    /// the <see cref="ThreadState"/>/<see cref="ThreadFlags"/> enums.
+    /// <see cref="PerCpuState"/>, <see cref="SchedulerExtensible"/>,
+    /// <see cref="InterruptMaskScope"/>, and the
+    /// <see cref="ThreadState"/>/<see cref="ThreadFlags"/> enums.
     /// </summary>
     internal const string SchedulerSeamDiagId = "COSMOS0001";
 }

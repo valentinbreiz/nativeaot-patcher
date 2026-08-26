@@ -724,9 +724,11 @@ public static class SchedulerManager
     /// <summary>
     /// Masks maskable interrupts on the current CPU until the returned
     /// scope is disposed. Schedulers use this around entry points the
-    /// manager does not already guard, such as their run-queue diagnostics
-    /// hooks and any tuning setters they expose; the manager-invoked
-    /// lifecycle and tick hooks are already called with interrupts masked.
+    /// manager does not already guard: their run-queue diagnostics hooks,
+    /// <see cref="IScheduler.InitializeCpu"/>, <see cref="IScheduler.ShutdownCpu"/>
+    /// and <see cref="IScheduler.SetPriority"/> (all three hold a spinlock
+    /// only), and any tuning setters the policy exposes. The tick hooks and
+    /// the thread-lifecycle hooks are already called with interrupts masked.
     /// </summary>
     public static InterruptMaskScope MaskInterrupts() => new(InternalCpu.DisableInterruptsScope());
 

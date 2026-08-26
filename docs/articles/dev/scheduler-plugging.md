@@ -6,13 +6,13 @@ Replacing the policy takes three steps:
 
 1. Implement `IScheduler`, using the per-thread and per-CPU data slots for the algorithm's bookkeeping. The seam is public: a policy lives in your own kernel project, with no access to `Cosmos.Kernel.Core` internals.
 2. Respect the [kernel constraints](#kernel-constraints): the hooks run in interrupt context or under disabled interrupts, on live scheduler state.
-3. Install it with `SchedulerManager.SetScheduler(new MyScheduler())`. The manager calls `ShutdownCpu` on the outgoing policy and `InitializeCpu` on the incoming one for every CPU. Install at boot, before threads exist (as `LibraryInitializer` does): nothing migrates queued threads or their attached bookkeeping into the new policy, so a mid-flight swap strands them.
+3. Install it with `SchedulerManager.SetScheduler(new MyScheduler())`. The manager calls `ShutdownCpu` on the outgoing policy and `InitializeCpu` on the incoming one for every CPU. Call it from your kernel entry point at a quiescent point, before starting your own threads: nothing migrates queued threads or their attached bookkeeping into the new policy. You cannot get in ahead of the default — the kernel installs Stride during its own startup, so by the time any of your code runs, the boot thread is already registered and carrying a `StrideThreadData`. [Reading the data slots](#attaching-state) covers what that means for your hooks.
 
 ---
 
 ## Experimental status
 
-The seam types (`IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `ThreadState`, `ThreadFlags`) carry `[Experimental("COSMOS0001")]`: they are usable today but make no compatibility promise, and they are promoted to the stable surface by removing the attribute once proven. Referencing them is a build error until the project acknowledges that contract:
+The seam types (`IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `InterruptMaskScope`, `ThreadState`, `ThreadFlags`) carry `[Experimental("COSMOS0001")]`: they are usable today but make no compatibility promise, and they are promoted to the stable surface by removing the attribute once proven. Referencing them is a build error until the project acknowledges that contract:
 
 ```xml
 <PropertyGroup>
@@ -53,7 +53,7 @@ Most hooks receive the `PerCpuState` they operate on, and run either under the m
 
 ## Attaching state
 
-`Thread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Allocate in the creation hooks, read with the typed accessor, and tolerate `null` (a thread can exit between a tick and the hook that observes it):
+`Thread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Allocate in the creation hooks, and read the slot with `as`:
 
 ```csharp
 public sealed class MyThreadData { public ulong Deadline; }
@@ -64,11 +64,18 @@ public void OnThreadCreate(PerCpuState state, Thread thread)
 
 public bool OnTick(PerCpuState state, Thread current, ulong elapsedNs)
 {
-    MyThreadData? data = current.GetSchedulerData<MyThreadData>();
-    if (data == null) { return true; }   // thread already exited; just reschedule
+    MyThreadData? data = current.SchedulerData as MyThreadData;
+    if (data == null) { return true; }   // not ours, or already exited
     ...
 }
 ```
+
+Read with `as`, not `GetSchedulerData<T>()`, and handle `null` on every hook. Two things put a slot you did not write in front of your policy, and only one of them is rare:
+
+- **Threads that predate your policy.** Stride is installed during kernel startup and the boot thread is registered under it, so the moment you call `SetScheduler` you inherit at least one thread carrying a `StrideThreadData`. `SetScheduler` clears the per-CPU slots; it does not walk the thread registry. That thread reaches your `OnTick` with a foreign record.
+- **Threads that exit mid-tick.** `OnThreadExit` clears the slot, so a thread can lose its record between a tick and the hook that observes it.
+
+`GetSchedulerData<T>()` is `(T?)SchedulerData` — a cast. On the first case it throws, inside the timer interrupt. `as` degrades both cases to `null`, which every hook has to handle anyway. Keep the typed accessor for a policy that owns every thread from creation.
 
 One slot per object is the whole budget. A policy that needs several values defines one class holding them, as `StrideThreadData` and `StrideCpuData` do.
 
@@ -109,7 +116,7 @@ FIFO order already bounds latency at `quantum * queue depth`, so Round-Robin nee
 
 This sketch exists in-tree as a working policy: [`RoundRobinScheduler`](../../../tests/Kernels/Cosmos.Kernel.Tests.Threading/RoundRobinScheduler.cs) lives in the Threading suite exactly as a user policy would, over the public seam only. The suite validates it two ways, and the split is worth copying. The run-structure invariants — tail enqueue, head pick, quantum accounting, block/yield/exit — are asserted by driving the hooks directly on a throwaway `PerCpuState` and `Thread`, which needs no timer and no dispatch and so cannot flake; the policy keeps all its state in the data slots, so a throwaway instance exercises the real logic. Only what genuinely needs a running kernel — that threads get dispatched, that a spinner is preempted at quantum expiry, that shares come out equal whatever priority is requested, that the run queue tracks blocking and waking — is measured live, after swapping the policy in at a quiescent point. Note what the live half deliberately does *not* assert: the order threads reach their delegate is not the order they became ready, because a thread preempted inside its dispatch preamble is re-queued at the tail.
 
-Two swap hazards are worth copying as well. `GetSchedulerData<T>` is a cast, so a policy installable after boot reads the slots with `as` instead — bookkeeping left by the previous policy (the boot thread keeps its Stride record across the swap) then degrades to `null`, which every hook already tolerates, rather than throwing in interrupt context. And the reverse direction has no such tolerance: the stock Stride policy hard-casts, so restoring it is only safe while no thread created under the outgoing policy is still alive, which the suite asserts before swapping back.
+Both swap directions are worth copying as well. Going out, `RoundRobinScheduler` reads every slot with `as` for the reason [above](#attaching-state): it inherits the boot thread's `StrideThreadData` and must not throw on it inside the timer interrupt. Coming back has no such tolerance — the stock Stride policy hard-casts — so restoring it is only safe while no thread created under the outgoing policy is still alive, which the suite checks before swapping back.
 
 ### Multi-Level Feedback Queue (MLFQ)
 
@@ -173,7 +180,7 @@ The policy/mechanism split makes the framework a plausible base for a real-time 
 
 ## Checklist
 
-1. Define the per-thread and per-CPU records; allocate them in `OnThreadCreate` and `InitializeCpu`, read them with `GetSchedulerData<T>()`, tolerate `null`.
+1. Define the per-thread and per-CPU records; allocate them in `OnThreadCreate` and `InitializeCpu`, read them with `SchedulerData as MyRecord`, handle `null`.
 2. Pick the run structure (queue, sorted list, heap, multi-level). The mechanism only ever asks `PickNext`.
 3. Put the preemption decision, and nothing slow, in `OnTick`'s return value.
 4. Decide what survives a park: whatever `OnThreadBlocked` saves is what wakeup placement in `OnThreadReady` has to work with.
