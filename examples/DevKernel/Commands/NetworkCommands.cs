@@ -173,7 +173,10 @@ internal static class NetworkCommands
             client.Send(payload);
         }
 
-        Terminal.Success("Packet sent!\n");
+        // UdpClient.Send is void: the datagram is handed to the outgoing
+        // queue, which resolves ARP and hits the NIC without reporting back.
+        // Say what we know rather than claiming delivery.
+        Terminal.Success("Packet queued for transmission\n");
     }
 
     private static void StartListening(NetworkSession session)
