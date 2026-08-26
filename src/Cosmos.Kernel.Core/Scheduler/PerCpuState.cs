@@ -28,13 +28,6 @@ public class PerCpuState : SchedulerExtensible
     /// </summary>
     public Thread? IdleThread { get; internal set; }
 
-    // ===== Timing =====
-
-    /// <summary>
-    /// Timestamp of the last timer tick processed on this CPU.
-    /// </summary>
-    public ulong LastTickAt { get; internal set; }
-
     // Set by ReadyThread when it wakes a thread (typically an ISR-side
     // InterruptEvent.Signal); consumed by ReschedulePendingFromIrq on
     // hardware-IRQ exit so the woken thread runs immediately instead of

@@ -29,7 +29,7 @@ A [`Thread`](../../../src/Cosmos.Kernel.Core/Scheduler/Thread.cs) is a managed c
 | `Flags` | `KernelThread`, `IdleThread`, `Pinned`, `Managed`; bits 8 to 15 are reserved for schedulers |
 | `StackBase`, `StackSize`, `StackPointer` | The stack allocation and the saved stack pointer (see below) |
 | `InstructionPointer` | The entry point, staged into the initial context |
-| `CreatedAt`, `LastScheduledAt`, `TotalRuntime`, `WakeupTime` | Accounting; `WakeupTime` is the sleep deadline in `Stopwatch` ticks |
+| `LastScheduledAt`, `TotalRuntime`, `WakeupTime` | Accounting; `WakeupTime` is the sleep deadline in `Stopwatch` ticks |
 | `AllocContext` | The thread's [TLAB](gc-concepts/tlab.md) (see [the GC article](garbage-collector.md#alloccontext-tlab)) |
 | `_threadStaticStorage` | The backing store for `[ThreadStatic]` fields, handed to CoreLib by ref |
 | `SchedulerData` | A single `object?` slot the active scheduler attaches its bookkeeping to (inherited from `SchedulerExtensible`) |

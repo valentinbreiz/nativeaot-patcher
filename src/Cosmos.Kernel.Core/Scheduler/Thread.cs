@@ -60,11 +60,6 @@ public unsafe class Thread : SchedulerExtensible
     // ===== Generic Timing =====
 
     /// <summary>
-    /// Timestamp at which the thread was created.
-    /// </summary>
-    public ulong CreatedAt { get; internal set; }
-
-    /// <summary>
     /// Accumulated CPU time in nanoseconds. The active scheduler charges
     /// elapsed time to the current thread from its
     /// <see cref="IScheduler.OnTick"/> hook.

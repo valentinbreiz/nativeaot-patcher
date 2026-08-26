@@ -48,7 +48,6 @@ Cosmos.Kernel.Core.Power.IPowerOps.Shutdown() -> void
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.CpuId.get -> uint
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.CurrentThread.get -> Cosmos.Kernel.Core.Scheduler.Thread?
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.IdleThread.get -> Cosmos.Kernel.Core.Scheduler.Thread?
-[COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.LastTickAt.get -> ulong
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.PerCpuState() -> void
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.GetSchedulerData<T>() -> T?
@@ -58,7 +57,6 @@ Cosmos.Kernel.Core.Power.IPowerOps.Shutdown() -> void
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerManager
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.CpuId.get -> uint
-[COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.CreatedAt.get -> ulong
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.Flags.get -> Cosmos.Kernel.Core.Scheduler.ThreadFlags
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.Id.get -> uint
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.InstructionPointer.get -> nuint
