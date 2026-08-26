@@ -18,9 +18,6 @@ internal static class SchedulerCommands
     /// <summary>Delay (ms) after starting the test thread so its output can appear.</summary>
     private const uint ThreadTestWaitMs = 2000;
 
-    /// <summary>Thread ID of the scheduler's idle thread, which the kill command must refuse to kill.</summary>
-    private const uint IdleThreadId = 0;
-
     public static void Register(CommandShell shell)
     {
         shell.Register(
@@ -182,12 +179,6 @@ internal static class SchedulerCommands
             return;
         }
 
-        if (threadId == IdleThreadId)
-        {
-            Terminal.Error("Cannot kill idle thread (ID " + IdleThreadId + ")");
-            return;
-        }
-
         switch (SchedulerInfo.RequestKill(threadId))
         {
             case ThreadKillResult.Killed:
@@ -195,12 +186,13 @@ internal static class SchedulerCommands
                 Console.WriteLine();
                 break;
             case ThreadKillResult.MarkedForExit:
-                // The thread is already marked dead; the scheduler reaps it
-                // on its next reschedule.
-                Terminal.Warning("Cannot kill currently running thread");
+                Terminal.Warning("Thread " + threadId + " is running; marked for exit at its next reschedule");
+                break;
+            case ThreadKillResult.RefusedBlocked:
+                Terminal.Error("Thread " + threadId + " is blocked or sleeping; wake it before killing it");
                 break;
             case ThreadKillResult.RefusedIdle:
-                Terminal.Error("Cannot kill idle thread (ID " + IdleThreadId + ")");
+                Terminal.Error("Cannot kill idle thread " + threadId);
                 break;
             default:
                 Terminal.Error("Thread " + threadId + " not found");

@@ -19,4 +19,11 @@ public enum ThreadKillResult : byte
 
     /// <summary>The request named an idle thread, which cannot be killed.</summary>
     RefusedIdle,
+
+    /// <summary>
+    /// The thread is blocked or sleeping. Waiting threads sit outside the
+    /// run queues with their share already returned to the policy, so
+    /// terminating one from here would return it twice; wake it first.
+    /// </summary>
+    RefusedBlocked,
 }

@@ -149,16 +149,43 @@ public static class SchedulerInfo
     /// Requests termination of a thread by ID. A thread waiting in a run
     /// queue is terminated immediately; a currently running thread is
     /// marked dead and reaped by the scheduler on its next reschedule.
-    /// Idle threads are refused.
+    /// Idle threads are refused, and so are blocked or sleeping ones: they
+    /// have already handed their share back to the policy, so they must be
+    /// woken before they can be killed.
     /// </summary>
     /// <param name="threadId">ID of the thread to terminate.</param>
     /// <returns>What happened to the thread; see <see cref="ThreadKillResult"/>.</returns>
     public static ThreadKillResult RequestKill(uint threadId)
     {
         IScheduler? scheduler = SchedulerManager.Current;
-        if (scheduler == null)
+        SchedThread?[]? threads = SchedulerManager.Threads;
+        if (scheduler == null || threads == null)
         {
             return ThreadKillResult.NotFound;
+        }
+
+        // Resolve against the registry rather than the run queues: a blocked
+        // or sleeping thread is dequeued by OnThreadBlocked but stays
+        // registered, and reporting it as NotFound would contradict the
+        // snapshot TryGetThread just handed the caller.
+        SchedThread? target = null;
+        for (int slot = 0; slot < threads.Length; slot++)
+        {
+            if (threads[slot] is SchedThread candidate && candidate.Id == threadId)
+            {
+                target = candidate;
+                break;
+            }
+        }
+
+        if (target == null)
+        {
+            return ThreadKillResult.NotFound;
+        }
+
+        if ((target.Flags & ThreadFlags.IdleThread) != 0)
+        {
+            return ThreadKillResult.RefusedIdle;
         }
 
         for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
@@ -169,38 +196,24 @@ public static class SchedulerInfo
                 continue;
             }
 
-            SchedThread? current = state.CurrentThread;
-            if (current?.Id == threadId)
+            if (ReferenceEquals(state.CurrentThread, target))
             {
-                if ((current.Flags & ThreadFlags.IdleThread) != 0)
-                {
-                    return ThreadKillResult.RefusedIdle;
-                }
-
-                current.State = SchedThreadState.Dead;
+                target.State = SchedThreadState.Dead;
                 return ThreadKillResult.MarkedForExit;
             }
 
             int count = scheduler.GetRunQueueCount(state);
             for (int i = 0; i < count; i++)
             {
-                SchedThread? thread = scheduler.GetRunQueueThread(state, i);
-                if (thread?.Id != threadId)
+                if (ReferenceEquals(scheduler.GetRunQueueThread(state, i), target))
                 {
-                    continue;
+                    SchedulerManager.ExitThread(cpuId, target);
+                    return ThreadKillResult.Killed;
                 }
-
-                if ((thread.Flags & ThreadFlags.IdleThread) != 0)
-                {
-                    return ThreadKillResult.RefusedIdle;
-                }
-
-                SchedulerManager.ExitThread(cpuId, thread);
-                return ThreadKillResult.Killed;
             }
         }
 
-        return ThreadKillResult.NotFound;
+        return ThreadKillResult.RefusedBlocked;
     }
 
     private static KernelThreadInfo Snapshot(SchedThread thread)
