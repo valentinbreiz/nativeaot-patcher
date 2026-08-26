@@ -9,7 +9,7 @@ namespace Cosmos.Build.API.Attributes;
 /// <remarks>
 /// Creates a new PlatformSpecific attribute.
 /// </remarks>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
 public class PlatformSpecificAttribute : Attribute
 {
     /// <summary>

@@ -15,7 +15,7 @@ public partial class PlugPatcher
     /// <summary>
     /// Patches a target method with the implementation from a plug method.
     /// </summary>
-    public void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool forceInstance = false)
+    private void PatchMethod(MethodDefinition targetMethod, MethodDefinition plugMethod, bool forceInstance = false)
     {
         _log.Info($"Patching method: {targetMethod.FullName} <- {plugMethod.FullName}");
         _log.Debug($"Target: Static={targetMethod.IsStatic}, Constructor={targetMethod.IsConstructor}");
@@ -42,6 +42,11 @@ public partial class PlugPatcher
 
         _log.Debug($"Final instruction count: {targetMethod.Body.Instructions.Count}");
         _log.Info($"Successfully patched method: {targetMethod.FullName}");
+    }
+
+    private void ExposeMethod(MethodDefinition targetMethod, MethodDefinition plugMethod)
+    {
+        plugMethod.DeclaringType.
     }
 
     private void RemoveMethod(TypeDefinition targetType, MethodDefinition method)

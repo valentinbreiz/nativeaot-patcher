@@ -6,14 +6,14 @@ public sealed class PlugAttribute(string targetName, bool isOptional = false, bo
     //  public TargetPlatform TargetPlatform;
 
     /// <summary>
-    /// does not have a base type
+    /// does not have a target type
     /// </summary>
     public PlugAttribute() : this(string.Empty)
     {
     }
 
     /// <summary>
-    /// set base type by type
+    /// set target type by type
     /// </summary>
     /// <param name="target"></param>
     /// <exception cref="ArgumentNullException"></exception>
@@ -40,5 +40,5 @@ public sealed class PlugAttribute(string targetName, bool isOptional = false, bo
     /// </summary>
     public bool IsOptional { get; set; } = isOptional;
 
-    public bool ReplaceBase { get; set; } = replaceTarget;
+    public bool ReplaceTarget { get; set; } = replaceTarget;
 }

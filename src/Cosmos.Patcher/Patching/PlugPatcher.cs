@@ -227,6 +227,8 @@ public sealed partial class PlugPatcher
                 continue;
             }
 
+
+
             CustomAttribute? plugMemberAttr = member.GetCustomAttribute(PlugScanner.PlugMemberAttributeFullName);
             if (plugMemberAttr == null)
             {
@@ -242,7 +244,7 @@ public sealed partial class PlugPatcher
             try
             {
                 plugMemberAttr.ImportReferences(targetType.Module);
-                ProcessMember(targetType, member, targetMemberName);
+                PatchMember(targetType, member, targetMemberName);
             }
             catch (Exception ex)
             {
@@ -288,7 +290,7 @@ public sealed partial class PlugPatcher
     /// <summary>
     /// Processes a single member (method, property, or field).
     /// </summary>
-    private void ProcessMember(TypeDefinition targetType, IMemberDefinition member, string? targetMemberName)
+    private void PatchMember(TypeDefinition targetType, IMemberDefinition member, string? targetMemberName)
     {
         switch (member)
         {
@@ -306,6 +308,8 @@ public sealed partial class PlugPatcher
                 break;
         }
     }
+
+
 
     /// <summary>
     /// Resolves and patches a method or constructor.
