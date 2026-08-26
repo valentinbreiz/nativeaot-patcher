@@ -131,13 +131,18 @@ RhpThrowEx:
     str     w2, [x1, #OFFSETOF__ExInfo__m_idxCurClause]    // idxCurClause = -1
     mov     w2, #ExKind_Throw
     strb    w2, [x1, #OFFSETOF__ExInfo__m_kind]            // kind = Throw
+    
+    // Preserve ExInfo*.
+    mov     x20, x1
 
     // Link ExInfo into the global exception chain
     bl      __Cosmos_GetThreadExInfo
-    ldr     x0, [x0]
-    mov     x3, x0                // x3 = current head
-    str     x3, [x1, #OFFSETOF__ExInfo__m_pPrevExInfo]     // pExInfo->m_pPrevExInfo = head
-    str     x1, [x2]                                        // head = pExInfo
+    ldr     x3, [x0]                        // x3 = current head
+    str     x3, [x20, #OFFSETOF__ExInfo__m_pPrevExInfo]     // ExInfo->m_pPrevExInfo = head
+    str     x20, [x0]                                        // head = pExInfo
+
+    // Restore ExInfo*
+    mov     x1, x20
 
     // Set the exception context pointer
     add     x3, sp, #STACKSIZEOF_ExInfo                    // x3 = PAL_LIMITED_CONTEXT*
