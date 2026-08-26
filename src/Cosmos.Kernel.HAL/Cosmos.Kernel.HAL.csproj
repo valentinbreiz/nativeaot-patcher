@@ -41,12 +41,14 @@
     <!-- White-box suites over HAL internals: SVGAII FIFO wire format
          (Graphic), MSI-X tables (Interrupts), PCI discovery (Pci),
          platform power ops (Power), AHCI/NVMe registers (Storage),
-         virtio transports (Virtio). -->
+         the TimerDevice base and its software timers (Timer), virtio
+         transports (Virtio). -->
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Graphic" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Interrupts" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Pci" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Power" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Storage" />
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Timer" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Virtio" />
   </ItemGroup>
 </Project>
