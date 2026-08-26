@@ -20,6 +20,7 @@ This document establishes the coding style and architecture patterns for Cosmos 
 - [14. AOT Constraints](#14-aot-constraints)
 - [15. Documentation](#15-documentation)
 - [16. Testing](#16-testing)
+- [17. Public API Surface](#17-public-api-surface)
 
 ---
 
@@ -385,7 +386,7 @@ PlatformHAL.Initialize(new X64PlatformInitializer());
 
 ## 7. Plug System
 
-Plugs replace BCL methods at the IL level. The patcher rewires calls at build time. For full documentation on plug attributes (`[Plug]`, `[PlugMember]`, `[Expose]`, `[FieldAccess]`) and the plug template, see [Plugs](plugs.md).
+Plugs replace BCL methods at the IL level. The patcher rewires calls at build time. For full documentation on plug attributes (`[Plug]`, `[PlugMember]`, `[PlatformSpecific]`) and the plug template, see [Plugs](plugs.md).
 
 ### When to Use Plugs vs. Other Approaches
 
@@ -858,5 +859,30 @@ contextAddr = (contextAddr + 0xF) & ~(nuint)0xF;
 For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see [Testing](testing.md).
 
 **Code coverage:** Add the `run-coverage` label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.
+
+---
+
+## 17. Public API Surface
+
+Three rules decide what is `public` (the full policy and its mechanisms live in [Public API Tracking](public-api.md)):
+
+1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against, plus the contract types its signatures expose (the `HAL.Interfaces` device interfaces, the `HAL.Vfs` contracts, Core's platform interfaces). Only that surface is tracked, documented, and covered by deprecation cycles.
+2. **Chosen experimental seams.** An extension point outside the ring is opened deliberately and marked `[Experimental("COSMOSxxxx")]`: usable now, no compatibility promise, promoted by removing the attribute. Never open a seam by just making something public.
+3. **Everything else is `internal`.** Visibility is not the extension mechanism. First-party assemblies and white-box test kernels use `InternalsVisibleTo`; external code uses `[UnsafeAccessor]` ([Accessing internals](accessing-internals.md)) at its own risk.
+
+Practical rules that follow:
+
+```csharp
+// Good: new user-facing capability lands as a Cosmos.Kernel.System facade
+public static class MemoryInfo { public static ulong FreePages => PageAllocator.FreePageCount; }
+
+// Bad: making the Core type public so a kernel can reach it
+public static class PageAllocator { ... }
+```
+
+- **New types default to `internal`.** Making a symbol `public` in a tracked project is a reviewed decision: the build fails (`RS0016`) until `make api` records it in `PublicAPI.Unshipped.txt`, and the txt diff belongs in the same commit.
+- **The enforcement test is DevKernel.** `examples/DevKernel` compiles with no `InternalsVisibleTo` grant; anything it needs must come from the supported ring.
+- **Tracked surface must be documented.** Enabling `CosmosTrackPublicApi` turns missing XML docs (`CS1591`) into build errors for the project's public symbols.
+- **A white-box test kernel gets an `InternalsVisibleTo` grant**, with a comment in the granting `.csproj` saying what it observes; it never forces a symbol public.
 
 ---

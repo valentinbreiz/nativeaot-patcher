@@ -2,10 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
-using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using SysThread = System.Threading.Thread;
 
 namespace DevKernel.Diagnostics;
@@ -31,7 +30,7 @@ internal static class CpuStat
 
     public static void Run()
     {
-        if (!SchedulerManager.IsEnabled)
+        if (!SchedulerInfo.IsSupported)
         {
             Console.WriteLine("cpustat: scheduler disabled (set CosmosEnableScheduler=true).");
             return;
@@ -47,7 +46,7 @@ internal static class CpuStat
 
         long lastWall = Stopwatch.GetTimestamp();
         long lastStepWall = lastWall;
-        ulong lastBusy = SchedulerManager.GetBusyCpuTimeNs();
+        ulong lastBusy = SchedulerInfo.BusyCpuTimeNs;
 
         int target = 0;
         int direction = +1;
@@ -118,9 +117,9 @@ internal static class CpuStat
                 }
             }
 
-            ulong busyNow = SchedulerManager.GetBusyCpuTimeNs();
+            ulong busyNow = SchedulerInfo.BusyCpuTimeNs;
             long wallDelta = nowWall - lastWall;
-            uint cpuCount = SchedulerManager.CpuCount;
+            uint cpuCount = SchedulerInfo.CpuCount;
             if (wallDelta > 0 && cpuCount > 0)
             {
                 ulong busyDelta = busyNow >= lastBusy ? busyNow - lastBusy : 0UL;
@@ -384,9 +383,8 @@ internal static class CpuStat
 
     private static void DrawRegistry(Canvas canvas, PCScreenFont font, int x, int y, int maxWidth, int maxHeight, int lh, int charW)
     {
-        SchedThread?[]? threads = SchedulerManager.Threads;
-        int regCount = SchedulerManager.ThreadCount;
-        if (threads == null || regCount <= 0)
+        int regCount = SchedulerInfo.ThreadCount;
+        if (regCount <= 0)
         {
             return;
         }
@@ -412,10 +410,9 @@ internal static class CpuStat
 
         int maxEntries = cols * rows;
         int drawn = 0;
-        for (int i = 0; i < threads.Length && drawn < maxEntries; i++)
+        for (int slot = 0; slot < SchedulerInfo.ThreadSlotCount && drawn < maxEntries; slot++)
         {
-            SchedThread? t = threads[i];
-            if (t == null)
+            if (!SchedulerInfo.TryGetThread(slot, out KernelThreadInfo info))
             {
                 continue;
             }
@@ -424,27 +421,27 @@ internal static class CpuStat
             int rowIdx = drawn / cols;
             int ex = x + colIdx * colW;
             int ey = gridY + rowIdx * lh;
-            DrawTruncated(canvas, font, FormatThread(t), Color.White, ex, ey, colW - charW);
+            DrawTruncated(canvas, font, FormatThread(info), Color.White, ex, ey, colW - charW);
             drawn++;
         }
     }
 
-    private static string FormatThread(SchedThread t)
+    private static string FormatThread(KernelThreadInfo info)
     {
-        string flag = (t.Flags & ThreadFlags.IdleThread) != 0 ? "idle"
-                    : (t.Flags & ThreadFlags.Managed) != 0 ? "mgd"
+        string flag = info.IsIdle ? "idle"
+                    : info.IsManaged ? "mgd"
                     : "krn";
-        string state = t.State switch
+        string state = info.State switch
         {
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Running => "RUN",
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Ready => "RDY",
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked => "BLK",
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping => "SLP",
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Dead => "DED",
-            Cosmos.Kernel.Core.Scheduler.ThreadState.Created => "NEW",
+            KernelThreadState.Running => "RUN",
+            KernelThreadState.Ready => "RDY",
+            KernelThreadState.Blocked => "BLK",
+            KernelThreadState.Sleeping => "SLP",
+            KernelThreadState.Dead => "DED",
+            KernelThreadState.Created => "NEW",
             _ => "???"
         };
-        return "T" + t.Id + " " + flag + " " + state + " " + FormatRuntime(t.TotalRuntime);
+        return "T" + info.Id + " " + flag + " " + state + " " + FormatRuntime(info.TotalRuntimeNs);
     }
 
     private static string FormatRuntime(ulong ns)

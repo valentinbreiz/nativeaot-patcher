@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
 using Cosmos.Kernel.Boot.Limine;
-using Cosmos.Kernel.Core.CPU;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 
 namespace Cosmos.TestRunner.Framework
 {
@@ -23,22 +22,8 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>Base of the decimal number system, used when accumulating parsed digits.</summary>
         private const int DecimalBase = 10;
 
-        /// <summary>QEMU kill marker byte 0 of the 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE end sequence.</summary>
-        private const byte QemuKillMarkerByte0 = 0xDE;
-        /// <summary>QEMU kill marker byte 1 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte1 = 0xAD;
-        /// <summary>QEMU kill marker byte 2 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte2 = 0xBE;
-        /// <summary>QEMU kill marker byte 3 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte3 = 0xEF;
-        /// <summary>QEMU kill marker byte 4 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte4 = 0xCA;
-        /// <summary>QEMU kill marker byte 5 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte5 = 0xFE;
-        /// <summary>QEMU kill marker byte 6 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte6 = 0xBA;
-        /// <summary>QEMU kill marker byte 7 of the end sequence.</summary>
-        private const byte QemuKillMarkerByte7 = 0xBE;
+        /// <summary>End marker telling the QEMU host to kill the VM.</summary>
+        private static ReadOnlySpan<byte> QemuKillMarker => new byte[] { 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE };
 
         private static string? _currentSuite;
         private static ushort _testCount;
@@ -104,17 +89,17 @@ namespace Cosmos.TestRunner.Framework
             uint durationMs;
             if (rawMs < 0 || rawMs > MaxSaneDurationMs)
             {
-                Serial.WriteString("[TestRunner] WARN clamped durationMs=");
-                Serial.WriteNumber(rawMs);
-                Serial.WriteString(" startTicks=");
-                Serial.WriteNumber(_testStartTicks);
-                Serial.WriteString(" endTicks=");
-                Serial.WriteNumber(endTicks);
-                Serial.WriteString(" elapsedTicks=");
-                Serial.WriteNumber(elapsedTicks);
-                Serial.WriteString(" freq=");
-                Serial.WriteNumber(freq);
-                Serial.WriteString("\n");
+                Log.WriteString("[TestRunner] WARN clamped durationMs=");
+                Log.WriteNumber(rawMs);
+                Log.WriteString(" startTicks=");
+                Log.WriteNumber(_testStartTicks);
+                Log.WriteString(" endTicks=");
+                Log.WriteNumber(endTicks);
+                Log.WriteString(" elapsedTicks=");
+                Log.WriteNumber(elapsedTicks);
+                Log.WriteString(" freq=");
+                Log.WriteNumber(freq);
+                Log.WriteString("\n");
                 durationMs = (uint)MaxSaneDurationMs;
             }
             else
@@ -382,21 +367,21 @@ namespace Cosmos.TestRunner.Framework
             SendTestSuiteEnd(totalToReport, _passedCount, _failedCount, _skippedCount);
 
             // Also send a text message for fallback/debugging
-            Serial.WriteString("\nTest Suite: ");
-            Serial.WriteString(_currentSuite ?? "Unknown");
-            Serial.WriteString("\nTotal: ");
-            Serial.WriteNumber(_testCount);
+            Log.WriteString("\nTest Suite: ");
+            Log.WriteString(_currentSuite ?? "Unknown");
+            Log.WriteString("\nTotal: ");
+            Log.WriteNumber(_testCount);
             if (_expectedTestCount > 0 && _expectedTestCount != _testCount)
             {
-                Serial.WriteString(" / ");
-                Serial.WriteNumber(_expectedTestCount);
-                Serial.WriteString(" expected");
+                Log.WriteString(" / ");
+                Log.WriteNumber(_expectedTestCount);
+                Log.WriteString(" expected");
             }
-            Serial.WriteString("  Passed: ");
-            Serial.WriteNumber(_passedCount);
-            Serial.WriteString("  Failed: ");
-            Serial.WriteNumber(_failedCount);
-            Serial.WriteString("\n");
+            Log.WriteString("  Passed: ");
+            Log.WriteNumber(_passedCount);
+            Log.WriteString("  Failed: ");
+            Log.WriteNumber(_failedCount);
+            Log.WriteString("\n");
         }
 
         /// <summary>
@@ -411,14 +396,7 @@ namespace Cosmos.TestRunner.Framework
 
             // Send unique end marker: 0xDE 0xAD 0xBE 0xEF 0xCA 0xFE 0xBA 0xBE
             // This sequence tells the QEMU host to kill the VM
-            Serial.ComWrite(QemuKillMarkerByte0);
-            Serial.ComWrite(QemuKillMarkerByte1);
-            Serial.ComWrite(QemuKillMarkerByte2);
-            Serial.ComWrite(QemuKillMarkerByte3);
-            Serial.ComWrite(QemuKillMarkerByte4);
-            Serial.ComWrite(QemuKillMarkerByte5);
-            Serial.ComWrite(QemuKillMarkerByte6);
-            Serial.ComWrite(QemuKillMarkerByte7);
+            Log.WriteBytes(QemuKillMarker);
         }
 
         #region Protocol Message Sending
@@ -450,6 +428,8 @@ namespace Cosmos.TestRunner.Framework
         /// <summary>Shift extracting byte 3 of a little-endian multi-byte value.</summary>
         private const int Byte3Shift = 24;
 
+        /// <summary>Size in bytes of the frame header: 4-byte magic, command byte, little-endian ushort length.</summary>
+        private const int HeaderSizeBytes = 7;
         /// <summary>Size in bytes of a little-endian ushort payload field (test number, expected count).</summary>
         private const int UInt16FieldSizeBytes = 2;
         /// <summary>Payload size of a TestPass message: ushort test number + uint duration in ms.</summary>
@@ -461,34 +441,23 @@ namespace Cosmos.TestRunner.Framework
         /// Send a protocol message with format: [MAGIC:4][Command:1][Length:2][Payload:N]
         /// Magic signature = 0x19740807 (SerialSignature from Consts.cs)
         /// </summary>
-        private static void SendMessage(byte command, byte[] payload)
+        internal static void SendMessage(byte command, byte[] payload)
         {
             // The protocol shares the UART with diagnostic traces written from IRQ handlers
             // and other threads ([SCHED]/[CV] wake logs). A frame must go out as one
-            // uninterrupted byte sequence: an IRQ landing mid-frame interleaves its log into
-            // the message and the host-side parser drops or garbles it.
-            using (InternalCpu.DisableInterruptsScope())
-            {
-                // Send magic signature (0x19740807 little-endian)
-                Serial.ComWrite(SerialSignatureByte0);
-                Serial.ComWrite(SerialSignatureByte1);
-                Serial.ComWrite(SerialSignatureByte2);
-                Serial.ComWrite(SerialSignatureByte3);
-
-                // Send command byte
-                Serial.ComWrite(command);
-
-                // Send length (little-endian ushort)
-                ushort length = (ushort)payload.Length;
-                Serial.ComWrite((byte)(length & ByteMask));
-                Serial.ComWrite((byte)((length >> Byte1Shift) & ByteMask));
-
-                // Send payload
-                foreach (var b in payload)
-                {
-                    Serial.ComWrite(b);
-                }
-            }
+            // uninterrupted byte sequence, so it is assembled up front and emitted through
+            // the atomic Log.WriteBytes.
+            ushort length = (ushort)payload.Length;
+            byte[] frame = new byte[HeaderSizeBytes + payload.Length];
+            frame[0] = SerialSignatureByte0;
+            frame[1] = SerialSignatureByte1;
+            frame[2] = SerialSignatureByte2;
+            frame[3] = SerialSignatureByte3;
+            frame[4] = command;
+            frame[5] = (byte)(length & ByteMask);
+            frame[6] = (byte)((length >> Byte1Shift) & ByteMask);
+            Array.Copy(payload, 0, frame, HeaderSizeBytes, payload.Length);
+            Log.WriteBytes(frame);
         }
 
         /// <summary>

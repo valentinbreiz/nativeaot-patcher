@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 /// support (<see cref="SvgaIIDriver.Is3DEnabled"/>) — QEMU's vmware-svga
 /// exposes no 3D capability, so this layer is only exercised on real VMware.
 /// </summary>
-public unsafe class VMWareSVGAII3D
+internal unsafe class VMWareSVGAII3D
 {
     private readonly SvgaIIDriver _driver;
 

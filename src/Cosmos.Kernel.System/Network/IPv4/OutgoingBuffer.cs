@@ -64,20 +64,25 @@ internal static class OutgoingBuffer
     }
 
     /// <summary>
-    /// Adds a packet to the buffer. for use by drivers
+    /// Adds a packet to the buffer, resolving the sending device from the
+    /// packet's source address.
     /// </summary>
     /// <param name="packet">The IP packet.</param>
-    public static void AddPacket(IPPacket packet)
+    /// <returns>False when no configured interface matches the packet's source address.</returns>
+    public static bool AddPacket(IPPacket packet)
     {
         var device = IPConfig.FindInterface(packet.SourceIP);
-        if (device != null)
+        if (device == null)
         {
-            AddPacket(packet, device);
+            return false;
         }
+
+        AddPacket(packet, device);
+        return true;
     }
 
     /// <summary>
-    /// Adds a packet to the buffer. for use by drivers
+    /// Adds a packet to the buffer.
     /// </summary>
     /// <param name="packet">The IP packet.</param>
     /// <param name="device">The Network Interface Controller.</param>

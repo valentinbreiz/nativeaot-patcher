@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.Core.Scheduler.Stride;
 /// <summary>
 /// Stride scheduler with interactive process support.
 /// </summary>
-public class StrideScheduler : IScheduler
+internal class StrideScheduler : IScheduler
 {
     public string Name => "Stride";
 
@@ -29,6 +29,20 @@ public class StrideScheduler : IScheduler
     /// Priority boost decays after 5ms.
     /// </summary>
     private const ulong WakeupBoostDecayNs = 5_000_000;
+
+    /// <summary>
+    /// Nanoseconds per second, for converting the Stopwatch frequency into
+    /// the tick count of a quantum.
+    /// </summary>
+    private const ulong NanosecondsPerSecond = 1_000_000_000;
+
+    /// <summary>
+    /// Largest catch-up, in quanta, a single global-pass update may account
+    /// for. Bounds both the virtual-time jump and the multiply in
+    /// <see cref="UpdateGlobalPass"/> when the timestamp delta is not a real
+    /// elapsed time.
+    /// </summary>
+    private const ulong MaxCatchUpQuanta = 1000;
 
     // ========== Lifecycle ==========
 
@@ -417,7 +431,35 @@ public class StrideScheduler : IScheduler
         ulong now = GetTimestamp();
         ulong elapsed = now - cpuData.LastPassUpdate;
         ulong globalStride = Stride1 / cpuData.TotalTickets;
-        cpuData.GlobalPass += (globalStride * elapsed) / SchedulerManager.DefaultQuantumNs;
+
+        // The elapsed delta is in Stopwatch ticks, not nanoseconds (multi-GHz
+        // TSC on x64, 62.5 MHz generic timer on ARM64), so the quantum divisor
+        // must be in ticks too — the same conversion MarkSleeping needs for
+        // WakeupTime. Dividing ticks by DefaultQuantumNs advanced GlobalPass
+        // several times too fast on x64, and the OnThreadYield anti-starvation
+        // floor then snapped every spinner up to GlobalPass, flattening ticket
+        // ratios into equal shares.
+        ulong ticksPerQuantum =
+            (ulong)Stopwatch.Frequency * SchedulerManager.DefaultQuantumNs / NanosecondsPerSecond;
+        if (ticksPerQuantum == 0)
+        {
+            ticksPerQuantum = 1;
+        }
+
+        // Bound the catch-up. Two deltas are not a real elapsed time: the very
+        // first update, where LastPassUpdate is still 0 and the delta is the
+        // whole timestamp, and the multi-million-second CNTPCT_EL0 readings
+        // QEMU TCG produces on ARM64 (the test runner clamps those for the
+        // same reason). Either one both explodes GlobalPass — the yield floor
+        // then snaps every thread up to it, flattening ticket ratios — and can
+        // overflow the multiply below.
+        ulong maxElapsed = ticksPerQuantum * MaxCatchUpQuanta;
+        if (elapsed > maxElapsed)
+        {
+            elapsed = maxElapsed;
+        }
+
+        cpuData.GlobalPass += (globalStride * elapsed) / ticksPerQuantum;
         cpuData.LastPassUpdate = now;
     }
 

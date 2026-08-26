@@ -1,10 +1,16 @@
 namespace Cosmos.Kernel.HAL.Devices.Network;
 
+/// <summary>
+/// A 48-bit Ethernet MAC address.
+/// </summary>
 public class MACAddress : IComparable
 {
     private static MACAddress? s_broadcast;
     private static MACAddress? s_none;
 
+    /// <summary>
+    /// The broadcast address (FF:FF:FF:FF:FF:FF).
+    /// </summary>
     public static MACAddress Broadcast
     {
         get
@@ -17,6 +23,9 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// The all-zero address (00:00:00:00:00:00), used when no address is assigned.
+    /// </summary>
     public static MACAddress None
     {
         get
@@ -29,8 +38,15 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// The six address bytes, most significant first.
+    /// </summary>
     public readonly byte[] bytes = new byte[6];
 
+    /// <summary>
+    /// Create a MAC address from a 6-byte array.
+    /// </summary>
+    /// <param name="address">The six address bytes, most significant first.</param>
     public MACAddress(byte[] address)
     {
         if (address == null || address.Length != 6)
@@ -67,17 +83,32 @@ public class MACAddress : IComparable
         bytes[5] = buffer[offset + 5];
     }
 
+    /// <summary>
+    /// Create a copy of an existing MAC address.
+    /// </summary>
+    /// <param name="m">MAC address to copy.</param>
     public MACAddress(MACAddress m)
         : this(m.bytes)
     {
     }
 
 
+    /// <summary>
+    /// Check that the address holds six bytes.
+    /// </summary>
+    /// <returns>True if the address is 6 bytes long.</returns>
     public bool IsValid()
     {
         return bytes.Length == 6;
     }
 
+    /// <summary>
+    /// Compare this address to another MAC address, byte by byte from the
+    /// most significant byte.
+    /// </summary>
+    /// <param name="obj">MAC address to compare against.</param>
+    /// <returns>Negative, zero, or positive following the ordering of the first differing byte.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is not a <see cref="MACAddress"/>.</exception>
     public int CompareTo(object? obj)
     {
         if (obj is MACAddress)
@@ -128,6 +159,12 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// Check whether another MAC address has the same six bytes.
+    /// </summary>
+    /// <param name="obj">MAC address to compare against.</param>
+    /// <returns>True if all six bytes are equal.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is not a <see cref="MACAddress"/>.</exception>
     public override bool Equals(object? obj)
     {
         if (obj is MACAddress)
@@ -147,11 +184,20 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// Get a hash code derived from the type name and the string form of the address.
+    /// </summary>
+    /// <returns>Hash code for this address.</returns>
     public override int GetHashCode()
     {
         return (GetType().AssemblyQualifiedName + "|" + ToString()).GetHashCode();
     }
 
+    /// <summary>
+    /// Combine the address bytes into a single unsigned number,
+    /// most significant byte first.
+    /// </summary>
+    /// <returns>The address as a number.</returns>
     public ulong ToNumber()
     {
         // TODO check shifting of bytes byte[0] and byte[1]
@@ -166,6 +212,11 @@ public class MACAddress : IComparable
         aChars[aIndex + 1] = xChars[aByte & 0xF];
     }
 
+    /// <summary>
+    /// Combine the address bytes into a 32-bit unsigned number,
+    /// most significant byte first. Used as the <see cref="Hash"/> value.
+    /// </summary>
+    /// <returns>The address as a 32-bit number.</returns>
     public uint To32BitNumber()
     {
         // TODO check shifting of bytes byte[0] and byte[1]
@@ -190,6 +241,11 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// Format the address as six colon-separated hex byte pairs
+    /// (e.g. "52:54:00:12:34:56").
+    /// </summary>
+    /// <returns>The address in colon-separated hex notation.</returns>
     public override string ToString()
     {
         // mac address consists of 6 2chars pairs, delimited by :

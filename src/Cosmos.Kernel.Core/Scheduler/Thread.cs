@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.Memory.GarbageCollector;
 
 namespace Cosmos.Kernel.Core.Scheduler;
@@ -5,30 +6,84 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// <summary>
 /// Thread Control Block for scheduling.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public unsafe class Thread : SchedulerExtensible
 {
     // ===== Identity =====
-    public uint Id { get; set; }
-    public uint CpuId { get; set; }
+
+    /// <summary>
+    /// Unique thread identifier. The idle thread has ID 0.
+    /// </summary>
+    public uint Id { get; internal set; }
+
+    /// <summary>
+    /// CPU this thread is assigned to.
+    /// </summary>
+    public uint CpuId { get; internal set; }
 
     // ===== State =====
-    public ThreadState State { get; set; }
-    public ThreadFlags Flags { get; set; }
+
+    /// <summary>
+    /// Current lifecycle state. State transitions are performed by
+    /// <see cref="SchedulerManager"/>; schedulers observe the state but do
+    /// not change it.
+    /// </summary>
+    public ThreadState State { get; internal set; }
+
+    /// <summary>
+    /// Thread attribute flags.
+    /// </summary>
+    public ThreadFlags Flags { get; internal set; }
 
     // ===== Context (architecture-specific values) =====
+
+    /// <summary>
+    /// Saved stack pointer while the thread is not running.
+    /// </summary>
     public nuint StackPointer { get; internal set; }
+
+    /// <summary>
+    /// Entry point address the thread was created with.
+    /// </summary>
     public nuint InstructionPointer { get; internal set; }
+
+    /// <summary>
+    /// Lowest address of the thread's stack allocation.
+    /// </summary>
     public nuint StackBase { get; internal set; }
+
+    /// <summary>
+    /// Size of the thread's stack in bytes.
+    /// </summary>
     public nuint StackSize { get; internal set; }
 
     // ===== Generic Timing =====
-    public ulong CreatedAt { get; set; }
+
+    /// <summary>
+    /// Timestamp at which the thread was created.
+    /// </summary>
+    public ulong CreatedAt { get; internal set; }
+
+    /// <summary>
+    /// Accumulated CPU time in nanoseconds. The active scheduler charges
+    /// elapsed time to the current thread from its
+    /// <see cref="IScheduler.OnTick"/> hook.
+    /// </summary>
     public ulong TotalRuntime { get; set; }
-    public ulong LastScheduledAt { get; set; }
-    public ulong WakeupTime { get; set; }
+
+    /// <summary>
+    /// Timestamp at which the thread last became the current thread.
+    /// </summary>
+    public ulong LastScheduledAt { get; internal set; }
+
+    /// <summary>
+    /// Deadline of the current timed wait, in timestamp ticks. Zero when
+    /// the thread is not sleeping.
+    /// </summary>
+    public ulong WakeupTime { get; internal set; }
 
     // ===== GC Allocation Context (TLAB) =====
-    public AllocContext AllocContext;
+    internal AllocContext _allocContext;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private object[][] _threadStaticStorage;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -56,7 +111,7 @@ public unsafe class Thread : SchedulerExtensible
     /// <param name="codeSegment">Code segment selector (CS).</param>
     /// <param name="arg">Optional argument passed to entry point.</param>
     /// <param name="stackSize">Stack size in bytes.</param>
-    public void InitializeStack(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackSize = DefaultStackSize)
+    internal void InitializeStack(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackSize = DefaultStackSize)
     {
         // Allocate stack memory
         StackSize = stackSize;
@@ -92,7 +147,7 @@ public unsafe class Thread : SchedulerExtensible
         State = ThreadState.Created;
     }
 
-    public ref object[][] GetThreadStaticStorage()
+    internal ref object[][] GetThreadStaticStorage()
     {
         return ref _threadStaticStorage;
     }
@@ -101,7 +156,7 @@ public unsafe class Thread : SchedulerExtensible
     /// Gets a pointer to the thread's saved context.
     /// Only valid when thread is not running.
     /// </summary>
-    public ThreadContext* GetContext()
+    internal ThreadContext* GetContext()
     {
         return (ThreadContext*)StackPointer;
     }

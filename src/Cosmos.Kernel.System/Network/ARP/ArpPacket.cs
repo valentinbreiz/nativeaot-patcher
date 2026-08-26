@@ -1,17 +1,40 @@
-﻿using Cosmos.Kernel.Core.IO;
+using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network.ARP;
 
 /// <summary>
-/// Represents an ARP (Address Resolution Protocol) packet.
+/// Represents an ARP (Address Resolution Protocol) frame carried over Ethernet with EtherType 0x0806.
+/// The header properties are snapshots parsed from <see cref="EthernetPacket.RawData"/> once, at
+/// construction, and are never re-read afterwards.
 /// </summary>
-internal class ArpPacket : EthernetPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class ArpPacket : EthernetPacket
 {
+    /// <summary>
+    /// The hardware type field (HTYPE) parsed from the frame at construction; 1 means Ethernet.
+    /// </summary>
     protected ushort hardwareType;
+
+    /// <summary>
+    /// The protocol type field (PTYPE) parsed from the frame at construction; 0x0800 means IPv4.
+    /// </summary>
     protected ushort protocolType;
+
+    /// <summary>
+    /// The hardware address length field (HLEN) parsed from the frame at construction; 6 for Ethernet.
+    /// </summary>
     protected byte hardwareAddrLength;
+
+    /// <summary>
+    /// The protocol address length field (PLEN) parsed from the frame at construction; 4 for IPv4.
+    /// </summary>
     protected byte protocolAddrLength;
+
+    /// <summary>
+    /// The operation code field (OPER) parsed from the frame at construction; 1 is a request, 2 is a reply.
+    /// </summary>
     protected ushort opCode;
 
     /// <summary>
@@ -70,21 +93,22 @@ internal class ArpPacket : EthernetPacket
         }
     }
 
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="ArpPacket"/> class.
-    // /// </summary>
-    // internal ArpPacket()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpPacket"/> class.
+    /// Initializes a new instance of the <see cref="ArpPacket"/> class from a received frame.
+    /// The array is aliased without copying: <see cref="EthernetPacket.RawData"/> refers to
+    /// <paramref name="rawData"/> itself, and the ARP header fields are parsed from it once,
+    /// at construction.
     /// </summary>
-    /// <param name="rawData">Raw data.</param>
+    /// <param name="rawData">The raw Ethernet frame, starting at the destination MAC address.</param>
     public ArpPacket(byte[] rawData)
         : base(rawData)
     { }
 
+    /// <summary>
+    /// Parses the ARP header fields (hardware type, protocol type, address lengths, operation code)
+    /// from <see cref="EthernetPacket.RawData"/> into the protected fields. Called once during
+    /// construction; the parsed values are never refreshed afterwards.
+    /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();
@@ -96,16 +120,18 @@ internal class ArpPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ArpPacket"/> class.
+    /// Initializes a new ARP packet for sending. Allocates a frame of <paramref name="packet_size"/>
+    /// bytes, writes the Ethernet header with EtherType 0x0806 and the ARP header fields into it,
+    /// then parses the header back into the properties. Nothing is recomputed after construction.
     /// </summary>
-    /// <param name="dest">Destination MAC address.</param>
-    /// <param name="src">Source MAC address.</param>
-    /// <param name="hwType">Hardware type.</param>
-    /// <param name="protoType">Protocol type.</param>
-    /// <param name="hwLen">Hardware address length.</param>
-    /// <param name="protoLen">Protocol length.</param>
-    /// <param name="operation">Operation.</param>
-    /// <param name="packet_size">Packet size.</param>
+    /// <param name="dest">Destination MAC address of the Ethernet frame.</param>
+    /// <param name="src">Source MAC address of the Ethernet frame.</param>
+    /// <param name="hwType">Hardware type (HTYPE); 1 for Ethernet.</param>
+    /// <param name="protoType">Protocol type (PTYPE); 0x0800 for IPv4.</param>
+    /// <param name="hwLen">Hardware address length in bytes (HLEN); 6 for Ethernet.</param>
+    /// <param name="protoLen">Protocol address length in bytes (PLEN); 4 for IPv4.</param>
+    /// <param name="operation">Operation code (OPER); 1 for a request, 2 for a reply.</param>
+    /// <param name="packet_size">Total frame size in bytes.</param>
     protected ArpPacket(MACAddress dest, MACAddress src, ushort hwType, ushort protoType,
         byte hwLen, byte protoLen, ushort operation, int packet_size)
         : base(dest, src, 0x0806, packet_size)
@@ -123,20 +149,28 @@ internal class ArpPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Gets the operation code.
+    /// Gets the operation code (OPER); 1 is a request, 2 is a reply. This is a snapshot parsed
+    /// from <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal ushort Operation => opCode;
+    public ushort Operation => opCode;
 
     /// <summary>
-    /// Get the hardware type.
+    /// Gets the hardware type (HTYPE); 1 means Ethernet. This is a snapshot parsed from
+    /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal ushort HardwareType => hardwareType;
+    public ushort HardwareType => hardwareType;
 
     /// <summary>
-    /// Gets the protocol type.
+    /// Gets the protocol type (PTYPE); 0x0800 means IPv4. This is a snapshot parsed from
+    /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    internal ushort ProtocolType => protocolType;
+    public ushort ProtocolType => protocolType;
 
+    /// <summary>
+    /// Returns a string listing the source and destination MAC addresses, hardware type,
+    /// protocol type, and operation code.
+    /// </summary>
+    /// <returns>A string representation of the packet.</returns>
     public override string ToString()
     {
         return "ARP Packet Src=" + srcMAC + ", Dest=" + destMAC + ", HWType=" + hardwareType + ", Protocol=" + protocolType +

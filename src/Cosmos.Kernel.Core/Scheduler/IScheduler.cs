@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
 /// Interface for pluggable scheduling algorithms.
 /// Inspired by Ekiben's EkibenScheduler trait.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public interface IScheduler
 {
     // ========== Identity ==========
@@ -117,5 +120,5 @@ public interface IScheduler
     /// Get a thread from the run queue by index.
     /// Returns null if index is out of range.
     /// </summary>
-    Thread GetRunQueueThread(PerCpuState cpuState, int index);
+    Thread? GetRunQueueThread(PerCpuState cpuState, int index);
 }

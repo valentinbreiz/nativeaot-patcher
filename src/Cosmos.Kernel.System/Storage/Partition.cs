@@ -9,7 +9,7 @@ namespace Cosmos.Kernel.System.Storage;
 /// Block-device view of a single partition on a host disk. Read/Write are
 /// translated to the host LBA space by adding <see cref="StartSector"/>.
 /// </summary>
-public sealed class Partition : BlockDevice
+public sealed class Partition : IBlockDevice
 {
     private readonly IBlockDevice _host;
     private readonly string _name;
@@ -21,7 +21,13 @@ public sealed class Partition : BlockDevice
     public ulong StartSector { get; }
 
     /// <inheritdoc />
-    public override string Name => _name;
+    public ulong BlockCount { get; }
+
+    /// <inheritdoc />
+    public ulong BlockSize { get; }
+
+    /// <inheritdoc />
+    public string Name => _name;
 
     /// <summary>
     /// Index-based naming ctor: builds "&lt;host&gt;p&lt;index&gt;" digit by
@@ -33,7 +39,7 @@ public sealed class Partition : BlockDevice
     /// <param name="sectorCount">Length of the partition in sectors.</param>
     /// <param name="index">Zero-based partition index on the host disk.</param>
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)
-        : this(host, startSector, sectorCount, BuildDeviceName(host.Name, "p", index))
+        : this(host, startSector, sectorCount, BlockDevice.BuildDeviceName(host.Name, "p", index))
     {
     }
 
@@ -52,21 +58,21 @@ public sealed class Partition : BlockDevice
     }
 
     /// <inheritdoc />
-    public override void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
+    public void ReadBlock(ulong blockNo, ulong blockCount, Span<byte> data)
     {
         CheckBounds(blockNo, blockCount);
         _host.ReadBlock(StartSector + blockNo, blockCount, data);
     }
 
     /// <inheritdoc />
-    public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
+    public void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan<byte> data)
     {
         CheckBounds(blockNo, blockCount);
         _host.WriteBlock(StartSector + blockNo, blockCount, data);
     }
 
     /// <inheritdoc />
-    public override void Flush()
+    public void Flush()
     {
         _host.Flush();
     }

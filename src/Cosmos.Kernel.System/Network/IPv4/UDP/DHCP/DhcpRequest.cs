@@ -6,25 +6,35 @@
 *                   Port of Cosmos Code.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 
 /// <summary>
-/// Represents a DHCP request packet.
+/// Represents a DHCPREQUEST packet, broadcast to request a previously offered address.
 /// </summary>
-internal class DhcpRequest : DhcpPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DhcpRequest : DhcpPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DhcpRequest"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRequest"/> class from received data.
+    /// The packet aliases <paramref name="rawData"/> without copying.
     /// </summary>
-    internal DhcpRequest(byte[] rawData) : base(rawData)
+    /// <param name="rawData">The raw Ethernet frame bytes, aliased rather than copied.</param>
+    public DhcpRequest(byte[] rawData) : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DhcpRequest"/> class.
+    /// Initializes a new instance of the <see cref="DhcpRequest"/> class as a broadcast request.
+    /// Writes DHCP option 53 (message type) with value 3, DHCPREQUEST, then option 50 carrying
+    /// <paramref name="requestedAddress"/>, then option 55, a parameter request list asking for
+    /// options 1 (subnet mask), 3 (router), 15 (domain name) and 6 (domain name server), then
+    /// the end mark.
     /// </summary>
-    internal DhcpRequest(MACAddress sourceMAC, Address requestedAddress) : base(sourceMAC, 16)
+    /// <param name="sourceMAC">The MAC address of the sending network device.</param>
+    /// <param name="requestedAddress">The IPv4 address to request, written to option 50.</param>
+    public DhcpRequest(MACAddress sourceMAC, Address requestedAddress) : base(sourceMAC, 16)
     {
         // Request
         RawData[282] = 53;

@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Low-level context switch operations.
 /// Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.
 /// </summary>
-public static class ContextSwitch
+internal static class ContextSwitch
 {
     /// <summary>
     /// Requests a context switch to the specified thread.

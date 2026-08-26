@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// <remarks>
 /// This mutex supports recursive locking by the same thread.
 /// </remarks>
-public class Mutex : IDisposable
+internal class Mutex : IDisposable
 {
     /// <summary>Initial capacity of the wait queue, pre-sized so the first Add in Acquire allocates nothing under the IRQ-off state lock (mirrors InterruptEvent._waiters).</summary>
     private const int InitialWaitQueueCapacity = 4;

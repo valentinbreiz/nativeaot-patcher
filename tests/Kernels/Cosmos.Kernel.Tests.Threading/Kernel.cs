@@ -8,6 +8,7 @@ using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
 using Monitor = System.Threading.Monitor;
+using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using SysThread = System.Threading.Thread;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
@@ -16,7 +17,7 @@ namespace Cosmos.Kernel.Tests.Threading;
 public class Kernel : Sys.Kernel
 {
     /// <summary>Total number of tests announced to the test runner for this suite.</summary>
-    private const int ExpectedTestCount = 58;
+    private const int ExpectedTestCount = 73;
 
     /// <summary>Lock/unlock increment iterations each worker thread performs in the lock and spinlock contention tests.</summary>
     private const int LockIterationsPerThread = 100;
@@ -65,6 +66,31 @@ public class Kernel : Sys.Kernel
     private const int ThreadStaticsWaitMs = 100;
     /// <summary>Delay (ms) between increments in each multiple-threads worker iteration.</summary>
     private const int WorkerStepDelayMs = 50;
+
+    /// <summary>Duration (ms) of each CPU-share measurement window in the scheduling-policy tests.</summary>
+    private const int PolicyMeasureMs = 1500;
+    /// <summary>Interval (ms) between the spinner-progress samples of the quantum-preemption test.</summary>
+    private const int PreemptSampleIntervalMs = 100;
+    /// <summary>Iteration mask deciding how often a measured spinner re-checks its stop flag.</summary>
+    private const ulong SpinStopCheckMask = 0xFFF;
+    /// <summary>Stride tickets given to the favored spinner of the proportional-share tests.</summary>
+    private const long HighTickets = 400;
+    /// <summary>Stride tickets given to the other spinner (the Stride default).</summary>
+    private const long LowTickets = 100;
+    // The two policies are separated by one ratio, applied from both sides:
+    // the 4x-ticket spinner must clear it under Stride, and neither spinner may
+    // reach it under Round-Robin. 3/2 sits in the gap with margin on both
+    // arches — measured A/B was 1.92 (arm64 TCG) to 2.20 (x64) under Stride,
+    // and 0.88 to 1.13 under Round-Robin whatever priority was requested.
+    // Stride's ideal is 4x; the OnThreadYield pass floor erodes it to ~2x.
+    /// <summary>Numerator of the share ratio separating the two policies.</summary>
+    private const ulong PolicySkewNumerator = 3;
+    /// <summary>Denominator of the share ratio separating the two policies.</summary>
+    private const ulong PolicySkewDenominator = 2;
+    /// <summary>Number of probe threads in the Round-Robin FIFO-order test.</summary>
+    private const int FifoWorkerCount = 3;
+    /// <summary>Run-queue index far beyond any population this suite creates; must read as null.</summary>
+    private const int OutOfRangeQueueIndex = 200;
 
     /// <summary>Barge-probe result: the releaser's TryAcquire outcome has not been recorded yet.</summary>
     private const int BargeResultPending = -1;
@@ -162,6 +188,26 @@ public class Kernel : Sys.Kernel
         TR.Run("Delegate_Comparison", TestDelegateComparison);
         TR.Run("Delegate_Chaining_Pipeline", TestDelegateChaining);
         TR.Run("Delegate_EventPattern_Multicast", TestDelegateEventPattern);
+
+        // Scheduling-policy tests: the default Stride behavior, a live switch
+        // to the user-style Round-Robin policy (RoundRobinScheduler.cs), the
+        // Round-Robin semantics, and the switch back. Kept last: they replace
+        // the installed policy, so nothing else should run between the swaps.
+        TR.Run("RoundRobin_Hooks_ReadyTail_PickHead", TestRoundRobinHooksFifoOrder);
+        TR.Run("RoundRobin_Hooks_DoubleReady_QueuesOnce", TestRoundRobinHooksReadyIsIdempotent);
+        TR.Run("RoundRobin_Hooks_QuantumAccounting", TestRoundRobinHooksQuantumAccounting);
+        TR.Run("RoundRobin_Hooks_BlockYieldExit", TestRoundRobinHooksBlockAndYield);
+        TR.Run("Scheduler_BootPolicy_IsStride", TestBootPolicyIsStride);
+        TR.Run("Stride_ProportionalShare_FollowsTickets", TestStrideProportionalShare);
+        TR.Run("SetScheduler_InstallsRoundRobinPolicy", TestSetSchedulerInstallsRoundRobin);
+        TR.Run("RoundRobin_ThreadRuns_UnderNewPolicy", TestThreadRunsUnderRoundRobin);
+        TR.Run("RoundRobin_DispatchesEveryThread", TestRoundRobinDispatchesEveryThread);
+        TR.Run("RoundRobin_QuantumExpiry_PreemptsSpinner", TestRoundRobinQuantumPreemption);
+        TR.Run("RoundRobin_EqualPriorities_ShareEvenly", TestRoundRobinEqualShare);
+        TR.Run("RoundRobin_SetPriority_DoesNotSkewShares", TestRoundRobinIgnoresPriority);
+        TR.Run("RoundRobin_RunQueue_ExposesReadyThreads", TestRoundRobinRunQueueDiagnostics);
+        TR.Run("RoundRobin_BlockedThread_LeavesRunQueue", TestRoundRobinBlockedLeavesQueue);
+        TR.Run("SetScheduler_RestoresStrideDefault", TestSetSchedulerRestoresStride);
 
         // Finish test suite
         TR.Finish();
@@ -1347,5 +1393,674 @@ public class Kernel : Sys.Kernel
 
         Assert.Equal(2, eventFireCount, "Both event handlers should fire");
         Assert.Equal("hello", lastEventData, "First handler should receive the event payload");
+    }
+
+    // ==================== Scheduling-Policy Tests ====================
+    // Stride is the boot default; RoundRobinScheduler.cs implements the
+    // plugging guide's Round-Robin sketch over the public seam, exactly as a
+    // user kernel would. The cells below validate Stride's proportional
+    // share, the live Stride -> Round-Robin switch, Round-Robin's semantics
+    // (FIFO first-runs, quantum preemption, equal shares, priority ignored,
+    // run-queue membership), and the switch back. Both swaps happen at
+    // quiescent points — every worker of the previous cells has exited — so
+    // no thread is parked or queued across the policy change.
+
+    private static RoundRobinScheduler? s_roundRobin;
+
+    // Two measured CPU-bound spinners (the proportional-share/equal-share cells)
+    private static volatile bool _spinGo;
+    private static volatile bool _spinStop;
+    private static volatile bool _spinAReady, _spinBReady;
+    private static volatile bool _spinADone, _spinBDone;
+    private static SchedThread? _spinAThread, _spinBThread;
+    // Written by each worker before its volatile done flag; read by main after it.
+    private static ulong _spinACount, _spinBCount;
+    private static long _observedPriorityA, _observedPriorityB;
+
+    private static SchedThread? CurrentSchedulerThread()
+    {
+        return SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!.CurrentThread;
+    }
+
+    /// <summary>
+    /// True when <paramref name="thread"/> currently sits in the installed
+    /// policy's run queue, via the read-only diagnostics hooks. While main is
+    /// executing this scan, every other runnable thread is Ready, so a
+    /// spinning worker must be queued and a parked one must not.
+    /// </summary>
+    private static bool RunQueueHolds(SchedThread? thread)
+    {
+        if (thread == null)
+        {
+            return false;
+        }
+
+        IScheduler? scheduler = SchedulerManager.Current;
+        PerCpuState? state = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
+        if (scheduler == null || state == null)
+        {
+            return false;
+        }
+
+        // One mask over the whole scan: the count and the per-index reads each
+        // mask individually, so between them the tick could rotate the queue
+        // and move the target past an index already visited. Nesting the
+        // policy's own guards inside this one is harmless.
+        using (SchedulerManager.MaskInterrupts())
+        {
+            int count = scheduler.GetRunQueueCount(state);
+            for (int i = 0; i < count; i++)
+            {
+                if (ReferenceEquals(scheduler.GetRunQueueThread(state, i), thread))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void MeasuredSpinWorkerA()
+    {
+        _spinAThread = CurrentSchedulerThread();
+        _spinAReady = true;
+        while (!_spinGo)
+        {
+            // wait for main to apply priorities and open the measurement window
+        }
+
+        ulong count = 0;
+        while (true)
+        {
+            count++;
+            if ((count & SpinStopCheckMask) == 0 && _spinStop)
+            {
+                break;
+            }
+        }
+
+        _spinACount = count;
+        _spinADone = true;
+    }
+
+    private static void MeasuredSpinWorkerB()
+    {
+        _spinBThread = CurrentSchedulerThread();
+        _spinBReady = true;
+        while (!_spinGo)
+        {
+            // wait for main to apply priorities and open the measurement window
+        }
+
+        ulong count = 0;
+        while (true)
+        {
+            count++;
+            if ((count & SpinStopCheckMask) == 0 && _spinStop)
+            {
+                break;
+            }
+        }
+
+        _spinBCount = count;
+        _spinBDone = true;
+    }
+
+    /// <summary>
+    /// Runs the two CPU-bound spinners for <see cref="PolicyMeasureMs"/> with
+    /// the given priorities applied through <see cref="SchedulerManager.SetPriority"/>,
+    /// leaving their loop counts in _spinACount/_spinBCount and the priorities
+    /// the policy reported (read while both spinners were alive) in
+    /// _observedPriorityA/_observedPriorityB.
+    /// </summary>
+    private static void RunTwoSpinnersMeasured(long priorityA, long priorityB)
+    {
+        _spinGo = false;
+        _spinStop = false;
+        _spinAReady = _spinBReady = false;
+        _spinADone = _spinBDone = false;
+        _spinAThread = _spinBThread = null;
+        _spinACount = _spinBCount = 0;
+        _observedPriorityA = _observedPriorityB = 0;
+
+        SysThread workerA = new(MeasuredSpinWorkerA);
+        SysThread workerB = new(MeasuredSpinWorkerB);
+        workerA.Start();
+        workerB.Start();
+
+        for (int i = 0; i < FlagPollRetries && !(_spinAReady && _spinBReady); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+
+        uint cpuId = SchedulerManager.GetCurrentCpuId();
+        if (_spinAThread != null && _spinBThread != null)
+        {
+            // SetPriority runs under a spinlock only (see the plugging guide's
+            // kernel constraints); mask the tick around it ourselves.
+            using (SchedulerManager.MaskInterrupts())
+            {
+                SchedulerManager.SetPriority(cpuId, _spinAThread, priorityA);
+                SchedulerManager.SetPriority(cpuId, _spinBThread, priorityB);
+            }
+
+            // Capture what the policy reports while the threads are alive:
+            // OnThreadExit drops the bookkeeping GetPriority reads.
+            _observedPriorityA = SchedulerManager.GetPriority(_spinAThread);
+            _observedPriorityB = SchedulerManager.GetPriority(_spinBThread);
+        }
+
+        _spinGo = true;
+        TimerManager.Wait(PolicyMeasureMs);
+        _spinStop = true;
+
+        for (int i = 0; i < FlagPollRetries && !(_spinADone && _spinBDone); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Serial.WriteString("[PolicyTest] policy=");
+        Serial.WriteString(SchedulerManager.Current?.Name ?? "none");
+        Serial.WriteString(" prioA=");
+        Serial.WriteNumber(priorityA);
+        Serial.WriteString(" prioB=");
+        Serial.WriteNumber(priorityB);
+        Serial.WriteString(" countA=");
+        Serial.WriteNumber((long)_spinACount);
+        Serial.WriteString(" countB=");
+        Serial.WriteNumber((long)_spinBCount);
+        Serial.WriteString("\n");
+    }
+
+    private static void TestBootPolicyIsStride()
+    {
+        IScheduler? current = SchedulerManager.Current;
+        Assert.True(current != null, "a scheduling policy must be installed at boot");
+        Assert.Equal("Stride", current!.Name, "the boot default policy should be Stride");
+    }
+
+    private static void TestStrideProportionalShare()
+    {
+        RunTwoSpinnersMeasured(HighTickets, LowTickets);
+
+        Assert.True(_spinAReady && _spinBReady, "both measured spinners should start");
+        Assert.True(_spinADone && _spinBDone, "both measured spinners should finish the window");
+        Assert.True(_observedPriorityA == HighTickets && _observedPriorityB == LowTickets,
+            "Stride should report the tickets set through SetPriority");
+        Assert.True(_spinACount > 0 && _spinBCount > 0,
+            "both spinners must make progress under Stride (proportional share, not starvation)");
+        Assert.True(_spinACount * PolicySkewDenominator >= _spinBCount * PolicySkewNumerator,
+            "a 4x ticket edge must yield a clearly larger (>= 1.5x) CPU share under Stride");
+    }
+
+    private static void TestSetSchedulerInstallsRoundRobin()
+    {
+        s_roundRobin = new RoundRobinScheduler();
+
+        // Mask the tick across the swap so nothing can observe the window
+        // between ShutdownCpu (old policy) and InitializeCpu (new policy).
+        using (SchedulerManager.MaskInterrupts())
+        {
+            SchedulerManager.SetScheduler(s_roundRobin);
+        }
+
+        Assert.True(ReferenceEquals(SchedulerManager.Current, s_roundRobin),
+            "SchedulerManager.Current should be the installed Round-Robin instance");
+        Assert.Equal("RoundRobin", SchedulerManager.Current!.Name,
+            "the installed policy should report its own name");
+
+        PerCpuState? state = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
+        Assert.True(state != null && state.SchedulerData is RoundRobinCpuData,
+            "InitializeCpu should attach fresh Round-Robin per-CPU data");
+        if (state != null)
+        {
+            Assert.Equal(0, s_roundRobin!.GetRunQueueCount(state),
+                "the incoming policy should start from an empty run queue");
+        }
+    }
+
+    private static volatile bool _policyProbeRan;
+
+    private static void PolicyProbeWorker()
+    {
+        _policyProbeRan = true;
+    }
+
+    private static void RunPolicyProbeWorker()
+    {
+        _policyProbeRan = false;
+        SysThread probe = new(PolicyProbeWorker);
+        probe.Start();
+
+        for (int i = 0; i < FlagPollRetries && !_policyProbeRan; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+    }
+
+    private static void TestThreadRunsUnderRoundRobin()
+    {
+        RunPolicyProbeWorker();
+        Assert.True(_policyProbeRan,
+            "a thread created under the Round-Robin policy must be scheduled and run");
+    }
+
+    // ===== Round-Robin hooks driven directly (deterministic) =====
+    // FIFO order is a property of the policy's run structure, and observing it
+    // through real dispatch is racy: a worker preempted anywhere inside
+    // InvokeCurrentThreadStart's preamble is re-queued at the TAIL by
+    // OnThreadYield, so the order threads reach their delegate is not the
+    // order they became ready. These cells drive the hooks on a synthetic
+    // PerCpuState instead — the policy keeps all its state in the data slots,
+    // so a throwaway instance over throwaway Thread objects exercises the real
+    // logic with no timer, no dispatch and no timing assumption at all.
+
+    private static void TestRoundRobinHooksFifoOrder()
+    {
+        RoundRobinScheduler policy = new();
+        PerCpuState state = new();
+        policy.InitializeCpu(state);
+
+        SchedThread first = new();
+        SchedThread second = new();
+        SchedThread third = new();
+        policy.OnThreadCreate(state, first);
+        policy.OnThreadCreate(state, second);
+        policy.OnThreadCreate(state, third);
+
+        policy.OnThreadReady(state, first);
+        policy.OnThreadReady(state, second);
+        policy.OnThreadReady(state, third);
+
+        Assert.Equal(FifoWorkerCount, policy.GetRunQueueCount(state),
+            "each readied thread should be queued once");
+        Assert.True(ReferenceEquals(policy.GetRunQueueThread(state, 0), first)
+            && ReferenceEquals(policy.GetRunQueueThread(state, 1), second)
+            && ReferenceEquals(policy.GetRunQueueThread(state, 2), third),
+            "OnThreadReady must enqueue at the tail, preserving ready order");
+
+        Assert.True(ReferenceEquals(policy.PickNext(state), first),
+            "PickNext must dequeue the head (first ready runs first)");
+        Assert.True(ReferenceEquals(policy.PickNext(state), second),
+            "PickNext must continue in FIFO order");
+        Assert.True(ReferenceEquals(policy.PickNext(state), third),
+            "PickNext must continue in FIFO order");
+        Assert.True(policy.PickNext(state) == null,
+            "an empty run queue must pick nothing (the mechanism runs idle)");
+    }
+
+    private static void TestRoundRobinHooksReadyIsIdempotent()
+    {
+        RoundRobinScheduler policy = new();
+        PerCpuState state = new();
+        policy.InitializeCpu(state);
+
+        SchedThread thread = new();
+        policy.OnThreadCreate(state, thread);
+
+        policy.OnThreadReady(state, thread);
+        policy.OnThreadReady(state, thread);
+
+        Assert.Equal(1, policy.GetRunQueueCount(state),
+            "a thread readied twice must not occupy two queue slots (it would get double turns)");
+    }
+
+    private static void TestRoundRobinHooksQuantumAccounting()
+    {
+        RoundRobinScheduler policy = new();
+        PerCpuState state = new();
+        policy.InitializeCpu(state);
+
+        SchedThread running = new();
+        SchedThread waiting = new();
+        policy.OnThreadCreate(state, running);
+        policy.OnThreadCreate(state, waiting);
+        policy.OnThreadReady(state, waiting);
+
+        // The quantum spans two ticks, so the first must not preempt.
+        bool midQuantum = policy.OnTick(state, running, SchedulerManager.DefaultQuantumNs);
+        bool atExpiry = policy.OnTick(state, running, SchedulerManager.DefaultQuantumNs);
+
+        Assert.False(midQuantum, "a half-spent quantum must not request a reschedule");
+        Assert.True(atExpiry, "quantum expiry with another thread waiting must request a reschedule");
+        Assert.Equal(2UL * SchedulerManager.DefaultQuantumNs, running.TotalRuntime,
+            "OnTick must charge the elapsed time to the running thread");
+
+        // Sole runnable thread: expiry grants a fresh slice in place rather
+        // than bouncing through the idle thread and back.
+        policy.PickNext(state);
+        SchedThread alone = new();
+        policy.OnThreadCreate(state, alone);
+        bool aloneAtExpiry = policy.OnTick(state, alone, RoundRobinScheduler.QuantumNs);
+
+        Assert.False(aloneAtExpiry,
+            "quantum expiry with an empty run queue must not request a pointless switch");
+    }
+
+    private static void TestRoundRobinHooksBlockAndYield()
+    {
+        RoundRobinScheduler policy = new();
+        PerCpuState state = new();
+        policy.InitializeCpu(state);
+
+        SchedThread parked = new();
+        SchedThread other = new();
+        policy.OnThreadCreate(state, parked);
+        policy.OnThreadCreate(state, other);
+        policy.OnThreadReady(state, parked);
+        policy.OnThreadReady(state, other);
+
+        policy.OnThreadBlocked(state, parked);
+
+        Assert.Equal(1, policy.GetRunQueueCount(state),
+            "a blocked thread must leave the run queue");
+        Assert.True(ReferenceEquals(policy.GetRunQueueThread(state, 0), other),
+            "blocking must remove the blocked thread, not its neighbour");
+
+        // A preempted-but-still-runnable thread goes to the tail, behind the
+        // thread that was already waiting — that rotation is Round-Robin.
+        policy.OnThreadYield(state, parked);
+        Assert.True(ReferenceEquals(policy.GetRunQueueThread(state, 0), other)
+            && ReferenceEquals(policy.GetRunQueueThread(state, 1), parked),
+            "OnThreadYield must re-enqueue at the tail");
+
+        policy.OnThreadExit(state, other);
+        Assert.Equal(1, policy.GetRunQueueCount(state),
+            "an exited thread must leave the run queue");
+        Assert.True(other.SchedulerData == null,
+            "OnThreadExit must drop the thread's bookkeeping");
+    }
+
+    // ===== Round-Robin live dispatch =====
+    private static volatile int _fifoRecorded;
+
+    private static void FifoWorker()
+    {
+        using (SchedulerManager.MaskInterrupts())
+        {
+            _fifoRecorded++;
+        }
+    }
+
+    private static void TestRoundRobinDispatchesEveryThread()
+    {
+        _fifoRecorded = 0;
+
+        // Liveness, not order: FIFO bounds every thread's wait at
+        // quantum * queue depth, so all three must reach their delegate.
+        // The exact order they get there is asserted deterministically in the
+        // hook cells above, where no dispatch preamble can perturb it.
+        SysThread w0 = new(FifoWorker);
+        SysThread w1 = new(FifoWorker);
+        SysThread w2 = new(FifoWorker);
+        w0.Start();
+        w1.Start();
+        w2.Start();
+
+        for (int i = 0; i < FlagPollRetries && _fifoRecorded < FifoWorkerCount; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.Equal(FifoWorkerCount, _fifoRecorded,
+            "Round-Robin must dispatch every ready thread (no starvation)");
+    }
+
+    // ===== Round-Robin quantum preemption =====
+    private static volatile bool _preemptStop;
+    private static volatile bool _preemptDone;
+    private static volatile uint _preemptCounter;
+
+    private static void PreemptProbeSpinner()
+    {
+        while (!_preemptStop)
+        {
+            _preemptCounter++;
+        }
+        _preemptDone = true;
+    }
+
+    private static void TestRoundRobinQuantumPreemption()
+    {
+        _preemptStop = false;
+        _preemptDone = false;
+        _preemptCounter = 0;
+
+        SysThread spinner = new(PreemptProbeSpinner);
+        spinner.Start();
+
+        // The spinner never blocks, so every sample below requires the tick
+        // to preempt it at quantum expiry and rotate main back in — merely
+        // reaching the asserts proves FIFO's bounded latency for main.
+        TimerManager.Wait(PreemptSampleIntervalMs);
+        uint sample1 = _preemptCounter;
+        TimerManager.Wait(PreemptSampleIntervalMs);
+        uint sample2 = _preemptCounter;
+        TimerManager.Wait(PreemptSampleIntervalMs);
+        uint sample3 = _preemptCounter;
+
+        _preemptStop = true;
+        for (int i = 0; i < FlagPollRetries && !_preemptDone; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.True(_preemptDone, "the preempted spinner should observe stop and exit");
+        Assert.True(sample1 != sample2 && sample2 != sample3,
+            "the spinner must keep progressing between main-thread samples (quantum rotation)");
+    }
+
+    private static void TestRoundRobinEqualShare()
+    {
+        RunTwoSpinnersMeasured(LowTickets, LowTickets);
+
+        Assert.True(_spinADone && _spinBDone, "both measured spinners should finish the window");
+        Assert.True(_spinACount > 0 && _spinBCount > 0,
+            "both spinners must make progress under Round-Robin");
+        Assert.True(_spinACount * PolicySkewDenominator < _spinBCount * PolicySkewNumerator
+            && _spinBCount * PolicySkewDenominator < _spinACount * PolicySkewNumerator,
+            "equal-quantum turns must yield shares within the 1.5x band under Round-Robin");
+    }
+
+    private static void TestRoundRobinIgnoresPriority()
+    {
+        RunTwoSpinnersMeasured(HighTickets, LowTickets);
+
+        Assert.True(_spinADone && _spinBDone, "both measured spinners should finish the window");
+        Assert.True(_observedPriorityA == 0 && _observedPriorityB == 0,
+            "Round-Robin defines no priorities, so GetPriority should report 0 for both");
+        Assert.True(_spinACount * PolicySkewDenominator < _spinBCount * PolicySkewNumerator
+            && _spinBCount * PolicySkewDenominator < _spinACount * PolicySkewNumerator,
+            "a 4x priority request must not push Round-Robin past the share ratio Stride clears");
+    }
+
+    // ===== Round-Robin run-queue diagnostics =====
+    private static volatile bool _gateRelease;
+    private static volatile bool _gateAStarted, _gateBStarted, _gateCStarted;
+    private static SchedThread? _gateAThread, _gateBThread, _gateCThread;
+
+    private static void GateWorkerA()
+    {
+        _gateAThread = CurrentSchedulerThread();
+        _gateAStarted = true;
+        while (!_gateRelease)
+        {
+            // stay runnable so main can observe us in the run queue
+        }
+    }
+
+    private static void GateWorkerB()
+    {
+        _gateBThread = CurrentSchedulerThread();
+        _gateBStarted = true;
+        while (!_gateRelease)
+        {
+            // stay runnable so main can observe us in the run queue
+        }
+    }
+
+    private static void GateWorkerC()
+    {
+        _gateCThread = CurrentSchedulerThread();
+        _gateCStarted = true;
+        while (!_gateRelease)
+        {
+            // stay runnable so main can observe us in the run queue
+        }
+    }
+
+    private static void TestRoundRobinRunQueueDiagnostics()
+    {
+        _gateRelease = false;
+        _gateAStarted = _gateBStarted = _gateCStarted = false;
+        _gateAThread = _gateBThread = _gateCThread = null;
+
+        SysThread a = new(GateWorkerA);
+        SysThread b = new(GateWorkerB);
+        SysThread c = new(GateWorkerC);
+        a.Start();
+        b.Start();
+        c.Start();
+
+        for (int i = 0; i < FlagPollRetries && !(_gateAStarted && _gateBStarted && _gateCStarted); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_gateAStarted && _gateBStarted && _gateCStarted, "all gate spinners should start");
+
+        IScheduler scheduler = SchedulerManager.Current!;
+        PerCpuState state = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!;
+
+        // Main is running, so all three spinners are Ready and must be queued.
+        Assert.True(scheduler.GetRunQueueCount(state) >= FifoWorkerCount,
+            "the run queue should hold the three spinning workers");
+        Assert.True(RunQueueHolds(_gateAThread) && RunQueueHolds(_gateBThread) && RunQueueHolds(_gateCThread),
+            "each spinning worker should be visible through the diagnostics hooks");
+        Assert.True(scheduler.GetRunQueueThread(state, OutOfRangeQueueIndex) == null,
+            "an out-of-range run-queue index must read as null");
+
+        _gateRelease = true;
+        for (int i = 0; i < FlagPollRetries
+            && (RunQueueHolds(_gateAThread) || RunQueueHolds(_gateBThread) || RunQueueHolds(_gateCThread)); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+
+        Assert.True(!RunQueueHolds(_gateAThread) && !RunQueueHolds(_gateBThread) && !RunQueueHolds(_gateCThread),
+            "exited workers must leave the run queue");
+    }
+
+    // ===== Round-Robin blocked-thread queue membership =====
+    private static Cosmos.Kernel.Core.Scheduler.Mutex? _blockProbeMutex;
+    private static volatile bool _blockWorkerStarted;
+    private static volatile bool _blockWorkerThrough;
+    private static volatile bool _blockRelease;
+    private static SchedThread? _blockWorkerThread;
+
+    private static void BlockProbeWorker()
+    {
+        _blockWorkerThread = CurrentSchedulerThread();
+        _blockWorkerStarted = true;
+        _blockProbeMutex!.Acquire();   // parks: main holds the mutex
+        _blockWorkerThrough = true;
+        while (!_blockRelease)
+        {
+            // stay runnable so main can observe us back in the run queue
+        }
+        _blockProbeMutex.Release();
+    }
+
+    private static void TestRoundRobinBlockedLeavesQueue()
+    {
+        _blockProbeMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
+        _blockWorkerStarted = false;
+        _blockWorkerThrough = false;
+        _blockRelease = false;
+        _blockWorkerThread = null;
+
+        _blockProbeMutex.Acquire();   // uncontended: taken immediately
+
+        SysThread worker = new(BlockProbeWorker);
+        worker.Start();
+
+        for (int i = 0; i < FlagPollRetries && !_blockWorkerStarted; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_blockWorkerStarted, "the block-probe worker should start");
+        if (_blockWorkerThread == null)
+        {
+            // Asserts don't throw in this framework; bail before dereferencing,
+            // and release so the parked worker can't leak into the next cell.
+            _blockRelease = true;
+            _blockProbeMutex.Release();
+            return;
+        }
+
+        for (int i = 0; i < FlagPollRetries
+            && _blockWorkerThread!.State != Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_blockWorkerThread!.State == Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked,
+            "the worker should park on the held mutex");
+        Assert.False(RunQueueHolds(_blockWorkerThread),
+            "a mutex-parked thread must leave the Round-Robin run queue");
+
+        _blockProbeMutex.Release();   // hand-off wakes the parked worker
+
+        for (int i = 0; i < FlagPollRetries && !_blockWorkerThrough; i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        Assert.True(_blockWorkerThrough, "the woken worker should acquire the handed-off mutex");
+        Assert.True(RunQueueHolds(_blockWorkerThread),
+            "a woken, spinning thread must re-enter the Round-Robin run queue");
+
+        _blockRelease = true;
+        for (int i = 0; i < FlagPollRetries && RunQueueHolds(_blockWorkerThread); i++)
+        {
+            TimerManager.Wait(FlagPollIntervalMs);
+        }
+        TimerManager.Wait(ExitGraceWaitMs);
+    }
+
+    private static void TestSetSchedulerRestoresStride()
+    {
+        // Restoring the boot default needs Core's internal StrideScheduler
+        // type (this suite is InternalsVisibleTo); a user kernel installs its
+        // policy once at boot and never swaps back. The swap leaves the
+        // remaining lifecycle (Finish/AfterRun) on the stock policy.
+
+        // Quiescence is a hard precondition in THIS direction: Stride reads
+        // its data slots with GetSchedulerData<T>, a hard cast, so a thread
+        // created under Round-Robin that were still alive here would fault
+        // Stride's next hook on it. Every Round-Robin worker above exited
+        // (each cell waits for it), which empties the run queue; the running
+        // main thread still carries the StrideThreadData it booted with.
+        PerCpuState preSwapState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!;
+        Assert.Equal(0, SchedulerManager.Current!.GetRunQueueCount(preSwapState),
+            "no Round-Robin thread may survive into the restored Stride policy");
+
+        Cosmos.Kernel.Core.Scheduler.Stride.StrideScheduler stride = new();
+        using (SchedulerManager.MaskInterrupts())
+        {
+            SchedulerManager.SetScheduler(stride);
+        }
+
+        Assert.True(ReferenceEquals(SchedulerManager.Current, stride),
+            "SchedulerManager.Current should be the restored Stride instance");
+        Assert.Equal("Stride", SchedulerManager.Current!.Name,
+            "the restored policy should report the Stride name");
+
+        RunPolicyProbeWorker();
+        Assert.True(_policyProbeRan,
+            "a thread created after restoring Stride must be scheduled and run");
     }
 }

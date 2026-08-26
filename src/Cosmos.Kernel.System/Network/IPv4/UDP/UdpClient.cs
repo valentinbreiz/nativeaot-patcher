@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Network.Config;
+using Cosmos.Kernel.System.Timer;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 
@@ -168,6 +170,17 @@ public class UdpClient : IDisposable
     }
 
     /// <summary>
+    /// Transmits a prebuilt UDP packet through the stack's outgoing queue, including ARP
+    /// resolution of the destination MAC address when it is not already known.
+    /// </summary>
+    /// <param name="packet">The packet to transmit.</param>
+    /// <returns><see langword="true"/> when the packet was queued for transmission;
+    /// <see langword="false"/> when no configured network interface matches the packet's
+    /// source address.</returns>
+    [Experimental(Experimentals.PacketSeamDiagId)]
+    public bool Send(UdpPacket packet) => Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+
+    /// <summary>
     /// Receives data from the given end-point (non-blocking).
     /// </summary>
     /// <param name="source">The source end point.</param>
@@ -201,6 +214,35 @@ public class UdpClient : IDisposable
         source.Port = packet.SourcePort;
 
         return packet.UDPData;
+    }
+
+    /// <summary>
+    /// Waits for a datagram to arrive on this client's local port and returns the parsed
+    /// <see cref="UdpPacket"/> itself, without re-parsing. Unlike
+    /// <see cref="NonBlockingReceive"/> and <see cref="Receive"/>, which return the payload
+    /// bytes alone, the returned packet exposes the ports, the source and destination
+    /// addresses, and the payload. Polls the receive buffer in 10 millisecond slices.
+    /// </summary>
+    /// <param name="timeoutMs">Maximum time to wait in milliseconds; a non-positive value
+    /// checks the receive buffer once without waiting.</param>
+    /// <returns>The dequeued packet, or <see langword="null"/> when the timeout elapses with
+    /// no datagram queued.</returns>
+    [Experimental(Experimentals.PacketSeamDiagId)]
+    public UdpPacket? ReceivePacket(int timeoutMs = 5000)
+    {
+        int waited = 0;
+        while (_rxBuffer.Count < 1 && waited < timeoutMs)
+        {
+            TimerManager.Wait(10);
+            waited += 10;
+        }
+
+        if (_rxBuffer.Count < 1)
+        {
+            return null;
+        }
+
+        return _rxBuffer.Dequeue();
     }
 
     /// <summary>

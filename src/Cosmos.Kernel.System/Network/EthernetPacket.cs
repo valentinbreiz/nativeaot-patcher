@@ -1,26 +1,31 @@
-﻿using Cosmos.Kernel.HAL.Devices.Network;
+using System.Diagnostics.CodeAnalysis;
+using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network;
 
 /// <summary>
-/// Represents an Ethernet packet.
+/// An Ethernet frame, the root of the packet hierarchy. The frame lives in
+/// <see cref="RawData"/>; every header property is a snapshot parsed from
+/// that buffer at construction time and is not refreshed by later writes to
+/// the buffer. Derived types lay their headers into the same buffer from
+/// their constructors, including checksums: there is no separate
+/// finalize-before-send step.
 /// </summary>
 // For more info, refer to http://standards.ieee.org/about/get/802/802.3.html
-internal class EthernetPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class EthernetPacket
 {
+    /// <summary>Parsed source MAC address backing <see cref="SourceMAC"/>.</summary>
     protected MACAddress srcMAC = null!;
+
+    /// <summary>Parsed destination MAC address backing <see cref="DestinationMAC"/>.</summary>
     protected MACAddress destMAC = null!;
 
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="EthernetPacket"/> class.
-    // /// </summary>
-    // protected EthernetPacket()
-    // {
-    //     RawData = [];
-    // }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="EthernetPacket"/> class, with specified raw data.
+    /// Initializes a new instance of the <see cref="EthernetPacket"/> class
+    /// over existing frame bytes. The array is stored by reference, not
+    /// copied: the caller must not reuse the buffer while the packet is
+    /// alive.
     /// </summary>
     /// <param name="rawData">The raw data of the packet.</param>
     public EthernetPacket(byte[] rawData)
@@ -30,7 +35,10 @@ internal class EthernetPacket
     }
 
     /// <summary>
-    /// Initializes all internal fields.
+    /// Parses the header fields from <see cref="RawData"/> into the typed
+    /// properties. Runs from the constructors (including the base
+    /// constructor, before derived-type state exists) and again whenever a
+    /// MAC address setter rewrites the buffer.
     /// </summary>
     protected virtual void InitializeFields()
     {
@@ -42,14 +50,20 @@ internal class EthernetPacket
     /// <summary>
     /// Initializes a new instance of the <see cref="EthernetPacket"/> class, with specified type and size.
     /// </summary>
+    /// <param name="type">EtherType of the frame.</param>
+    /// <param name="packetSize">Total frame size in bytes; the buffer is allocated here.</param>
     protected EthernetPacket(ushort type, int packetSize)
         : this(MACAddress.None, MACAddress.None, type, packetSize)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EthernetPacket"/> class, with specified dsetination, source, type and size.
+    /// Initializes a new instance of the <see cref="EthernetPacket"/> class, with specified destination, source, type and size.
     /// </summary>
+    /// <param name="dest">Destination MAC address.</param>
+    /// <param name="src">Source MAC address.</param>
+    /// <param name="type">EtherType of the frame.</param>
+    /// <param name="packetSize">Total frame size in bytes; the buffer is allocated here.</param>
     protected EthernetPacket(MACAddress dest, MACAddress src, ushort type, int packetSize)
     {
         RawData = new byte[packetSize];
@@ -65,17 +79,22 @@ internal class EthernetPacket
     }
 
     /// <summary>
-    /// Gets the raw data of the packet in the form of a byte array.
+    /// The complete wire image of the frame. The property is get-only but
+    /// the array contents are mutable; header properties parsed from it do
+    /// not track direct writes, and checksums computed at construction are
+    /// not recomputed.
     /// </summary>
     public byte[] RawData { get; }
 
     /// <summary>
-    /// The source MAC address.
+    /// The source MAC address. The setter (used by the transmit path when
+    /// it stamps the sending device's address) rewrites the buffer and
+    /// re-parses the whole packet.
     /// </summary>
-    internal MACAddress SourceMAC
+    public MACAddress SourceMAC
     {
         get => srcMAC;
-        set
+        internal set
         {
             for (int i = 0; i < 6; i++)
             {
@@ -86,12 +105,14 @@ internal class EthernetPacket
     }
 
     /// <summary>
-    /// The destination MAC address.
+    /// The destination MAC address. The setter (used by the transmit path
+    /// once ARP resolution completes) rewrites the buffer and re-parses the
+    /// whole packet.
     /// </summary>
-    internal MACAddress DestinationMAC
+    public MACAddress DestinationMAC
     {
         get => destMAC;
-        set
+        internal set
         {
             for (int i = 0; i < 6; i++)
             {
@@ -103,15 +124,11 @@ internal class EthernetPacket
     }
 
     /// <summary>
-    /// The type of the packet.
+    /// The EtherType of the frame (0x0800 IPv4, 0x0806 ARP).
     /// </summary>
-    internal ushort EthernetType { get; private set; }
+    public ushort EthernetType { get; private set; }
 
-    /// <summary>
-    /// Prepares the packet for sending. Not implemented.
-    /// </summary>
-    internal virtual void PrepareForSending() { }
-
+    /// <inheritdoc/>
     public override string ToString()
     {
         return "Ethernet Packet : Src=" + srcMAC + ", Dest=" + destMAC + ", Type=" + EthernetType;

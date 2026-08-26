@@ -1,5 +1,4 @@
 using System;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Timer;
 using DevKernel.Shell;

@@ -13,6 +13,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// <summary>
 /// Manages scheduler lifecycle and dispatches to current scheduler.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public static class SchedulerManager
 {
 
@@ -79,7 +80,7 @@ public static class SchedulerManager
 
     // ========== Initialization ==========
 
-    public static void Initialize(uint cpuCount)
+    internal static void Initialize(uint cpuCount)
     {
         ThrowIfDisabled();
 
@@ -100,6 +101,12 @@ public static class SchedulerManager
         Cosmos.Kernel.Core.Runtime.DebugLiveMemorySnapshot.Initialize();
     }
 
+    /// <summary>
+    /// Installs a scheduling policy. The previous scheduler, if any, is
+    /// shut down on every CPU (<see cref="IScheduler.ShutdownCpu"/>) before
+    /// the new one is initialized (<see cref="IScheduler.InitializeCpu"/>).
+    /// </summary>
+    /// <param name="scheduler">Scheduler to install.</param>
     public static void SetScheduler(IScheduler scheduler)
     {
         ThrowIfCpuStateNotInitialized();
@@ -130,15 +137,34 @@ public static class SchedulerManager
 
     // ========== Accessors ==========
 
+    /// <summary>
+    /// The installed scheduler, or <see langword="null"/> before
+    /// <see cref="SetScheduler"/> has run.
+    /// </summary>
     public static IScheduler? Current => s_currentScheduler;
+
+    /// <summary>
+    /// Number of CPUs the scheduler manages.
+    /// </summary>
     public static uint CpuCount => s_cpuCount;
+
+    /// <summary>
+    /// Returns the scheduling state of a CPU, or <see langword="null"/>
+    /// before initialization.
+    /// </summary>
+    /// <param name="cpuId">CPU to look up, from 0 to <see cref="CpuCount"/> exclusive.</param>
     public static PerCpuState? GetCpuState(uint cpuId) => s_cpuStates?[cpuId];
+
+    /// <summary>
+    /// Returns the per-CPU state array, or <see langword="null"/> before
+    /// initialization.
+    /// </summary>
     public static PerCpuState[]? GetAllCpuStates() => s_cpuStates;
 
     /// <summary>
     /// Sets up the idle thread for a CPU. Should only be called during initialization.
     /// </summary>
-    public static void SetupIdleThread(uint cpuId, Thread idleThread)
+    internal static void SetupIdleThread(uint cpuId, Thread idleThread)
     {
         ThrowIfCpuStateNotInitialized();
 
@@ -154,13 +180,13 @@ public static class SchedulerManager
     public static bool Enabled
     {
         get => s_enabled;
-        set => s_enabled = value;
+        internal set => s_enabled = value;
     }
 
     /// <summary>
     /// Allocates a new unique thread ID.
     /// </summary>
-    public static uint AllocateThreadId() => s_nextThreadId++;
+    internal static uint AllocateThreadId() => s_nextThreadId++;
 
     // ========== Thread Entry Dispatch ==========
     [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "StartThread")]
@@ -179,7 +205,7 @@ public static class SchedulerManager
     /// the exit path ever races with a context switch.
     /// </summary>
     /// <param name="parameter">Generic parameter of the Thread Start, it is decoded based on the <see cref="ThreadFlags"/> set in the thread.</param>
-    public static void InvokeCurrentThreadStart(IntPtr parameter)
+    internal static void InvokeCurrentThreadStart(IntPtr parameter)
     {
         PerCpuState? cpuState = GetCpuState(GetCurrentCpuId());
         Thread? currentThread = cpuState?.CurrentThread;
@@ -310,10 +336,10 @@ public static class SchedulerManager
         return sum;
     }
 
-    public static nint OnThreadExitCallback
+    internal static nint OnThreadExitCallback
     {
         get;
-        internal set
+        set
         {
             Serial.WriteString("[SCHED] Setting thread exit callback: ");
             Serial.WriteHexWithPrefix((ulong)value);
@@ -325,7 +351,7 @@ public static class SchedulerManager
     /// <summary>
     /// Registers a thread in the global registry. Called during thread creation.
     /// </summary>
-    public static void RegisterThread(Thread thread)
+    internal static void RegisterThread(Thread thread)
     {
         if (s_allThreads == null)
         {
@@ -360,7 +386,7 @@ public static class SchedulerManager
     /// <summary>
     /// Unregisters a thread from the global registry. Called during thread exit.
     /// </summary>
-    public static void UnregisterThread(Thread thread)
+    internal static void UnregisterThread(Thread thread)
     {
         if (s_allThreads == null)
         {
@@ -403,7 +429,7 @@ public static class SchedulerManager
 
     // ========== Thread Operations ==========
 
-    public static void CreateThread(uint cpuId, Thread thread)
+    internal static void CreateThread(uint cpuId, Thread thread)
     {
         ThrowIfDisabled();
         ThrowIfCpuStateNotInitialized();
@@ -419,7 +445,7 @@ public static class SchedulerManager
         Serial.WriteString("[SCHED] CreateThread: done\n");
     }
 
-    public static void ReadyThread(uint cpuId, Thread thread)
+    internal static void ReadyThread(uint cpuId, Thread thread)
     {
         ThrowIfDisabled();
         ThrowIfCpuStateNotInitialized();
@@ -452,7 +478,7 @@ public static class SchedulerManager
         }
     }
 
-    public static void BlockThread(uint cpuId, Thread thread)
+    internal static void BlockThread(uint cpuId, Thread thread)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
@@ -476,7 +502,7 @@ public static class SchedulerManager
         }
     }
 
-    public static void ExitThread(uint cpuId, Thread thread)
+    internal static void ExitThread(uint cpuId, Thread thread)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
@@ -512,9 +538,9 @@ public static class SchedulerManager
             {
                 unsafe
                 {
-                    ulong unused = (ulong)(thread.AllocContext.AllocLimit - thread.AllocContext.AllocPtr);
+                    ulong unused = (ulong)(thread._allocContext.AllocLimit - thread._allocContext.AllocPtr);
                     GarbageCollector.AddDeadThreadNonAllocBytes(unused);
-                    GarbageCollector.ReturnAllocContext(ref thread.AllocContext);
+                    GarbageCollector.ReturnAllocContext(ref thread._allocContext);
                 }
             }
 
@@ -525,7 +551,7 @@ public static class SchedulerManager
         }
     }
 
-    public static void YieldThread(uint cpuId, Thread thread)
+    internal static void YieldThread(uint cpuId, Thread thread)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
@@ -545,7 +571,7 @@ public static class SchedulerManager
     /// <param name="cpuId">CPU ID of the thread.</param>
     /// <param name="thread">Thread to sleep.</param>
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
-    public static void Sleep(uint cpuId, Thread thread, uint timeoutMs)
+    internal static void Sleep(uint cpuId, Thread thread, uint timeoutMs)
     {
         MarkSleeping(cpuId, thread, timeoutMs);
 
@@ -565,7 +591,7 @@ public static class SchedulerManager
     /// <param name="cpuId">CPU ID of the thread.</param>
     /// <param name="thread">Thread to sleep.</param>
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
-    public static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)
+    internal static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
@@ -591,7 +617,7 @@ public static class SchedulerManager
     /// Puts the current thread to sleep with a timeout.
     /// </summary>
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep.</param>
-    public static void Sleep(uint timeoutMs)
+    internal static void Sleep(uint timeoutMs)
     {
         Thread? currentThread = GetCpuState(GetCurrentCpuId())?.CurrentThread;
         if (currentThread != null)
@@ -602,7 +628,7 @@ public static class SchedulerManager
 
     // ========== Scheduling ==========
 
-    public static bool OnTick(uint cpuId, ulong elapsedNs)
+    internal static bool OnTick(uint cpuId, ulong elapsedNs)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
@@ -611,20 +637,20 @@ public static class SchedulerManager
         return s_currentScheduler.OnTick(state, state.CurrentThread, elapsedNs);
     }
 
-    public static void Schedule(uint cpuId)
+    internal static void Schedule(uint cpuId)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
         var state = s_cpuStates[cpuId];
-        state.Lock.Acquire();
+        state._lock.Acquire();
 
         var prev = state.CurrentThread;
         var next = s_currentScheduler.PickNext(state) ?? state.IdleThread;
 
         if (next == null)
         {
-            state.Lock.Release();
+            state._lock.Release();
             return;
         }
 
@@ -634,32 +660,45 @@ public static class SchedulerManager
             next.State = ThreadState.Running;
             next.LastScheduledAt = GetTimestamp();
 
-            state.Lock.Release();
+            state._lock.Release();
             DoContextSwitch(prev, next);
         }
         else
         {
-            state.Lock.Release();
+            state._lock.Release();
         }
     }
 
+    /// <summary>
+    /// Changes a thread's priority through the installed scheduler
+    /// (<see cref="IScheduler.SetPriority"/>). Interpretation is
+    /// scheduler-specific.
+    /// </summary>
+    /// <param name="cpuId">CPU whose state guards the update.</param>
+    /// <param name="thread">Thread to reprioritize.</param>
+    /// <param name="priority">New priority value.</param>
     public static void SetPriority(uint cpuId, Thread thread, long priority)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();
 
         var state = s_cpuStates[cpuId];
-        state.Lock.Acquire();
+        state._lock.Acquire();
         try
         {
             s_currentScheduler.SetPriority(state, thread, priority);
         }
         finally
         {
-            state.Lock.Release();
+            state._lock.Release();
         }
     }
 
+    /// <summary>
+    /// Returns a thread's priority as reported by the installed scheduler
+    /// (<see cref="IScheduler.GetPriority"/>).
+    /// </summary>
+    /// <param name="thread">Thread to query.</param>
     public static long GetPriority(Thread thread)
     {
         ThrowIfSchedulerNotSet();
@@ -669,6 +708,12 @@ public static class SchedulerManager
 
     // ========== Load Balancing ==========
 
+    /// <summary>
+    /// Asks the installed scheduler to pick the best CPU for a new or
+    /// migrating thread (<see cref="IScheduler.SelectCpu"/>).
+    /// </summary>
+    /// <param name="thread">Thread being placed.</param>
+    /// <param name="currentCpu">CPU the thread is currently on.</param>
     public static uint SelectCpu(Thread thread, uint currentCpu)
     {
         ThrowIfSchedulerNotSet();
@@ -676,6 +721,20 @@ public static class SchedulerManager
         return s_currentScheduler.SelectCpu(thread, currentCpu, s_cpuCount);
     }
 
+    /// <summary>
+    /// Masks maskable interrupts on the current CPU until the returned
+    /// scope is disposed. Schedulers use this around entry points the
+    /// manager does not already guard, such as their run-queue diagnostics
+    /// hooks and any tuning setters they expose; the manager-invoked
+    /// lifecycle and tick hooks are already called with interrupts masked.
+    /// </summary>
+    public static InterruptMaskScope MaskInterrupts() => new(InternalCpu.DisableInterruptsScope());
+
+    /// <summary>
+    /// Gives the installed scheduler a load-balancing opportunity for one
+    /// CPU (<see cref="IScheduler.Balance"/>).
+    /// </summary>
+    /// <param name="cpuId">CPU to balance.</param>
     public static void Balance(uint cpuId)
     {
         ThrowIfCpuStateNotInitialized();
@@ -697,7 +756,7 @@ public static class SchedulerManager
     /// <param name="cpuId">Current CPU ID.</param>
     /// <param name="currentRsp">Current RSP from IRQ context (pointer to saved context).</param>
     /// <param name="elapsedNs">Nanoseconds since last tick.</param>
-    public static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
+    internal static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
         s_tickCount++;
 
@@ -797,7 +856,7 @@ public static class SchedulerManager
     /// </summary>
     /// <param name="cpuId">Current CPU ID.</param>
     /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
-    public static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)
+    internal static void ReschedulePendingFromIrq(uint cpuId, nuint currentRsp)
     {
         if (!s_enabled || s_currentScheduler == null || s_cpuStates == null || cpuId >= s_cpuCount)
         {
@@ -826,7 +885,7 @@ public static class SchedulerManager
     /// </summary>
     /// <param name="cpuId">Current CPU ID.</param>
     /// <param name="currentRsp">Current RSP (pointer to saved context on stack).</param>
-    public static void ScheduleFromInterrupt(uint cpuId, nuint currentRsp)
+    internal static void ScheduleFromInterrupt(uint cpuId, nuint currentRsp)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();

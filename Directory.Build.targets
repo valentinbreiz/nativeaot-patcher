@@ -20,9 +20,11 @@
     <WarningsAsErrors>$(WarningsAsErrors);RS0017</WarningsAsErrors>
     <!-- A tracked public surface must be documented: lift the repo-wide CS1591
          suppression (props set NoWarn to ";1591;CS1998;..." so the delimited
-         token is always ";1591;") and make missing XML docs a build error. -->
+         token is always ";1591;"). The error severity comes from the
+         .editorconfig [*.cs] section, not WarningsAsErrors, so it only reaches
+         files this repo's .editorconfig governs; sources linked from the
+         dotnet/runtime submodule keep their default severity. -->
     <NoWarn>$(NoWarn.Replace(';1591;', ';'))</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
   </PropertyGroup>
 
   <Target Name="EnforceKernelReferenceRules" BeforeTargets="BeforeBuild">

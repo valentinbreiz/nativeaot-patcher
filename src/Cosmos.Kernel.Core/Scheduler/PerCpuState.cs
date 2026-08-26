@@ -1,18 +1,38 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
 /// Per-CPU scheduling state.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public class PerCpuState : SchedulerExtensible
 {
     // ===== Identity =====
-    public uint CpuId { get; set; }
+
+    /// <summary>
+    /// ID of the CPU this state belongs to.
+    /// </summary>
+    public uint CpuId { get; internal set; }
 
     // ===== Current Execution =====
+
+    /// <summary>
+    /// Thread currently executing on this CPU, or <see langword="null"/>
+    /// before the scheduler has run.
+    /// </summary>
     public Thread? CurrentThread { get; internal set; }
+
+    /// <summary>
+    /// This CPU's idle thread, scheduled when no other thread is runnable.
+    /// </summary>
     public Thread? IdleThread { get; internal set; }
 
     // ===== Timing =====
+
+    /// <summary>
+    /// Timestamp of the last timer tick processed on this CPU.
+    /// </summary>
     public ulong LastTickAt { get; internal set; }
 
     // Set by ReadyThread when it wakes a thread (typically an ISR-side
@@ -22,5 +42,5 @@ public class PerCpuState : SchedulerExtensible
     internal bool _needReschedule;
 
     // ===== Synchronization =====
-    public SpinLock Lock;
+    internal SpinLock _lock;
 }

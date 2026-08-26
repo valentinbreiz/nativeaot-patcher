@@ -1,0 +1,105 @@
+#nullable enable
+Cosmos.Kernel.HAL.Devices.Network.MACAddress
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(object? obj) -> int
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.Hash.get -> uint
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.IsValid() -> bool
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(byte[]! address) -> void
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(byte[]! buffer, int offset) -> void
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(Cosmos.Kernel.HAL.Devices.Network.MACAddress! m) -> void
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.To32BitNumber() -> uint
+Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToNumber() -> ulong
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.BlockCount.get -> ulong
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.BlockSize.get -> ulong
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Flush() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Name.get -> string!
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.ReadBlock(ulong blockNo, ulong blockCount, System.Span<byte> data) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.WriteBlock(ulong blockNo, ulong blockCount, System.ReadOnlySpan<byte> data) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.ClearScreen(uint color) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.CopyBuffer(System.ReadOnlyMemory<int> pixels, int x, int y, int width, int height) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.CopyBuffer(System.ReadOnlyMemory<uint> pixels, int x, int y, int width, int height) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.DrawPixel(uint color, int x, int y) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.GetPixel(int x, int y) -> uint
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.GetVRAM(int sourceByteOffset, int[]! dest, int destIndex, int count) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.Initialize() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.Swap() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Disable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Enable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Initialize() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.KeyAvailable.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.OnKeyPressed.get -> Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler?
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.OnKeyPressed.set -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Poll() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.UpdateLeds() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.DataAvailable.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Disable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Enable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Initialize() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.LeftButton.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.MiddleButton.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Poll() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.RightButton.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.ScrollDelta.get -> int
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.X.get -> int
+Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.Y.get -> int
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Disable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Enable() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Initialize() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.LinkUp.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.MacAddress.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Name.get -> string!
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.OnPacketReceived.get -> Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler?
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.OnPacketReceived.set -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Ready.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Send(byte[]! data, int length) -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.Frequency.get -> uint
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.Initialize() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.OnTick.get -> Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler?
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.OnTick.set -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer! timer) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.SetFrequency(uint frequency) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.UnregisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer! timer) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.Wait(uint ms) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler
+Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke() -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring.get -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(bool active) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SoftwareTimer(System.Action! callback, ulong timeoutNs, bool recurring) -> void
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(ulong elapsedNs) -> bool
+Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs.get -> ulong
+Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.Architecture.get -> Cosmos.Build.API.Enum.PlatformArchitecture
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateCpuOps() -> Cosmos.Kernel.Core.CPU.ICpuOps!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateInterruptController() -> Cosmos.Kernel.Core.CPU.IInterruptController!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePortIO() -> Cosmos.Kernel.Core.IO.IPortIO!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps() -> Cosmos.Kernel.Core.Power.IPowerOps!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateTimer() -> Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.DelayMicroseconds(uint microseconds) -> void
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.DmaBarrier() -> void
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.EnsureMmioMapped(ulong physBase) -> void
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetCpuCount() -> uint
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetKeyboardDevices() -> Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice![]!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices() -> Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice![]!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetNetworkDevice() -> Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice?
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.InitializeHardware() -> void
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.PlatformName.get -> string!
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.PreparePciMapping(ulong ecamBase) -> void
+Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.StartSchedulerTimer(uint quantumMs) -> void
+override Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(object? obj) -> bool
+override Cosmos.Kernel.HAL.Devices.Network.MACAddress.GetHashCode() -> int
+override Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToString() -> string!
+readonly Cosmos.Kernel.HAL.Devices.Network.MACAddress.bytes -> byte[]!
+static Cosmos.Kernel.HAL.Devices.Network.MACAddress.Broadcast.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
+static Cosmos.Kernel.HAL.Devices.Network.MACAddress.None.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
+virtual Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.Invoke(byte scanCode, bool released) -> void
+virtual Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.Invoke(byte[]! data, int length) -> void
+virtual Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.Invoke() -> void

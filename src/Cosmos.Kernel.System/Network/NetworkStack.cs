@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.ARP;
@@ -125,10 +126,34 @@ public static class NetworkStack
     }
 
     /// <summary>
-    /// Handle a network packet.
+    /// Transmits a packet through the stack's outgoing queue: the sending
+    /// device is resolved from the packet's source address, the destination
+    /// MAC is resolved by ARP for non-broadcast destinations, and the queue
+    /// is pumped before returning.
+    /// </summary>
+    /// <param name="packet">A built packet, typically created through one of the packet type constructors.</param>
+    /// <returns>False when no configured interface matches the packet's source address; the packet is not queued in that case.</returns>
+    [Experimental(Experimentals.PacketSeamDiagId)]
+    public static bool Send(IPPacket packet)
+    {
+        if (!OutgoingBuffer.AddPacket(packet))
+        {
+            return false;
+        }
+
+        Update();
+        return true;
+    }
+
+    /// <summary>
+    /// Injects a received Ethernet frame into the stack: the frame is
+    /// dispatched to the ARP or IPv4 handler by EtherType, exactly as a
+    /// frame arriving from a network device would be. This is the receive
+    /// entry point registered on every configured device.
     /// </summary>
     /// <param name="packetData">Packet data array.</param>
     /// <param name="length">Packet length.</param>
+    [Experimental(Experimentals.PacketSeamDiagId)]
     public static void HandlePacket(byte[] packetData, int length)
     {
         Serial.WriteString("[NetworkStack] HandlePacket called, len=");

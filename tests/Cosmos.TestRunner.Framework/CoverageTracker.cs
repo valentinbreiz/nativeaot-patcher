@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.TestRunner.Framework;
 
@@ -86,29 +85,6 @@ public static unsafe class CoverageTracker
             }
         }
 
-        SendMessage(CoverageData, payload);
-    }
-
-    /// <summary>
-    /// Send a protocol message: [MAGIC:4][Command:1][Length:2][Payload:N]
-    /// </summary>
-    private static void SendMessage(byte command, byte[] payload)
-    {
-        // Magic signature (0x19740807 little-endian)
-        Serial.ComWrite(0x07);
-        Serial.ComWrite(0x08);
-        Serial.ComWrite(0x74);
-        Serial.ComWrite(0x19);
-
-        Serial.ComWrite(command);
-
-        ushort length = (ushort)payload.Length;
-        Serial.ComWrite((byte)(length & 0xFF));
-        Serial.ComWrite((byte)((length >> 8) & 0xFF));
-
-        foreach (var b in payload)
-        {
-            Serial.ComWrite(b);
-        }
+        TestRunner.SendMessage(CoverageData, payload);
     }
 }

@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// primitives. Requires the scheduler; resolution is bounded by the scheduler
 /// tick.
 /// </summary>
-public static class AlarmSystem
+internal static class AlarmSystem
 {
     /// <summary>
     /// The method invoked when an alarm fires.

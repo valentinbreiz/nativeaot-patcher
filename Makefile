@@ -54,6 +54,12 @@ setup:
 api:
 	dotnet format analyzers src/Cosmos.Kernel.System/Cosmos.Kernel.System.csproj \
 		--diagnostics RS0016 RS0017 --severity info
+	dotnet format analyzers src/Cosmos.Kernel.Core/Cosmos.Kernel.Core.csproj \
+		--diagnostics RS0016 RS0017 --severity info
+	dotnet format analyzers src/Cosmos.Kernel.HAL/Cosmos.Kernel.HAL.csproj \
+		--diagnostics RS0016 RS0017 --severity info
+	dotnet format analyzers src/Cosmos.Kernel.HAL.Interfaces/Cosmos.Kernel.HAL.Interfaces.csproj \
+		--diagnostics RS0016 RS0017 --severity info
 
 build:
 	dotnet publish -c Debug -r $(RID) \
