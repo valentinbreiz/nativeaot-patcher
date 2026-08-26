@@ -118,7 +118,7 @@ public class ARM64InterruptController : IInterruptController
     /// LPI must still be enabled in the redistributor's PROPBASER table by
     /// <see cref="GICv3Lpi"/> before it can fire. Throws on exhaustion.
     /// </summary>
-    public static uint AllocateLpi(InterruptManager.IrqDelegate handler)
+    internal static uint AllocateLpi(InterruptManager.IrqDelegate handler)
     {
         if (s_lpiHandlers == null)
         {

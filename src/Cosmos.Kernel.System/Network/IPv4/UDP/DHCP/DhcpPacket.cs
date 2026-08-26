@@ -6,35 +6,41 @@
 *                   Port of Cosmos Code.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Devices.Network;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
 
 /// <summary>
-/// Represents a DHCP option.
+/// Represents a single DHCP option parsed from the options section of a <see cref="DhcpPacket"/>.
 /// </summary>
-internal class DhcpOption
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DhcpOption
 {
     /// <summary>
-    /// The type of the <see cref="DhcpOption"/>.
+    /// Gets the DHCP option code, for example 1 for subnet mask, 3 for router, 6 for domain name server.
     /// </summary>
     public required byte Type { get; init; }
 
     /// <summary>
-    /// The length of the <see cref="DhcpOption"/>.
+    /// Gets the length in bytes of the option payload, computed from <see cref="Data"/>.
     /// </summary>
     public byte Length => (byte)Data.Length;
 
     /// <summary>
-    /// The raw data of the <see cref="DhcpOption"/>.
+    /// Gets the raw option payload, without the option code and length bytes.
     /// </summary>
     public required byte[] Data { get; init; }
 }
 
 /// <summary>
-/// Represents a DHCP packet.
+/// Represents a DHCP packet carried over UDP (BOOTP client port 68, server port 67).
+/// Header properties are snapshots parsed from <see cref="EthernetPacket.RawData"/> at construction
+/// and are not re-read afterwards; checksums and lengths are computed in the constructors and never
+/// recomputed.
 /// </summary>
-internal class DhcpPacket : UdpPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DhcpPacket : UdpPacket
 {
     // Simple transaction ID generator
     private static int s_idCounter = 1;
@@ -42,7 +48,7 @@ internal class DhcpPacket : UdpPacket
     /// <summary>
     /// Handles a single DHCP packet.
     /// </summary>
-    public static void DHCPHandler(byte[] packetData)
+    internal static void DHCPHandler(byte[] packetData)
     {
         var dhcpPacket = new DhcpPacket(packetData);
 
@@ -51,23 +57,37 @@ internal class DhcpPacket : UdpPacket
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class from received data.
+    /// The packet aliases <paramref name="rawData"/> without copying, and all header properties
+    /// are parsed from it once, during construction.
     /// </summary>
+    /// <param name="rawData">The raw Ethernet frame bytes, aliased rather than copied.</param>
     public DhcpPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class as a broadcast request,
+    /// sent from 0.0.0.0 to 255.255.255.255 (the form used by discover and request packets).
     /// </summary>
-    internal DhcpPacket(MACAddress mac_src, ushort dhcpDataSize)
+    /// <param name="mac_src">The MAC address of the sending network device.</param>
+    /// <param name="dhcpDataSize">The size in bytes of the DHCP options that follow the fixed BOOTP header.</param>
+    public DhcpPacket(MACAddress mac_src, ushort dhcpDataSize)
         : this(Address.Zero, Address.Broadcast, mac_src, dhcpDataSize)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DhcpPacket"/> class.
+    /// Initializes a new instance of the <see cref="DhcpPacket"/> class addressed from
+    /// <paramref name="client"/> to <paramref name="server"/>. Writes the fixed BOOTP header:
+    /// op 1 (request), hardware type Ethernet, a fresh transaction identifier, the client address
+    /// in ciaddr, the source MAC in chaddr and the DHCP magic cookie. Checksums and lengths are
+    /// computed here, in the constructor chain, and never recomputed.
     /// </summary>
-    internal DhcpPacket(Address client, Address server, MACAddress sourceMAC, ushort dhcpDataSize)
+    /// <param name="client">The IPv4 source address, also written to the ciaddr field.</param>
+    /// <param name="server">The IPv4 destination address.</param>
+    /// <param name="sourceMAC">The MAC address of the sending network device.</param>
+    /// <param name="dhcpDataSize">The size in bytes of the DHCP options that follow the fixed BOOTP header.</param>
+    public DhcpPacket(Address client, Address server, MACAddress sourceMAC, ushort dhcpDataSize)
         : base(client, server, 68, 67, (ushort)(dhcpDataSize + 240), MACAddress.Broadcast)
     {
         RawData[42] = 0x01; // Request
@@ -124,12 +144,14 @@ internal class DhcpPacket : UdpPacket
     }
 
     /// <summary>
-    /// Init DhcpPacket fields.
+    /// Parses the BOOTP op field, the yiaddr client address and the DHCP options from
+    /// <see cref="EthernetPacket.RawData"/>. Called once during construction; the resulting
+    /// property values are snapshots that are not updated afterwards.
     /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();
-        MessageType = RawData[42];
+        Operation = RawData[42];
 
         if (RawData[58] != 0)
         {
@@ -164,7 +186,7 @@ internal class DhcpPacket : UdpPacket
                 }
                 else if (option.Type == 3) //Router
                 {
-                    Server = new Address(option.Data, 0);
+                    Gateway = new Address(option.Data, 0);
                 }
                 else if (option.Type == 6) //DNS
                 {
@@ -175,32 +197,39 @@ internal class DhcpPacket : UdpPacket
     }
 
     /// <summary>
-    /// Gets the DHCP message type.
+    /// Gets the BOOTP op field at offset 42 of the frame: 1 for a request, 2 for a reply.
+    /// This is not the DHCP message type (option 53), which lives in the options section.
+    /// A snapshot parsed at construction.
     /// </summary>
-    internal byte MessageType { get; private set; }
+    public byte Operation { get; private set; }
 
     /// <summary>
-    /// Gets the client IPv4 address.
+    /// Gets the client IPv4 address parsed from the BOOTP yiaddr field, or null when the first
+    /// byte of yiaddr is zero. A snapshot parsed at construction.
     /// </summary>
-    internal Address? Client { get; private set; }
+    public Address? Client { get; private set; }
 
     /// <summary>
-    /// Gets the DHCP options.
+    /// Gets the DHCP options parsed from the options section, or null when the section is empty.
+    /// A snapshot parsed at construction.
     /// </summary>
-    internal List<DhcpOption>? Options { get; private set; }
+    public List<DhcpOption>? Options { get; private set; }
 
     /// <summary>
-    /// Get Subnet IPv4 Address
+    /// Gets the subnet mask parsed from DHCP option 1, or null when the option is absent.
+    /// A snapshot parsed at construction.
     /// </summary>
-    internal Address? Subnet { get; private set; }
+    public Address? Subnet { get; private set; }
 
     /// <summary>
-    /// Get DNS IPv4 Address
+    /// Gets the first domain name server parsed from DHCP option 6, or null when the option is
+    /// absent; any additional servers in the option are discarded. A snapshot parsed at construction.
     /// </summary>
-    internal Address? DNS { get; private set; }
+    public Address? DNS { get; private set; }
 
     /// <summary>
-    /// Get DHCP Server IPv4 Address
+    /// Gets the gateway address parsed from DHCP option 3 (Router), or null when the option is
+    /// absent. A snapshot parsed at construction.
     /// </summary>
-    internal Address? Server { get; private set; }
+    public Address? Gateway { get; private set; }
 }

@@ -1,11 +1,8 @@
 using System;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Scheduler;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Timer;
 using DevKernel.Diagnostics;
 using DevKernel.Shell;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
-using SchedThreadState = Cosmos.Kernel.Core.Scheduler.ThreadState;
 using SysThread = System.Threading.Thread;
 
 namespace DevKernel.Commands;
@@ -73,8 +70,7 @@ internal static class SchedulerCommands
     {
         Terminal.Header("Scheduler Information:");
 
-        IScheduler? scheduler = SchedulerManager.Current;
-        if (scheduler == null)
+        if (!SchedulerInfo.IsInitialized)
         {
             Terminal.InfoLine("Status", "Not initialized");
             return;
@@ -82,35 +78,31 @@ internal static class SchedulerCommands
 
         Terminal.StatusLine(
             "Status",
-            SchedulerManager.Enabled ? "ENABLED" : "DISABLED",
-            SchedulerManager.Enabled ? ConsoleColor.Green : ConsoleColor.Red);
+            SchedulerInfo.IsRunning ? "ENABLED" : "DISABLED",
+            SchedulerInfo.IsRunning ? ConsoleColor.Green : ConsoleColor.Red);
 
-        Terminal.InfoLine("Scheduler", scheduler.Name);
-        Terminal.InfoLine("CPU Count", SchedulerManager.CpuCount.ToString());
-        Terminal.InfoLine("Quantum", (SchedulerManager.DefaultQuantumNs / Units.NsPerMs).ToString() + " ms");
+        Terminal.InfoLine("Scheduler", SchedulerInfo.SchedulerName!);
+        Terminal.InfoLine("CPU Count", SchedulerInfo.CpuCount.ToString());
+        Terminal.InfoLine("Quantum", (SchedulerInfo.QuantumNs / Units.NsPerMs).ToString() + " ms");
         Console.WriteLine();
 
-        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        for (uint cpuId = 0; cpuId < SchedulerInfo.CpuCount; cpuId++)
         {
-            PerCpuState cpuState = SchedulerManager.GetCpuState(cpuId);
-
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("  CPU " + cpuId + ":");
             Console.ResetColor();
 
-            SchedThread? currentThread = cpuState.CurrentThread;
-            if (currentThread != null)
+            if (SchedulerInfo.TryGetCurrentThread(cpuId, out KernelThreadInfo currentThread))
             {
-                PrintThreadInfo(scheduler, currentThread);
+                PrintThreadInfo(currentThread);
             }
 
-            int runQueueCount = scheduler.GetRunQueueCount(cpuState);
+            int runQueueCount = SchedulerInfo.GetRunQueueCount(cpuId);
             for (int i = 0; i < runQueueCount; i++)
             {
-                SchedThread? thread = scheduler.GetRunQueueThread(cpuState, i);
-                if (thread != null)
+                if (SchedulerInfo.TryGetRunQueueThread(cpuId, i, out KernelThreadInfo thread))
                 {
-                    PrintThreadInfo(scheduler, thread);
+                    PrintThreadInfo(thread);
                 }
             }
         }
@@ -118,29 +110,29 @@ internal static class SchedulerCommands
         Console.WriteLine();
     }
 
-    private static void PrintThreadInfo(IScheduler scheduler, SchedThread thread)
+    private static void PrintThreadInfo(KernelThreadInfo info)
     {
         Console.Write("    ");
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write("Thread " + thread.Id);
+        Console.Write("Thread " + info.Id);
 
         Console.Write(" ");
-        switch (thread.State)
+        switch (info.State)
         {
-            case SchedThreadState.Running:
+            case KernelThreadState.Running:
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("Running");
                 break;
-            case SchedThreadState.Ready:
+            case KernelThreadState.Ready:
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("Ready");
                 break;
-            case SchedThreadState.Blocked:
-            case SchedThreadState.Sleeping:
+            case KernelThreadState.Blocked:
+            case KernelThreadState.Sleeping:
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write(thread.State == SchedThreadState.Blocked ? "Blocked" : "Sleeping");
+                Console.Write(info.State == KernelThreadState.Blocked ? "Blocked" : "Sleeping");
                 break;
-            case SchedThreadState.Dead:
+            case KernelThreadState.Dead:
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("Dead");
                 break;
@@ -150,14 +142,13 @@ internal static class SchedulerCommands
                 break;
         }
 
-        if (thread.SchedulerData != null)
+        if (info.HasPriority)
         {
-            long priority = scheduler.GetPriority(thread);
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write(" Pri=" + priority);
+            Console.Write(" Pri=" + info.Priority);
         }
 
-        ulong runtimeMs = thread.TotalRuntime / Units.NsPerMs;
+        ulong runtimeMs = info.TotalRuntimeNs / Units.NsPerMs;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.Write(" Run=" + runtimeMs + "ms");
 
@@ -167,12 +158,12 @@ internal static class SchedulerCommands
 
     private static void TestThread()
     {
-        Serial.WriteString("[Thread] Testing System.Threading.Thread API\n");
+        Log.WriteString("[Thread] Testing System.Threading.Thread API\n");
         Terminal.Info("Creating and starting a thread...");
 
         SysThread thread = new(static () =>
         {
-            Serial.WriteString("[Thread] Hello from thread delegate!\n");
+            Log.WriteString("[Thread] Hello from thread delegate!\n");
             Console.WriteLine("Hello from thread!");
         });
 
@@ -185,8 +176,7 @@ internal static class SchedulerCommands
 
     private static void KillThread(uint threadId)
     {
-        IScheduler? scheduler = SchedulerManager.Current;
-        if (scheduler == null)
+        if (!SchedulerInfo.IsInitialized)
         {
             Terminal.Error("Scheduler not initialized");
             return;
@@ -198,31 +188,23 @@ internal static class SchedulerCommands
             return;
         }
 
-        for (uint cpuId = 0; cpuId < SchedulerManager.CpuCount; cpuId++)
+        switch (SchedulerInfo.RequestKill(threadId))
         {
-            PerCpuState cpuState = SchedulerManager.GetCpuState(cpuId);
-
-            if (cpuState.CurrentThread?.Id == threadId)
-            {
+            case ThreadKillResult.Killed:
+                Terminal.Success("Thread " + threadId + " killed");
+                Console.WriteLine();
+                break;
+            case ThreadKillResult.MarkedForExit:
+                // The thread is already marked dead; the scheduler reaps it
+                // on its next reschedule.
                 Terminal.Warning("Cannot kill currently running thread");
-                cpuState.CurrentThread.State = SchedThreadState.Dead;
-                return;
-            }
-
-            int count = scheduler.GetRunQueueCount(cpuState);
-            for (int i = 0; i < count; i++)
-            {
-                SchedThread? thread = scheduler.GetRunQueueThread(cpuState, i);
-                if (thread?.Id == threadId)
-                {
-                    SchedulerManager.ExitThread(cpuId, thread);
-                    Terminal.Success("Thread " + threadId + " killed");
-                    Console.WriteLine();
-                    return;
-                }
-            }
+                break;
+            case ThreadKillResult.RefusedIdle:
+                Terminal.Error("Cannot kill idle thread (ID " + IdleThreadId + ")");
+                break;
+            default:
+                Terminal.Error("Thread " + threadId + " not found");
+                break;
         }
-
-        Terminal.Error("Thread " + threadId + " not found");
     }
 }

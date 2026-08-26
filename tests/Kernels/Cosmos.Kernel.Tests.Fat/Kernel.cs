@@ -1,5 +1,5 @@
 using System;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.HAL.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Vfs;
@@ -386,7 +386,7 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        Serial.WriteString("[FatTests] BeforeRun() reached!\n");
+        Log.WriteString("[FatTests] BeforeRun() reached!\n");
 
         TR.Start("FAT Driver Tests", expectedTests: ExpectedTestCount);
 
@@ -1392,7 +1392,7 @@ public class Kernel : Sys.Kernel
 
         TR.Finish();
 
-        Serial.WriteString("\n[Tests Complete - System Halting]\n");
+        Log.WriteString("\n[Tests Complete - System Halting]\n");
     }
 
     protected override void Run()

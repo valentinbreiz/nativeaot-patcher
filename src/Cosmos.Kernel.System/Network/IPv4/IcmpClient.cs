@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Timer;
 
@@ -79,6 +80,40 @@ public class IcmpClient : IDisposable
         var request = new IcmpEchoRequest(source, _destination, id, sequence);
         OutgoingBuffer.AddPacket(request);
         NetworkStack.Update();
+    }
+
+    /// <summary>
+    /// Transmits a prebuilt ICMP packet through the stack's outgoing queue,
+    /// including ARP resolution of the destination.
+    /// </summary>
+    /// <param name="packet">The packet to transmit; its headers and checksum must already be final.</param>
+    /// <returns><see langword="false"/> when no configured interface matches the packet's source address; otherwise, <see langword="true"/>.</returns>
+    [Experimental(Experimentals.PacketSeamDiagId)]
+    public bool Send(IcmpPacket packet) => Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+
+    /// <summary>
+    /// Receives one ICMP packet from this client's receive queue. Unlike
+    /// <see cref="Receive"/>, this hands back the parsed packet object so the
+    /// caller can read the ICMP identifier, sequence number, and payload.
+    /// </summary>
+    /// <param name="timeoutMs">The timeout in milliseconds; a non-positive value checks the queue once without waiting.</param>
+    /// <returns>The dequeued <see cref="IcmpPacket"/>, or <see langword="null"/> if none arrived before the timeout.</returns>
+    [Experimental(Experimentals.PacketSeamDiagId)]
+    public IcmpPacket? ReceivePacket(int timeoutMs = 5000)
+    {
+        int waited = 0;
+        while (_rxBuffer.Count < 1 && waited < timeoutMs)
+        {
+            TimerManager.Wait(10);
+            waited += 10;
+        }
+
+        if (_rxBuffer.Count < 1)
+        {
+            return null;
+        }
+
+        return _rxBuffer.Dequeue();
     }
 
     /// <summary>

@@ -5,6 +5,10 @@
         <LangVersion>latestmajor</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
+        <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
+             the device and platform contracts. -->
+        <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
     </PropertyGroup>
 
     <ItemGroup>

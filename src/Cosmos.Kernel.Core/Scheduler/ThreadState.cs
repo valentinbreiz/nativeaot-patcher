@@ -1,22 +1,37 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
 /// Thread execution state.
 /// </summary>
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public enum ThreadState : byte
 {
-    Created,    // Just created, not yet scheduled
-    Ready,      // Can be scheduled
-    Running,    // Currently executing on a CPU
-    Blocked,    // Waiting for I/O, lock, etc.
-    Sleeping,   // Timed wait
-    Dead        // Terminated, awaiting cleanup
+    /// <summary>Just created, not yet scheduled.</summary>
+    Created,
+
+    /// <summary>Can be scheduled.</summary>
+    Ready,
+
+    /// <summary>Currently executing on a CPU.</summary>
+    Running,
+
+    /// <summary>Waiting for I/O, a lock, or another wake signal.</summary>
+    Blocked,
+
+    /// <summary>In a timed wait.</summary>
+    Sleeping,
+
+    /// <summary>Terminated, awaiting cleanup.</summary>
+    Dead
 }
 
 /// <summary>
 /// Thread flags.
 /// </summary>
 [Flags]
+[Experimental(Experimentals.SchedulerSeamDiagId)]
 public enum ThreadFlags : ushort
 {
     /// <summary>

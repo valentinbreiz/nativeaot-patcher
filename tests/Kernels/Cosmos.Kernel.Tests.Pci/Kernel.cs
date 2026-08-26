@@ -1,5 +1,5 @@
 using System;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.HAL.Pci;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
@@ -37,7 +37,7 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Pci] BeforeRun() reached!\n");
+        Log.WriteString("[Pci] BeforeRun() reached!\n");
 
         TR.Start("PCI Subsystem Tests", expectedTests: ExpectedTestCount);
 
@@ -63,7 +63,7 @@ public class Kernel : Sys.Kernel
 
         TR.Finish();
 
-        Serial.WriteString("\n[Tests Complete - System Halting]\n");
+        Log.WriteString("\n[Tests Complete - System Halting]\n");
     }
 
     protected override void Run() => Stop();

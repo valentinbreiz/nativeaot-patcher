@@ -12,12 +12,12 @@ namespace Cosmos.Kernel.HAL.Devices.Input;
 /// <param name="leftButton">Left button state.</param>
 /// <param name="rightButton">Right button state.</param>
 /// <param name="middleButton">Middle button state.</param>
-public delegate void MouseEventHandler(int deltaX, int deltaY, int deltaZ, bool leftButton, bool rightButton, bool middleButton);
+internal delegate void MouseEventHandler(int deltaX, int deltaY, int deltaZ, bool leftButton, bool rightButton, bool middleButton);
 
 /// <summary>
 /// Abstract base class for all mouse devices.
 /// </summary>
-public abstract class MouseDevice : Device, IMouseDevice
+internal abstract class MouseDevice : Device, IMouseDevice
 {
     /// <summary>
     /// Event handler invoked when mouse state changes.

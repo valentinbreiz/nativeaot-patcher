@@ -10,7 +10,7 @@ namespace Cosmos.Kernel.Core.Bridge;
 /// the scheduler's managed entry implementation. Thread-start registration lives
 /// in <see cref="SchedulerManager.RegisterThreadStart"/>.
 /// </summary>
-public static class ThreadNative
+internal static class ThreadNative
 {
     [UnmanagedCallersOnly]
     public static void EntryPointStub(IntPtr parameter)

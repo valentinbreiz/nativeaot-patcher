@@ -8,7 +8,7 @@ namespace Internal.Runtime.CompilerHelpers
     /// <summary>
     /// This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed.
     /// </summary>
-    public class LibraryInitializer
+    internal class LibraryInitializer
     {
         /// <summary>
         /// Initialize all Core Elements of Cosmos, such as heap memory, garbage collector, and managed modules. This method is called by the runtime before any managed code is executed.

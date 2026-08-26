@@ -5,22 +5,48 @@
 *                   Port of Cosmos Code.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Network;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 
 /// <summary>
-/// ReplyCode set in Flags
+/// DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).
 /// </summary>
-internal enum ReplyCode
+[Experimental(Experimentals.PacketSeamDiagId)]
+public enum ReplyCode
 {
-    OK = 0000,
-    FormatError = 0001,
-    ServerFailure = 0010,
-    NameError = 0011,
-    NotSupported = 0100,
-    Refused = 0101
+    /// <summary>
+    /// No error condition.
+    /// </summary>
+    OK = 0,
+
+    /// <summary>
+    /// The server was unable to interpret the query.
+    /// </summary>
+    FormatError = 1,
+
+    /// <summary>
+    /// The server failed to process the query.
+    /// </summary>
+    ServerFailure = 2,
+
+    /// <summary>
+    /// The domain name referenced in the query does not exist (NXDOMAIN).
+    /// </summary>
+    NameError = 3,
+
+    /// <summary>
+    /// The server does not support the requested kind of query.
+    /// </summary>
+    NotSupported = 4,
+
+    /// <summary>
+    /// The server refuses to perform the requested operation.
+    /// </summary>
+    Refused = 5
 }
 
 /// <summary>
@@ -33,34 +59,87 @@ internal static class DnsRecordType
 }
 
 /// <summary>
-/// Represents a DNS query.
+/// A DNS question parsed from the question section of a response. Instances are parse products
+/// created by <see cref="DnsPacketAnswer"/>, not builder inputs.
 /// </summary>
-internal class DnsQuery
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DnsQuery
 {
-    public string? Name { get; set; }
-    public ushort Type { get; set; }
-    public ushort Class { get; set; }
+    /// <summary>
+    /// The queried domain name, read label by label from the question section without following
+    /// compression pointers.
+    /// </summary>
+    public string? Name { get; internal set; }
+
+    /// <summary>
+    /// The 16-bit question type (QTYPE), for example 1 for an A record.
+    /// </summary>
+    public ushort Type { get; internal set; }
+
+    /// <summary>
+    /// The 16-bit question class (QCLASS), 1 for the Internet class.
+    /// </summary>
+    public ushort Class { get; internal set; }
 }
 
 /// <summary>
-/// Represents a DNS answer (response).
+/// A DNS resource record parsed from the answer section of a response. Instances are parse products
+/// created by <see cref="DnsPacketAnswer"/>, not builder inputs.
 /// </summary>
-internal class DnsAnswer
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DnsAnswer
 {
-    public ushort Name { get; set; }
-    public string? ResolvedName { get; set; }
-    public ushort Type { get; set; }
-    public ushort Class { get; set; }
-    public int TimeToLive { get; set; }
-    public ushort DataLength { get; set; }
-    public byte[]? Address { get; set; }
-    public string? CanonicalName { get; set; }
+    /// <summary>
+    /// The raw 16-bit NAME field exactly as read from the record, usually a compression pointer
+    /// (top two bits set) rather than a name.
+    /// </summary>
+    public ushort Name { get; internal set; }
+
+    /// <summary>
+    /// The domain name obtained by following the compression pointer in <see cref="Name"/>, or null
+    /// when the NAME field is not a compression pointer (inline names are not resolved).
+    /// </summary>
+    public string? ResolvedName { get; internal set; }
+
+    /// <summary>
+    /// The 16-bit record type (TYPE), for example 1 for A and 5 for CNAME.
+    /// </summary>
+    public ushort Type { get; internal set; }
+
+    /// <summary>
+    /// The 16-bit record class (CLASS), 1 for the Internet class.
+    /// </summary>
+    public ushort Class { get; internal set; }
+
+    /// <summary>
+    /// The record's time to live in seconds, read as a signed 32-bit value.
+    /// </summary>
+    public int TimeToLive { get; internal set; }
+
+    /// <summary>
+    /// The length in bytes of the record data (RDLENGTH).
+    /// </summary>
+    public ushort DataLength { get; internal set; }
+
+    /// <summary>
+    /// The raw RDATA bytes of the record: the four address bytes for an A record, but the encoded
+    /// (possibly compressed) name bytes for a CNAME record.
+    /// </summary>
+    public byte[]? Address { get; internal set; }
+
+    /// <summary>
+    /// The decompressed CNAME target, set only for CNAME records; null for every other record type.
+    /// </summary>
+    public string? CanonicalName { get; internal set; }
 }
 
 /// <summary>
-/// Represents a DNS packet.
+/// Represents a DNS message carried over UDP (RFC 1035). The DNS header fields (transaction ID,
+/// flags and section counts) are snapshots parsed from the raw buffer at construction and are never
+/// recomputed.
 /// </summary>
-internal class DnsPacket : UdpPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DnsPacket : UdpPacket
 {
     // Simple transaction ID generator
     private static byte s_transactionCounter = 1;
@@ -75,23 +154,26 @@ internal class DnsPacket : UdpPacket
         receiver?.ReceiveData(dnsPacket);
     }
 
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="DnsPacket"/> class.
-    // /// </summary>
-    // internal DnsPacket()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="DnsPacket"/> class.
+    /// Parses a DNS packet from a received frame. The buffer is aliased without copying, so later
+    /// changes to <paramref name="rawData"/> are visible through the packet.
     /// </summary>
+    /// <param name="rawData">The complete Ethernet frame containing the DNS message.</param>
     public DnsPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DnsPacket"/> class.
+    /// Composes the UDP and DNS headers of a query between ports 53: a transaction ID taken from a
+    /// static 8-bit counter (only the low byte is ever populated), flags 0x0100 (recursion desired),
+    /// <paramref name="urlnb"/> questions and zero answer, authority and additional records. The
+    /// question section itself is written by subclasses. Lengths and checksums are computed by the
+    /// base constructors at construction and never recomputed.
     /// </summary>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address (the DNS server).</param>
+    /// <param name="urlnb">The number of questions announced in the header.</param>
+    /// <param name="len">The length in bytes of the DNS payload following the 12-byte DNS header.</param>
     public DnsPacket(Address source, Address dest, ushort urlnb, ushort len)
         : base(source, dest, 53, 53, (ushort)(len + 12))
     {
@@ -117,6 +199,10 @@ internal class DnsPacket : UdpPacket
         InitializeFields();
     }
 
+    /// <summary>
+    /// Parses the UDP fields, then captures the DNS header snapshot: transaction ID, flags and the
+    /// question, answer, authority and additional record counts.
+    /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();
@@ -132,7 +218,7 @@ internal class DnsPacket : UdpPacket
     /// Gets the domain name at the given offset. Does not follow compression
     /// pointers - use <see cref="ParseNameAt"/> for those.
     /// </summary>
-    public string ParseName(byte[] rawData, ref int index)
+    internal string ParseName(byte[] rawData, ref int index)
     {
         var url = new StringBuilder();
 
@@ -157,8 +243,14 @@ internal class DnsPacket : UdpPacket
     }
 
     /// <summary>
-    /// Decompresses a domain name at <paramref name="startIndex"/> per RFC 1035 pointers.
+    /// Reads a domain name starting at <paramref name="startIndex"/>, following RFC 1035 compression
+    /// pointers relative to <paramref name="messageBase"/>. Pointer chains are capped at 16 jumps to
+    /// avoid loops.
     /// </summary>
+    /// <param name="rawData">The buffer containing the DNS message.</param>
+    /// <param name="startIndex">The index of the first name byte.</param>
+    /// <param name="messageBase">The index of the first byte of the DNS header, used to resolve pointer offsets.</param>
+    /// <returns>The dotted domain name without a trailing dot, or an empty string when no labels are present.</returns>
     protected static string ParseNameAt(byte[] rawData, int startIndex, int messageBase)
     {
         StringBuilder sb = new();
@@ -205,8 +297,12 @@ internal class DnsPacket : UdpPacket
     }
 
     /// <summary>
-    /// Resolves an RR's NAME field, assuming it's a compression pointer.
+    /// Resolves a resource record's NAME field when it is a compression pointer.
     /// </summary>
+    /// <param name="nameField">The raw 16-bit NAME field of the record.</param>
+    /// <param name="rawData">The buffer containing the DNS message.</param>
+    /// <param name="messageBase">The index of the first byte of the DNS header.</param>
+    /// <returns>The decompressed name, or null when the field is not a compression pointer (inline names are not handled).</returns>
     protected static string? ResolveRRName(ushort nameField, byte[] rawData, int messageBase)
     {
         if ((nameField & 0xC000) != 0xC000)
@@ -220,45 +316,50 @@ internal class DnsPacket : UdpPacket
     }
 
     /// <summary>
-    /// The amount of answer Resource Records.
+    /// The number of answer resource records announced in the header, parsed at construction.
     /// </summary>
-    internal ushort AnswerRRs { get; private set; }
+    public ushort AnswerRRs { get; private set; }
 
     /// <summary>
-    /// The amount of authority Resource Records.
+    /// The number of authority resource records announced in the header, parsed at construction.
     /// </summary>
-    internal ushort AuthorityRRs { get; private set; }
+    public ushort AuthorityRRs { get; private set; }
 
     /// <summary>
-    /// The amount of additional Resource Records.
+    /// The number of additional resource records announced in the header, parsed at construction.
     /// </summary>
-    internal ushort AdditionalRRs { get; private set; }
+    public ushort AdditionalRRs { get; private set; }
 
     /// <summary>
-    /// The DNS transaction ID.
+    /// The 16-bit DNS transaction ID, parsed at construction. Packets built by this stack only ever
+    /// populate the low byte, from a static 8-bit counter.
     /// </summary>
-    internal ushort TransactionID { get; private set; }
+    public ushort TransactionID { get; private set; }
 
     /// <summary>
-    /// The flags of the packet.
+    /// The 16-bit DNS header flags, parsed at construction. The lower four bits of a response hold
+    /// its <see cref="ReplyCode"/>.
     /// </summary>
-    internal ushort DNSFlags { get; private set; }
+    public ushort DNSFlags { get; private set; }
 
     /// <summary>
-    /// The number of DNS queries.
+    /// The number of questions announced in the header, parsed at construction.
     /// </summary>
-    internal ushort Questions { get; private set; }
+    public ushort Questions { get; private set; }
 
     /// <summary>
-    /// The DNS queries.
+    /// The parsed question section. Populated only by the parsing subtypes
+    /// (<see cref="DnsPacketAnswer"/>); null otherwise.
     /// </summary>
-    internal List<DnsQuery>? Queries { get; set; }
+    public List<DnsQuery>? Queries { get; internal set; }
 
     /// <summary>
-    /// The DNS answers (responses).
+    /// The parsed answer section. Populated only by the parsing subtypes
+    /// (<see cref="DnsPacketAnswer"/>); null otherwise.
     /// </summary>
-    internal List<DnsAnswer>? Answers { get; set; }
+    public List<DnsAnswer>? Answers { get; internal set; }
 
+    /// <inheritdoc/>
     public override string ToString()
     {
         return "DNS Packet Src=" + SourceIP + ":" + SourcePort + ", Dest=" + DestinationIP + ":" + DestinationPort;
@@ -266,27 +367,27 @@ internal class DnsPacket : UdpPacket
 }
 
 /// <summary>
-/// Represents a DNS translation request packet.
+/// A DNS query packet that composes a single A/IN question for a given domain name.
 /// </summary>
-internal class DnsPacketAsk : DnsPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DnsPacketAsk : DnsPacket
 {
-    // /// <summary>
-    // /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
-    // /// </summary>
-    // internal DnsPacketAsk()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
+    /// Parses a DNS query packet from a received frame. The buffer is aliased without copying.
     /// </summary>
+    /// <param name="rawData">The complete Ethernet frame containing the DNS message.</param>
     public DnsPacketAsk(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DnsPacketAsk"/> class.
+    /// Composes a query with a single A/IN question for <paramref name="url"/>: the name is written
+    /// as length-prefixed labels followed by QTYPE 1 (A) and QCLASS 1 (IN). Lengths and checksums
+    /// are computed by the base constructors at construction and never recomputed.
     /// </summary>
+    /// <param name="source">The source IPv4 address.</param>
+    /// <param name="dest">The destination IPv4 address (the DNS server).</param>
+    /// <param name="url">The domain name to resolve.</param>
     public DnsPacketAsk(Address source, Address dest, string url)
         : base(source, dest, 1, (ushort)(url.Length + url.Split('.').Length + 1 + 4))
     {
@@ -318,17 +419,28 @@ internal class DnsPacketAsk : DnsPacket
 }
 
 /// <summary>
-/// Represents a DNS translation result packet.
+/// A DNS response packet. The full parse (header counts, question and answer sections, and
+/// compression-pointer resolution) runs inside the constructor.
 /// </summary>
-internal class DnsPacketAnswer : DnsPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class DnsPacketAnswer : DnsPacket
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DnsPacketAnswer"/> class.
+    /// Parses a DNS response from a received frame. The buffer is aliased without copying. The whole
+    /// message is parsed during construction: header counts, the question and answer sections, and
+    /// compression pointers; malformed input throws (typically <see cref="IndexOutOfRangeException"/>).
+    /// When the reply code is not <see cref="ReplyCode.OK"/>, section parsing is skipped and
+    /// <see cref="DnsPacket.Queries"/> and <see cref="DnsPacket.Answers"/> stay null.
     /// </summary>
+    /// <param name="rawData">The complete Ethernet frame containing the DNS message.</param>
     public DnsPacketAnswer(byte[] rawData)
         : base(rawData)
     { }
 
+    /// <summary>
+    /// Parses the DNS header, then the question and answer sections, resolving compressed names.
+    /// Skips section parsing when the reply code is not <see cref="ReplyCode.OK"/>.
+    /// </summary>
     protected override void InitializeFields()
     {
         base.InitializeFields();

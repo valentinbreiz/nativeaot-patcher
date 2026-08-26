@@ -7,6 +7,10 @@
     <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props) -->
     <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
 
+    <!-- SchedulerInfo fronts the experimental scheduler seam (COSMOS0001). -->
+    <!-- COSMOS0002: this assembly declares the experimental packet seam and consumes it itself. -->
+    <NoWarn>$(NoWarn);COSMOS0001;COSMOS0002</NoWarn>
+
     <!-- Package Metadata -->
     <PackageId>Cosmos.Kernel.System</PackageId>
     <Title>Cosmos Kernel System</Title>
@@ -83,6 +87,11 @@
     <!-- White-box FAT layout tests forge and corrupt raw directory bytes. -->
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Cosmos.Kernel.Tests.Fat</_Parameter1>
+    </AssemblyAttribute>
+    <!-- White-box 3D wire tests drive the internal SVGA canvas with the
+         device disabled and inspect the commands it places in the FIFO. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cosmos.Kernel.Tests.Graphic</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
 </Project>

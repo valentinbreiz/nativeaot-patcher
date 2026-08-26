@@ -5,61 +5,79 @@
 *                   Port of Cosmos Code.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.IO;
 
 namespace Cosmos.Kernel.System.Network.IPv4.TCP;
 
 /// <summary>
-/// TCP Flags
+/// TCP header control flags, as defined by RFC 793.
 /// </summary>
 [Flags]
-internal enum Flags : byte
+[Experimental(Experimentals.PacketSeamDiagId)]
+public enum TcpFlags : byte
 {
     /// <summary>
-    /// No more data from sender.
+    /// FIN: no more data from sender.
     /// </summary>
     FIN = 1 << 0,
 
     /// <summary>
-    /// Synchronize sequence numbers.
+    /// SYN: synchronize sequence numbers.
     /// </summary>
     SYN = 1 << 1,
 
     /// <summary>
-    /// Reset the connection.
+    /// RST: reset the connection.
     /// </summary>
     RST = 1 << 2,
 
     /// <summary>
-    /// Push Function.
+    /// PSH: push function, deliver buffered data to the application.
     /// </summary>
     PSH = 1 << 3,
 
     /// <summary>
-    /// Acknowledgment field significant.
+    /// ACK: the acknowledgment number field is significant.
     /// </summary>
     ACK = 1 << 4,
 
     /// <summary>
-    /// Urgent Pointer field significant.
+    /// URG: the urgent pointer field is significant.
     /// </summary>
     URG = 1 << 5
 }
 
 /// <summary>
-/// TCP Option
+/// A TCP header option parsed from a received segment.
+/// Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.
 /// </summary>
-internal class TcpOption
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class TcpOption
 {
-    public byte Kind { get; set; }
-    public byte Length { get; set; }
-    public byte[]? Data { get; set; }
+    /// <summary>
+    /// Gets the option kind byte (for example 2 for Maximum Segment Size).
+    /// </summary>
+    public byte Kind { get; internal set; }
+
+    /// <summary>
+    /// Gets the total option length in bytes, including the kind and length bytes. Reads zero for options that carry no length byte.
+    /// </summary>
+    public byte Length { get; internal set; }
+
+    /// <summary>
+    /// Gets the option payload (the bytes after the kind and length bytes), or null when the option has no payload.
+    /// </summary>
+    public byte[]? Data { get; internal set; }
 }
 
 /// <summary>
-/// TCP Packet Class
+/// Represents a TCP segment carried in an <see cref="IPPacket"/>.
+/// Header properties are snapshots parsed from <see cref="EthernetPacket.RawData"/> at construction and are never recomputed; the checksum
+/// of a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.
 /// </summary>
-internal class TcpPacket : IPPacket
+[Experimental(Experimentals.PacketSeamDiagId)]
+public class TcpPacket : IPPacket
 {
     /// <summary>
     /// TCP handler.
@@ -81,52 +99,69 @@ internal class TcpPacket : IPPacket
         }
     }
 
-    // /// <summary>
-    // /// Create new instance of the <see cref="TcpPacket"/> class.
-    // /// </summary>
-    // internal TcpPacket()
-    //     : base()
-    // { }
-
     /// <summary>
-    /// Create new instance of the <see cref="TcpPacket"/> class.
+    /// Creates a TCP packet from a received frame.
+    /// The array is aliased, not copied: the instance keeps a reference to <paramref name="rawData"/> and parses every header property from it once, during construction.
     /// </summary>
-    /// <param name="rawData">Raw data.</param>
+    /// <param name="rawData">Raw frame bytes containing the Ethernet, IPv4 and TCP headers followed by the payload.</param>
     public TcpPacket(byte[] rawData)
         : base(rawData)
     { }
 
     /// <summary>
-    /// Create new instance of the <see cref="TcpPacket"/> class.
+    /// Builds a TCP segment carrying <paramref name="data"/> as payload.
+    /// The header bytes and the TCP checksum are written into <see cref="EthernetPacket.RawData"/> here, in the constructor, and never recomputed.
     /// </summary>
+    /// <param name="source">Source IPv4 address.</param>
+    /// <param name="dest">Destination IPv4 address.</param>
+    /// <param name="srcPort">Source TCP port.</param>
+    /// <param name="destPort">Destination TCP port.</param>
+    /// <param name="sequenceNumber">Sequence number of the first payload byte.</param>
+    /// <param name="ackNumber">Acknowledgment number, the next sequence number expected from the peer.</param>
+    /// <param name="headerLength">TCP header length in bytes; the stack always passes 20, a header without options.</param>
+    /// <param name="flags">Flag bits for the header, a byte cast of combined <see cref="TcpFlags"/> values.</param>
+    /// <param name="windowSize">Receive window size to advertise.</param>
+    /// <param name="urgentPointer">Urgent pointer field value.</param>
+    /// <param name="data">Payload bytes, copied into the segment after the 20 byte header.</param>
     public TcpPacket(Address source, Address dest, ushort srcPort, ushort destPort,
-        ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags,
-        ushort WSValue, ushort UrgentPointer, byte[] data)
+        uint sequenceNumber, uint ackNumber, ushort headerLength, byte flags,
+        ushort windowSize, ushort urgentPointer, byte[] data)
         : base((ushort)(20 + data.Length), 6, source, dest, 0x40)
     {
         AddRawData(data);
-        MakePacket(source, dest, srcPort, destPort, sequencenumber,
-        acknowledgmentnb, Headerlenght, Flags, WSValue, UrgentPointer);
+        MakePacket(source, dest, srcPort, destPort, sequenceNumber,
+        ackNumber, headerLength, flags, windowSize, urgentPointer);
     }
 
     /// <summary>
-    /// Create new instance of the <see cref="TcpPacket"/> class.
+    /// Builds an empty TCP segment (header only, no payload), used for control packets such as SYN, ACK and FIN.
+    /// The header bytes and the TCP checksum are written into <see cref="EthernetPacket.RawData"/> here, in the constructor, and never recomputed.
     /// </summary>
+    /// <param name="source">Source IPv4 address.</param>
+    /// <param name="dest">Destination IPv4 address.</param>
+    /// <param name="srcPort">Source TCP port.</param>
+    /// <param name="destPort">Destination TCP port.</param>
+    /// <param name="sequenceNumber">Sequence number for the segment.</param>
+    /// <param name="ackNumber">Acknowledgment number, the next sequence number expected from the peer.</param>
+    /// <param name="headerLength">TCP header length in bytes; the stack always passes 20, a header without options.</param>
+    /// <param name="flags">Flag bits for the header, a byte cast of combined <see cref="TcpFlags"/> values.</param>
+    /// <param name="windowSize">Receive window size to advertise.</param>
+    /// <param name="urgentPointer">Urgent pointer field value.</param>
     public TcpPacket(Address source, Address dest, ushort srcPort, ushort destPort,
-        ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags,
-        ushort WSValue, ushort UrgentPointer)
+        uint sequenceNumber, uint ackNumber, ushort headerLength, byte flags,
+        ushort windowSize, ushort urgentPointer)
         : base(20, 6, source, dest, 0x40)
     {
-        MakePacket(source, dest, srcPort, destPort, sequencenumber,
-        acknowledgmentnb, Headerlenght, Flags, WSValue, UrgentPointer);
+        MakePacket(source, dest, srcPort, destPort, sequenceNumber,
+        ackNumber, headerLength, flags, windowSize, urgentPointer);
     }
 
     /// <summary>
     /// Make TCP Packet.
     /// </summary>
     private void MakePacket(Address source, Address dest, ushort srcPort, ushort destPort,
-        ulong sequencenumber, ulong acknowledgmentnb, ushort Headerlenght, byte Flags,
-        ushort WSValue, ushort UrgentPointer)
+        uint sequenceNumber, uint ackNumber, ushort headerLength, byte flags,
+        ushort windowSize, ushort urgentPointer)
     {
         //ports
         RawData[DataOffset + 0] = (byte)((srcPort >> 8) & 0xFF);
@@ -135,35 +170,35 @@ internal class TcpPacket : IPPacket
         RawData[DataOffset + 2] = (byte)((destPort >> 8) & 0xFF);
         RawData[DataOffset + 3] = (byte)((destPort >> 0) & 0xFF);
 
-        //sequencenumber
-        RawData[DataOffset + 4] = (byte)((sequencenumber >> 24) & 0xFF);
-        RawData[DataOffset + 5] = (byte)((sequencenumber >> 16) & 0xFF);
-        RawData[DataOffset + 6] = (byte)((sequencenumber >> 8) & 0xFF);
-        RawData[DataOffset + 7] = (byte)((sequencenumber >> 0) & 0xFF);
+        //sequence number
+        RawData[DataOffset + 4] = (byte)((sequenceNumber >> 24) & 0xFF);
+        RawData[DataOffset + 5] = (byte)((sequenceNumber >> 16) & 0xFF);
+        RawData[DataOffset + 6] = (byte)((sequenceNumber >> 8) & 0xFF);
+        RawData[DataOffset + 7] = (byte)((sequenceNumber >> 0) & 0xFF);
 
         //Acknowledgment number
-        RawData[DataOffset + 8] = (byte)((acknowledgmentnb >> 24) & 0xFF);
-        RawData[DataOffset + 9] = (byte)((acknowledgmentnb >> 16) & 0xFF);
-        RawData[DataOffset + 10] = (byte)((acknowledgmentnb >> 8) & 0xFF);
-        RawData[DataOffset + 11] = (byte)((acknowledgmentnb >> 0) & 0xFF);
+        RawData[DataOffset + 8] = (byte)((ackNumber >> 24) & 0xFF);
+        RawData[DataOffset + 9] = (byte)((ackNumber >> 16) & 0xFF);
+        RawData[DataOffset + 10] = (byte)((ackNumber >> 8) & 0xFF);
+        RawData[DataOffset + 11] = (byte)((ackNumber >> 0) & 0xFF);
 
-        //Header lenght
-        RawData[DataOffset + 12] = (byte)(((Headerlenght >> 0) & 0xFF) * 4);
+        //Header length
+        RawData[DataOffset + 12] = (byte)(((headerLength >> 0) & 0xFF) * 4);
 
         //Flags
-        RawData[DataOffset + 13] = (byte)((Flags >> 0) & 0xFF);
+        RawData[DataOffset + 13] = (byte)((flags >> 0) & 0xFF);
 
         //Window size value
-        RawData[DataOffset + 14] = (byte)((WSValue >> 8) & 0xFF);
-        RawData[DataOffset + 15] = (byte)((WSValue >> 0) & 0xFF);
+        RawData[DataOffset + 14] = (byte)((windowSize >> 8) & 0xFF);
+        RawData[DataOffset + 15] = (byte)((windowSize >> 0) & 0xFF);
 
         //Checksum
         RawData[DataOffset + 16] = 0;
         RawData[DataOffset + 17] = 0;
 
         //Urgent Pointer
-        RawData[DataOffset + 18] = (byte)((UrgentPointer >> 8) & 0xFF);
-        RawData[DataOffset + 19] = (byte)((UrgentPointer >> 0) & 0xFF);
+        RawData[DataOffset + 18] = (byte)((urgentPointer >> 8) & 0xFF);
+        RawData[DataOffset + 19] = (byte)((urgentPointer >> 0) & 0xFF);
 
         InitializeFields();
 
@@ -177,7 +212,8 @@ internal class TcpPacket : IPPacket
     }
 
     /// <summary>
-    /// Init TcpPacket fields.
+    /// Parses the TCP header fields from <see cref="EthernetPacket.RawData"/> into the header properties, and the header options into <see cref="Options"/> when the header is longer than 20 bytes.
+    /// Runs during construction; the properties are snapshots and do not track later changes to the raw bytes.
     /// </summary>
     protected override void InitializeFields()
     {
@@ -192,12 +228,12 @@ internal class TcpPacket : IPPacket
         Checksum = (ushort)((RawData[DataOffset + 16] << 8) | RawData[DataOffset + 17]);
         UrgentPointer = (ushort)((RawData[DataOffset + 18] << 8) | RawData[DataOffset + 19]);
 
-        _syn = (RawData[47] & (byte)Flags.SYN) != 0;
-        _ack = (RawData[47] & (byte)Flags.ACK) != 0;
-        _fin = (RawData[47] & (byte)Flags.FIN) != 0;
-        _psh = (RawData[47] & (byte)Flags.PSH) != 0;
-        _rst = (RawData[47] & (byte)Flags.RST) != 0;
-        _urg = (RawData[47] & (byte)Flags.URG) != 0;
+        _syn = (RawData[47] & (byte)TcpFlags.SYN) != 0;
+        _ack = (RawData[47] & (byte)TcpFlags.ACK) != 0;
+        _fin = (RawData[47] & (byte)TcpFlags.FIN) != 0;
+        _psh = (RawData[47] & (byte)TcpFlags.PSH) != 0;
+        _rst = (RawData[47] & (byte)TcpFlags.RST) != 0;
+        _urg = (RawData[47] & (byte)TcpFlags.URG) != 0;
 
         if (TCPHeaderLength > 20) //options
         {
@@ -290,9 +326,10 @@ internal class TcpPacket : IPPacket
     }
 
     /// <summary>
-    /// TCP Options
+    /// Gets the TCP options parsed from a received segment's header, or null when the header is 20 bytes and carries none.
+    /// Options are parse products only: they are never serialized into packets this stack builds.
     /// </summary>
-    public List<TcpOption>? Options { get; set; }
+    public List<TcpOption>? Options { get; internal set; }
 
     /// <summary>
     /// Is SYN Flag set.
@@ -320,44 +357,45 @@ internal class TcpPacket : IPPacket
     internal bool _urg;
 
     /// <summary>
-    /// Get destination port.
+    /// Gets the destination port, a snapshot parsed from the header at construction.
     /// </summary>
     public ushort DestinationPort { get; private set; }
     /// <summary>
-    /// Get source port.
+    /// Gets the source port, a snapshot parsed from the header at construction.
     /// </summary>
     public ushort SourcePort { get; private set; }
     /// <summary>
-    /// Get acknowledge number.
+    /// Gets the acknowledgment number, a snapshot parsed from the header at construction.
     /// </summary>
     public uint AckNumber { get; private set; }
     /// <summary>
-    /// Get sequence number.
+    /// Gets the sequence number, a snapshot parsed from the header at construction.
     /// </summary>
     public uint SequenceNumber { get; private set; }
     /// <summary>
-    /// Get TCP header length.
+    /// Gets the TCP header length in bytes, decoded from the data offset field at construction.
     /// </summary>
     public byte TCPHeaderLength { get; private set; }
     /// <summary>
-    /// Get TCP flags.
+    /// Gets the raw flag byte from the header, a snapshot taken at construction; see <see cref="TcpFlags"/> for the bit values.
     /// </summary>
     public byte TCPFlags { get; private set; }
     /// <summary>
-    /// Get window size.
+    /// Gets the advertised window size, a snapshot parsed from the header at construction.
     /// </summary>
     public ushort WindowSize { get; private set; }
     /// <summary>
-    /// Get checksum.
+    /// Gets the checksum field as parsed from the header at construction.
+    /// On locally built packets this reads zero: the computed checksum bytes are patched into <see cref="EthernetPacket.RawData"/> after the parse pass, so the snapshot never sees them.
     /// </summary>
     public ushort Checksum { get; private set; }
     /// <summary>
-    /// Get urgent pointer.
+    /// Gets the urgent pointer, a snapshot parsed from the header at construction.
     /// </summary>
     public ushort UrgentPointer { get; private set; }
 
     /// <summary>
-    /// Get TCP data length.
+    /// Gets the payload length in bytes: the IP total length minus the IP header length minus the TCP header length, computed from the header snapshots.
     /// </summary>
     public ushort TCP_DataLength => (ushort)(IPLength - HeaderLength - TCPHeaderLength);
 
@@ -380,8 +418,9 @@ internal class TcpPacket : IPPacket
     }
 
     /// <summary>
-    /// Get string representation of TCP flags.
+    /// Returns the names of the flags set on this segment, pipe separated (for example "SYN|ACK"), or an empty string when none are set.
     /// </summary>
+    /// <returns>The flag names joined with a pipe character.</returns>
     public string GetFlags()
     {
         string flags = "";
@@ -424,8 +463,9 @@ internal class TcpPacket : IPPacket
     }
 
     /// <summary>
-    /// To string.
+    /// Returns a string describing the segment: source and destination endpoints, flags, sequence number and acknowledgment number.
     /// </summary>
+    /// <returns>A human readable summary of the segment.</returns>
     public override string ToString()
     {
         return "TCP Packet " + SourceIP + ":" + SourcePort +

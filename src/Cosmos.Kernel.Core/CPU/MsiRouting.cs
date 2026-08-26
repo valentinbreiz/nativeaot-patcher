@@ -27,7 +27,7 @@ namespace Cosmos.Kernel.Core.CPU;
 /// this file free of <c>HAL/Pci</c> dependencies — Core can't reference
 /// HAL upstream.
 /// </summary>
-public static class MsiRouting
+internal static class MsiRouting
 {
     private static IMsiBinder? s_binder;
 
@@ -79,7 +79,7 @@ public static class MsiRouting
 /// <summary>
 /// Platform-specific MSI binding backend. Implemented once per arch.
 /// </summary>
-public interface IMsiBinder
+internal interface IMsiBinder
 {
     /// <summary>True if the underlying interrupt controller is online and ready to route MSIs.</summary>
     bool IsAvailable { get; }

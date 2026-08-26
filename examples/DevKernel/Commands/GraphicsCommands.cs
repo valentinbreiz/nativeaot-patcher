@@ -1,5 +1,5 @@
 using System;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using DevKernel.Diagnostics;
 using DevKernel.Graphics;
 using DevKernel.Shell;
@@ -25,7 +25,7 @@ internal static class GraphicsCommands
                 Description = "Start graphics thread (draws color-cycling square)",
                 Execute = static (context, args) =>
                 {
-                    Serial.WriteString("[GfxThread] Starting graphics thread\n");
+                    Log.WriteString("[GfxThread] Starting graphics thread\n");
                     Terminal.Info("Starting graphics thread (draws color-cycling square)...");
 
                     ColorSquareWorker.Start();

@@ -9,9 +9,14 @@ namespace Cosmos.Kernel.HAL.Vfs;
 /// </summary>
 public interface IVfsFilesystemType
 {
+    /// <summary>
+    /// Mount the filesystem found on <paramref name="source"/> and produce
+    /// its superblock.
+    /// </summary>
     /// <param name="source">Optional backing store identifier (device path, image id, etc.).</param>
     /// <param name="flags">Mount flags (<see cref="MountFlags"/>).</param>
     /// <param name="superblock">Populated superblock on success.</param>
+    /// <returns>true when a filesystem was recognized and mounted.</returns>
     bool TryMount(ReadOnlySpan<char> source, MountFlags flags, [NotNullWhen(true)] out IVfsSuperblock? superblock);
 
     /// <summary>

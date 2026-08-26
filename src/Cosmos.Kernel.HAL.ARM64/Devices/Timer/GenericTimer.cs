@@ -15,7 +15,7 @@ namespace Cosmos.Kernel.HAL.ARM64.Devices.Timer;
 /// Uses the physical timer (CNTP_*) for scheduling interrupts.
 /// Native imports live in Cosmos.Kernel.Core.ARM64/Bridge/Import/GenericTimerNative.cs.
 /// </summary>
-public class GenericTimer : TimerDevice
+internal class GenericTimer : TimerDevice
 {
     /// <summary>
     /// Singleton instance of the Generic Timer.

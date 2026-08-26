@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.Core.Memory.Heap;
 /// <summary>
 /// Page containing Size Map Table
 /// </summary>
-public unsafe struct SMTPage
+internal unsafe struct SMTPage
 {
     /// <summary>
     /// Pointer to the next page
@@ -21,7 +21,7 @@ public unsafe struct SMTPage
     public RootSMTBlock* First;
 }
 
-public unsafe struct RootSMTBlock
+internal unsafe struct RootSMTBlock
 {
     /// <summary>
     /// Elements stored in the page have a size less or equal to this
@@ -41,7 +41,7 @@ public unsafe struct RootSMTBlock
 }
 
 // Changing the ordering will break SMTBlock* NextFreeBlock(SMTPage* aPage)
-public unsafe struct SMTBlock
+internal unsafe struct SMTBlock
 {
     /// <summary>
     /// Pointer to the actual page, where the elements are stored
@@ -59,7 +59,7 @@ public unsafe struct SMTBlock
     public SMTBlock* NextBlock;
 }
 
-public static unsafe class SmallHeap
+internal static unsafe class SmallHeap
 {
     public static ulong MaxSize => PageAllocator.PageSize / 2 - 1;
 

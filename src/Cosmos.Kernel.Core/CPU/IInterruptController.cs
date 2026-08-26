@@ -19,6 +19,9 @@ public interface IInterruptController
     /// <summary>
     /// Route a hardware IRQ to a specific vector.
     /// </summary>
+    /// <param name="irqNo">Hardware IRQ index (0-15 for ISA IRQs).</param>
+    /// <param name="vector">CPU interrupt vector the IRQ is delivered on.</param>
+    /// <param name="startMasked">If true, the IRQ starts masked and must be explicitly unmasked.</param>
     void RouteIrq(byte irqNo, byte vector, bool startMasked);
 
     /// <summary>
@@ -32,5 +35,6 @@ public interface IInterruptController
     /// looking up and invoking the registered handler, signalling EOI, and
     /// handling fatal CPU exceptions.
     /// </summary>
+    /// <param name="ctx">Register context captured by the interrupt stub.</param>
     void Dispatch(ref IRQContext ctx);
 }

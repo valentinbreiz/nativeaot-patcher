@@ -4,9 +4,23 @@ This guide shows how to replace the kernel's scheduling policy. The mechanism si
 
 Replacing the policy takes three steps:
 
-1. Implement `IScheduler`, using the per-thread and per-CPU data slots for the algorithm's bookkeeping. The slots' setter is `internal`, so today a policy lives inside `Cosmos.Kernel.Core`, next to `Stride/`.
+1. Implement `IScheduler`, using the per-thread and per-CPU data slots for the algorithm's bookkeeping. The seam is public: a policy lives in your own kernel project, with no access to `Cosmos.Kernel.Core` internals.
 2. Respect the [kernel constraints](#kernel-constraints): the hooks run in interrupt context or under disabled interrupts, on live scheduler state.
 3. Install it with `SchedulerManager.SetScheduler(new MyScheduler())`. The manager calls `ShutdownCpu` on the outgoing policy and `InitializeCpu` on the incoming one for every CPU. Install at boot, before threads exist (as `LibraryInitializer` does): nothing migrates queued threads or their attached bookkeeping into the new policy, so a mid-flight swap strands them.
+
+---
+
+## Experimental status
+
+The seam types (`IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `ThreadState`, `ThreadFlags`) carry `[Experimental("COSMOS0001")]`: they are usable today but make no compatibility promise, and they are promoted to the stable surface by removing the attribute once proven. Referencing them is a build error until the project acknowledges that contract:
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);COSMOS0001</NoWarn>
+</PropertyGroup>
+```
+
+See [Public API Tracking](public-api.md) for how experimental seams fit the surface policy.
 
 ---
 
@@ -30,8 +44,8 @@ Most hooks receive the `PerCpuState` they operate on, and run either under the m
 | `SelectCpu(thread, currentCpu, cpuCount)` | nothing yet | Choose a starting CPU for a thread; honor `ThreadFlags.Pinned` |
 | `OnThreadMigrate(thread, fromState, toState)` | `Balance` implementations | Move the thread's bookkeeping (and any virtual-time base) between CPUs |
 | `Balance(state, allCpuStates)` | nothing yet | Rebalance load across CPUs; honor `Pinned` |
-| `SetPriority(state, thread, priority)` / `GetPriority(thread)` | nothing in-tree today (a DevKernel diagnostic reads `GetPriority`) | Priority is policy-defined: Stride reads it as tickets, a real-time policy would read it as a priority level. Called under a spinlock, not with interrupts masked |
-| `GetRunQueueCount(state)` / `GetRunQueueThread(state, index)` | diagnostics | Read-only introspection of the run structure |
+| `SetPriority(state, thread, priority)` / `GetPriority(thread)` | nothing in-tree today (the `SchedulerInfo` facade reads `GetPriority`) | Priority is policy-defined: Stride reads it as tickets, a real-time policy would read it as a priority level. Called under a spinlock, not with interrupts masked |
+| `GetRunQueueCount(state)` / `GetRunQueueThread(state, index)` | `SchedulerInfo` diagnostics | Read-only introspection of the run structure; guard it yourself (see [kernel constraints](#kernel-constraints)) |
 
 `SelectCpu`, `Balance`, `OnPickFailed`, and `SetPriority` have no mechanism-side caller today (the kernel runs on one CPU, and nothing sets priorities yet). Implement them for completeness, but do not rely on them being exercised. Note also that `Name`, `SelectCpu`, and `GetPriority` receive no `PerCpuState`, and that `InitializeCpu`/`ShutdownCpu` run from `SetScheduler` under a plain spinlock, in thread context with interrupts enabled.
 
@@ -39,7 +53,7 @@ Most hooks receive the `PerCpuState` they operate on, and run either under the m
 
 ## Attaching state
 
-`Thread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Its setter is `internal` to `Cosmos.Kernel.Core`, which is why a policy currently has to live in that assembly. Allocate in the creation hooks, read with the typed accessor, and tolerate `null` (a thread can exit between a tick and the hook that observes it):
+`Thread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Allocate in the creation hooks, read with the typed accessor, and tolerate `null` (a thread can exit between a tick and the hook that observes it):
 
 ```csharp
 public sealed class MyThreadData { public ulong Deadline; }
@@ -67,7 +81,7 @@ The hooks run inside the kernel's most sensitive window, so four rules are not o
 - **You are in interrupt context.** `OnTick` and `PickNext` run inside the timer interrupt; the lifecycle hooks run under `DisableInterruptsScope` from whatever thread called the manager. Nothing may block, park, or wait in a hook.
 - **Do not allocate on the tick path.** Allocation is technically interrupt-safe in this kernel, but an allocation in `OnTick` or `PickNext` can trigger a collection inside the tick. Allocate in `OnThreadCreate` and `InitializeCpu`, where creation already pays for it, and pre-size collections there.
 - **No `List<T>.Remove`, `Contains`, or `IndexOf` on scheduler paths.** They route through `EqualityComparer<T>.Default`, which needs runtime helpers the kernel does not provide. Scan with `ReferenceEquals` and use `RemoveAt`, as `StrideScheduler.RemoveThreadFromQueue` does.
-- **Guard structure mutations against the tick.** A hook mutating the run structure can itself be interrupted by the timer unless interrupts are masked. The lifecycle hooks and the tick hooks get that masking from the manager, but `InitializeCpu`/`ShutdownCpu` and `SetPriority` do not (spinlocks only), and any *additional* entry point a policy exposes (a diagnostics read, a tuning setter) must take `InternalCpu.DisableInterruptsScope()` itself.
+- **Guard structure mutations against the tick.** A hook mutating the run structure can itself be interrupted by the timer unless interrupts are masked. The lifecycle hooks and the tick hooks get that masking from the manager, but `InitializeCpu`/`ShutdownCpu` and `SetPriority` do not (spinlocks only), and neither do the diagnostics hooks (`GetRunQueueCount`, `GetRunQueueThread`), which the `SchedulerInfo` facade calls from thread context. Those, and any *additional* entry point a policy exposes (a tuning setter, a stats read), must take `SchedulerManager.MaskInterrupts()` themselves.
 
 Bookkeeping the mechanism already does, so a policy does not have to: `Thread.State` transitions, the thread registry, `_needReschedule` on wakes, TLAB return on exit, and the idle-thread fallback when `PickNext` returns `null`.
 
@@ -92,6 +106,10 @@ A FIFO queue with fixed-quantum preemption.
 | `PickNext` | Dequeue the head |
 
 FIFO order already bounds latency at `quantum * queue depth`, so Round-Robin needs no wakeup placement logic at all.
+
+This sketch exists in-tree as a working policy: [`RoundRobinScheduler`](../../../tests/Kernels/Cosmos.Kernel.Tests.Threading/RoundRobinScheduler.cs) lives in the Threading suite exactly as a user policy would, over the public seam only. The suite validates it two ways, and the split is worth copying. The run-structure invariants — tail enqueue, head pick, quantum accounting, block/yield/exit — are asserted by driving the hooks directly on a throwaway `PerCpuState` and `Thread`, which needs no timer and no dispatch and so cannot flake; the policy keeps all its state in the data slots, so a throwaway instance exercises the real logic. Only what genuinely needs a running kernel — that threads get dispatched, that a spinner is preempted at quantum expiry, that shares come out equal whatever priority is requested, that the run queue tracks blocking and waking — is measured live, after swapping the policy in at a quiescent point. Note what the live half deliberately does *not* assert: the order threads reach their delegate is not the order they became ready, because a thread preempted inside its dispatch preamble is re-queued at the tail.
+
+Two swap hazards are worth copying as well. `GetSchedulerData<T>` is a cast, so a policy installable after boot reads the slots with `as` instead — bookkeeping left by the previous policy (the boot thread keeps its Stride record across the swap) then degrades to `null`, which every hook already tolerates, rather than throwing in interrupt context. And the reverse direction has no such tolerance: the stock Stride policy hard-casts, so restoring it is only safe while no thread created under the outgoing policy is still alive, which the suite asserts before swapping back.
 
 ### Multi-Level Feedback Queue (MLFQ)
 
@@ -159,5 +177,5 @@ The policy/mechanism split makes the framework a plausible base for a real-time 
 2. Pick the run structure (queue, sorted list, heap, multi-level). The mechanism only ever asks `PickNext`.
 3. Put the preemption decision, and nothing slow, in `OnTick`'s return value.
 4. Decide what survives a park: whatever `OnThreadBlocked` saves is what wakeup placement in `OnThreadReady` has to work with.
-5. Use `ReferenceEquals` scans, pre-sized collections, and `DisableInterruptsScope` on any entry the manager does not already guard.
+5. Use `ReferenceEquals` scans, pre-sized collections, and `SchedulerManager.MaskInterrupts()` on any entry the manager does not already guard.
 6. Implement `SelectCpu`, `OnThreadMigrate`, and `Balance` honoring `Pinned`, and treat them as dormant until SMP lands.
