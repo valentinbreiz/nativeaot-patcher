@@ -107,6 +107,10 @@ A FIFO queue with fixed-quantum preemption.
 
 FIFO order already bounds latency at `quantum * queue depth`, so Round-Robin needs no wakeup placement logic at all.
 
+This sketch exists in-tree as a working policy: [`RoundRobinScheduler`](../../../tests/Kernels/Cosmos.Kernel.Tests.Threading/RoundRobinScheduler.cs) lives in the Threading suite exactly as a user policy would, over the public seam only. The suite validates it two ways, and the split is worth copying. The run-structure invariants — tail enqueue, head pick, quantum accounting, block/yield/exit — are asserted by driving the hooks directly on a throwaway `PerCpuState` and `Thread`, which needs no timer and no dispatch and so cannot flake; the policy keeps all its state in the data slots, so a throwaway instance exercises the real logic. Only what genuinely needs a running kernel — that threads get dispatched, that a spinner is preempted at quantum expiry, that shares come out equal whatever priority is requested, that the run queue tracks blocking and waking — is measured live, after swapping the policy in at a quiescent point. Note what the live half deliberately does *not* assert: the order threads reach their delegate is not the order they became ready, because a thread preempted inside its dispatch preamble is re-queued at the tail.
+
+Two swap hazards are worth copying as well. `GetSchedulerData<T>` is a cast, so a policy installable after boot reads the slots with `as` instead — bookkeeping left by the previous policy (the boot thread keeps its Stride record across the swap) then degrades to `null`, which every hook already tolerates, rather than throwing in interrupt context. And the reverse direction has no such tolerance: the stock Stride policy hard-casts, so restoring it is only safe while no thread created under the outgoing policy is still alive, which the suite asserts before swapping back.
+
 ### Multi-Level Feedback Queue (MLFQ)
 
 Several priority levels; threads demote when they burn a full quantum and promote when they block early.
