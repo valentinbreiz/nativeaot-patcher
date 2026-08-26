@@ -200,9 +200,8 @@ public class MACAddress : IComparable
     /// <returns>The address as a number.</returns>
     public ulong ToNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (ulong)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        return ((ulong)bytes[0] << 40) | ((ulong)bytes[1] << 32) | ((ulong)bytes[2] << 24) |
+            ((ulong)bytes[3] << 16) | ((ulong)bytes[4] << 8) | bytes[5];
     }
 
     private static void PutByte(char[] aChars, int aIndex, byte aByte)
@@ -213,15 +212,15 @@ public class MACAddress : IComparable
     }
 
     /// <summary>
-    /// Combine the address bytes into a 32-bit unsigned number,
-    /// most significant byte first. Used as the <see cref="Hash"/> value.
+    /// Fold all six address bytes into a 32-bit unsigned number. Used as the
+    /// <see cref="Hash"/> value; it is a hash, not a truncation, so it does
+    /// not round-trip back to an address.
     /// </summary>
-    /// <returns>The address as a 32-bit number.</returns>
+    /// <returns>The folded address.</returns>
     public uint To32BitNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (uint)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        ulong value = ToNumber();
+        return (uint)value ^ (uint)(value >> 32);
     }
 
     private uint _hash;
