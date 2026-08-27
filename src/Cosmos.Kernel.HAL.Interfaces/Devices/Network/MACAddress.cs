@@ -108,91 +108,64 @@ public class MACAddress : IComparable
     /// Compare this address to another MAC address, byte by byte from the
     /// most significant byte.
     /// </summary>
-    /// <param name="obj">MAC address to compare against.</param>
-    /// <returns>Negative, zero, or positive following the ordering of the first differing byte.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is not a <see cref="MACAddress"/>.</exception>
+    /// <param name="obj">MAC address to compare against, or null.</param>
+    /// <returns>Negative, zero, or positive following the ordering of the first differing byte. Null orders before any address.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is neither null nor a <see cref="MACAddress"/>.</exception>
     public int CompareTo(object? obj)
     {
-        if (obj is MACAddress)
+        if (obj is null)
         {
-            MACAddress other = (MACAddress)obj;
-            int i = 0;
-            i = _bytes[0].CompareTo(other._bytes[0]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = _bytes[1].CompareTo(other._bytes[1]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = _bytes[2].CompareTo(other._bytes[2]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = _bytes[3].CompareTo(other._bytes[3]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = _bytes[4].CompareTo(other._bytes[4]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = _bytes[5].CompareTo(other._bytes[5]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            return 0;
+            return 1;
         }
-        else
+
+        if (obj is not MACAddress other)
         {
-            throw new ArgumentException("obj is not a MACAddress", "obj");
+            throw new ArgumentException("obj is not a MACAddress", nameof(obj));
         }
+
+        for (int i = 0; i < 6; i++)
+        {
+            int order = _bytes[i].CompareTo(other._bytes[i]);
+            if (order != 0)
+            {
+                return order;
+            }
+        }
+
+        return 0;
     }
 
     /// <summary>
-    /// Check whether another MAC address has the same six bytes.
+    /// Check whether another object is a MAC address holding the same six bytes.
     /// </summary>
-    /// <param name="obj">MAC address to compare against.</param>
-    /// <returns>True if all six bytes are equal.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is not a <see cref="MACAddress"/>.</exception>
+    /// <param name="obj">Object to compare against.</param>
+    /// <returns>True when <paramref name="obj"/> is a <see cref="MACAddress"/> with the same six bytes, false for anything else including null.</returns>
     public override bool Equals(object? obj)
     {
-        if (obj is MACAddress)
+        if (obj is not MACAddress other)
         {
-            MACAddress other = (MACAddress)obj;
+            return false;
+        }
 
-            return _bytes[0] == other._bytes[0] &&
-                _bytes[1] == other._bytes[1] &&
-                _bytes[2] == other._bytes[2] &&
-                _bytes[3] == other._bytes[3] &&
-                _bytes[4] == other._bytes[4] &&
-                _bytes[5] == other._bytes[5];
-        }
-        else
+        for (int i = 0; i < 6; i++)
         {
-            throw new ArgumentException("obj is not a MACAddress", "obj");
+            if (_bytes[i] != other._bytes[i])
+            {
+                return false;
+            }
         }
+
+        return true;
     }
 
     /// <summary>
-    /// Get a hash code derived from the type name and the string form of the address.
+    /// Get a hash code derived from the six address bytes, consistent with
+    /// <see cref="Equals(object?)"/>.
     /// </summary>
     /// <returns>Hash code for this address.</returns>
     public override int GetHashCode()
     {
-        return (GetType().AssemblyQualifiedName + "|" + ToString()).GetHashCode();
+        return (int)To32BitNumber();
     }
 
     /// <summary>
