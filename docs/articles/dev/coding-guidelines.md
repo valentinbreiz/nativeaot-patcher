@@ -339,10 +339,10 @@ public class X64CpuOps : ICpuOps
 
 ### Platform Initializer Pattern
 
-Each architecture provides a factory that creates all platform-specific components:
+Each architecture provides a factory that creates all platform-specific components. The factory, the contract and everything it returns are internal to the HAL: a kernel never installs one.
 
 ```csharp
-public class X64PlatformInitializer : IPlatformInitializer
+internal class X64PlatformInitializer : IPlatformInitializer
 {
     public string PlatformName => "x86-64";
     public PlatformArchitecture Architecture => PlatformArchitecture.X64;
@@ -560,7 +560,7 @@ Exceptions work, but use them judiciously:
 
 ```csharp
 // Good: validate at API boundaries
-public static void ConfigIP(INetworkDevice device, Address ip)
+public static void RescanPartitions(IBlockDevice device)
 {
     ArgumentNullException.ThrowIfNull(device);
     // ...
@@ -706,8 +706,8 @@ switch (args[i])
 }
 
 // Null-conditional and coalescing
-INetworkDevice? device = NetworkManager.PrimaryDevice;
-if (device?.Ready != true)
+IBlockDevice? device = StorageManager.PrimaryDevice;
+if (device?.BlockSize is not > 0)
 {
     return;
 }

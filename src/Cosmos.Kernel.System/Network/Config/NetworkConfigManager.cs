@@ -29,11 +29,16 @@ public static class NetworkConfigManager
     public static Address? CurrentAddress => CurrentNetworkConfig?.IPConfig?.IPAddress;
 
     /// <summary>
+    /// The IPv4 configuration in force, or null when the stack is unconfigured.
+    /// </summary>
+    public static IPConfig? Current => CurrentNetworkConfig?.IPConfig;
+
+    /// <summary>
     /// Sets the configuration of the current network.
     /// </summary>
     /// <param name="device">The network device to use.</param>
     /// <param name="config">The IPv4 configuration associated with the device to use.</param>
-    public static void SetCurrentConfig(INetworkDevice device, IPConfig config)
+    internal static void SetCurrentConfig(INetworkDevice device, IPConfig config)
     {
         CurrentNetworkConfig = new NetworkConfigEntry(device, config);
     }
@@ -43,7 +48,7 @@ public static class NetworkConfigManager
     /// </summary>
     /// <param name="device">The network device to use.</param>
     /// <param name="config">The IPv4 configuration associated with the device to use.</param>
-    public static void AddConfig(INetworkDevice device, IPConfig config)
+    internal static void AddConfig(INetworkDevice device, IPConfig config)
     {
         s_networkConfigs.Add(new NetworkConfigEntry(device, config));
     }
@@ -51,7 +56,7 @@ public static class NetworkConfigManager
     /// <summary>
     /// Returns whether the network stack contains the given network device.
     /// </summary>
-    public static bool ConfigsContainsDevice(INetworkDevice targetDevice)
+    internal static bool ConfigsContainsDevice(INetworkDevice targetDevice)
     {
         if (s_networkConfigs == null)
         {
@@ -80,7 +85,7 @@ public static class NetworkConfigManager
     /// Get the IPv4 configuration for the given network device.
     /// </summary>
     /// <param name="device">Network device.</param>
-    public static IPConfig? Get(INetworkDevice device)
+    internal static IPConfig? Get(INetworkDevice device)
     {
         foreach (var networkConfig in s_networkConfigs)
         {
@@ -97,7 +102,7 @@ public static class NetworkConfigManager
     /// Remove the configuration for the given network device.
     /// </summary>
     /// <param name="key">The target network device.</param>
-    public static void Remove(INetworkDevice key)
+    internal static void Remove(INetworkDevice key)
     {
         NetworkConfigEntry? toRemove = null;
         foreach (var networkConfig in s_networkConfigs)

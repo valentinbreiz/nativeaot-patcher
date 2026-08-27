@@ -7,21 +7,24 @@
         <Nullable>enable</Nullable>
 
         <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
-             the device contracts a kernel obtains from the ring or implements
-             itself (IBlockDevice, INetworkDevice) and the two types their
-             signatures pull in, PacketReceivedHandler and MACAddress, plus
-             SoftwareTimer as the handle TimerManager.Schedule hands back.
-             SoftwareTimer's construction and tick members stay internal: they
-             belong to the timer device, and a kernel calling them corrupts the
-             registry. -->
+             IBlockDevice, the one device contract kernels really implement and
+             drive (the Fat and File suites each supply a RAM disk, DevKernel
+             reads and writes blocks through it), MACAddress, which the packet
+             seam and NetworkManager both hand out, and SoftwareTimer as the
+             handle TimerManager.Schedule returns. SoftwareTimer's construction
+             and tick members stay internal: they belong to the timer device,
+             and a kernel calling them corrupts the registry. -->
         <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
     </PropertyGroup>
 
     <ItemGroup>
         <!-- The rest are internal because no kernel can obtain or meaningfully
              supply one: the boot contract (IPlatformInitializer), IGraphicDevice,
-             and the input and timer devices, whose only registration callers are
-             System's own LibraryInitializer wiring up HAL enumeration. -->
+             and the input, timer and network devices, whose only registration
+             callers are System's own LibraryInitializer wiring up HAL
+             enumeration. A kernel reads NetworkManager.Name/MacAddress/
+             LinkUp/Ready, never the device, exactly as it reads
+             KeyboardManager.ReadKey. -->
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.X64" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.ARM64" />
@@ -34,6 +37,9 @@
              holds the enumerated input devices it exercises. -->
         <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Storage" />
         <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Virtio" />
+        <!-- The white-box network suite checks that the stack attached its
+             packet handler to the device, which the ring does not report. -->
+        <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Network" />
     </ItemGroup>
 
     <ItemGroup>

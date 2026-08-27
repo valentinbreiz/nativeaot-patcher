@@ -26,7 +26,7 @@ public class DhcpClient : UdpClient
     /// <summary>
     /// Gets the IP address of the DHCP server.
     /// </summary>
-    public static Address? DHCPServerAddress(INetworkDevice networkDevice)
+    internal static Address? DHCPServerAddress(INetworkDevice networkDevice)
     {
         return NetworkConfigManager.Get(networkDevice)?.DefaultGateway;
     }

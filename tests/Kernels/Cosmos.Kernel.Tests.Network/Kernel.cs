@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -103,21 +104,19 @@ public class Kernel : Sys.Kernel
 
     private static void TestNetworkDeviceDetected()
     {
-        var device = NetworkManager.PrimaryDevice;
-        Assert.True(device != null, "Network device should be detected");
+        Assert.True(NetworkManager.HasDevice, "Network device should be detected");
 
-        if (device != null)
+        if (NetworkManager.HasDevice)
         {
             Log.WriteString("[Test] Device detected: ");
-            Log.WriteString(device.Name);
+            Log.WriteString(NetworkManager.Name!);
             Log.WriteString("\n");
         }
     }
 
     private static void TestNetworkDeviceReady()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null)
+        if (!NetworkManager.HasDevice)
         {
             Assert.True(false, "No network device available");
             return;
@@ -125,19 +124,19 @@ public class Kernel : Sys.Kernel
 
         // Wait for link to come up (max 2 seconds)
         int attempts = 0;
-        while (!device.LinkUp && attempts < 20)
+        while (!NetworkManager.LinkUp && attempts < 20)
         {
             TimerManager.Wait(100);
             attempts++;
         }
 
         Log.WriteString("[Test] Link status: ");
-        Log.WriteString(device.LinkUp ? "UP" : "DOWN");
+        Log.WriteString(NetworkManager.LinkUp ? "UP" : "DOWN");
         Log.WriteString(", Ready: ");
-        Log.WriteString(device.Ready ? "YES" : "NO");
+        Log.WriteString(NetworkManager.Ready ? "YES" : "NO");
         Log.WriteString("\n");
 
-        Assert.True(device.Ready, "Network device should be ready");
+        Assert.True(NetworkManager.Ready, "Network device should be ready");
     }
 
     private static void TestNetworkStackInitialize()
@@ -151,7 +150,9 @@ public class Kernel : Sys.Kernel
 
     private static void TestDHCPConfiguration()
     {
-        var device = NetworkManager.PrimaryDevice;
+        // White-box: this suite reaches the device itself to check that the
+        // stack attached its packet handler, which the ring does not report.
+        INetworkDevice? device = NetworkManager.PrimaryDevice;
         if (device == null)
         {
             Assert.True(false, "No network device available");
@@ -178,7 +179,7 @@ public class Kernel : Sys.Kernel
         Log.WriteString(" ms\n");
 
         // Verify we got an IP configuration
-        var netConfig = NetworkConfigManager.Get(device);
+        IPConfig? netConfig = NetworkConfigManager.Current;
         if (netConfig == null)
         {
             Log.WriteString("[Test] No network configuration after DHCP\n");
@@ -208,8 +209,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestICMPPingGateway()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -256,8 +256,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestICMPHostPing()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -332,8 +331,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestUDPSendPacket()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -435,8 +433,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestUDPReceivePacket()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -520,8 +517,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestPacketSeamCraftedEchoRoundTrip()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -578,8 +574,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestPacketSeamCraftedUdpRoundTrip()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -641,8 +636,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestPacketSeamSendUnroutable()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -664,8 +658,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestTCPClientConnect()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -762,8 +755,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestTCPServerAccept()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -878,8 +870,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestTCPCloseWithoutPeerFin()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -1001,8 +992,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestDNSResolveTestSite()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -1061,8 +1051,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestDNSResolveCnameChain()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;
@@ -1112,8 +1101,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestDNSResolveMultipleARecords()
     {
-        var device = NetworkManager.PrimaryDevice;
-        if (device == null || !device.Ready)
+        if (!NetworkManager.Ready)
         {
             Assert.True(false, "Network device not ready");
             return;

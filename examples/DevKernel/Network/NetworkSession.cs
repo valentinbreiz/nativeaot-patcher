@@ -1,4 +1,3 @@
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -46,14 +45,14 @@ internal sealed class NetworkSession
     /// The subnet and gateway are passed through so <c>IPConfig.FindNetwork()</c>
     /// can route outbound packets.
     /// </summary>
-    public void ConfigureStatic(INetworkDevice device)
+    public void ConfigureStatic()
     {
         LocalIp = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGuestHostOctet);
         GatewayIp = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGatewayHostOctet);
         Address subnet = new(SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskHostOctet);
 
         NetworkStack.Initialize();
-        IPConfig.Enable(device, LocalIp, subnet, GatewayIp);
+        IPConfig.Enable(LocalIp, subnet, GatewayIp);
 
         IsConfigured = true;
     }

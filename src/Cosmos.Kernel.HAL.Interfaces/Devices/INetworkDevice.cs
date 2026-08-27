@@ -9,12 +9,14 @@ namespace Cosmos.Kernel.HAL.Interfaces.Devices;
 /// </summary>
 /// <param name="data">The received packet data.</param>
 /// <param name="length">The length of the packet.</param>
-public delegate void PacketReceivedHandler(byte[] data, int length);
+internal delegate void PacketReceivedHandler(byte[] data, int length);
 
 /// <summary>
-/// Interface for network devices.
+/// Interface for network devices. Internal: a kernel neither obtains one nor
+/// supplies one, it goes through <c>NetworkManager</c> like every other
+/// device manager in the ring.
 /// </summary>
-public interface INetworkDevice
+internal interface INetworkDevice
 {
     /// <summary>
     /// Initialize the network device.

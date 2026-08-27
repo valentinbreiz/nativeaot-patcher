@@ -72,7 +72,7 @@ public class IPConfig
     /// <param name="subnet">The subnet mask to use for the device.</param>
     /// <param name="gw">The default gateway address to use for the device.</param>
     /// <returns><see langword="true"/> if the device was successfully enabled, <see langword="false"/> otherwise.</returns>
-    public static bool Enable(INetworkDevice device, Address ip, Address subnet, Address gw)
+    internal static bool Enable(INetworkDevice device, Address ip, Address subnet, Address gw)
     {
         if (device != null)
         {
@@ -82,6 +82,24 @@ public class IPConfig
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Assign an IPv4 configuration to the primary network device.
+    /// </summary>
+    /// <param name="ip">The IP address to assign.</param>
+    /// <param name="subnet">The subnet mask to use.</param>
+    /// <param name="gw">The default gateway address to use.</param>
+    /// <returns><see langword="true"/> if the configuration was applied, <see langword="false"/> when there is no device.</returns>
+    public static bool Enable(Address ip, Address subnet, Address gw)
+    {
+        INetworkDevice? device = NetworkManager.PrimaryDevice;
+        if (device == null)
+        {
+            return false;
+        }
+
+        return Enable(device, ip, subnet, gw);
     }
 
     /// <summary>

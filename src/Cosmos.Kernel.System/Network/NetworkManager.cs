@@ -1,6 +1,7 @@
 // This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Network;
@@ -34,9 +35,30 @@ public static class NetworkManager
     public static bool IsInitialized => s_initialized;
 
     /// <summary>
-    /// Gets the primary network device.
+    /// Gets the primary network device. Internal: a kernel reads the facts it
+    /// needs off this manager rather than holding the device.
     /// </summary>
-    public static INetworkDevice? PrimaryDevice => s_primaryDevice;
+    internal static INetworkDevice? PrimaryDevice => s_primaryDevice;
+
+    /// <summary>
+    /// Whether a network device has been enumerated and registered.
+    /// </summary>
+    public static bool HasDevice => s_primaryDevice != null;
+
+    /// <summary>
+    /// The primary device's name, or null when there is no device.
+    /// </summary>
+    public static string? Name => s_primaryDevice?.Name;
+
+    /// <summary>
+    /// The primary device's MAC address, or null when there is no device.
+    /// </summary>
+    public static MACAddress? MacAddress => s_primaryDevice?.MacAddress;
+
+    /// <summary>
+    /// Whether the primary device finished initializing and can carry traffic.
+    /// </summary>
+    public static bool Ready => s_primaryDevice?.Ready ?? false;
 
     /// <summary>
     /// Gets the number of registered network devices.
@@ -64,7 +86,7 @@ public static class NetworkManager
     /// Registers a network device with the manager.
     /// </summary>
     /// <param name="device">The network device to register.</param>
-    public static void RegisterDevice(INetworkDevice device)
+    internal static void RegisterDevice(INetworkDevice device)
     {
         if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)
         {
@@ -85,7 +107,7 @@ public static class NetworkManager
     /// </summary>
     /// <param name="index">The device index.</param>
     /// <returns>The network device, or null if not found.</returns>
-    public static INetworkDevice? GetDevice(int index)
+    internal static INetworkDevice? GetDevice(int index)
     {
         ThrowIfDisabled();
 

@@ -1,5 +1,4 @@
 using System;
-using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
@@ -88,27 +87,26 @@ internal static class NetworkCommands
             });
     }
 
-    /// <summary>Returns the primary NIC, reporting its absence when there is none.</summary>
-    private static INetworkDevice? RequireDevice()
+    /// <summary>Reports the absence of a primary NIC, and whether one is present.</summary>
+    private static bool RequireDevice()
     {
-        INetworkDevice? device = NetworkManager.PrimaryDevice;
-        if (device == null)
+        if (!NetworkManager.HasDevice)
         {
             Terminal.Error("No network device found");
+            return false;
         }
 
-        return device;
+        return true;
     }
 
     private static void ConfigureNetwork(NetworkSession session)
     {
-        INetworkDevice? device = RequireDevice();
-        if (device == null)
+        if (!RequireDevice())
         {
             return;
         }
 
-        session.ConfigureStatic(device);
+        session.ConfigureStatic();
 
         Terminal.Success("Network configured!\n");
         Terminal.InfoLine("IP", session.LocalIp!.ToString());
@@ -117,18 +115,17 @@ internal static class NetworkCommands
 
     private static void ShowNetworkInfo(NetworkSession session)
     {
-        INetworkDevice? device = RequireDevice();
-        if (device == null)
+        if (!RequireDevice())
         {
             return;
         }
 
         Terminal.Header("Network Information:");
 
-        Terminal.InfoLine("Device", device.Name);
-        Terminal.InfoLine("MAC", device.MacAddress.ToString());
-        Terminal.StatusLine("Link", device.LinkUp ? "UP" : "DOWN", device.LinkUp ? ConsoleColor.Green : ConsoleColor.Red);
-        Terminal.StatusLine("Ready", device.Ready ? "YES" : "NO", device.Ready ? ConsoleColor.Green : ConsoleColor.Red);
+        Terminal.InfoLine("Device", NetworkManager.Name!);
+        Terminal.InfoLine("MAC", NetworkManager.MacAddress!.ToString());
+        Terminal.StatusLine("Link", NetworkManager.LinkUp ? "UP" : "DOWN", NetworkManager.LinkUp ? ConsoleColor.Green : ConsoleColor.Red);
+        Terminal.StatusLine("Ready", NetworkManager.Ready ? "YES" : "NO", NetworkManager.Ready ? ConsoleColor.Green : ConsoleColor.Red);
         Terminal.StatusLine(
             "Configured",
             session.IsConfigured ? "YES" : "NO",
@@ -142,13 +139,12 @@ internal static class NetworkCommands
 
     private static void SendTestPacket(NetworkSession session)
     {
-        INetworkDevice? device = RequireDevice();
-        if (device == null)
+        if (!RequireDevice())
         {
             return;
         }
 
-        if (!device.Ready)
+        if (!NetworkManager.Ready)
         {
             Terminal.Error("Network device not ready");
             return;
@@ -181,8 +177,7 @@ internal static class NetworkCommands
 
     private static void StartListening(NetworkSession session)
     {
-        INetworkDevice? device = RequireDevice();
-        if (device == null)
+        if (!RequireDevice())
         {
             return;
         }
@@ -258,13 +253,12 @@ internal static class NetworkCommands
 
     private static void RunDhcp(NetworkSession session)
     {
-        INetworkDevice? device = RequireDevice();
-        if (device == null)
+        if (!RequireDevice())
         {
             return;
         }
 
-        if (!device.Ready)
+        if (!NetworkManager.Ready)
         {
             Terminal.Error("Network device not ready");
             return;
@@ -281,7 +275,7 @@ internal static class NetworkCommands
             return;
         }
 
-        IPConfig? netConfig = NetworkConfigManager.Get(device);
+        IPConfig? netConfig = NetworkConfigManager.Current;
         if (netConfig == null)
         {
             Terminal.Error("No network configuration after DHCP");
@@ -299,7 +293,7 @@ internal static class NetworkCommands
 
     private static void ResolveDns(NetworkSession session, string domain)
     {
-        if (RequireDevice() == null)
+        if (!RequireDevice())
         {
             return;
         }

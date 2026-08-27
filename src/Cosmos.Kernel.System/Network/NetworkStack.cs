@@ -37,7 +37,7 @@ public static class NetworkStack
     /// </summary>
     /// <param name="device">The target network device.</param>
     /// <param name="ipAddress">The IP address to assign to the device.</param>
-    public static void ConfigIP(INetworkDevice device, Address ipAddress)
+    internal static void ConfigIP(INetworkDevice device, Address ipAddress)
     {
         if (AddressMap == null || MACMap == null)
         {
@@ -80,7 +80,7 @@ public static class NetworkStack
     /// </summary>
     /// <param name="device">The target network device.</param>
     /// <param name="config">The IP configuration to apply.</param>
-    public static void ConfigIP(INetworkDevice device, IPConfig config)
+    internal static void ConfigIP(INetworkDevice device, IPConfig config)
     {
         if (AddressMap == null || MACMap == null)
         {

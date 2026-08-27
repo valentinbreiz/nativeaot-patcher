@@ -15,18 +15,6 @@ Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Flush() -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Name.get -> string!
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.ReadBlock(ulong blockNo, ulong blockCount, System.Span<byte> data) -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.WriteBlock(ulong blockNo, ulong blockCount, System.ReadOnlySpan<byte> data) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Disable() -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Enable() -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Initialize() -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.LinkUp.get -> bool
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.MacAddress.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Name.get -> string!
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.OnPacketReceived.get -> Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler?
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.OnPacketReceived.set -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Ready.get -> bool
-Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Send(byte[]! data, int length) -> bool
-Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive.get -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring.get -> bool
@@ -36,4 +24,3 @@ override Cosmos.Kernel.HAL.Devices.Network.MACAddress.GetHashCode() -> int
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToString() -> string!
 static Cosmos.Kernel.HAL.Devices.Network.MACAddress.Broadcast.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
 static Cosmos.Kernel.HAL.Devices.Network.MACAddress.None.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
-virtual Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.Invoke(byte[]! data, int length) -> void

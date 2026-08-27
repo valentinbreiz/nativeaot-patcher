@@ -54,14 +54,12 @@ using Cosmos.Kernel.System.Timer;
 `NetworkManager` owns the detected NICs. Check that a device is there and ready before configuring anything:
 
 ```csharp
-var device = NetworkManager.PrimaryDevice;
-
-if (device != null)
+if (NetworkManager.HasDevice)
 {
-    Console.WriteLine("Device:  " + device.Name);
-    Console.WriteLine("MAC:     " + device.MacAddress.ToString());
-    Console.WriteLine("Link up: " + device.LinkUp);
-    Console.WriteLine("Ready:   " + device.Ready);
+    Console.WriteLine("Device:  " + NetworkManager.Name);
+    Console.WriteLine("MAC:     " + NetworkManager.MacAddress.ToString());
+    Console.WriteLine("Link up: " + NetworkManager.LinkUp);
+    Console.WriteLine("Ready:   " + NetworkManager.Ready);
 }
 ```
 
@@ -89,7 +87,7 @@ var dhcpClient = new DhcpClient();
 
 if (dhcpClient.SendDiscoverPacket() != -1)
 {
-    IPConfig? config = NetworkConfigManager.Get(device);
+    IPConfig? config = NetworkConfigManager.Current;
     Console.WriteLine("IP address: " + config.IPAddress.ToString());
     Console.WriteLine("Subnet:     " + config.SubnetMask.ToString());
     Console.WriteLine("Gateway:    " + config.DefaultGateway.ToString());
@@ -106,7 +104,7 @@ else
 ### Manually
 
 ```csharp
-IPConfig.Enable(device,
+IPConfig.Enable(
     new Address(192, 168, 1, 69),     // local address
     new Address(255, 255, 255, 0),    // subnet mask
     new Address(192, 168, 1, 254));   // gateway
@@ -115,7 +113,7 @@ IPConfig.Enable(device,
 ### Get the local IP address
 
 ```csharp
-Console.WriteLine(NetworkConfigManager.Get(device).IPAddress.ToString());
+Console.WriteLine(NetworkConfigManager.CurrentAddress.ToString());
 ```
 
 ## UDP
@@ -293,7 +291,7 @@ The contract the packet types actually implement:
 
 - `System.Net.Dns` is not plugged; use the Cosmos `DnsClient` shown above.
 - No TLS, so no `HttpClient`/HTTPS: raw TCP only.
-- One NIC: the stack talks to `NetworkManager.PrimaryDevice`.
+- One NIC: the stack talks to the first device registered, and `NetworkManager` reports it.
 - Half-close is not supported: `Close()` on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.
 
 ## How it works
