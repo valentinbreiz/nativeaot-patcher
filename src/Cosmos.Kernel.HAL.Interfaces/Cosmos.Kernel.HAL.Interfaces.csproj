@@ -7,8 +7,13 @@
         <Nullable>enable</Nullable>
 
         <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
-             the device contracts a kernel can obtain one of and pass to the ring
-             (IBlockDevice, INetworkDevice), plus SoftwareTimer and MACAddress. -->
+             the device contracts a kernel obtains from the ring or implements
+             itself (IBlockDevice, INetworkDevice) and the two types their
+             signatures pull in, PacketReceivedHandler and MACAddress, plus
+             SoftwareTimer as the handle TimerManager.Schedule hands back.
+             SoftwareTimer's construction and tick members stay internal: they
+             belong to the timer device, and a kernel calling them corrupts the
+             registry. -->
         <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
     </PropertyGroup>
 

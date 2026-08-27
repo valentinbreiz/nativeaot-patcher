@@ -28,17 +28,12 @@ Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Ready.get -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.Send(byte[]! data, int length) -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer
-Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke() -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.IsActive.get -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Recurring.get -> bool
-Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(bool active) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SoftwareTimer(System.Action! callback, ulong timeoutNs, bool recurring) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(ulong elapsedNs) -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs.get -> ulong
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(object? obj) -> bool
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.GetHashCode() -> int
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToString() -> string!
-readonly Cosmos.Kernel.HAL.Devices.Network.MACAddress.bytes -> byte[]!
 static Cosmos.Kernel.HAL.Devices.Network.MACAddress.Broadcast.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
 static Cosmos.Kernel.HAL.Devices.Network.MACAddress.None.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress!
 virtual Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.Invoke(byte[]! data, int length) -> void

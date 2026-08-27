@@ -56,12 +56,12 @@ public class DhcpRelease : DhcpPacket
         RawData[292] = 7;
         RawData[293] = 1;
 
-        RawData[294] = source.bytes[0];
-        RawData[295] = source.bytes[1];
-        RawData[296] = source.bytes[2];
-        RawData[297] = source.bytes[3];
-        RawData[298] = source.bytes[4];
-        RawData[299] = source.bytes[5];
+        RawData[294] = source._bytes[0];
+        RawData[295] = source._bytes[1];
+        RawData[296] = source._bytes[2];
+        RawData[297] = source._bytes[3];
+        RawData[298] = source._bytes[4];
+        RawData[299] = source._bytes[5];
 
         RawData[300] = 0xff; //ENDMARK
     }

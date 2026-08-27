@@ -171,7 +171,7 @@ public class Kernel : Sys.Kernel
         bool anyNonZero = false;
         for (int i = 0; i < MacAddressLength; i++)
         {
-            if (mac.bytes[i] != 0)
+            if (mac._bytes[i] != 0)
             {
                 anyNonZero = true;
                 break;
