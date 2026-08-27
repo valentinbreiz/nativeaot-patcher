@@ -20,7 +20,7 @@ namespace Cosmos.Kernel.HAL.ARM64;
 /// <summary>
 /// ARM64 platform initializer - creates ARM64-specific HAL components.
 /// </summary>
-public class ARM64PlatformInitializer : IPlatformInitializer
+internal class ARM64PlatformInitializer : IPlatformInitializer
 {
     /// <summary>Number of microseconds in one second, used to convert the generic-timer frequency (Hz) into ticks per microsecond.</summary>
     private const ulong MicrosecondsPerSecond = 1_000_000UL;

@@ -8,7 +8,7 @@ The public surface of the kernel packages is declared in text files checked into
 
 Three rules decide what is public:
 
-1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against: tracked, documented, frozen at release, with deprecation cycles applying there and only there. Contract types that the ring's own signatures expose ride along as public: the device interfaces in `Cosmos.Kernel.HAL.Interfaces`, the VFS contracts in `Cosmos.Kernel.HAL.Vfs`, and the platform interfaces in `Cosmos.Kernel.Core` (`IPortIO`, `ICpuOps`, `IPowerOps`, `IInterruptController`).
+1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against: tracked, documented, frozen at release, with deprecation cycles applying there and only there. Contract types ride along as public only where a `Cosmos.Kernel.System` signature names them, which is the mechanical test: the device interfaces in `Cosmos.Kernel.HAL.Interfaces` (a kernel hands its own driver to `NetworkManager.RegisterDevice`, `StorageManager.RegisterDevice`, `KeyboardManager.RegisterKeyboard`, `MouseManager.RegisterMouse`, `TimerManager.RegisterTimer`) and the VFS contracts in `Cosmos.Kernel.HAL.Vfs` (`VfsManager.RegisterFilesystem`, and the inode and stat types the handle API returns). A type no ring signature names does not ride along, whatever it looks like from inside the repo: the platform contracts (`IPortIO`, `ICpuOps`, `IPowerOps`, `IInterruptController`, `IRQContext`), the boot contract `IPlatformInitializer` and the `IGraphicDevice` contract are all internal, because `PlatformHAL` is internal and no kernel can register or obtain one.
 2. **Chosen experimental seams.** Extension points are opened deliberately and marked `[Experimental]`: public and usable now, no compatibility promise, promoted to stable by removing the attribute once proven. Referencing one is a build error until the consuming project suppresses its diagnostic ID, which is the consumer's acknowledgement of that contract. The scheduler policy seam in Core is the first, the packet seam in System is the second; a driver kit in the HAL is the planned third.
 3. **Everything else is internal.** Visibility is never the extension mechanism; seams are. First-party assemblies and the white-box test kernels reach internals through `InternalsVisibleTo`; anyone else goes through `[UnsafeAccessor]`/`[UnsafeAccessorType]` ([Accessing internals](accessing-internals.md)) and accepts that internals change without notice.
 
@@ -17,9 +17,9 @@ The enforcement test is mechanical: `examples/DevKernel` must compile with no `I
 | Assembly | Surface |
 |----------|---------|
 | `Cosmos.Kernel.System` | The supported ring |
-| `Cosmos.Kernel.HAL.Interfaces` | Device and platform contracts, tracked |
+| `Cosmos.Kernel.HAL.Interfaces` | Device contracts only, tracked; the boot contract and `IGraphicDevice` internal |
 | `Cosmos.Kernel.HAL` | VFS contracts only, tracked; drivers, PCI, ports internal |
-| `Cosmos.Kernel.Core` | The scheduler seam (`[Experimental]`) plus the platform contract interfaces, tracked |
+| `Cosmos.Kernel.Core` | The scheduler seam (`[Experimental]`) and nothing else, tracked |
 | Arch assemblies, Native, Plugs, Debug, Boot.Limine | Internal, `InternalsVisibleTo` for first-party |
 
 The last row is policy rather than tracked enforcement: those assemblies are untracked, and their remaining public types shrink as they are touched.

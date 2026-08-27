@@ -15,15 +15,6 @@ Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Flush() -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.Name.get -> string!
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.ReadBlock(ulong blockNo, ulong blockCount, System.Span<byte> data) -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.WriteBlock(ulong blockNo, ulong blockCount, System.ReadOnlySpan<byte> data) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.ClearScreen(uint color) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.CopyBuffer(System.ReadOnlyMemory<int> pixels, int x, int y, int width, int height) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.CopyBuffer(System.ReadOnlyMemory<uint> pixels, int x, int y, int width, int height) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.DrawPixel(uint color, int x, int y) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.GetPixel(int x, int y) -> uint
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.GetVRAM(int sourceByteOffset, int[]! dest, int destIndex, int count) -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.Initialize() -> void
-Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.Swap() -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice
 Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Disable() -> void
 Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.Enable() -> void
@@ -76,24 +67,6 @@ Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SoftwareTimer(System.Action! 
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(ulong elapsedNs) -> bool
 Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.TimeoutNs.get -> ulong
 Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.Architecture.get -> Cosmos.Build.API.Enum.PlatformArchitecture
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateCpuOps() -> Cosmos.Kernel.Core.CPU.ICpuOps!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateInterruptController() -> Cosmos.Kernel.Core.CPU.IInterruptController!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePortIO() -> Cosmos.Kernel.Core.IO.IPortIO!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreatePowerOps() -> Cosmos.Kernel.Core.Power.IPowerOps!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.CreateTimer() -> Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.DelayMicroseconds(uint microseconds) -> void
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.DmaBarrier() -> void
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.EnsureMmioMapped(ulong physBase) -> void
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetCpuCount() -> uint
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetKeyboardDevices() -> Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice![]!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetMouseDevices() -> Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice![]!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.GetNetworkDevice() -> Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice?
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.InitializeHardware() -> void
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.PlatformName.get -> string!
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.PreparePciMapping(ulong ecamBase) -> void
-Cosmos.Kernel.HAL.Interfaces.IPlatformInitializer.StartSchedulerTimer(uint quantumMs) -> void
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.Equals(object? obj) -> bool
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.GetHashCode() -> int
 override Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToString() -> string!

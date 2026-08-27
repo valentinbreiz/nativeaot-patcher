@@ -28,7 +28,7 @@ public static class Panic
     /// </summary>
     /// <param name="exceptionName">The name of the CPU exception.</param>
     /// <param name="ctx">The interrupt context with register state.</param>
-    public static void CpuException(string exceptionName, ref IRQContext ctx)
+    internal static void CpuException(string exceptionName, ref IRQContext ctx)
     {
         InternalCpu.DisableInterrupts();
 

@@ -13,7 +13,7 @@ namespace Cosmos.Kernel.Core.CPU;
 /// stub's save order exactly; changing it requires changing the assembly.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct IRQContext
+internal struct IRQContext
 {
     /// <summary>Saved general-purpose register x0.</summary>
     public ulong x0;
@@ -102,7 +102,7 @@ public struct IRQContext
 /// changing the assembly.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct IRQContext
+internal struct IRQContext
 {
     /// <summary>Saved general-purpose register r15.</summary>
     public ulong r15;

@@ -21,5 +21,9 @@
   <ItemGroup>
     <!-- The Stopwatch plug reads the TSC through X64CpuNative. -->
     <InternalsVisibleTo Include="Cosmos.Kernel.Plugs" />
+    <!-- The platform initializer constructs X64InterruptController, which is
+         internal because IInterruptController is (Core.ARM64 already grants
+         its HAL counterpart for the same reason). -->
+    <InternalsVisibleTo Include="Cosmos.Kernel.HAL.X64" />
   </ItemGroup>
 </Project>
