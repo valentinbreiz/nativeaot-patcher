@@ -35,6 +35,13 @@ endif
 DEVKERNEL  := ./examples/DevKernel/DevKernel.csproj
 TEST_ENGINE := ./tests/Cosmos.TestRunner.Engine/Cosmos.TestRunner.Engine.csproj
 
+DOCS_DIR   := ./docs
+DOCS_PORT  ?= 8080
+# Cosmos.Kernel transitively project-references every project DocFX reads, so
+# restoring it alone covers the metadata step. Restoring the slnx instead pulls
+# in examples/DevKernel, whose NuGet.Config needs artifacts/package/release.
+DOCS_RESTORE := ./src/Cosmos.Kernel/Cosmos.Kernel.csproj
+
 AHCI_IMG   := disk-ahci.img
 NVME_IMG   := disk-nvme.img
 DEV_DISK_FLAGS := -drive file=$(AHCI_IMG),if=none,id=ahcidisk,format=raw \
@@ -43,7 +50,8 @@ DEV_DISK_FLAGS := -drive file=$(AHCI_IMG),if=none,id=ahcidisk,format=raw \
                   -drive file=$(NVME_IMG),if=none,id=nvmedisk,format=raw \
                   -device nvme,drive=nvmedisk,serial=cosmos-nvme
 
-.PHONY: setup build clean distclean run run-dev debug-dev disks test test-cache api
+.PHONY: setup build clean distclean run run-dev debug-dev disks test test-cache api \
+        docs docs-serve docs-clean
 
 setup:
 	./.devcontainer/postCreateCommand.sh
@@ -118,3 +126,22 @@ test:
 
 test-cache:
 	dotnet test tests/Cosmos.Tests.BuildCache/ -c Debug
+
+# Generate the API metadata and render the static site into docs/_site.
+docs:
+	@command -v docfx >/dev/null 2>&1 || dotnet tool update -g docfx
+	dotnet restore $(DOCS_RESTORE)
+	cd $(DOCS_DIR) && docfx docfx.json
+
+# Same build, then serve it on http://localhost:$(DOCS_PORT) (Ctrl+C to stop).
+docs-serve:
+	@command -v docfx >/dev/null 2>&1 || dotnet tool update -g docfx
+	dotnet restore $(DOCS_RESTORE)
+	@echo "Serving docs on http://localhost:$(DOCS_PORT) - Ctrl+C to stop."
+	cd $(DOCS_DIR) && docfx docfx.json --serve --port $(DOCS_PORT)
+
+# Drop the generated site and the generated api/*.yml (both gitignored).
+docs-clean:
+	rm -rf $(DOCS_DIR)/_site
+	find $(DOCS_DIR)/api -name '*.yml' -delete
+	rm -f $(DOCS_DIR)/api/.manifest
