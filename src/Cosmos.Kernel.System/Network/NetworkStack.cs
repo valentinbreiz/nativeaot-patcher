@@ -80,6 +80,11 @@ public static class NetworkStack
     /// </summary>
     /// <param name="device">The target network device.</param>
     /// <param name="config">The IP configuration to apply.</param>
+    /// <remarks>
+    /// Internal: a kernel configures the primary device through
+    /// <see cref="Config.IPConfig.Enable(IPv4.Address, IPv4.Address, IPv4.Address)"/>,
+    /// which is the public form of this and always was.
+    /// </remarks>
     internal static void ConfigIP(INetworkDevice device, IPConfig config)
     {
         if (AddressMap == null || MACMap == null)
@@ -94,7 +99,8 @@ public static class NetworkStack
     }
 
     /// <summary>
-    /// Removes all IP configurations.
+    /// Removes all IP configurations, clearing the stack's address and MAC
+    /// maps with them. The counterpart of <see cref="Config.IPConfig.Enable(IPv4.Address, IPv4.Address, IPv4.Address)"/>.
     /// </summary>
     public static void RemoveAllConfigIP()
     {
@@ -110,9 +116,11 @@ public static class NetworkStack
     private static bool s_updating = false;
 
     /// <summary>
-    /// Updates the network stack (sends pending packets).
+    /// Updates the network stack (sends pending packets). Internal: every
+    /// path that queues a packet pumps the queue itself, including
+    /// <see cref="Send"/> and each protocol client.
     /// </summary>
-    public static void Update()
+    internal static void Update()
     {
         // Prevent recursive calls
         if (s_updating)

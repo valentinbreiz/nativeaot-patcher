@@ -11,7 +11,7 @@ public static class NetworkConfigManager
     /// <summary>
     /// The current network configuration used by the network stack.
     /// </summary>
-    public static NetworkConfigEntry? CurrentNetworkConfig { get; private set; }
+    internal static NetworkConfigEntry? CurrentNetworkConfig { get; private set; }
 
     /// <summary>
     /// The current network configuration list used by the network stack.
@@ -74,9 +74,12 @@ public static class NetworkConfigManager
     }
 
     /// <summary>
-    /// Clears network configurations, removing each configuration.
+    /// Clears network configurations, removing each configuration. Internal:
+    /// this drops the config list alone, leaving the stack's address and MAC
+    /// maps behind. <see cref="NetworkStack.RemoveAllConfigIP"/> is the
+    /// complete reset and the only caller.
     /// </summary>
-    public static void ClearConfigs()
+    internal static void ClearConfigs()
     {
         s_networkConfigs.Clear();
     }

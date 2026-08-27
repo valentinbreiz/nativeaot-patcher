@@ -426,8 +426,6 @@ Cosmos.Kernel.System.Network.Config.IPConfig.IPAddress.get -> Cosmos.Kernel.Syst
 Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet) -> void
 Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> void
 Cosmos.Kernel.System.Network.Config.IPConfig.SubnetMask.get -> Cosmos.Kernel.System.Network.IPv4.Address!
-Cosmos.Kernel.System.Network.Config.NetworkConfigEntry
-Cosmos.Kernel.System.Network.Config.NetworkConfigEntry.IPConfig.get -> Cosmos.Kernel.System.Network.Config.IPConfig!
 Cosmos.Kernel.System.Network.Config.NetworkConfigManager
 Cosmos.Kernel.System.Network.IPv4.Address
 Cosmos.Kernel.System.Network.IPv4.Address.Address(System.ReadOnlySpan<byte> buffer) -> void
@@ -680,11 +678,9 @@ static Cosmos.Kernel.System.Network.Config.DnsConfig.Nameservers.get -> System.C
 static Cosmos.Kernel.System.Network.Config.DnsConfig.Remove(Cosmos.Kernel.System.Network.IPv4.Address! nameserver) -> void
 static Cosmos.Kernel.System.Network.Config.IPConfig.FindNetwork(Cosmos.Kernel.System.Network.IPv4.Address! destIP) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.ClearConfigs() -> void
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Count.get -> int
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Current.get -> Cosmos.Kernel.System.Network.Config.IPConfig?
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentNetworkConfig.get -> Cosmos.Kernel.System.Network.Config.NetworkConfigEntry?
 static Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress(int cidr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan<char> addr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.GetDynamicPort(int tries = 10) -> ushort
@@ -700,7 +696,6 @@ static Cosmos.Kernel.System.Network.NetworkManager.Ready.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.Send(byte[]! data, int length) -> bool
 static Cosmos.Kernel.System.Network.NetworkStack.Initialize() -> void
 static Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP() -> void
-static Cosmos.Kernel.System.Network.NetworkStack.Update() -> void
 static Cosmos.Kernel.System.Power.Halt() -> void
 static Cosmos.Kernel.System.Power.Reboot() -> void
 static Cosmos.Kernel.System.Power.Shutdown() -> void
