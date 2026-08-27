@@ -133,12 +133,10 @@ docs:
 	dotnet restore $(DOCS_RESTORE)
 	cd $(DOCS_DIR) && docfx docfx.json
 
-# Same build, then serve it on http://localhost:$(DOCS_PORT) (Ctrl+C to stop).
-docs-serve:
-	@command -v docfx >/dev/null 2>&1 || dotnet tool update -g docfx
-	dotnet restore $(DOCS_RESTORE)
+# Serve the built site on http://localhost:$(DOCS_PORT) (Ctrl+C to stop).
+docs-serve: docs
 	@echo "Serving docs on http://localhost:$(DOCS_PORT) - Ctrl+C to stop."
-	cd $(DOCS_DIR) && docfx docfx.json --serve --port $(DOCS_PORT)
+	docfx serve $(DOCS_DIR)/_site --port $(DOCS_PORT)
 
 # Drop the generated site and the generated api/*.yml (both gitignored).
 docs-clean:
