@@ -39,9 +39,11 @@ public class MACAddress : IComparable
     }
 
     /// <summary>
-    /// The six address bytes, most significant first.
+    /// The six address bytes, most significant first. Internal because the
+    /// array is mutable: handing it out would let a caller rewrite an
+    /// address in place and desynchronize the maps keyed on it.
     /// </summary>
-    public readonly byte[] bytes = new byte[6];
+    internal readonly byte[] _bytes = new byte[6];
 
     /// <summary>
     /// Create a MAC address from a 6-byte array.
@@ -54,12 +56,12 @@ public class MACAddress : IComparable
             throw new ArgumentException("MACAddress is null or has wrong length", nameof(address));
         }
 
-        bytes[0] = address[0];
-        bytes[1] = address[1];
-        bytes[2] = address[2];
-        bytes[3] = address[3];
-        bytes[4] = address[4];
-        bytes[5] = address[5];
+        _bytes[0] = address[0];
+        _bytes[1] = address[1];
+        _bytes[2] = address[2];
+        _bytes[3] = address[3];
+        _bytes[4] = address[4];
+        _bytes[5] = address[5];
 
     }
 
@@ -75,12 +77,12 @@ public class MACAddress : IComparable
             throw new ArgumentException("buffer does not contain enough data starting at offset", nameof(buffer));
         }
 
-        bytes[0] = buffer[offset];
-        bytes[1] = buffer[offset + 1];
-        bytes[2] = buffer[offset + 2];
-        bytes[3] = buffer[offset + 3];
-        bytes[4] = buffer[offset + 4];
-        bytes[5] = buffer[offset + 5];
+        _bytes[0] = buffer[offset];
+        _bytes[1] = buffer[offset + 1];
+        _bytes[2] = buffer[offset + 2];
+        _bytes[3] = buffer[offset + 3];
+        _bytes[4] = buffer[offset + 4];
+        _bytes[5] = buffer[offset + 5];
     }
 
     /// <summary>
@@ -88,7 +90,7 @@ public class MACAddress : IComparable
     /// </summary>
     /// <param name="m">MAC address to copy.</param>
     public MACAddress(MACAddress m)
-        : this(m.bytes)
+        : this(m._bytes)
     {
     }
 
@@ -99,7 +101,7 @@ public class MACAddress : IComparable
     /// <returns>True if the address is 6 bytes long.</returns>
     public bool IsValid()
     {
-        return bytes.Length == 6;
+        return _bytes.Length == 6;
     }
 
     /// <summary>
@@ -115,37 +117,37 @@ public class MACAddress : IComparable
         {
             MACAddress other = (MACAddress)obj;
             int i = 0;
-            i = bytes[0].CompareTo(other.bytes[0]);
+            i = _bytes[0].CompareTo(other._bytes[0]);
             if (i != 0)
             {
                 return i;
             }
 
-            i = bytes[1].CompareTo(other.bytes[1]);
+            i = _bytes[1].CompareTo(other._bytes[1]);
             if (i != 0)
             {
                 return i;
             }
 
-            i = bytes[2].CompareTo(other.bytes[2]);
+            i = _bytes[2].CompareTo(other._bytes[2]);
             if (i != 0)
             {
                 return i;
             }
 
-            i = bytes[3].CompareTo(other.bytes[3]);
+            i = _bytes[3].CompareTo(other._bytes[3]);
             if (i != 0)
             {
                 return i;
             }
 
-            i = bytes[4].CompareTo(other.bytes[4]);
+            i = _bytes[4].CompareTo(other._bytes[4]);
             if (i != 0)
             {
                 return i;
             }
 
-            i = bytes[5].CompareTo(other.bytes[5]);
+            i = _bytes[5].CompareTo(other._bytes[5]);
             if (i != 0)
             {
                 return i;
@@ -171,12 +173,12 @@ public class MACAddress : IComparable
         {
             MACAddress other = (MACAddress)obj;
 
-            return bytes[0] == other.bytes[0] &&
-                bytes[1] == other.bytes[1] &&
-                bytes[2] == other.bytes[2] &&
-                bytes[3] == other.bytes[3] &&
-                bytes[4] == other.bytes[4] &&
-                bytes[5] == other.bytes[5];
+            return _bytes[0] == other._bytes[0] &&
+                _bytes[1] == other._bytes[1] &&
+                _bytes[2] == other._bytes[2] &&
+                _bytes[3] == other._bytes[3] &&
+                _bytes[4] == other._bytes[4] &&
+                _bytes[5] == other._bytes[5];
         }
         else
         {
@@ -201,8 +203,8 @@ public class MACAddress : IComparable
     public ulong ToNumber()
     {
         // TODO check shifting of bytes byte[0] and byte[1]
-        return (ulong)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        return (ulong)((_bytes[0] << 40) | (_bytes[1] << 32) | (_bytes[2] << 24) | (_bytes[3] << 16) |
+            (_bytes[4] << 8) | (_bytes[5] << 0));
     }
 
     private static void PutByte(char[] aChars, int aIndex, byte aByte)
@@ -220,8 +222,8 @@ public class MACAddress : IComparable
     public uint To32BitNumber()
     {
         // TODO check shifting of bytes byte[0] and byte[1]
-        return (uint)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        return (uint)((_bytes[0] << 40) | (_bytes[1] << 32) | (_bytes[2] << 24) | (_bytes[3] << 16) |
+            (_bytes[4] << 8) | (_bytes[5] << 0));
     }
 
     private uint _hash;
@@ -250,17 +252,17 @@ public class MACAddress : IComparable
     {
         // mac address consists of 6 2chars pairs, delimited by :
         char[] xChars = new char[17];
-        PutByte(xChars, 0, bytes[0]);
+        PutByte(xChars, 0, _bytes[0]);
         xChars[2] = ':';
-        PutByte(xChars, 3, bytes[1]);
+        PutByte(xChars, 3, _bytes[1]);
         xChars[5] = ':';
-        PutByte(xChars, 6, bytes[2]);
+        PutByte(xChars, 6, _bytes[2]);
         xChars[8] = ':';
-        PutByte(xChars, 9, bytes[3]);
+        PutByte(xChars, 9, _bytes[3]);
         xChars[11] = ':';
-        PutByte(xChars, 12, bytes[4]);
+        PutByte(xChars, 12, _bytes[4]);
         xChars[14] = ':';
-        PutByte(xChars, 15, bytes[5]);
+        PutByte(xChars, 15, _bytes[5]);
         return new string(xChars);
     }
 }

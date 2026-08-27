@@ -80,8 +80,8 @@ public abstract class ArpPacketEthernet : ArpPacket
     {
         for (int i = 0; i < 6; i++)
         {
-            RawData[22 + i] = senderMAC.bytes[i];
-            RawData[32 + i] = arpTargetMAC.bytes[i];
+            RawData[22 + i] = senderMAC._bytes[i];
+            RawData[32 + i] = arpTargetMAC._bytes[i];
         }
         for (int i = 0; i < 4; i++)
         {

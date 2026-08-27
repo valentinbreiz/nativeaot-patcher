@@ -69,8 +69,8 @@ public class EthernetPacket
         RawData = new byte[packetSize];
         for (int i = 0; i < 6; i++)
         {
-            RawData[i] = dest.bytes[i];
-            RawData[6 + i] = src.bytes[i];
+            RawData[i] = dest._bytes[i];
+            RawData[6 + i] = src._bytes[i];
         }
 
         RawData[12] = (byte)(type >> 8);
@@ -98,7 +98,7 @@ public class EthernetPacket
         {
             for (int i = 0; i < 6; i++)
             {
-                RawData[6 + i] = value.bytes[i];
+                RawData[6 + i] = value._bytes[i];
             }
             InitializeFields();
         }
@@ -116,7 +116,7 @@ public class EthernetPacket
         {
             for (int i = 0; i < 6; i++)
             {
-                RawData[i] = value.bytes[i];
+                RawData[i] = value._bytes[i];
             }
 
             InitializeFields();
