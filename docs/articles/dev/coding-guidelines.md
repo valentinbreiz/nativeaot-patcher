@@ -321,8 +321,8 @@ public class Kernel : Cosmos.Kernel.System.Kernel
 All hardware interaction goes through interfaces. Implementations are registered at boot:
 
 ```csharp
-// Interface (Cosmos.Kernel.HAL.Interfaces)
-public interface ICpuOps
+// Interface (Cosmos.Kernel.Core, internal: no kernel registers or obtains one)
+internal interface ICpuOps
 {
     void Halt();
     void DisableInterrupts();

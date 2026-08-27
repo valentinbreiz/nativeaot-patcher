@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.HAL.Interfaces;
 /// Interface for platform-specific HAL initialization.
 /// Implemented by HAL.X64 and HAL.ARM64.
 /// </summary>
-public interface IPlatformInitializer
+internal interface IPlatformInitializer
 {
     /// <summary>
     /// Human-readable platform name (e.g. "x86-64", "ARM64").

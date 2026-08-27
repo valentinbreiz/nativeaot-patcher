@@ -1,23 +1,4 @@
 #nullable enable
-Cosmos.Kernel.Core.CPU.ICpuOps
-Cosmos.Kernel.Core.CPU.ICpuOps.DisableInterrupts() -> void
-Cosmos.Kernel.Core.CPU.ICpuOps.EnableInterrupts() -> void
-Cosmos.Kernel.Core.CPU.ICpuOps.Halt() -> void
-Cosmos.Kernel.Core.CPU.IInterruptController
-Cosmos.Kernel.Core.CPU.IInterruptController.Dispatch(ref Cosmos.Kernel.Core.CPU.IRQContext ctx) -> void
-Cosmos.Kernel.Core.CPU.IInterruptController.Initialize() -> void
-Cosmos.Kernel.Core.CPU.IInterruptController.IsInitialized.get -> bool
-Cosmos.Kernel.Core.CPU.IInterruptController.RouteIrq(byte irqNo, byte vector, bool startMasked) -> void
-Cosmos.Kernel.Core.IO.IPortIO
-Cosmos.Kernel.Core.IO.IPortIO.ReadByte(ushort port) -> byte
-Cosmos.Kernel.Core.IO.IPortIO.ReadDWord(ushort port) -> uint
-Cosmos.Kernel.Core.IO.IPortIO.ReadWord(ushort port) -> ushort
-Cosmos.Kernel.Core.IO.IPortIO.WriteByte(ushort port, byte value) -> void
-Cosmos.Kernel.Core.IO.IPortIO.WriteDWord(ushort port, uint value) -> void
-Cosmos.Kernel.Core.IO.IPortIO.WriteWord(ushort port, ushort value) -> void
-Cosmos.Kernel.Core.Power.IPowerOps
-Cosmos.Kernel.Core.Power.IPowerOps.Reboot() -> void
-Cosmos.Kernel.Core.Power.IPowerOps.Shutdown() -> void
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.SchedulerManager.DefaultQuantumNs = 10000000 -> ulong
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.SchedulerManager.NanosecondsPerMillisecond = 1000000 -> ulong
 [COSMOS0001]const Cosmos.Kernel.Core.Scheduler.Thread.DefaultStackSize = 262144 -> nuint

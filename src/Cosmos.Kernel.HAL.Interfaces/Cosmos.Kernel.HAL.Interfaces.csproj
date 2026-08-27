@@ -7,9 +7,19 @@
         <Nullable>enable</Nullable>
 
         <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
-             the device and platform contracts. -->
+             the device contracts a kernel supplies drivers against. -->
         <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
     </PropertyGroup>
+
+    <ItemGroup>
+        <!-- The boot contract (IPlatformInitializer) and the graphics device
+             contract are internal: no Cosmos.Kernel.System signature exposes
+             either, PlatformHAL is internal so a kernel cannot register or
+             obtain an initializer, and GraphicDevice is HAL's own. -->
+        <InternalsVisibleTo Include="Cosmos.Kernel.HAL" />
+        <InternalsVisibleTo Include="Cosmos.Kernel.HAL.X64" />
+        <InternalsVisibleTo Include="Cosmos.Kernel.HAL.ARM64" />
+    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Cosmos.Build.API\Cosmos.Build.API.csproj" />

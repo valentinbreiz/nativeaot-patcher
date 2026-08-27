@@ -5,7 +5,7 @@ namespace Cosmos.Kernel.Core.IO;
 /// instructions; ARM64 has no I/O port space and maps port numbers onto
 /// an MMIO base instead.
 /// </summary>
-public interface IPortIO
+internal interface IPortIO
 {
     /// <summary>
     /// Read one byte from an I/O port.

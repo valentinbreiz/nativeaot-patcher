@@ -274,11 +274,3 @@ dotnet_diagnostic.RS0017.severity = none
 [**/KernelVersion.g.cs]
 dotnet_diagnostic.RS0016.severity = none
 dotnet_diagnostic.RS0017.severity = none
-# IRQContext's register fields differ per architecture (x64 vs ARM64 layouts
-# behind #if), and one declared-surface file cannot hold both: whichever arch
-# seeded it, the other arch's build reports the counterpart fields as missing
-# and stale. The type stays public (IInterruptController.Dispatch pins it) and
-# documented; only its layout stays out of the txt files.
-[src/Cosmos.Kernel.Core/CPU/IRQContext.cs]
-dotnet_diagnostic.RS0016.severity = none
-dotnet_diagnostic.RS0017.severity = none

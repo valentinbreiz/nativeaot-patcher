@@ -9,7 +9,7 @@ namespace Cosmos.Kernel.Core.CPU;
 /// EOI timing, ack semantics, fatal-fault handling, and any extra
 /// handler tables (e.g. GICv3 LPIs) all live in the implementation.
 /// </summary>
-public interface IInterruptController
+internal interface IInterruptController
 {
     /// <summary>
     /// Initialize the interrupt system (IDT for x64, exception vectors for ARM64).
