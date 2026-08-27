@@ -199,12 +199,15 @@ public class MACAddress : IComparable
     /// Combine the address bytes into a single unsigned number,
     /// most significant byte first.
     /// </summary>
-    /// <returns>The address as a number.</returns>
+    /// <returns>The address as a 48-bit number in the low six bytes.</returns>
     public ulong ToNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (ulong)((_bytes[0] << 40) | (_bytes[1] << 32) | (_bytes[2] << 24) | (_bytes[3] << 16) |
-            (_bytes[4] << 8) | (_bytes[5] << 0));
+        // Each byte is widened before shifting: a byte promotes to int, an
+        // int shift masks the count to five bits, so <<40 and <<32 used to
+        // fold the first two bytes onto the last two, and a byte above 0x7F
+        // in the <<24 lane made the int negative and sign-extended the cast.
+        return ((ulong)_bytes[0] << 40) | ((ulong)_bytes[1] << 32) | ((ulong)_bytes[2] << 24) |
+            ((ulong)_bytes[3] << 16) | ((ulong)_bytes[4] << 8) | _bytes[5];
     }
 
     private static void PutByte(char[] aChars, int aIndex, byte aByte)
@@ -215,15 +218,27 @@ public class MACAddress : IComparable
     }
 
     /// <summary>
-    /// Combine the address bytes into a 32-bit unsigned number,
-    /// most significant byte first. Used as the <see cref="Hash"/> value.
+    /// Fold the six address bytes into a 32-bit value, used as the
+    /// <see cref="Hash"/>. Six bytes do not fit in four, so this is a hash
+    /// rather than a lossless conversion; every byte contributes to it.
     /// </summary>
-    /// <returns>The address as a 32-bit number.</returns>
+    /// <returns>A 32-bit value derived from all six address bytes.</returns>
     public uint To32BitNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (uint)((_bytes[0] << 40) | (_bytes[1] << 32) | (_bytes[2] << 24) | (_bytes[3] << 16) |
-            (_bytes[4] << 8) | (_bytes[5] << 0));
+        // FNV-1a. The previous expression dropped the first two bytes onto
+        // the lanes of the last two, so two addresses differing only in
+        // their OUI could collide in NetworkStack's device map.
+        const uint FnvOffsetBasis = 2166136261;
+        const uint FnvPrime = 16777619;
+
+        uint hash = FnvOffsetBasis;
+        for (int i = 0; i < 6; i++)
+        {
+            hash ^= _bytes[i];
+            hash *= FnvPrime;
+        }
+
+        return hash;
     }
 
     private uint _hash;
