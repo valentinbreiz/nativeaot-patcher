@@ -105,7 +105,7 @@ public static class MouseManager
     /// <summary>
     /// Registers a mouse device with the manager.
     /// </summary>
-    public static void RegisterMouse(IMouseDevice mouse)
+    internal static void RegisterMouse(IMouseDevice mouse)
     {
         if (s_mice == null || mouse == null)
         {

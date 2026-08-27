@@ -89,7 +89,7 @@ public static class KeyboardManager
     /// <summary>
     /// Registers a keyboard device with the manager.
     /// </summary>
-    public static void RegisterKeyboard(IKeyboardDevice keyboard)
+    internal static void RegisterKeyboard(IKeyboardDevice keyboard)
     {
         if (s_keyboards == null || keyboard == null)
         {

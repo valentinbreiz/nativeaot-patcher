@@ -36,7 +36,7 @@ public static class TimerManager
     /// <summary>
     /// Registers a timer device with the manager.
     /// </summary>
-    public static void RegisterTimer(ITimerDevice timer)
+    internal static void RegisterTimer(ITimerDevice timer)
     {
         if (timer == null)
         {
@@ -123,5 +123,5 @@ public static class TimerManager
     /// <summary>
     /// Gets the registered timer device.
     /// </summary>
-    public static ITimerDevice? Timer => s_timer;
+    internal static ITimerDevice? Timer => s_timer;
 }

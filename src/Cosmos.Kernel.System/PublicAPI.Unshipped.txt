@@ -655,7 +655,6 @@ static Cosmos.Kernel.System.Keyboard.KeyboardManager.KeyAvailable.get -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.NumLock.get -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.Peek() -> Cosmos.Kernel.System.Keyboard.KeyEvent!
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ReadKey() -> Cosmos.Kernel.System.Keyboard.KeyEvent!
-static Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard(Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice! keyboard) -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ScrollLock.get -> bool
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.SetKeyLayout(Cosmos.Kernel.System.Keyboard.ScanMapBase! scanMap) -> void
 static Cosmos.Kernel.System.Keyboard.KeyboardManager.ShiftPressed.get -> bool
@@ -665,7 +664,6 @@ static Cosmos.Kernel.System.Mouse.MouseManager.IsEnabled.get -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.LeftButton.get -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.MiddleButton.get -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.Poll() -> void
-static Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice! mouse) -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta() -> void
 static Cosmos.Kernel.System.Mouse.MouseManager.RightButton.get -> bool
 static Cosmos.Kernel.System.Mouse.MouseManager.ScreenHeight.get -> int
@@ -752,11 +750,9 @@ static Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfac
 static Cosmos.Kernel.System.Timer.TimerManager.Frequency.get -> uint
 static Cosmos.Kernel.System.Timer.TimerManager.Initialize() -> void
 static Cosmos.Kernel.System.Timer.TimerManager.IsInitialized.get -> bool
-static Cosmos.Kernel.System.Timer.TimerManager.RegisterTimer(Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice! timer) -> void
 static Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action! callback, uint delayMs) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
 static Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action! callback, uint periodMs) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
 static Cosmos.Kernel.System.Timer.TimerManager.SetFrequency(uint frequency) -> void
-static Cosmos.Kernel.System.Timer.TimerManager.Timer.get -> Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice?
 static Cosmos.Kernel.System.Timer.TimerManager.Wait(uint ms) -> void
 static Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory.get -> string!
 static Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries() -> string![]!
