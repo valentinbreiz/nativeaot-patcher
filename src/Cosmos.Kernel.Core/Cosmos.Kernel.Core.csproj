@@ -120,6 +120,8 @@
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Interrupts" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Memory" />
     <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Storage" />
+    <!-- The Power suite asserts PlatformHAL wired up ICpuOps and IPowerOps. -->
+    <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Power" />
   </ItemGroup>
 
   <ItemGroup>

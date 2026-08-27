@@ -20,7 +20,15 @@
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.X64" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.ARM64" />
+        <!-- The aggregator's and System's library initializers read
+             PlatformHAL.Initializer during boot, through var. -->
+        <InternalsVisibleTo Include="Cosmos.Kernel" />
         <InternalsVisibleTo Include="Cosmos.Kernel.System" />
+        <!-- The white-box storage suite maps a high BAR through
+             PlatformHAL.Initializer.EnsureMmioMapped, and the virtio suite
+             holds the enumerated input devices it exercises. -->
+        <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Storage" />
+        <InternalsVisibleTo Include="Cosmos.Kernel.Tests.Virtio" />
     </ItemGroup>
 
     <ItemGroup>
