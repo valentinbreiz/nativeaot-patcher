@@ -103,6 +103,25 @@ public class IPConfig
     }
 
     /// <summary>
+    /// Assign an IPv4 configuration to a named network device.
+    /// </summary>
+    /// <param name="adapter">Handle to the device, from <see cref="NetworkManager.GetAdapter(int)"/>.</param>
+    /// <param name="ip">The IP address to assign.</param>
+    /// <param name="subnet">The subnet mask to use.</param>
+    /// <param name="gw">The default gateway address to use.</param>
+    /// <returns><see langword="true"/> if the configuration was applied, <see langword="false"/> when the handle names no device.</returns>
+    public static bool Enable(NetworkAdapter adapter, Address ip, Address subnet, Address gw)
+    {
+        INetworkDevice? device = adapter.Device;
+        if (device == null)
+        {
+            return false;
+        }
+
+        return Enable(device, ip, subnet, gw);
+    }
+
+    /// <summary>
     /// Check if the given address is a local address.
     /// </summary>
     /// <param name="destIP">The address to check.</param>

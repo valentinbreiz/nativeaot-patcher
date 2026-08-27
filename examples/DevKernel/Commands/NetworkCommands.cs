@@ -131,6 +131,17 @@ internal static class NetworkCommands
             session.IsConfigured ? "YES" : "NO",
             session.IsConfigured ? ConsoleColor.Green : ConsoleColor.Red);
 
+        if (NetworkManager.DeviceCount > 1)
+        {
+            Terminal.Header("Adapters:");
+            for (int i = 0; i < NetworkManager.DeviceCount; i++)
+            {
+                NetworkAdapter adapter = NetworkManager.GetAdapter(i);
+                string marker = adapter == NetworkManager.Primary ? " (primary)" : string.Empty;
+                Terminal.InfoLine($"[{i}] {adapter.Name}", $"{adapter.MacAddress}{marker}");
+            }
+        }
+
         if (session.IsConfigured && session.LocalIp != null)
         {
             Terminal.InfoLine("IP Address", session.LocalIp.ToString());

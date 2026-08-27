@@ -63,6 +63,20 @@ if (NetworkManager.HasDevice)
 }
 ```
 
+Those properties report the primary adapter, which is the one the ring uses when nothing else is named. With more than one NIC, enumerate them and pick a different primary:
+
+```csharp
+for (int i = 0; i < NetworkManager.DeviceCount; i++)
+{
+    NetworkAdapter adapter = NetworkManager.GetAdapter(i);
+    Console.WriteLine($"[{i}] {adapter.Name}  {adapter.MacAddress}  link={adapter.LinkUp}");
+}
+
+NetworkManager.Primary = NetworkManager.GetAdapter(1);
+```
+
+A `NetworkAdapter` is a handle, not the device: it carries the registration index, so a default-constructed one names nothing and `IsValid` is false.
+
 <!-- screenshot: console showing "Device: Intel E1000E", the MAC, "Link up: True", "Ready: True" -->
 ![Network Device](images/network-device.png)
 
@@ -109,6 +123,17 @@ IPConfig.Enable(
     new Address(255, 255, 255, 0),    // subnet mask
     new Address(192, 168, 1, 254));   // gateway
 ```
+
+That configures the primary adapter. To configure a specific one, pass its handle:
+
+```csharp
+IPConfig.Enable(NetworkManager.GetAdapter(1),
+    new Address(192, 168, 2, 69),
+    new Address(255, 255, 255, 0),
+    new Address(192, 168, 2, 254));
+```
+
+DHCP needs no handle: `SendDiscoverPacket` runs the exchange on every registered device.
 
 ### Get the local IP address
 
@@ -291,7 +316,7 @@ The contract the packet types actually implement:
 
 - `System.Net.Dns` is not plugged; use the Cosmos `DnsClient` shown above.
 - No TLS, so no `HttpClient`/HTTPS: raw TCP only.
-- One NIC: the stack talks to the first device registered, and `NetworkManager` reports it.
+- Several NICs are registered and configured, and outbound packets are routed by matching the source address against each interface's configuration, so `NetworkManager.Primary` decides only where the unrouted helpers (`NetworkManager.Send`, the no-handle `IPConfig.Enable`) go.
 - Half-close is not supported: `Close()` on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.
 
 ## How it works

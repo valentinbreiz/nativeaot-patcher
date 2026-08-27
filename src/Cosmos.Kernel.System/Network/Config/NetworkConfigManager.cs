@@ -34,6 +34,18 @@ public static class NetworkConfigManager
     public static IPConfig? Current => CurrentNetworkConfig?.IPConfig;
 
     /// <summary>
+    /// The IPv4 configuration in force on a named device, or null when that
+    /// device is unconfigured or the handle names none.
+    /// </summary>
+    /// <param name="adapter">Handle to the device, from <see cref="NetworkManager.GetAdapter(int)"/>.</param>
+    /// <returns>That device's configuration, or null.</returns>
+    public static IPConfig? Get(NetworkAdapter adapter)
+    {
+        INetworkDevice? device = adapter.Device;
+        return device == null ? null : Get(device);
+    }
+
+    /// <summary>
     /// Sets the configuration of the current network.
     /// </summary>
     /// <param name="device">The network device to use.</param>

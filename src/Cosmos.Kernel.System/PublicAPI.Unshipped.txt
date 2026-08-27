@@ -479,6 +479,15 @@ Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.UdpClient() -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.UdpClient(Cosmos.Kernel.System.Network.IPv4.Address! dest, int destPort) -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.UdpClient(int _localPort) -> void
 Cosmos.Kernel.System.Network.NetworkManager
+Cosmos.Kernel.System.Network.NetworkAdapter
+Cosmos.Kernel.System.Network.NetworkAdapter.Equals(Cosmos.Kernel.System.Network.NetworkAdapter other) -> bool
+Cosmos.Kernel.System.Network.NetworkAdapter.Index.get -> int
+Cosmos.Kernel.System.Network.NetworkAdapter.IsValid.get -> bool
+Cosmos.Kernel.System.Network.NetworkAdapter.LinkUp.get -> bool
+Cosmos.Kernel.System.Network.NetworkAdapter.MacAddress.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress?
+Cosmos.Kernel.System.Network.NetworkAdapter.Name.get -> string?
+Cosmos.Kernel.System.Network.NetworkAdapter.NetworkAdapter() -> void
+Cosmos.Kernel.System.Network.NetworkAdapter.Ready.get -> bool
 Cosmos.Kernel.System.Network.NetworkStack
 Cosmos.Kernel.System.Power
 Cosmos.Kernel.System.Storage.Ebr
@@ -568,6 +577,8 @@ override Cosmos.Kernel.System.Network.IPv4.Address.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.IPv4.Address.GetHashCode() -> int
 override Cosmos.Kernel.System.Network.IPv4.Address.ToString() -> string!
 override Cosmos.Kernel.System.Network.IPv4.EndPoint.ToString() -> string!
+override Cosmos.Kernel.System.Network.NetworkAdapter.Equals(object? obj) -> bool
+override Cosmos.Kernel.System.Network.NetworkAdapter.GetHashCode() -> int
 static Cosmos.Kernel.System.Diagnostics.Log.Write(params object?[]! args) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteBytes(System.ReadOnlySpan<byte> bytes) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(uint number) -> void
@@ -678,13 +689,16 @@ static Cosmos.Kernel.System.Network.Config.DnsConfig.Nameservers.get -> System.C
 static Cosmos.Kernel.System.Network.Config.DnsConfig.Remove(Cosmos.Kernel.System.Network.IPv4.Address! nameserver) -> void
 static Cosmos.Kernel.System.Network.Config.IPConfig.FindNetwork(Cosmos.Kernel.System.Network.IPv4.Address! destIP) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
+static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.NetworkAdapter adapter, Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Count.get -> int
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Current.get -> Cosmos.Kernel.System.Network.Config.IPConfig?
+static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Get(Cosmos.Kernel.System.Network.NetworkAdapter adapter) -> Cosmos.Kernel.System.Network.Config.IPConfig?
 static Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress(int cidr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan<char> addr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.GetDynamicPort(int tries = 10) -> ushort
 static Cosmos.Kernel.System.Network.NetworkManager.DeviceCount.get -> int
+static Cosmos.Kernel.System.Network.NetworkManager.GetAdapter(int index) -> Cosmos.Kernel.System.Network.NetworkAdapter
 static Cosmos.Kernel.System.Network.NetworkManager.HasDevice.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.Initialize() -> void
 static Cosmos.Kernel.System.Network.NetworkManager.IsEnabled.get -> bool
@@ -692,8 +706,12 @@ static Cosmos.Kernel.System.Network.NetworkManager.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.LinkUp.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.MacAddress.get -> Cosmos.Kernel.HAL.Devices.Network.MACAddress?
 static Cosmos.Kernel.System.Network.NetworkManager.Name.get -> string?
+static Cosmos.Kernel.System.Network.NetworkManager.Primary.get -> Cosmos.Kernel.System.Network.NetworkAdapter
+static Cosmos.Kernel.System.Network.NetworkManager.Primary.set -> void
 static Cosmos.Kernel.System.Network.NetworkManager.Ready.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.Send(byte[]! data, int length) -> bool
+static Cosmos.Kernel.System.Network.NetworkAdapter.operator !=(Cosmos.Kernel.System.Network.NetworkAdapter left, Cosmos.Kernel.System.Network.NetworkAdapter right) -> bool
+static Cosmos.Kernel.System.Network.NetworkAdapter.operator ==(Cosmos.Kernel.System.Network.NetworkAdapter left, Cosmos.Kernel.System.Network.NetworkAdapter right) -> bool
 static Cosmos.Kernel.System.Network.NetworkStack.Initialize() -> void
 static Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP() -> void
 static Cosmos.Kernel.System.Power.Halt() -> void
