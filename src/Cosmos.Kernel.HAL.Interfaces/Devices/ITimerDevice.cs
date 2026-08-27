@@ -5,12 +5,12 @@ namespace Cosmos.Kernel.HAL.Interfaces.Devices;
 /// <summary>
 /// Delegate for handling timer tick events.
 /// </summary>
-public delegate void TimerTickHandler();
+internal delegate void TimerTickHandler();
 
 /// <summary>
 /// Interface for timer devices.
 /// </summary>
-public interface ITimerDevice
+internal interface ITimerDevice
 {
     /// <summary>
     /// Initialize the timer device.

@@ -30,7 +30,7 @@ flowchart LR;
 |---------|---------|
 | **Cosmos.Kernel.System** | High-level OS APIs: Console, Graphics, Network, Timer, Mouse. The layer user kernels interact with. |
 | **Cosmos.Kernel.HAL** | Hardware Abstraction Layer: shared logic, platform registration (`PlatformHAL`), device managers, arch-independent drivers (AHCI, NVMe, virtio). |
-| **Cosmos.Kernel.HAL.Interfaces** | Pure interfaces, no implementations. The device contracts a kernel supplies drivers against (`IBlockDevice`, `INetworkDevice`, `IKeyboardDevice`, ...) are public; the boot contract `IPlatformInitializer` and `IGraphicDevice` are internal. |
+| **Cosmos.Kernel.HAL.Interfaces** | Pure interfaces, no implementations. Public: the device contracts a kernel obtains and passes to the ring (`IBlockDevice`, `INetworkDevice`), plus `SoftwareTimer` and `MACAddress`. Internal: the boot contract `IPlatformInitializer`, `IGraphicDevice`, and the input and timer devices. |
 | **Cosmos.Kernel.HAL.X64** | x86-64 HAL implementations (PCI, APIC, PS/2, ACPI, etc.). |
 | **Cosmos.Kernel.HAL.ARM64** | ARM64 HAL implementations (GIC, PL011, generic timer, etc.). |
 | **Cosmos.Kernel.Core** | Low-level runtime: memory management, GC, scheduler, serial I/O, panic handler. |

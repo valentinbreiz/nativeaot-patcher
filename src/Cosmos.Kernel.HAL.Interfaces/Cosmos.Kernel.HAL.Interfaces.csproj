@@ -7,18 +7,20 @@
         <Nullable>enable</Nullable>
 
         <!-- Public surface tracked in PublicAPI.Shipped/Unshipped.txt (see Directory.Build.props):
-             the device contracts a kernel supplies drivers against. -->
+             the device contracts a kernel can obtain one of and pass to the ring
+             (IBlockDevice, INetworkDevice), plus SoftwareTimer and MACAddress. -->
         <CosmosTrackPublicApi>true</CosmosTrackPublicApi>
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- The boot contract (IPlatformInitializer) and the graphics device
-             contract are internal: no Cosmos.Kernel.System signature exposes
-             either, PlatformHAL is internal so a kernel cannot register or
-             obtain an initializer, and GraphicDevice is HAL's own. -->
+        <!-- The rest are internal because no kernel can obtain or meaningfully
+             supply one: the boot contract (IPlatformInitializer), IGraphicDevice,
+             and the input and timer devices, whose only registration callers are
+             System's own LibraryInitializer wiring up HAL enumeration. -->
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.X64" />
         <InternalsVisibleTo Include="Cosmos.Kernel.HAL.ARM64" />
+        <InternalsVisibleTo Include="Cosmos.Kernel.System" />
     </ItemGroup>
 
     <ItemGroup>
