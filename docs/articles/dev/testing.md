@@ -16,14 +16,14 @@ dotnet test
 
 ### Test Projects
 
-- **Cosmos.Tests.Build.Asm** – Verifies the assembly build task runs via clang.
+- **Cosmos.Tests.Build.Asm**: Verifies the assembly build task runs via clang.
   - `Test1`
-- **Cosmos.Tests.Build.Analyzer.Patcher** – Validates that code does not contain plug architecture errors.
+- **Cosmos.Tests.Build.Analyzer.Patcher**: Validates that code does not contain plug architecture errors.
   - `Test_AnalyzeAccessedMember`
   - `Test_MethodNotImplemented`
   - `Test_StaticConstructorTooManyParameters`
   - `Test_StaticConstructorNotImplemented`
-- **Cosmos.Tests.Scanner** – Validates that all required plugs are detected correctly.
+- **Cosmos.Tests.Scanner**: Validates that all required plugs are detected correctly.
   - `LoadPlugMethods_ShouldReturnPublicStaticMethods`
   - `LoadPlugMethods_ShouldReturnEmpty_WhenNoMethodsExist`
   - `LoadPlugMethods_ShouldContainAddMethod_WhenPlugged`
@@ -31,7 +31,7 @@ dotnet test
   - `LoadPlugs_ShouldIgnoreClassesWithoutPlugAttribute`
   - `LoadPlugs_ShouldHandleOptionalPlugs`
   - `FindPluggedAssemblies_ShouldReturnMatchingAssemblies`
-- **Cosmos.Tests.Patcher** – Ensures that plugs are applied successfully to target methods and types.
+- **Cosmos.Tests.Patcher**: Ensures that plugs are applied successfully to target methods and types.
   - `PatchAssembly_ShouldSkipWhenNoMatchingPlugs`
   - `PatchObjectWithAThis_ShouldPlugInstanceCorrectly`
   - `PatchConstructor_ShouldPlugCtorCorrectly`
@@ -39,8 +39,8 @@ dotnet test
   - `PatchType_ShouldReplaceAllMethodsCorrectly`
   - `PatchType_ShouldPlugAssembly`
   - `AddMethod_BehaviorBeforeAndAfterPlug`
-- **Cosmos.Tests.NativeWrapper** – Contains runtime assets; no unit tests.
-- **Cosmos.Tests.NativeLibrary** – Provides native code used in tests; no unit tests.
+- **Cosmos.Tests.NativeWrapper**: Contains runtime assets; no unit tests.
+- **Cosmos.Tests.NativeLibrary**: Provides native code used in tests; no unit tests.
 
 ---
 
@@ -57,9 +57,9 @@ Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and c
 
 #### HelloWorld Tests
 
-- `Test_BasicArithmetic` – Addition (2+2=4)
-- `Test_BooleanLogic` – True/False assertions
-- `Test_IntegerComparison` – Equality and comparison operators
+- `Test_BasicArithmetic`: Addition (2+2=4)
+- `Test_BooleanLogic`: True/False assertions
+- `Test_IntegerComparison`: Equality and comparison operators
 
 #### Memory Tests
 
@@ -73,19 +73,19 @@ Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and c
 - `Memory_StringConcat`, `Memory_StringBuilder`
 - `Memory_ZeroLengthArray`, `Memory_EmptyString`, `Memory_LargeAllocation`
 
-**Generic Collections – List (14 tests):**
+**Generic Collections - List (14 tests):**
 - `Collections_ListInt`, `Collections_ListString`, `Collections_ListByte`
 - `Collections_ListLong`, `Collections_ListStruct`
 - `Collections_ListContains`, `Collections_ListIndexOf`, `Collections_ListRemoveAt`
 - `Collections_ListInsert`, `Collections_ListRemove`, `Collections_ListClear`
 - `Collections_ListToArray`, `Collections_ListForeach`, `Collections_ListEmpty`
 
-**Generic Collections – Dictionary (9 tests):**
+**Generic Collections - Dictionary (9 tests):**
 - `Collections_DictCustomComparer`, `Collections_DictAddGet`, `Collections_DictIndexer`
 - `Collections_DictContains`, `Collections_DictRemove`, `Collections_DictClear`
 - `Collections_DictTryGetValue`, `Collections_DictKeysValues`, `Collections_DictEmpty`
 
-**Generic Collections – IEnumerable (1 test):**
+**Generic Collections - IEnumerable (1 test):**
 - `Collections_IEnumerable`
 
 **Memory Copy / SIMD (15 tests):**
@@ -115,10 +115,10 @@ Kernel integration tests compile a real NativeAOT kernel, boot it in QEMU, and c
 **Using Tasks (recommended):**
 1. Press `Ctrl+Shift+P` → "Tasks: Run Task"
 2. Select one of:
-   - **Run Test: HelloWorld (x64)** – Console + XML output
-   - **Run Test: HelloWorld (x64, Console Only)** – Console output only
-   - **Run Test: HelloWorld (ARM64)** – ARM64 test with XML output
-   - **Dev Test: HelloWorld (x64)** – Developer mode with verbose output
+   - **Run Test: HelloWorld (x64)**: Console + XML output
+   - **Run Test: HelloWorld (x64, Console Only)**: Console output only
+   - **Run Test: HelloWorld (ARM64)**: ARM64 test with XML output
+   - **Dev Test: HelloWorld (x64)**: Developer mode with verbose output
 
 **Debug test runner:**
 1. Open the Run & Debug panel (`Ctrl+Shift+D`)
@@ -225,7 +225,7 @@ After the final `TestSuiteEnd` message the kernel also sends an 8-byte terminati
 
 ### Commands (Kernel → Host, `Ds2Vs`)
 
-Test-runner-specific commands occupy the range **100–106**. The original CosmosOS debug commands (0–25) are also defined but are not used by the test runner.
+Test-runner-specific commands occupy the range **100-106**. The original CosmosOS debug commands (0-25) are also defined but are not used by the test runner.
 
 | Command | Value | Payload format | Description |
 |---------|-------|----------------|-------------|
@@ -292,10 +292,10 @@ tests/
 ├── Cosmos.TestRunner.Protocol/      # Shared protocol definitions
 │   ├── Consts.cs                    # Magic signature and constants
 │   └── Messages.cs                  # Typed message classes
-├── Cosmos.Tests.Build.Asm/          # Unit tests – Clang assembly build task
-├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests – plug analyzer
-├── Cosmos.Tests.Scanner/            # Unit tests – plug scanner
-├── Cosmos.Tests.Patcher/            # Unit tests – IL patcher
+├── Cosmos.Tests.Build.Asm/          # Unit tests: Clang assembly build task
+├── Cosmos.Tests.Build.Analyzer.Patcher/ # Unit tests: plug analyzer
+├── Cosmos.Tests.Scanner/            # Unit tests: plug scanner
+├── Cosmos.Tests.Patcher/            # Unit tests: IL patcher
 ├── Cosmos.Tests.NativeWrapper/      # Runtime assets (no tests)
 ├── Cosmos.Tests.NativeLibrary/      # Native code for tests (no tests)
 └── Kernels/                         # Kernel test projects
@@ -369,15 +369,15 @@ public class Kernel : Sys.Kernel
 
 The `Sys.Kernel` base class drives a fixed lifecycle:
 
-1. `OnBoot()` – system initialization (called automatically, rarely overridden)
-2. `BeforeRun()` – **run all tests here**, then call `Stop()`
-3. `Run()` – called in a loop until `Stop()` is invoked; leave empty for test kernels
-4. `AfterRun()` – called once after the loop exits; call `Cosmos.Kernel.Kernel.Halt()` here
+1. `OnBoot()`: system initialization (called automatically, rarely overridden)
+2. `BeforeRun()`: **run all tests here**, then call `Stop()`
+3. `Run()`: called in a loop until `Stop()` is invoked; leave empty for test kernels
+4. `AfterRun()`: called once after the loop exits; call `Cosmos.Kernel.Kernel.Halt()` here
 
 ### Available Assertions
 
 ```csharp
-// Equality – typed overloads (int, uint, long, byte, bool, string, byte[], int[])
+// Equality: typed overloads (int, uint, long, byte, bool, string, byte[], int[])
 Assert.Equal(expected, actual);
 Assert.Equal<T>(expected, actual);   // Generic overload (requires IEquatable<T>)
 
@@ -423,11 +423,11 @@ Assert.Fail("Custom error message");
 The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration tests on both x64 and ARM64.
 
 **Jobs:**
-- `helloworld-tests` – Matrix build for x64/arm64
-- `helloworld-results` – Combined PR comment
-- `memory-tests` – Matrix build for x64/arm64
-- `memory-results` – Combined PR comment
-- `test-summary` – Final status summary
+- `helloworld-tests`: Matrix build for x64/arm64
+- `helloworld-results`: Combined PR comment
+- `memory-tests`: Matrix build for x64/arm64
+- `memory-results`: Combined PR comment
+- `test-summary`: Final status summary
 
 **Triggers:**
 - Push to `main`
@@ -437,9 +437,9 @@ The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration t
 **PR Comments:** Each test suite posts a comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts.
 
 **Artifacts (30-day retention):**
-- `test-results-{suite}-{arch}.xml` – JUnit XML results
-- `uart-log-{suite}-{arch}` – Full UART output
-- `{Suite}-Test-ISO-{arch}` – Bootable kernel ISO + ELF
+- `test-results-{suite}-{arch}.xml`: JUnit XML results
+- `uart-log-{suite}-{arch}`: Full UART output
+- `{Suite}-Test-ISO-{arch}`: Bootable kernel ISO + ELF
 
 ### Example CI Step
 
@@ -469,8 +469,8 @@ The CI workflow (`.github/workflows/kernel-tests.yml`) runs kernel integration t
 | Stage | x64 | ARM64 |
 |-------|-----|-------|
 | Kernel build | ~60 s | ~70 s |
-| HelloWorld execution | 2–5 s | 5–10 s |
-| Memory execution | 60–120 s | 120–240 s |
+| HelloWorld execution | 2-5 s | 5-10 s |
+| Memory execution | 60-120 s | 120-240 s |
 
 ---
 

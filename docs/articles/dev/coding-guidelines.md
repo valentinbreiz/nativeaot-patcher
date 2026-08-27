@@ -205,7 +205,7 @@ Use `static class` for stateless kernel utilities that have no per-instance stat
 Use a `static class` with an `Initialize()` method and an `IsInitialized` property. Managers coordinate subsystem state without requiring an instance:
 
 ```csharp
-// Simple manager — no underlying instance to expose
+// Simple manager: no underlying instance to expose
 public static class TimerManager
 {
     private static ITimerDevice? _timer;
@@ -217,7 +217,7 @@ public static class TimerManager
     public static void Wait(int ms) { ... }
 }
 
-// Manager wrapping a pluggable implementation — expose via Current
+// Manager wrapping a pluggable implementation: expose via Current
 public static class SchedulerManager
 {
     private static IScheduler? _currentScheduler;
@@ -404,7 +404,7 @@ Plugs replace BCL methods at the IL level. The patcher rewires calls at build ti
 
 There are two patterns depending on the caller:
 
-**`[RuntimeExport]`** — for NativeAOT runtime stubs (called by the runtime itself). These match the `[RuntimeImport]` declarations in [`System.Private.CoreLib/RuntimeImports.cs`](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/System.Private.CoreLib/src/System/Runtime/RuntimeImports.cs):
+**`[RuntimeExport]`**: for NativeAOT runtime stubs (called by the runtime itself). These match the `[RuntimeImport]` declarations in [`System.Private.CoreLib/RuntimeImports.cs`](https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/System.Private.CoreLib/src/System/Runtime/RuntimeImports.cs):
 
 ```csharp
 [RuntimeExport("RhNewArray")]
@@ -414,7 +414,7 @@ internal static unsafe void* RhNewArray(MethodTable* pEEType, int length)
 }
 ```
 
-**`[UnmanagedCallersOnly]`** — for C# methods callable from native C code (bridges):
+**`[UnmanagedCallersOnly]`**: for C# methods callable from native C code (bridges):
 
 ```csharp
 [UnmanagedCallersOnly(EntryPoint = "__cosmos_serial_write")]
@@ -590,7 +590,7 @@ private static void ThrowIfKeyboardDisabled()
 
 ## 12. Nullable Reference Types
 
-Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>` in `Directory.Build.props`). Annotations are part of the API contract: a reference type without `?` is a promise that it is never null. New and modified code must not introduce nullable warnings — annotate honestly instead of silencing.
+Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>` in `Directory.Build.props`). Annotations are part of the API contract: a reference type without `?` is a promise that it is never null. New and modified code must not introduce nullable warnings: annotate honestly instead of silencing.
 
 ### Rules
 
@@ -605,10 +605,10 @@ Nullable reference types are enabled solution-wide (`<Nullable>enable</Nullable>
 
 ### Honest Annotations
 
-A member that can return `null` is declared with `?` — never hide it behind `!` to preserve an old signature. Conversely, do not add runtime null checks for values the annotations already guarantee: no `if (buffer == null) throw` on a non-nullable parameter, no `?? "fallback"` on a non-nullable return.
+A member that can return `null` is declared with `?`: never hide it behind `!` to preserve an old signature. Conversely, do not add runtime null checks for values the annotations already guarantee: no `if (buffer == null) throw` on a non-nullable parameter, no `?? "fallback"` on a non-nullable return.
 
 ```csharp
-// Declare what can actually be null — callers are forced to handle it
+// Declare what can actually be null: callers are forced to handle it
 public static IScheduler? Current => _currentScheduler;
 public static PerCpuState? GetCpuState(uint cpuId) => _cpuStates?[cpuId];
 
@@ -618,7 +618,7 @@ private byte[] _window = [];                 // not: private byte[]? _window;
 
 ### Guard Helpers
 
-Managers with deferred initialization expose `ThrowIf*NotInitialized()` guards annotated with `[MemberNotNull(...)]` and call them at the top of public entry points (see [Managers](#4-class--type-design)). One call proves the field non-null for the rest of the method — no `!` and no per-line checks:
+Managers with deferred initialization expose `ThrowIf*NotInitialized()` guards annotated with `[MemberNotNull(...)]` and call them at the top of public entry points (see [Managers](#4-class--type-design)). One call proves the field non-null for the rest of the method, with no `!` and no per-line checks:
 
 ```csharp
 private static PerCpuState[]? _cpuStates;
@@ -672,7 +672,7 @@ Null-forgiving `!` is a last resort for invariants flow analysis cannot see (eg.
 
 The format CI (`dotnet format --severity error`) enforces the null-handling style rules in `.editorconfig`: `csharp_style_throw_expression`, `dotnet_style_coalesce_expression`, `dotnet_style_null_propagation`, `csharp_style_prefer_null_check_over_type_check`, `csharp_style_pattern_matching_over_as_with_null_check`, `dotnet_style_prefer_is_null_check_over_reference_equality_method`, and `csharp_style_conditional_delegate_call`.
 
-Nullable warnings (`CS86xx`) are not errors yet — do not introduce new ones.
+Nullable warnings (`CS86xx`) are not errors yet: do not introduce new ones.
 
 ---
 
@@ -727,7 +727,7 @@ public static long TscFrequency { get; set; } = 1_000_000_000;
 // stackalloc for small buffers (no heap allocation)
 Span<byte> buffer = stackalloc byte[64];
 
-// field keyword — auto-property with validation without a manual backing field
+// field keyword: auto-property with validation without a manual backing field
 public int Priority
 {
     get => field;
@@ -772,7 +772,7 @@ if (ptr == null)                  // Good
 Use `[FeatureSwitchDefinition]` for compile-time feature toggling (trimmed by NativeAOT linker). All feature flags live in `Cosmos.Kernel.Core.CosmosFeatures`:
 
 ```csharp
-// In CosmosFeatures.cs — one property per feature
+// In CosmosFeatures.cs: one property per feature
 [FeatureSwitchDefinition("Cosmos.Kernel.HAL.Interrupts.Enabled")]
 public static bool InterruptsEnabled =>
     AppContext.TryGetSwitch("Cosmos.Kernel.HAL.Interrupts.Enabled", out bool enabled)
@@ -815,7 +815,7 @@ NativeAOT imposes strict limitations. **All kernel code must be AOT-compatible.*
 Every `.cs` file must start with the license header (enforced by `.editorconfig`):
 
 ```csharp
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 ```
 
 ### XML Documentation
@@ -841,7 +841,7 @@ public static void Halt(string message) { ... }
 
 ### Inline Comments
 
-Use sparingly — only when the code isn't self-explanatory:
+Use sparingly, only when the code isn't self-explanatory:
 
 ```csharp
 // Stack layout (growing downward from top):

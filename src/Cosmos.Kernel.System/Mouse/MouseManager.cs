@@ -1,4 +1,4 @@
-// This code is licensed under MIT license (see LICENSE for details)
+// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Devices.Input;
@@ -30,8 +30,11 @@ public static class MouseManager
     public static int Y { get; private set; }
 
     /// <summary>
-    /// Scroll wheel delta. Set on each wheel event and never cleared by the
-    /// driver; pollers consume it with <see cref="ResetScrollDelta"/> (gen2 parity).
+    /// Accumulated scroll wheel delta. Wheel events add to it and it is never
+    /// cleared by the driver; pollers consume it with <see cref="ResetScrollDelta"/>
+    /// (gen2 parity). Accumulating instead of overwriting matters: a PS/2 wheel
+    /// click arrives as a z!=0 packet immediately followed by a z=0 packet, so
+    /// assignment would zero the delta before any poller can observe it.
     /// </summary>
     public static int ScrollDelta { get; private set; }
 
@@ -137,7 +140,7 @@ public static class MouseManager
         // Update position with boundary checking
         X += adjustedDeltaX;
         Y += adjustedDeltaY;
-        ScrollDelta = deltaZ;
+        ScrollDelta += deltaZ;
 
         // Clamp to screen bounds
         if (X < 0)
