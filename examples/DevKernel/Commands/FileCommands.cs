@@ -125,16 +125,9 @@ internal static class FileCommands
         {
             if (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null)
             {
-                Terminal.Error("No such directory: " + target);
-                return;
-            }
-
-            // TryOpenDirectory only checks the ops table, so a regular file
-            // opens fine — and every later ls/mkdir then fails with misleading
-            // errors.
-            if (!dir.TryStat(out VfsStat stat) || (stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
-            {
-                Terminal.Error("Not a directory: " + target);
+                Terminal.Error(VfsManager.TryStat(target, out _)
+                    ? "Not a directory: " + target
+                    : "No such directory: " + target);
                 return;
             }
         }

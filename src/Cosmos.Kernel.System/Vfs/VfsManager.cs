@@ -244,12 +244,22 @@ public static partial class VfsManager
 
     /// <summary>
     /// Open a directory at the given path and return a managed handle wrapper.
+    /// Fails when the path names something other than a directory.
     /// </summary>
     public static bool TryOpenDirectory(string path, [NotNullWhen(true)] out IVfsDirectoryHandle? directory)
     {
         directory = null;
 
         if (!TryResolve(path, out IVfsInode? inode, out string? leafName))
+        {
+            return false;
+        }
+
+        // A regular file resolves just as well as a directory. Without the type
+        // check the caller gets a directory handle whose every operation then
+        // fails inside the driver with a misleading error.
+        if (!inode.InodeOperations.GetAttr(inode, out VfsStat stat)
+            || (stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
         {
             return false;
         }
@@ -281,6 +291,23 @@ public static partial class VfsManager
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Opens any node, file or directory, as a handle. For callers that need
+    /// the inode and must not care about its type.
+    /// </summary>
+    internal static bool TryOpenNode(string path, [NotNullWhen(true)] out IVfsNodeHandle? node)
+    {
+        node = null;
+
+        if (!TryResolve(path, out IVfsInode? inode, out string? leafName))
+        {
+            return false;
+        }
+
+        node = WrapNode(leafName, inode);
+        return node != null;
     }
 
     private static bool TryResolve(string path, [NotNullWhen(true)] out IVfsInode? inode, [NotNullWhen(true)] out string? leafName)

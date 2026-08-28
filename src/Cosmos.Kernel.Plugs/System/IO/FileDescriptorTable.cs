@@ -609,12 +609,16 @@ internal static unsafe class FileDescriptorTable
             return PalError.EPERM;
         }
 
-        if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? node) || node == null)
+        // Any node, not just a directory: chmod applies to files too.
+        if (!VfsManager.TryOpenNode(fullPath, out IVfsNodeHandle? node))
         {
             return PalError.ENOENT;
         }
 
-        return ApplyMode(node.Inode, mode);
+        using (node)
+        {
+            return ApplyMode(node.Inode, mode);
+        }
     }
 
     internal static PalError SetCurrentDirectory(string path)

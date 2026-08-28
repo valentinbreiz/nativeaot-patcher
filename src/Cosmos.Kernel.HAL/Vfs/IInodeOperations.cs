@@ -90,7 +90,10 @@ public interface IInodeOperations
         ReadOnlySpan<char> newName);
 
     /// <summary>
-    /// Read the inode's attributes (POSIX <c>stat</c>).
+    /// Read the inode's attributes (POSIX <c>stat</c>). The file-type nibble of
+    /// <see cref="VfsStat.Mode"/> is mandatory: the VFS reads it to tell a
+    /// directory from a file, and a driver that leaves it zero has every
+    /// directory open rejected.
     /// </summary>
     /// <param name="inode">Inode to query.</param>
     /// <param name="stat">Populated attributes on success.</param>

@@ -13,7 +13,7 @@ public class Kernel : Sys.Kernel
 {
     /// <summary>Exact TR.Run cell count — the harness synthesizes failures
     /// for missing tests, so a mid-suite hang can't report ALL TESTS PASSED.</summary>
-    private const ushort ExpectedTestCount = 41;
+    private const ushort ExpectedTestCount = 42;
 
     private const string Fat16Mount = "/fat";
     private const string Fat32Mount = "/fat32";
@@ -531,6 +531,14 @@ public class Kernel : Sys.Kernel
             Assert.NotNull(root);
             Assert.True(root!.TryStat(out VfsStat stat));
             Assert.True((stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory);
+        });
+
+        TR.Run("Test_Fat32_OpenDirectory_RejectsRegularFile", () =>
+        {
+            Assert.True(VfsManager.TryOpenDirectory(Fat32Mount, out IVfsDirectoryHandle? root));
+            Assert.True(root!.TryCreateFile("NOTDIR.TXT", ModeEnum.RegularFile, out _));
+            Assert.False(VfsManager.TryOpenDirectory(Fat32Mount + "/NOTDIR.TXT", out IVfsDirectoryHandle? bad));
+            Assert.Null(bad);
         });
 
         TR.Run("Test_Fat32_Vfs_CreateFile_OpenByPath_RoundTrip", () =>
