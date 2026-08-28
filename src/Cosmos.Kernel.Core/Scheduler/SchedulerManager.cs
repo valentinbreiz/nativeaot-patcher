@@ -64,12 +64,13 @@ public static class SchedulerManager
     internal static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
 
     /// <summary>
-    /// Whether <see cref="Initialize"/> has run and per-CPU state exists.
-    /// Blocking primitives (and drivers built on them) must check this
-    /// before touching <see cref="GetCpuState"/>: with the scheduler
-    /// feature disabled — or before its library initializer runs — there
-    /// is exactly one execution context, so callers fall back to
-    /// spin/polled paths instead of blocking.
+    /// Whether the boot path has built the per-CPU state, which is what
+    /// makes the rest of this class usable. Blocking primitives (and
+    /// drivers built on them) must check this before touching
+    /// <see cref="GetCpuState"/>: with the scheduler feature compiled out,
+    /// or before its library initializer runs, there is exactly one
+    /// execution context, so callers fall back to spin/polled paths
+    /// instead of blocking.
     /// </summary>
     public static bool IsReady => IsEnabled && s_cpuStates != null;
 
@@ -153,9 +154,17 @@ public static class SchedulerManager
 
     /// <summary>
     /// Returns the scheduling state of a CPU, or <see langword="null"/>
-    /// before initialization.
+    /// when <see cref="IsReady"/> is false.
     /// </summary>
-    /// <param name="cpuId">CPU to look up, from 0 to <see cref="CpuCount"/> exclusive.</param>
+    /// <param name="cpuId">
+    /// CPU to look up. The count is on the ring as
+    /// <c>SchedulerInfo.CpuCount</c>; a policy normally takes the state it
+    /// needs from its hook parameters instead.
+    /// </param>
+    /// <exception cref="IndexOutOfRangeException">
+    /// <paramref name="cpuId"/> is not a managed CPU and the scheduler is
+    /// ready. Before it is ready this returns null for any value.
+    /// </exception>
     public static PerCpuState? GetCpuState(uint cpuId) => s_cpuStates?[cpuId];
 
     /// <summary>
