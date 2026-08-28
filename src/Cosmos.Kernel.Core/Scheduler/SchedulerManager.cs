@@ -36,7 +36,11 @@ public static class SchedulerManager
     private static ulong s_exitedNonIdleRuntimeNs;
 
     /// <summary>
-    /// Default time slice in nanoseconds (10ms).
+    /// The kernel's reference time slice in nanoseconds (10 ms). The boot
+    /// path arms the scheduler timer at this interval, so it is also the
+    /// value <see cref="IScheduler.OnTick"/> receives as <c>elapsedNs</c>.
+    /// A policy is free to preempt on its own terms and need not treat this
+    /// as its slice.
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 

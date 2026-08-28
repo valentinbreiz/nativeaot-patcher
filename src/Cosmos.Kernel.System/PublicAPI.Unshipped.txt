@@ -591,11 +591,11 @@ static Cosmos.Kernel.System.Diagnostics.MemoryInfo.RamSizeBytes.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.TotalPages.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.BusyCpuTimeNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.CpuCount.get -> uint
+static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.DefaultQuantumNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.GetRunQueueCount(uint cpuId) -> int
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.IsRunning.get -> bool
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.IsSupported.get -> bool
-static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.QuantumNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.RequestKill(uint threadId) -> Cosmos.Kernel.System.Diagnostics.ThreadKillResult
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.SchedulerName.get -> string?
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.ThreadCount.get -> int

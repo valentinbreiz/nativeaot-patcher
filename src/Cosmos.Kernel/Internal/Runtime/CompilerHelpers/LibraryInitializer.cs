@@ -47,7 +47,11 @@ namespace Internal.Runtime.CompilerHelpers
             if (SchedulerManager.IsEnabled)
             {
                 Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
-                initializer.StartSchedulerTimer(10);  // 10ms quantum
+                // Arm the timer at the reference quantum rather than a literal:
+                // Stride's fallback preemption test compares one tick's elapsed
+                // time against DefaultQuantumNs, so the two have to agree.
+                initializer.StartSchedulerTimer(
+                    (uint)(SchedulerManager.DefaultQuantumNs / SchedulerManager.NanosecondsPerMillisecond));
             }
         }
 
