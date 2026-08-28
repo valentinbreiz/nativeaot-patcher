@@ -25,10 +25,8 @@ internal sealed class KeyboardTextReader : TextReader
 
     public override string? ReadLine()
     {
-        if (KernelConsole.Default is null)
-        {
-            throw new Exception($"{nameof(KernelConsole)} is not initialized");
-        }
+        KernelConsole.ThrowIfKernelConsoleNotInitialized();
+
         var sb = new StringBuilder();
 
         // Track cursor position within input string

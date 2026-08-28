@@ -98,7 +98,7 @@ public class KernelConsole
     {
         if (Default is null)
         {
-            throw new Exception($"{nameof(KernelConsole)} is not initialized");
+            throw new InvalidOperationException($"{nameof(KernelConsole)} is not initialized");
         }
     }
 
@@ -324,7 +324,12 @@ public class KernelConsole
 
     /// <summary>
     /// Initializes the default (global) console on the hardware framebuffer.
+    /// Idempotent: a second call leaves the existing console in place, so a
+    /// kernel that overrides <see cref="Kernel.OnBoot"/> may call this whether
+    /// or not it also called <c>base.OnBoot()</c>.
     /// </summary>
+    /// <returns>True when <see cref="Default"/> is available, false when
+    /// graphics are compiled out.</returns>
     [MemberNotNullWhen(true, nameof(Default))]
     public static bool Initialize()
     {
@@ -335,8 +340,7 @@ public class KernelConsole
 
         if (Default != null)
         {
-            // throw exception instead of returning false to enable MemberNotNullWhen attributed above
-            throw new Exception($"{nameof(KernelConsole)} already initialized");
+            return true;
         }
 
         var canvas = Canvas.GetFullScreen();
