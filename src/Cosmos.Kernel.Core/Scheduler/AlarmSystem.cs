@@ -13,13 +13,11 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// primitives. Requires the scheduler; resolution is bounded by the scheduler
 /// tick.
 /// </summary>
+/// <remarks>
+/// Internal: a kernel reaches this through Cosmos.Kernel.System's AlarmManager.
+/// </remarks>
 internal static class AlarmSystem
 {
-    /// <summary>
-    /// The method invoked when an alarm fires.
-    /// </summary>
-    public delegate void AlarmDelegate();
-
     /// <summary>
     /// A pending alarm entry.
     /// </summary>
@@ -35,7 +33,7 @@ internal static class AlarmSystem
         public ulong PeriodTicks { get; init; }
 
         /// <summary>The method invoked when the alarm fires.</summary>
-        public AlarmDelegate Delegate { get; init; }
+        public Action Delegate { get; init; }
     }
 
     /// <summary>Wait used when no alarm is pending. Add signals the alarm thread early, so this is only a heartbeat.</summary>
@@ -53,7 +51,7 @@ internal static class AlarmSystem
     /// <param name="delay">Delay before the alarm fires.</param>
     /// <param name="alarm">Method to invoke when the alarm fires.</param>
     /// <returns>The alarm ID, or 0 if the alarm could not be scheduled.</returns>
-    public static ulong Add(TimeSpan delay, AlarmDelegate alarm)
+    public static ulong Add(TimeSpan delay, Action alarm)
     {
         return AddCore(delay, recurring: false, alarm);
     }
@@ -65,7 +63,7 @@ internal static class AlarmSystem
     /// <param name="period">Period between firings; at least 1 ms.</param>
     /// <param name="alarm">Method to invoke each period.</param>
     /// <returns>The alarm ID, or 0 if the alarm could not be scheduled.</returns>
-    public static ulong AddRecurring(TimeSpan period, AlarmDelegate alarm)
+    public static ulong AddRecurring(TimeSpan period, Action alarm)
     {
         return AddCore(period, recurring: true, alarm);
     }
@@ -93,7 +91,7 @@ internal static class AlarmSystem
         return false;
     }
 
-    private static ulong AddCore(TimeSpan delay, bool recurring, AlarmDelegate alarm)
+    private static ulong AddCore(TimeSpan delay, bool recurring, Action alarm)
     {
         if (alarm == null)
         {

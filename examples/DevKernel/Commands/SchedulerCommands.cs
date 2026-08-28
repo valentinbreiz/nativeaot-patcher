@@ -1,4 +1,5 @@
 using System;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Timer;
 using DevKernel.Diagnostics;
@@ -17,6 +18,21 @@ internal static class SchedulerCommands
 
     /// <summary>Delay (ms) after starting the test thread so its output can appear.</summary>
     private const uint ThreadTestWaitMs = 2000;
+
+    /// <summary>Delay (ms) before the interrupt-context timer fires.</summary>
+    private const uint TimerDelayMs = 100;
+
+    /// <summary>Delay (ms) before the thread-context alarm fires.</summary>
+    private const uint AlarmDelayMs = 200;
+
+    /// <summary>Delay (ms) waited for both to fire, longer than either delay.</summary>
+    private const uint TimersWaitMs = 500;
+
+    /// <summary>Fire count for the interrupt-context timer; written from interrupt context.</summary>
+    private static volatile int s_timerFireCount;
+
+    /// <summary>Fire count for the thread-context alarm; written from the alarm thread.</summary>
+    private static volatile int s_alarmFireCount;
 
     public static void Register(CommandShell shell)
     {
@@ -60,6 +76,13 @@ internal static class SchedulerCommands
                 Usage = "cpustat",
                 Description = "Live CPU% + thread monitor with stress wave",
                 Execute = static (context, args) => CpuStat.Run(),
+            },
+            new ShellCommand
+            {
+                Name = "timers",
+                Usage = "timers",
+                Description = "Fire an interrupt-context timer and a thread-context alarm",
+                Execute = static (context, args) => TestTimers(),
             });
     }
 
@@ -150,6 +173,41 @@ internal static class SchedulerCommands
         Console.Write(" Run=" + runtimeMs + "ms");
 
         Console.ResetColor();
+        Console.WriteLine();
+    }
+
+    private static void TestTimers()
+    {
+        Terminal.Header("Timers:");
+
+        s_timerFireCount = 0;
+        s_alarmFireCount = 0;
+
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_timerFireCount++, TimerDelayMs);
+        if (timer == null)
+        {
+            Terminal.Error("No timer device registered");
+            return;
+        }
+
+        ulong alarmId = AlarmManager.Schedule(TimeSpan.FromMilliseconds(AlarmDelayMs), static () => s_alarmFireCount++);
+        if (alarmId == 0)
+        {
+            Terminal.Error("Scheduler is not running, alarm not scheduled");
+            TimerManager.Cancel(timer);
+            return;
+        }
+
+        Terminal.InfoLine("Timer", TimerDelayMs + "ms, interrupt context, active=" + timer.IsActive);
+        Terminal.InfoLine("Alarm", AlarmDelayMs + "ms, thread context, id=" + alarmId);
+
+        TimerManager.Wait(TimersWaitMs);
+
+        Terminal.InfoLine("Timer fired", s_timerFireCount + "x, active=" + timer.IsActive);
+        Terminal.InfoLine("Alarm fired", s_alarmFireCount + "x");
+
+        // Both were one-shot, so cancelling now reports that they already fired.
+        Terminal.InfoLine("Cancel alarm", AlarmManager.Cancel(alarmId) ? "was still pending" : "already fired");
         Console.WriteLine();
     }
 

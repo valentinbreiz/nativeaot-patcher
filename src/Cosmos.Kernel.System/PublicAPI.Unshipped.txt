@@ -521,6 +521,7 @@ Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.PartitionLocatio
 Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.SectorCount.get -> ulong
 Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation.StartSector.get -> ulong
 Cosmos.Kernel.System.Storage.StorageManager
+Cosmos.Kernel.System.Timer.AlarmManager
 Cosmos.Kernel.System.Timer.TimerManager
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan<char> name, Cosmos.Kernel.HAL.Vfs.ModeEnum mode, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle? child) -> bool
@@ -748,6 +749,9 @@ static Cosmos.Kernel.System.Storage.StorageManager.PrimaryDevice.get -> Cosmos.K
 static Cosmos.Kernel.System.Storage.StorageManager.RegisterDevice(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> void
 static Cosmos.Kernel.System.Storage.StorageManager.RegisterHalDevices() -> void
 static Cosmos.Kernel.System.Storage.StorageManager.RescanPartitions(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> void
+static Cosmos.Kernel.System.Timer.AlarmManager.Cancel(ulong id) -> bool
+static Cosmos.Kernel.System.Timer.AlarmManager.Schedule(System.TimeSpan delay, System.Action! callback) -> ulong
+static Cosmos.Kernel.System.Timer.AlarmManager.ScheduleRecurring(System.TimeSpan period, System.Action! callback) -> ulong
 static Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer? timer) -> void
 static Cosmos.Kernel.System.Timer.TimerManager.Frequency.get -> uint
 static Cosmos.Kernel.System.Timer.TimerManager.Initialize() -> void

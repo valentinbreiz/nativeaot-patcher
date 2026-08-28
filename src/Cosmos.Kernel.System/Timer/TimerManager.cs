@@ -71,7 +71,7 @@ public static class TimerManager
     /// <summary>
     /// Schedules a callback to run once after the specified delay. The callback
     /// runs in interrupt context and must not block; use
-    /// <see cref="Core.Scheduler.AlarmSystem"/> for callbacks that need thread context.
+    /// <see cref="AlarmManager"/> for callbacks that need thread context.
     /// </summary>
     /// <param name="callback">Method to invoke when the delay expires.</param>
     /// <param name="delayMs">Delay in milliseconds.</param>
@@ -84,7 +84,7 @@ public static class TimerManager
     /// <summary>
     /// Schedules a callback to run repeatedly with the specified period. The
     /// callback runs in interrupt context and must not block; use
-    /// <see cref="AlarmSystem"/> for callbacks that need thread context.
+    /// <see cref="AlarmManager"/> for callbacks that need thread context.
     /// </summary>
     /// <param name="callback">Method to invoke each period.</param>
     /// <param name="periodMs">Period in milliseconds.</param>
