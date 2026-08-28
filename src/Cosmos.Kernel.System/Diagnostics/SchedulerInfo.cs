@@ -136,7 +136,13 @@ public static class SchedulerInfo
     /// Snapshots a thread in a CPU's run queue by position.
     /// </summary>
     /// <param name="cpuId">CPU to inspect.</param>
-    /// <param name="index">Queue position, from 0 to <see cref="GetRunQueueCount"/> exclusive.</param>
+    /// <param name="index">
+    /// Queue position, from 0 to <see cref="GetRunQueueCount"/> exclusive.
+    /// Each call is its own snapshot: a tick between the count and this read,
+    /// or between two reads, reorders the queue, so a walk can see a thread
+    /// twice or miss one. The count and the positions are for display, not
+    /// for deciding anything.
+    /// </param>
     /// <param name="info">Snapshot of the queued thread.</param>
     /// <returns><see langword="false"/> when the CPU ID or index is out of range.</returns>
     public static bool TryGetRunQueueThread(uint cpuId, int index, out KernelThreadInfo info)
@@ -156,8 +162,10 @@ public static class SchedulerInfo
 
     /// <summary>
     /// Requests termination of a thread by ID. A thread waiting in a run
-    /// queue is terminated immediately; a currently running thread is
-    /// marked dead and reaped by the scheduler on its next reschedule.
+    /// queue is terminated immediately. A currently running thread is only
+    /// marked dead: it stops being scheduled, but nothing reaps it, so it
+    /// holds its registry slot and its stack for the life of the kernel.
+    /// See <see cref="ThreadKillResult.MarkedForExit"/>.
     /// Idle threads are refused, and so are blocked or sleeping ones: they
     /// have already handed their share back to the policy, so they must be
     /// woken before they can be killed.

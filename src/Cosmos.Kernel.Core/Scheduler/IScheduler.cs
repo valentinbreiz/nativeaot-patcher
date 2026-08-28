@@ -23,6 +23,13 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// on one CPU and nothing in-tree sets priorities. Implement them, but do
 /// not expect them to be exercised.
 /// </para>
+/// <para>
+/// Two rules hold for every hook. Each must tolerate being called more than
+/// once for the same thread, and each must tolerate a
+/// <see cref="SchedulerExtensible.SchedulerData"/> slot that is null or was
+/// written by a different policy, which is why a hook reads the slot with
+/// <c>as</c> rather than <see cref="SchedulerExtensible.GetSchedulerData{T}"/>.
+/// </para>
 /// <para>Inspired by Ekiben's EkibenScheduler trait.</para>
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
@@ -42,8 +49,12 @@ public interface IScheduler
     /// Allocate this policy's per-CPU bookkeeping into
     /// <see cref="SchedulerExtensible.SchedulerData"/> on
     /// <paramref name="cpuState"/>. Called once per CPU by
-    /// <see cref="SchedulerManager.SetScheduler"/>, in thread context under a
-    /// spinlock, with interrupts enabled.
+    /// <see cref="SchedulerManager.SetScheduler"/>, in thread context. The
+    /// spinlock it holds excludes another installer, not the timer: unless
+    /// the installing thread wraps the call in
+    /// <see cref="SchedulerManager.MaskInterrupts"/>, a tick can land between
+    /// the outgoing policy's <see cref="ShutdownCpu"/> and this call, and
+    /// reach a hook with an empty per-CPU slot.
     /// </summary>
     /// <param name="cpuState">CPU whose state to attach bookkeeping to.</param>
     void InitializeCpu(PerCpuState cpuState);
@@ -52,8 +63,8 @@ public interface IScheduler
     /// Release the per-CPU bookkeeping, leaving a clean slot for the incoming
     /// policy. Called once per CPU by
     /// <see cref="SchedulerManager.SetScheduler"/> before the replacement is
-    /// initialized, in thread context under a spinlock, with interrupts
-    /// enabled. Thread slots are not cleared here; see
+    /// initialized, in thread context, with the same unmasked-tick caveat as
+    /// <see cref="InitializeCpu"/>. Thread slots are not cleared here; see
     /// <see cref="SchedulerExtensible.SchedulerData"/>.
     /// </summary>
     /// <param name="cpuState">CPU whose state to release bookkeeping from.</param>
@@ -74,8 +85,10 @@ public interface IScheduler
     /// <summary>
     /// Make the thread runnable: place it and insert it into the run
     /// structure. Called for a first start, for a wake, and for a sleep
-    /// expiry, so it can arrive both from thread context with interrupts
-    /// masked and from inside the timer interrupt.
+    /// expiry, so it arrives both from thread context with interrupts masked
+    /// and from interrupt context, either the timer tick waking a sleeper or
+    /// a device ISR signalling a waiter. It is the hook most likely to fire
+    /// twice for one thread, so guard against inserting it twice.
     /// </summary>
     /// <param name="cpuState">CPU the thread is queued on.</param>
     /// <param name="thread">Thread becoming runnable.</param>
@@ -120,7 +133,12 @@ public interface IScheduler
     /// <param name="cpuState">CPU to schedule.</param>
     /// <returns>
     /// The thread to switch to, or <see langword="null"/> to fall back to the
-    /// CPU's idle thread. Returning a dead or parked thread is not checked.
+    /// CPU's idle thread. Remove the thread you return from the run
+    /// structure: the manager re-inserts the outgoing thread through
+    /// <see cref="OnThreadYield"/> after this call, and does not remove the
+    /// incoming one, so leaving it queued grants it a second turn. The
+    /// manager does not check the thread's state either, so never return one
+    /// that is dead or parked.
     /// </returns>
     Thread? PickNext(PerCpuState cpuState);
 
@@ -188,10 +206,10 @@ public interface IScheduler
     /// Change a thread's priority. The meaning is policy-defined: Stride
     /// reads it as a ticket count, a real-time policy would read it as a
     /// priority level. Reached only through
-    /// <see cref="SchedulerManager.SetPriority"/>, which holds the per-CPU
-    /// spinlock but does <em>not</em> mask interrupts, so a hook that touches
-    /// the run structure must take
-    /// <see cref="SchedulerManager.MaskInterrupts"/> itself.
+    /// <see cref="SchedulerManager.SetPriority"/>, whose per-CPU spinlock
+    /// excludes another caller but not the timer, so a hook that touches the
+    /// run structure must take <see cref="SchedulerManager.MaskInterrupts"/>
+    /// itself.
     /// </summary>
     /// <param name="cpuState">CPU whose state guards the update.</param>
     /// <param name="thread">Thread to reprioritize.</param>
@@ -201,8 +219,9 @@ public interface IScheduler
     /// <summary>
     /// Report a thread's current priority in the same policy-defined units
     /// <see cref="SetPriority"/> takes. Called from thread context with no
-    /// guard at all, including by the <c>SchedulerInfo</c> facade when it
-    /// snapshots a thread, so it must not mutate anything.
+    /// guard at all, on every thread snapshot the <c>SchedulerInfo</c> facade
+    /// takes, so it must not mutate anything and must mask itself if it reads
+    /// something a tick can be rewriting.
     /// </summary>
     /// <param name="thread">Thread to query. This hook receives no <see cref="PerCpuState"/>.</param>
     /// <returns>The thread's priority, or 0 when the policy does not track one for it.</returns>
@@ -215,7 +234,10 @@ public interface IScheduler
     /// introspection for the <c>SchedulerInfo</c> facade, called from thread
     /// context with no guard, so guard it yourself with
     /// <see cref="SchedulerManager.MaskInterrupts"/> if a concurrent tick
-    /// could be mutating the structure underneath it.
+    /// could be mutating the structure underneath it. Masking inside the hook
+    /// makes one call atomic and no more: a caller that counts and then reads
+    /// each index needs its own mask around the whole walk, or the tick can
+    /// rotate the queue between the calls.
     /// </summary>
     /// <param name="cpuState">CPU to inspect.</param>
     /// <returns>The number of queued threads.</returns>

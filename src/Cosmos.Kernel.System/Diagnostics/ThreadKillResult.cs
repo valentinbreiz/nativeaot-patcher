@@ -12,8 +12,12 @@ public enum ThreadKillResult : byte
     Killed,
 
     /// <summary>
-    /// The thread is currently running; it was marked dead and will be
-    /// reaped by the scheduler on its next reschedule.
+    /// The thread was running and has been marked dead. The next reschedule
+    /// stops putting it back in a run queue, so it never runs again, but
+    /// nothing reaps it: the registry slot, the stack, the allocation
+    /// context and the policy's bookkeeping are released only by a thread's
+    /// own exit path, which a thread stopped this way never reaches. Prefer
+    /// letting a thread return from its entry point.
     /// </summary>
     MarkedForExit,
 
