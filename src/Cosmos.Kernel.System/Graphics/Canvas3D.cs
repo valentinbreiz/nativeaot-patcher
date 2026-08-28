@@ -32,10 +32,11 @@ public abstract class Canvas3D : Canvas
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Canvas3D"/> class with a
-    /// mode. Used by subclasses.
+    /// mode. Used by the drivers in this assembly; a 3D canvas is obtained
+    /// from <see cref="FullScreenCanvas"/>, not derived from.
     /// </summary>
     /// <param name="mode">The graphics mode of the canvas.</param>
-    protected Canvas3D(Mode mode)
+    private protected Canvas3D(Mode mode)
         : base(mode)
     {
     }
