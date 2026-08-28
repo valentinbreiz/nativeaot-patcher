@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.HAL.Vfs;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Vfs;
 using PalError = global::Interop.Error;
 using PalSys = global::Interop.Sys;
@@ -408,7 +409,7 @@ internal static unsafe class FileDescriptorTable
             chars[i] = (char)buffer[i];
         }
 
-        Cosmos.Kernel.Core.IO.Serial.Write(new string(chars.Slice(0, count)));
+        Log.Write(new string(chars.Slice(0, count)));
     }
 
     // ---------------- path operations ----------------

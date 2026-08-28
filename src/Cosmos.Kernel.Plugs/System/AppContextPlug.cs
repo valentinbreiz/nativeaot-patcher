@@ -1,8 +1,8 @@
 using System.Text.Unicode;
 using Cosmos.Build.API.Attributes;
 using Cosmos.Kernel.Core.Bridge;
-using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Utilities;
+using Cosmos.Kernel.System.Diagnostics;
 
 namespace Cosmos.Kernel.Plugs.System;
 
@@ -36,9 +36,9 @@ public static class AppContextPlug
                 string key = Utf8Decode(new(ptrKey, Strlen(ptrKey)));
                 string value = Utf8Decode(new(ptrVal, Strlen(ptrVal)));
 
-                Serial.WriteString(key);
-                Serial.WriteString(" = ");
-                Serial.WriteString(value + "\n");
+                Log.WriteString(key);
+                Log.WriteString(" = ");
+                Log.WriteString(value + "\n");
 
                 dataStore[key] = value;
 

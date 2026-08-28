@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Cosmos.Build.API.Attributes;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
@@ -45,35 +45,35 @@ public static class SocketPlug
 
     public static void CheckSocket(Socket aThis, SocketType socketType, ProtocolType protocolType)
     {
-        Serial.WriteString("[SocketPlug] CheckSocket called\n");
+        Log.WriteString("[SocketPlug] CheckSocket called\n");
         int id = GetId(aThis);
-        Serial.WriteString("[SocketPlug] GetId returned: ");
-        Serial.WriteNumber(id);
-        Serial.WriteString("\n");
+        Log.WriteString("[SocketPlug] GetId returned: ");
+        Log.WriteNumber(id);
+        Log.WriteString("\n");
 
         if (protocolType == ProtocolType.Udp)
         {
             if (socketType != SocketType.Dgram)
             {
-                Serial.WriteString("[SocketPlug] UDP requires Dgram socket type.\n");
+                Log.WriteString("[SocketPlug] UDP requires Dgram socket type.\n");
                 throw new NotSupportedException("UDP requires Dgram socket type.");
             }
             _protocolTypes[id] = ProtocolType.Udp;
-            Serial.WriteString("[SocketPlug] Created UDP socket\n");
+            Log.WriteString("[SocketPlug] Created UDP socket\n");
         }
         else if (protocolType == ProtocolType.Tcp)
         {
             if (socketType != SocketType.Stream)
             {
-                Serial.WriteString("[SocketPlug] TCP requires Stream socket type.\n");
+                Log.WriteString("[SocketPlug] TCP requires Stream socket type.\n");
                 throw new NotSupportedException("TCP requires Stream socket type.");
             }
             _protocolTypes[id] = ProtocolType.Tcp;
-            Serial.WriteString("[SocketPlug] Created TCP socket\n");
+            Log.WriteString("[SocketPlug] Created TCP socket\n");
         }
         else
         {
-            Serial.WriteString("[SocketPlug] Only TCP and UDP sockets supported.\n");
+            Log.WriteString("[SocketPlug] Only TCP and UDP sockets supported.\n");
             throw new NotImplementedException("Only TCP and UDP sockets supported.");
         }
     }
@@ -189,9 +189,9 @@ public static class SocketPlug
             // Create UDP client with the bound port
             var client = new KernelUdpClient(ipep.Port);
             _udpClients[id] = client;
-            Serial.WriteString("[SocketPlug] UDP socket bound to port ");
-            Serial.WriteNumber((ulong)ipep.Port);
-            Serial.WriteString("\n");
+            Log.WriteString("[SocketPlug] UDP socket bound to port ");
+            Log.WriteNumber((ulong)ipep.Port);
+            Log.WriteString("\n");
         }
     }
 
@@ -210,7 +210,7 @@ public static class SocketPlug
         int id = GetId(aThis);
         if (!_endpoints.TryGetValue(id, out var ep))
         {
-            Serial.WriteString("[SocketPlug] Socket not bound\n");
+            Log.WriteString("[SocketPlug] Socket not bound\n");
             throw new InvalidOperationException("Socket not bound");
         }
 
@@ -228,7 +228,7 @@ public static class SocketPlug
 
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
-            Serial.WriteString("[SocketPlug] TcpListener not started, starting...\n");
+            Log.WriteString("[SocketPlug] TcpListener not started, starting...\n");
             StartTcp(aThis);
             sm = _tcpStateMachines[id];
         }
@@ -289,11 +289,11 @@ public static class SocketPlug
         client.Connect(destAddr, port);
 
         _remoteEndPoints[id] = new IPEndPoint(address, port);
-        Serial.WriteString("[SocketPlug] UDP connected to ");
-        Serial.WriteString(destAddr.ToString());
-        Serial.WriteString(":");
-        Serial.WriteNumber((ulong)port);
-        Serial.WriteString("\n");
+        Log.WriteString("[SocketPlug] UDP connected to ");
+        Log.WriteString(destAddr.ToString());
+        Log.WriteString(":");
+        Log.WriteNumber((ulong)port);
+        Log.WriteString("\n");
     }
 
     public static void ConnectTcp(Socket aThis, IPAddress address, int port)
@@ -311,7 +311,7 @@ public static class SocketPlug
 
         if (sm.Status == Status.ESTABLISHED)
         {
-            Serial.WriteString("[SocketPlug] Client must be closed before setting a new connection.\n");
+            Log.WriteString("[SocketPlug] Client must be closed before setting a new connection.\n");
             throw new Exception("Client must be closed before setting a new connection.");
         }
 
@@ -411,28 +411,28 @@ public static class SocketPlug
 
     public static int SendTcp(Socket aThis, byte[] buffer, int offset, int size)
     {
-        Serial.WriteString("[SocketPlug] SendTcp: entering\n");
+        Log.WriteString("[SocketPlug] SendTcp: entering\n");
         int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
-            Serial.WriteString("[SocketPlug] Must establish a connection before sending data.\n");
+            Log.WriteString("[SocketPlug] Must establish a connection before sending data.\n");
             throw new InvalidOperationException("Must establish a connection before sending data.");
         }
 
         if (sm.RemoteEndPoint.Address == null || sm.RemoteEndPoint.Port == 0)
         {
-            Serial.WriteString("[SocketPlug] Must establish a default remote host by calling Connect().\n");
+            Log.WriteString("[SocketPlug] Must establish a default remote host by calling Connect().\n");
             throw new InvalidOperationException("Must establish a default remote host by calling Connect() before using this Send() overload");
         }
         if (sm.Status != Status.ESTABLISHED)
         {
-            Serial.WriteString("[SocketPlug] Client must be connected before sending data.\n");
+            Log.WriteString("[SocketPlug] Client must be connected before sending data.\n");
             throw new Exception("Client must be connected before sending data.");
         }
 
         if (offset < 0 || size < 0 || (offset + size) > buffer.Length)
         {
-            Serial.WriteString("[SocketPlug] Invalid offset or size\n");
+            Log.WriteString("[SocketPlug] Invalid offset or size\n");
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
@@ -463,39 +463,39 @@ public static class SocketPlug
         }
         else
         {
-            Serial.WriteString("[SocketPlug] SendTcp: preparing packet\n");
+            Log.WriteString("[SocketPlug] SendTcp: preparing packet\n");
             byte[] data = new byte[size];
             Buffer.BlockCopy(buffer, offset, data, 0, size);
 
             var packet = new TcpPacket(sm.LocalEndPoint.Address, sm.RemoteEndPoint.Address, sm.LocalEndPoint.Port, sm.RemoteEndPoint.Port, sm.TCB.SndNxt, sm.TCB.RcvNxt, 20, (byte)(TcpFlags.PSH | TcpFlags.ACK), sm.TCB.SndWnd, 0, data);
-            Serial.WriteString("[SocketPlug] SendTcp: adding to outgoing buffer\n");
+            Log.WriteString("[SocketPlug] SendTcp: adding to outgoing buffer\n");
             OutgoingBuffer.AddPacket(packet);
 
             // Increment SndNxt BEFORE NetworkStack.Update() so incoming packets see the correct value
             sm.TCB.SndNxt += (uint)size;
             bytesSent = size;
 
-            Serial.WriteString("[SocketPlug] SendTcp: calling NetworkStack.Update\n");
+            Log.WriteString("[SocketPlug] SendTcp: calling NetworkStack.Update\n");
             NetworkStack.Update();
-            Serial.WriteString("[SocketPlug] SendTcp: NetworkStack.Update returned\n");
+            Log.WriteString("[SocketPlug] SendTcp: NetworkStack.Update returned\n");
 
             // Check if connection was closed during Update (e.g., by FIN from server)
             if (sm.Status == Status.CLOSED || sm.Status == Status.TIME_WAIT)
             {
-                Serial.WriteString("[SocketPlug] SendTcp: connection closed during send, returning early\n");
+                Log.WriteString("[SocketPlug] SendTcp: connection closed during send, returning early\n");
                 return bytesSent;
             }
 
-            Serial.WriteString("[SocketPlug] SendTcp: calling WaitAck\n");
+            Log.WriteString("[SocketPlug] SendTcp: calling WaitAck\n");
             WaitAck(sm);
-            Serial.WriteString("[SocketPlug] SendTcp: WaitAck returned, status=");
-            Serial.WriteNumber((ulong)sm.Status);
-            Serial.WriteString("\n");
+            Log.WriteString("[SocketPlug] SendTcp: WaitAck returned, status=");
+            Log.WriteNumber((ulong)sm.Status);
+            Log.WriteString("\n");
         }
 
-        Serial.WriteString("[SocketPlug] SendTcp: returning bytesSent=");
-        Serial.WriteNumber((ulong)bytesSent);
-        Serial.WriteString("\n");
+        Log.WriteString("[SocketPlug] SendTcp: returning bytesSent=");
+        Log.WriteNumber((ulong)bytesSent);
+        Log.WriteString("\n");
         return bytesSent;
     }
 
@@ -550,13 +550,13 @@ public static class SocketPlug
         byte[] addrBytes = ipep.Address.GetAddressBytes();
         var destAddr = new Address(addrBytes[0], addrBytes[1], addrBytes[2], addrBytes[3]);
 
-        Serial.WriteString("[SocketPlug] SendTo destAddr=");
-        Serial.WriteNumber(addrBytes[0]); Serial.WriteString(".");
-        Serial.WriteNumber(addrBytes[1]); Serial.WriteString(".");
-        Serial.WriteNumber(addrBytes[2]); Serial.WriteString(".");
-        Serial.WriteNumber(addrBytes[3]); Serial.WriteString(" port=");
-        Serial.WriteNumber(ipep.Port);
-        Serial.WriteString("\n");
+        Log.WriteString("[SocketPlug] SendTo destAddr=");
+        Log.WriteNumber(addrBytes[0]); Log.WriteString(".");
+        Log.WriteNumber(addrBytes[1]); Log.WriteString(".");
+        Log.WriteNumber(addrBytes[2]); Log.WriteString(".");
+        Log.WriteNumber(addrBytes[3]); Log.WriteString(" port=");
+        Log.WriteNumber(ipep.Port);
+        Log.WriteString("\n");
 
         client.Send(data, destAddr, ipep.Port);
         NetworkStack.Update();
@@ -633,13 +633,13 @@ public static class SocketPlug
         int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
-            Serial.WriteString("[SocketPlug] Must establish a connection before receiving data.\n");
+            Log.WriteString("[SocketPlug] Must establish a connection before receiving data.\n");
             throw new InvalidOperationException("Must establish a connection before receiving data.");
         }
 
         if (offset < 0 || size < 0 || (offset + size) > buffer.Length)
         {
-            Serial.WriteString("[SocketPlug] Receive Invalid offset or size\n");
+            Log.WriteString("[SocketPlug] Receive Invalid offset or size\n");
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
@@ -772,27 +772,27 @@ public static class SocketPlug
 
     public static void CloseTcp(Socket aThis, int timeout)
     {
-        Serial.WriteString("[SocketPlug] CloseTcp: entering\n");
+        Log.WriteString("[SocketPlug] CloseTcp: entering\n");
         int id = GetId(aThis);
         if (!_tcpStateMachines.TryGetValue(id, out var sm))
         {
-            Serial.WriteString("[SocketPlug] CloseTcp: no state machine found, returning\n");
+            Log.WriteString("[SocketPlug] CloseTcp: no state machine found, returning\n");
             return;
         }
 
-        Serial.WriteString("[SocketPlug] CloseTcp: status=");
-        Serial.WriteNumber((ulong)sm.Status);
-        Serial.WriteString("\n");
+        Log.WriteString("[SocketPlug] CloseTcp: status=");
+        Log.WriteNumber((ulong)sm.Status);
+        Log.WriteString("\n");
 
         if (sm.Status == Status.CLOSED)
         {
-            Serial.WriteString("[SocketPlug] CloseTcp: already closed, cleaning up\n");
+            Log.WriteString("[SocketPlug] CloseTcp: already closed, cleaning up\n");
             Tcp.RemoveConnection(sm);
             _tcpStateMachines.Remove(id);
             _endpoints.Remove(id);
             _localEndPoints.Remove(id);
             _remoteEndPoints.Remove(id);
-            Serial.WriteString("[SocketPlug] CloseTcp: cleanup done\n");
+            Log.WriteString("[SocketPlug] CloseTcp: cleanup done\n");
             return;
         }
         else if (sm.Status == Status.CLOSING || sm.Status == Status.CLOSE_WAIT)
@@ -805,7 +805,7 @@ public static class SocketPlug
             {
                 // The final ACK never arrived — detach instead of blocking
                 // forever; Tcp reaps the connection once it reaches CLOSED.
-                Serial.WriteString("[SocketPlug] CloseTcp: passive close pending, detaching connection\n");
+                Log.WriteString("[SocketPlug] CloseTcp: passive close pending, detaching connection\n");
                 sm.Detached = true;
             }
 
@@ -846,7 +846,7 @@ public static class SocketPlug
             {
                 // Half-close: detach the state machine so it finishes the
                 // handshake in the background; Tcp reaps it on CLOSED.
-                Serial.WriteString("[SocketPlug] CloseTcp: peer FIN pending, detaching connection\n");
+                Log.WriteString("[SocketPlug] CloseTcp: peer FIN pending, detaching connection\n");
                 sm.Detached = true;
             }
 
