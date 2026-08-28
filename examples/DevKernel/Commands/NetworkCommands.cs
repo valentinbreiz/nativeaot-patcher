@@ -277,8 +277,6 @@ internal static class NetworkCommands
 
         Terminal.Info("Starting DHCP auto-configuration...");
 
-        NetworkStack.Initialize();
-
         DhcpClient dhcpClient = new();
         if (dhcpClient.SendDiscoverPacket() == DhcpTimeoutResult)
         {

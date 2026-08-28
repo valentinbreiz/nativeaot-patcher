@@ -80,17 +80,11 @@ A `NetworkAdapter` is a handle, not the device: it carries the registration inde
 <!-- screenshot: console showing "Device: Intel E1000E", the MAC, "Link up: True", "Ready: True" -->
 ![Network Device](images/network-device.png)
 
-## Initialize the network stack
-
-Before using any protocol, initialize the stack once (this hooks packet reception to the device):
-
-```csharp
-NetworkStack.Initialize();
-```
-
 ## Configure IPv4
 
 Like on any operating system, the kernel needs an IPv4 configuration (address, subnet mask, gateway) before it can talk to the network. It can be obtained dynamically through DHCP or set manually.
+
+There is no separate stack-initialization step. Configuring an address is what brings the stack up: it maps the address and the MAC to the device. `NetworkStack.RemoveAllConfigIP()` reverses it.
 
 ### Dynamically through DHCP
 

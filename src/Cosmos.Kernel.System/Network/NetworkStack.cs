@@ -15,22 +15,12 @@ public static class NetworkStack
     /// <summary>
     /// Maps IP (Internet Protocol) addresses to network devices.
     /// </summary>
-    internal static Dictionary<uint, INetworkDevice> AddressMap { get; private set; } = new();
+    internal static Dictionary<uint, INetworkDevice> AddressMap { get; } = new();
 
     /// <summary>
     /// Maps MAC addresses to network devices.
     /// </summary>
-    internal static Dictionary<uint, INetworkDevice> MACMap { get; private set; } = new();
-
-    /// <summary>
-    /// Initializes the network stack.
-    /// </summary>
-    public static void Initialize()
-    {
-        // TODO is it required to call initialize at all?
-        AddressMap = new Dictionary<uint, INetworkDevice>();
-        MACMap = new Dictionary<uint, INetworkDevice>();
-    }
+    internal static Dictionary<uint, INetworkDevice> MACMap { get; } = new();
 
     /// <summary>
     /// Configures an IP address on the given network device.
@@ -39,18 +29,13 @@ public static class NetworkStack
     /// <param name="ipAddress">The IP address to assign to the device.</param>
     internal static void ConfigIP(INetworkDevice device, Address ipAddress)
     {
-        if (AddressMap == null || MACMap == null)
-        {
-            Initialize();
-        }
-
         var mac = device.MacAddress;
 
         // Remove old config if exists
-        if (MACMap!.ContainsKey(mac.Hash))
+        if (MACMap.ContainsKey(mac.Hash))
         {
             // Find and remove old IP mapping
-            foreach (var pair in AddressMap!)
+            foreach (var pair in AddressMap)
             {
                 if (pair.Value == device)
                 {
@@ -62,7 +47,7 @@ public static class NetworkStack
         }
 
         // Add new config
-        AddressMap!.Add(ipAddress.Id, device);
+        AddressMap.Add(ipAddress.Id, device);
         MACMap.Add(mac.Hash, device);
 
         // Register packet handler
@@ -87,11 +72,6 @@ public static class NetworkStack
     /// </remarks>
     internal static void ConfigIP(INetworkDevice device, IPConfig config)
     {
-        if (AddressMap == null || MACMap == null)
-        {
-            Initialize();
-        }
-
         ConfigIP(device, config.IPAddress);
         IPConfig.Set(device, config);
     }
@@ -102,8 +82,8 @@ public static class NetworkStack
     /// </summary>
     public static void RemoveAllConfigIP()
     {
-        AddressMap?.Clear();
-        MACMap?.Clear();
+        AddressMap.Clear();
+        MACMap.Clear();
         IPConfig.RemoveAll();
     }
 

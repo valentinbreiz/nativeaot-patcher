@@ -51,12 +51,11 @@ public class Kernel : Sys.Kernel
         Log.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 18);
+        TR.Start("Network Tests", expectedTests: 17);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
         TR.Run("Network_DeviceReady", TestNetworkDeviceReady);
-        TR.Run("Network_StackInitialize", TestNetworkStackInitialize);
         TR.Run("DHCP_AutoConfigure", TestDHCPConfiguration);
 
         // ICMP tests
@@ -137,15 +136,6 @@ public class Kernel : Sys.Kernel
         Log.WriteString("\n");
 
         Assert.True(NetworkManager.Ready, "Network device should be ready");
-    }
-
-    private static void TestNetworkStackInitialize()
-    {
-        NetworkStack.Initialize();
-
-        // NetworkStack.Initialize() should complete without error
-        // Internal maps are not accessible, but we verify the stack is usable
-        Assert.True(true, "NetworkStack initialized successfully");
     }
 
     private static void TestDHCPConfiguration()

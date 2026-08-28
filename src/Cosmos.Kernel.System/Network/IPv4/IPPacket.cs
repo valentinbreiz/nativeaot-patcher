@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.ARP;
 using Cosmos.Kernel.System.Network.IPv4.TCP;
 using Cosmos.Kernel.System.Network.IPv4.UDP;
@@ -44,11 +45,7 @@ public class IPPacket : EthernetPacket
         ArpCache.Update(ipPacket.SourceIP, ipPacket.SourceMAC);
 
         // Check if packet is for us
-        bool isForUs = false;
-        if (NetworkStack.AddressMap != null)
-        {
-            isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
-        }
+        bool isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
         bool isBroadcast = ipPacket.DestinationIP.Parts[3] == 255;
 
         if (isForUs || isBroadcast)
@@ -146,11 +143,11 @@ public class IPPacket : EthernetPacket
     /// </summary>
     private static MACAddress GetSourceMAC(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
+        if (NetworkStack.AddressMap.TryGetValue(sourceIP.Id, out INetworkDevice? device))
         {
-            var device = NetworkStack.AddressMap[sourceIP.Id];
             return device.MacAddress;
         }
+
         return MACAddress.None;
     }
 

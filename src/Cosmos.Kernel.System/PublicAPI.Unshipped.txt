@@ -708,7 +708,6 @@ static Cosmos.Kernel.System.Network.NetworkManager.Ready.get -> bool
 static Cosmos.Kernel.System.Network.NetworkManager.Send(byte[]! data, int length) -> bool
 static Cosmos.Kernel.System.Network.NetworkAdapter.operator !=(Cosmos.Kernel.System.Network.NetworkAdapter left, Cosmos.Kernel.System.Network.NetworkAdapter right) -> bool
 static Cosmos.Kernel.System.Network.NetworkAdapter.operator ==(Cosmos.Kernel.System.Network.NetworkAdapter left, Cosmos.Kernel.System.Network.NetworkAdapter right) -> bool
-static Cosmos.Kernel.System.Network.NetworkStack.Initialize() -> void
 static Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP() -> void
 static Cosmos.Kernel.System.Power.Halt() -> void
 static Cosmos.Kernel.System.Power.Reboot() -> void

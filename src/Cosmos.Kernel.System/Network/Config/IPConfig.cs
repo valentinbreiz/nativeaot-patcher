@@ -194,11 +194,7 @@ public class IPConfig
     /// <param name="sourceIP">Source IP.</param>
     internal static INetworkDevice? FindInterface(Address sourceIP)
     {
-        if (NetworkStack.AddressMap != null && NetworkStack.AddressMap.ContainsKey(sourceIP.Id))
-        {
-            return NetworkStack.AddressMap[sourceIP.Id];
-        }
-        return null;
+        return NetworkStack.AddressMap.TryGetValue(sourceIP.Id, out INetworkDevice? device) ? device : null;
     }
 
     /// <summary>

@@ -1,4 +1,3 @@
-using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 
@@ -51,7 +50,6 @@ internal sealed class NetworkSession
         GatewayIp = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGatewayHostOctet);
         Address subnet = new(SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskHostOctet);
 
-        NetworkStack.Initialize();
         IPConfig.Enable(LocalIp, subnet, GatewayIp);
 
         IsConfigured = true;
