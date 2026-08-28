@@ -22,6 +22,12 @@ public static class StorageManager
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.StorageEnabled;
 
+    /// <summary>
+    /// Throws when storage support is compiled out. Guards actions, not reads:
+    /// a read answers honestly (0, null, false, empty) so a kernel can branch
+    /// on it, and an action names the switch to set instead of failing
+    /// silently.
+    /// </summary>
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
@@ -110,8 +116,11 @@ public static class StorageManager
     /// <see cref="Partitions"/>.
     /// </summary>
     /// <param name="device">The block device to register.</param>
+    /// <exception cref="InvalidOperationException">Storage support is disabled.</exception>
     public static void RegisterDevice(IBlockDevice device)
     {
+        ThrowIfDisabled();
+
         if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)
         {
             return;
@@ -120,10 +129,10 @@ public static class StorageManager
         // Serializes s_devices/s_partitions mutation for post-boot callers
         // (device hotplug paths, tests); reads are still unsynchronized —
         // enumerating Partitions while another thread rescans remains the
-        // caller's problem. Re-registering a known device is a no-op:
-        // RegisterDevice is public and unguarded (unlike Initialize), so a
-        // second RegisterHalDevices call would otherwise double-count the
-        // device and duplicate every partition under identical names.
+        // caller's problem. Re-registering a known device is a no-op: this is
+        // public, so a second RegisterHalDevices call would otherwise
+        // double-count the device and duplicate every partition under
+        // identical names.
         s_mutationLock.Acquire();
         try
         {
@@ -157,8 +166,12 @@ public static class StorageManager
     /// callers that just wrote a new layout (tests, formatting tools) get
     /// a clean partition list.
     /// </summary>
+    /// <param name="device">The registered device to re-scan.</param>
+    /// <exception cref="InvalidOperationException">Storage support is disabled.</exception>
     public static void RescanPartitions(IBlockDevice device)
     {
+        ThrowIfDisabled();
+
         if (s_partitions == null || device == null)
         {
             return;
@@ -277,11 +290,10 @@ public static class StorageManager
     /// Gets a block device by index.
     /// </summary>
     /// <param name="index">The device index.</param>
-    /// <returns>The block device, or null if not found.</returns>
+    /// <returns>The block device, or null when the index names none and when
+    /// storage support is disabled.</returns>
     public static IBlockDevice? GetDevice(int index)
     {
-        ThrowIfDisabled();
-
         if (s_devices == null || index < 0 || index >= s_deviceCount)
         {
             return null;

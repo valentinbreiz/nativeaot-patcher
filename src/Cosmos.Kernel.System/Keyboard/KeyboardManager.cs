@@ -57,6 +57,12 @@ public static class KeyboardManager
     /// </summary>
     public static bool KeyAvailable => s_queuedKeys != null && s_queuedKeys.Count > 0;
 
+    /// <summary>
+    /// Throws when keyboard support is compiled out. Guards actions, not reads:
+    /// a read answers honestly (0, null, false, empty) so a kernel can branch
+    /// on it, and an action names the switch to set instead of failing
+    /// silently.
+    /// </summary>
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
@@ -215,8 +221,6 @@ public static class KeyboardManager
     /// </summary>
     public static bool TryReadKey([NotNullWhen(true)] out KeyEvent? key)
     {
-        ThrowIfDisabled();
-
         if (s_queuedKeys != null && s_queuedKeys.Count > 0)
         {
             key = s_queuedKeys.Dequeue();
@@ -275,8 +279,12 @@ public static class KeyboardManager
     /// <summary>
     /// Sets the currently used keyboard layout.
     /// </summary>
+    /// <param name="scanMap">The layout to use. Ignored when null.</param>
+    /// <exception cref="InvalidOperationException">Keyboard support is disabled.</exception>
     public static void SetKeyLayout(ScanMapBase scanMap)
     {
+        ThrowIfDisabled();
+
         if (scanMap != null)
         {
             s_scanMap = scanMap;

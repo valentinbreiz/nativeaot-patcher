@@ -45,6 +45,22 @@ Experimental seams carry diagnostic IDs:
 
 ---
 
+## Behaviour when a feature is compiled out
+
+Every feature switch (`CosmosEnableStorage`, `CosmosEnableMouse` and the rest) can leave a ring manager with no subsystem behind it. One rule decides what its members do then:
+
+| Kind of member | Behaviour with the feature off |
+|----------------|--------------------------------|
+| A read that can express "nothing here" | Returns the honest answer: `0`, `null`, `false`, an empty list, an invalid handle |
+| A `Try` method | Returns `false` |
+| Anything else | Throws `InvalidOperationException` naming the switch to set |
+
+The reads answer so a kernel can branch on them, and `KernelFeatures` answers the compile-time question directly. The actions throw because the alternative is a silent no-op, which reads as a bug in the kernel rather than a switch left off in its `.csproj`.
+
+Two members cannot follow the read half and say so in their XML docs: `KeyboardManager.Peek` and `ReadKey` return a non-nullable `KeyEvent`, so they have no value for "no key", and `ReadKey` would otherwise block on an interrupt no keyboard will raise.
+
+---
+
 ## The declared surface
 
 Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). That covers `Cosmos.Kernel.System`, `Cosmos.Kernel.Core`, `Cosmos.Kernel.HAL`, and `Cosmos.Kernel.HAL.Interfaces`.

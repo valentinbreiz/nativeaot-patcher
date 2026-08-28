@@ -16,6 +16,12 @@ public static class NetworkManager
     /// </summary>
     public static bool IsEnabled => CosmosFeatures.NetworkEnabled;
 
+    /// <summary>
+    /// Throws when network support is compiled out. Guards actions, not reads:
+    /// a read answers honestly (0, null, false, empty) so a kernel can branch
+    /// on it, and an action names the switch to set instead of failing
+    /// silently.
+    /// </summary>
     private static void ThrowIfDisabled()
     {
         if (!IsEnabled)
@@ -52,12 +58,15 @@ public static class NetworkManager
     /// <see cref="Config.IPConfig.Enable(IPv4.Address, IPv4.Address, IPv4.Address)"/>.
     /// It starts as the first device HAL enumeration registered.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Network support is disabled.</exception>
     /// <exception cref="ArgumentException">Thrown when the assigned handle names no registered device.</exception>
     public static NetworkAdapter Primary
     {
         get => s_primaryIndex >= 0 ? new NetworkAdapter(s_primaryIndex) : default;
         set
         {
+            ThrowIfDisabled();
+
             if (!value.IsValid)
             {
                 throw new ArgumentException("Handle names no registered network device", nameof(value));
@@ -75,7 +84,6 @@ public static class NetworkManager
     /// <returns>A handle to that device, or one whose <see cref="NetworkAdapter.IsValid"/> is false when there is none.</returns>
     public static NetworkAdapter GetAdapter(int index)
     {
-        ThrowIfDisabled();
         return index >= 0 && index < s_deviceCount ? new NetworkAdapter(index) : default;
     }
 
@@ -144,8 +152,6 @@ public static class NetworkManager
     /// <returns>The network device, or null if not found.</returns>
     internal static INetworkDevice? GetDevice(int index)
     {
-        ThrowIfDisabled();
-
         if (s_devices == null || index < 0 || index >= s_deviceCount)
         {
             return null;

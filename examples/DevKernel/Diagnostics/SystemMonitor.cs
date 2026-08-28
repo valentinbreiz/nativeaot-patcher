@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Drawing;
+using Cosmos.Kernel.System;
 using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
@@ -35,7 +36,10 @@ internal static class SystemMonitor
 
         Log.Write("Testing Canvas with mode " + canvas.Mode + " @ " + refreshRate + " Hz\n");
 
-        MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
+        if (KernelFeatures.Mouse)
+        {
+            MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
+        }
 
         int x = OverlayLayout.TextMarginPx;
         int y = OverlayLayout.TextMarginPx;
