@@ -203,34 +203,36 @@ Use `static class` for stateless kernel utilities that have no per-instance stat
 
 ### Managers
 
-Use a `static class` with an `Initialize()` method and an `IsInitialized` property. Managers coordinate subsystem state without requiring an instance:
+Use a `static class`. Managers coordinate subsystem state without requiring an instance. Boot-path setup is an `internal static void Initialize()` called from `LibraryInitializer`, never from a kernel:
 
 ```csharp
 // Simple manager: no underlying instance to expose
 public static class TimerManager
 {
-    private static ITimerDevice? _timer;
-    private static bool _initialized;
+    private static ITimerDevice? s_timer;
 
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_timer != null;
 
-    public static void Initialize() { ... }
-    public static void Wait(int ms) { ... }
+    internal static void RegisterTimer(ITimerDevice timer) { ... }
+    public static void Wait(uint ms) { ... }
 }
 
 // Manager wrapping a pluggable implementation: expose via Current
 public static class SchedulerManager
 {
-    private static IScheduler? _currentScheduler;
+    private static IScheduler? s_currentScheduler;
 
-    public static IScheduler Current => _currentScheduler
-        ?? throw new InvalidOperationException("Scheduler not initialized");
+    public static IScheduler? Current => s_currentScheduler;
 
-    public static void Initialize(IScheduler scheduler) { ... }
+    internal static void Initialize(uint cpuCount) { ... }
 }
 ```
 
 Only add a `Current` property when the manager wraps a pluggable implementation (eg. `IScheduler` for multiple scheduling algorithms). Most managers don't need one.
+
+Do not carry a separate `_initialized` flag next to the state it stands for. Derive `IsInitialized` from that state, and have `Initialize` guard re-entry on the same field, assigning it last so no reader sees `IsInitialized` go true before the state behind it exists.
+
+When a manager sits behind a feature switch, its members follow the rule in [Public API Tracking](public-api.md#behaviour-when-a-feature-is-compiled-out): reads answer honestly with the feature off, actions throw and name the switch.
 
 ### Structs for Low-Level Data
 
