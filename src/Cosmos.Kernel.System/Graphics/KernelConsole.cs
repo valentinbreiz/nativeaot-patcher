@@ -158,8 +158,10 @@ public class KernelConsole
         {
             ApplyFontMetrics(value);
 
-            CursorX = 0;
-            CursorY = 0;
+            // Raw fields: the cursor setters take the console lock, and the
+            // whole canvas is cleared below, so there is nothing to repaint.
+            _cursorX = 0;
+            _cursorY = 0;
 
             _cols = _canvas.Width / _charWidth;
             _rows = _canvas.Height / _charHeight;
@@ -175,35 +177,55 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Gets or sets the cursor X position (column).
+    /// Gets or sets the cursor X position (column). Thread-safe; a column
+    /// outside the terminal is ignored.
     /// </summary>
     public int CursorX
     {
         get => _cursorX;
         set
         {
-            if (value >= 0 && value < _cols)
+            using (InternalCpu.DisableInterruptsScope())
             {
-                EraseCursor();
-                _cursorX = value;
-                DrawCursor();
+                _lock.Acquire();
+                try
+                {
+                    if (value >= 0 && value < _cols)
+                    {
+                        SetCursorLocked(value, _cursorY);
+                    }
+                }
+                finally
+                {
+                    _lock.Release();
+                }
             }
         }
     }
 
     /// <summary>
-    /// Gets or sets the cursor Y position (row).
+    /// Gets or sets the cursor Y position (row). Thread-safe; a row outside
+    /// the terminal is ignored.
     /// </summary>
     public int CursorY
     {
         get => _cursorY;
         set
         {
-            if (value >= 0 && value < _rows)
+            using (InternalCpu.DisableInterruptsScope())
             {
-                EraseCursor();
-                _cursorY = value;
-                DrawCursor();
+                _lock.Acquire();
+                try
+                {
+                    if (value >= 0 && value < _rows)
+                    {
+                        SetCursorLocked(_cursorX, value);
+                    }
+                }
+                finally
+                {
+                    _lock.Release();
+                }
             }
         }
     }
@@ -219,24 +241,35 @@ public class KernelConsole
     public int Rows => _rows;
 
     /// <summary>
-    /// Gets or sets whether the cursor is visible.
+    /// Gets or sets whether the cursor is visible. Thread-safe.
     /// </summary>
     public bool CursorVisible
     {
         get => _cursorVisible;
         set
         {
-            if (_cursorVisible != value)
+            using (InternalCpu.DisableInterruptsScope())
             {
-                if (_cursorVisible)
+                _lock.Acquire();
+                try
                 {
-                    EraseCursor();
-                }
+                    if (_cursorVisible != value)
+                    {
+                        if (_cursorVisible)
+                        {
+                            EraseCursor();
+                        }
 
-                _cursorVisible = value;
-                if (_cursorVisible)
+                        _cursorVisible = value;
+                        if (_cursorVisible)
+                        {
+                            DrawCursor();
+                        }
+                    }
+                }
+                finally
                 {
-                    DrawCursor();
+                    _lock.Release();
                 }
             }
         }
@@ -357,20 +390,56 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (x >= 0 && x < _cols && y >= 0 && y < _rows)
+            _lock.Acquire();
+            try
             {
-                _lock.Acquire();
-                try
+                if (x >= 0 && x < _cols && y >= 0 && y < _rows)
                 {
-                    EraseCursor();
-                    _cursorX = x;
-                    _cursorY = y;
-                    DrawCursor();
+                    SetCursorLocked(x, y);
                 }
-                finally
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Moves the cursor and repaints it at the new cell. The caller holds
+    /// <see cref="_lock"/> with interrupts disabled, and has already checked
+    /// that the position is inside the terminal.
+    /// </summary>
+    private void SetCursorLocked(int x, int y)
+    {
+        EraseCursor();
+        _cursorX = x;
+        _cursorY = y;
+        DrawCursor();
+    }
+
+    /// <summary>
+    /// Moves the cursor by a relative offset, reading and writing the position
+    /// in a single locked section. An offset that would leave the terminal is
+    /// ignored.
+    /// </summary>
+    private void MoveCursorBy(int dx, int dy)
+    {
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            _lock.Acquire();
+            try
+            {
+                int x = _cursorX + dx;
+                int y = _cursorY + dy;
+                if (x >= 0 && x < _cols && y >= 0 && y < _rows)
                 {
-                    _lock.Release();
+                    SetCursorLocked(x, y);
                 }
+            }
+            finally
+            {
+                _lock.Release();
             }
         }
     }
@@ -732,6 +801,7 @@ public class KernelConsole
 
     /// <summary>
     /// Performs a line feed (move to next line, column 0).
+    /// Must be called with the lock held.
     /// </summary>
     private void DoLineFeed()
     {
@@ -747,6 +817,7 @@ public class KernelConsole
 
     /// <summary>
     /// Performs a carriage return (move to column 0).
+    /// Must be called with the lock held.
     /// </summary>
     private void DoCarriageReturn()
     {
@@ -755,6 +826,7 @@ public class KernelConsole
 
     /// <summary>
     /// Performs a backspace (move cursor back and clear character).
+    /// Must be called with the lock held.
     /// </summary>
     private void DoBackspace()
     {
@@ -776,55 +848,39 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Moves the cursor left by one position.
+    /// Moves the cursor left by one position. Thread-safe; a no-op in the
+    /// first column.
     /// </summary>
     public void MoveCursorLeft()
     {
-        if (_cursorX > 0)
-        {
-            EraseCursor();
-            _cursorX--;
-            DrawCursor();
-        }
+        MoveCursorBy(-1, 0);
     }
 
     /// <summary>
-    /// Moves the cursor right by one position.
+    /// Moves the cursor right by one position. Thread-safe; a no-op in the
+    /// last column.
     /// </summary>
     public void MoveCursorRight()
     {
-        if (_cursorX < _cols - 1)
-        {
-            EraseCursor();
-            _cursorX++;
-            DrawCursor();
-        }
+        MoveCursorBy(1, 0);
     }
 
     /// <summary>
-    /// Moves the cursor up by one position.
+    /// Moves the cursor up by one position. Thread-safe; a no-op on the first
+    /// row.
     /// </summary>
     public void MoveCursorUp()
     {
-        if (_cursorY > 0)
-        {
-            EraseCursor();
-            _cursorY--;
-            DrawCursor();
-        }
+        MoveCursorBy(0, -1);
     }
 
     /// <summary>
-    /// Moves the cursor down by one position.
+    /// Moves the cursor down by one position. Thread-safe; a no-op on the last
+    /// row.
     /// </summary>
     public void MoveCursorDown()
     {
-        if (_cursorY < _rows - 1)
-        {
-            EraseCursor();
-            _cursorY++;
-            DrawCursor();
-        }
+        MoveCursorBy(0, 1);
     }
 
     /// <summary>
