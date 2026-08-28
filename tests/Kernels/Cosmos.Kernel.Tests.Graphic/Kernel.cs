@@ -388,6 +388,19 @@ public class Kernel : Sys.Kernel
         vCanvas.DrawCanvas(vCanvas2, 10, 10);
         Assert.Equal(vCanvas.GetPointColor(20, 20).ToArgb(), Color.Magenta.ToArgb(), "Canvas-to-canvas DrawCanvas works");
 
+        // The clipping contract holds on the hardware canvas and on every
+        // shape, not just on DrawPoint of a virtual canvas. All of these used
+        // to throw ArgumentOutOfRangeException or write past the canvas.
+        screen.DrawPoint(Color.White, -1, -1);
+        screen.DrawPoint(Color.White, screen.Width, screen.Height);
+        screen.DrawCircle(Color.White, 2, 2, 6);
+        screen.DrawCircle(Color.White, screen.Width - 2, screen.Height - 2, 6);
+        screen.DrawEllipse(Color.White, 2, 2, 20, 20);
+        screen.DrawFilledRectangle(Color.White, -50, -50, 100, 100);
+        screen.DrawArray(new Color[screen.Width * 4], 0, 0, screen.Width, 4);
+        Assert.True(true, "No drawing primitive throws for out-of-bounds coordinates");
+
+        screen.Clear(Color.Black);
         screen.Display();
 
         Log.Write("Virtual canvas tests executed successfully\n");

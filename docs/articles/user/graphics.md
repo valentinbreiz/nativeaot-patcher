@@ -49,10 +49,11 @@ Console.WriteLine("Refresh:    " + canvas.RefreshRate + " Hz");
 <!-- screenshot: console showing "Canvas: GopCanvas", the resolution and refresh rate -->
 ![Getting a canvas](images/graphics-canvas.png)
 
-Two things to know before you start drawing:
+Four things to know before you start drawing:
 
 - **The resolution is fixed at boot.** Unlike Gen2, requesting a different `Mode` does not reprogram the video card: the canvas always has the resolution the bootloader chose. Use `canvas.Width` and `canvas.Height` instead of assuming one.
 - **Nothing appears until you call `Display()`.** The canvas is double-buffered: every drawing call goes to a back buffer, and `Display()` swaps the finished frame to video memory. Draw the whole frame, then call `Display()` once; that is also what keeps animations flicker-free.
+- **Drawing outside the canvas is safe.** Every primitive clips: pixels outside `0..Width-1` and `0..Height-1` are dropped, a shape that straddles an edge is drawn up to it, and nothing throws. Coordinates never need clamping before a call.
 - **`Console` shares the screen with you.** There is no separate text mode: `Console.WriteLine` is itself rendered on the full-screen canvas (and calls `Display()` on every write). Once you start drawing, stop writing to `Console`: the next write would paint text right over your graphics. This also means an uncaught exception prints over whatever you drew, which, unlike Gen2 where the screen just froze, at least tells you what went wrong.
 
 ## Drawing shapes

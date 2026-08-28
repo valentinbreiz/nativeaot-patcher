@@ -107,7 +107,6 @@ Cosmos.Kernel.System.Graphics.Canvas.Clear() -> void
 Cosmos.Kernel.System.Graphics.Canvas.DrawImageAlpha(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, bool preventOffBoundPixels = true) -> void
 Cosmos.Kernel.System.Graphics.Canvas.GetBuffer() -> int[]?
 Cosmos.Kernel.System.Graphics.Canvas.Height.get -> int
-Cosmos.Kernel.System.Graphics.Canvas.ThrowIfCoordNotValid(int x, int y) -> void
 Cosmos.Kernel.System.Graphics.Canvas.ThrowIfModeIsNotValid(Cosmos.Kernel.System.Graphics.Mode mode) -> void
 Cosmos.Kernel.System.Graphics.Canvas.TrimLine(ref int x1, ref int y1, ref int x2, ref int y2) -> void
 Cosmos.Kernel.System.Graphics.Canvas.Width.get -> int

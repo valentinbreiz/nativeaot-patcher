@@ -111,9 +111,6 @@ while (running)
         }
     }
 
-    x = Math.Clamp(x, 0, canvas.Width - 60);
-    y = Math.Clamp(y, 0, canvas.Height - 60);
-
     canvas.Clear(Color.MidnightBlue);
     canvas.DrawString("Move the square with the arrow keys", font, Color.White, 40, 40);
     canvas.DrawFilledRectangle(Color.Gold, x, y, 60, 60);

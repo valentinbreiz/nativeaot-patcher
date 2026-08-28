@@ -272,14 +272,19 @@ internal class GopCanvas : Canvas
         }
     }
 
-    /*
-        * As DrawPoint() is the basic block of DrawLine() and DrawRect() and in theory of all the future other methods that will
-        * be implemented is better to not check the validity of the arguments here or it will repeat the check for any point
-        * to be drawn slowing down all.
-        */
+    // Every canvas clips at DrawPoint: a pixel outside the canvas is dropped,
+    // never drawn and never thrown for. Skipping the test is not the saving it
+    // looks like, because the same comparison then runs four times per pixel
+    // inside the driver's byte indexer, and a negative X wraps into the
+    // previous row instead of vanishing.
     public override void DrawPoint(Color aColor, int aX, int aY)
     {
         ThrowIfDriverNotInitialized();
+
+        if (aX < 0 || aX >= Width || aY < 0 || aY >= Height)
+        {
+            return;
+        }
 
         //uint offset;
 
@@ -324,7 +329,11 @@ internal class GopCanvas : Canvas
     public override void DrawPoint(uint aColor, int aX, int aY)
     {
         ThrowIfDriverNotInitialized();
-        //uint offset;
+
+        if (aX < 0 || aX >= Width || aY < 0 || aY >= Height)
+        {
+            return;
+        }
 
         switch (Mode.ColorDepth)
         {
@@ -353,8 +362,6 @@ internal class GopCanvas : Canvas
     public override void DrawArray(Color[] aColors, int aX, int aY, int aWidth, int aHeight)
     {
         ThrowIfDriverNotInitialized();
-        ThrowIfCoordNotValid(aX, aY);
-        ThrowIfCoordNotValid(aX + aWidth, aY + aHeight);
 
         // Convert Color[] to uint[] for bulk copy
         var pixels = new uint[aColors.Length];

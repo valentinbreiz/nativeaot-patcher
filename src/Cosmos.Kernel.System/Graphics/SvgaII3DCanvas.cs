@@ -403,21 +403,18 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     /// <inheritdoc />
     public override void DrawPoint(uint color, int x, int y)
     {
-        Driver.DrawPixel(color, x, y);
+        SvgaIIRender.DrawRawPoint(this, Driver, color, x, y);
     }
 
     /// <inheritdoc />
     public override void DrawPoint(int color, int x, int y)
     {
-        Driver.DrawPixel((uint)color, x, y);
+        SvgaIIRender.DrawRawPoint(this, Driver, (uint)color, x, y);
     }
 
     /// <inheritdoc />
     public override void DrawArray(Color[] colors, int x, int y, int width, int height)
     {
-        ThrowIfCoordNotValid(x, y);
-        ThrowIfCoordNotValid(x + width - 1, y + height - 1);
-
         SvgaIIRender.DrawArray(this, colors, x, y, width, height);
     }
 

@@ -71,6 +71,11 @@ internal static class SvgaIIRender
     /// </summary>
     public static void DrawPoint(Canvas canvas, SvgaIIDriver driver, Color color, int x, int y)
     {
+        if (x < 0 || x >= canvas.Width || y < 0 || y >= canvas.Height)
+        {
+            return;
+        }
+
         if (color.A < 255)
         {
             if (color.A == 0)
@@ -82,6 +87,19 @@ internal static class SvgaIIRender
         }
 
         driver.DrawPixel((uint)color.ToArgb(), x, y);
+    }
+
+    /// <summary>
+    /// Draws a raw ARGB point through the device, clipped to the canvas.
+    /// </summary>
+    public static void DrawRawPoint(Canvas canvas, SvgaIIDriver driver, uint color, int x, int y)
+    {
+        if (x < 0 || x >= canvas.Width || y < 0 || y >= canvas.Height)
+        {
+            return;
+        }
+
+        driver.DrawPixel(color, x, y);
     }
 
     /// <summary>

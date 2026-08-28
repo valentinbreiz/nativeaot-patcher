@@ -10,6 +10,12 @@ namespace Cosmos.Kernel.System.Graphics;
 /// Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
 /// canvas, or subclassed for hardware-backed canvases (e.g. <see cref="GopCanvas"/>).
 /// </summary>
+/// <remarks>
+/// Every drawing primitive clips. A pixel outside 0..<see cref="Width"/>-1 by
+/// 0..<see cref="Height"/>-1 is dropped, a shape that straddles an edge is drawn
+/// up to it, and nothing throws for a coordinate, so coordinates never need
+/// clamping before a call.
+/// </remarks>
 public unsafe class Canvas
 {
     /// <summary>
@@ -592,10 +598,6 @@ public unsafe class Canvas
     /// <param name="radius">The radius of the circle to draw.</param>
     public virtual void DrawCircle(Color color, int xCenter, int yCenter, int radius)
     {
-        ThrowIfCoordNotValid(xCenter + radius, yCenter);
-        ThrowIfCoordNotValid(xCenter - radius, yCenter);
-        ThrowIfCoordNotValid(xCenter, yCenter + radius);
-        ThrowIfCoordNotValid(xCenter, yCenter - radius);
         int x = radius;
         int y = 0;
         int e = 0;
@@ -676,10 +678,6 @@ public unsafe class Canvas
     /// <param name="yR">The Y radius.</param>
     public virtual void DrawEllipse(Color color, int xCenter, int yCenter, int xR, int yR)
     {
-        ThrowIfCoordNotValid(xCenter + xR, yCenter);
-        ThrowIfCoordNotValid(xCenter - xR, yCenter);
-        ThrowIfCoordNotValid(xCenter, yCenter + yR);
-        ThrowIfCoordNotValid(xCenter, yCenter - yR);
         int a = 2 * xR;
         int b = 2 * yR;
         int b1 = b & 1;
@@ -826,11 +824,29 @@ public unsafe class Canvas
         {
             height = width;
         }
-        if (preventOffBoundPixels)
+
+        // Clip both corners, not just the far one: a negative origin used to
+        // walk rows above the canvas and draw each one from a negative X.
+        if (xStart < 0)
         {
-            width = Math.Min(width, (int)Mode.Width - xStart);
-            height = Math.Min(height, (int)Mode.Height - yStart);
+            width += xStart;
+            xStart = 0;
         }
+
+        if (yStart < 0)
+        {
+            height += yStart;
+            yStart = 0;
+        }
+
+        width = Math.Min(width, (int)Mode.Width - xStart);
+        height = Math.Min(height, (int)Mode.Height - yStart);
+
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
+
         for (int y = yStart; y < yStart + height; y++)
         {
             DrawLine(color, xStart, y, xStart + width - 1, y);
@@ -1177,7 +1193,7 @@ public unsafe class Canvas
                 byte byteValue = data[p + (cy * bytesPerRow) + (cx / 8)];
                 if (font.ConvertByteToBitAddress(byteValue, (cx % 8) + 1))
                 {
-                    DrawPoint(color, (ushort)(x + cx), (ushort)(y + cy));
+                    DrawPoint(color, x + cx, y + cy);
                 }
             }
         }
@@ -1213,26 +1229,6 @@ public unsafe class Canvas
         }
 
         throw new ArgumentOutOfRangeException(nameof(mode), $"Mode {mode} is not supported by this driver");
-    }
-
-    /// <summary>
-    /// Validates that the given coordinates are in-range of the canvas, and
-    /// throws an exception if the coordinates are out-of-bounds.
-    /// </summary>
-    /// <param name="x">The X coordinate.</param>
-    /// <param name="y">The Y coordinate.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if the coordinates are invalid.</exception>
-    protected void ThrowIfCoordNotValid(int x, int y)
-    {
-        if (x < 0 || x >= Mode.Width)
-        {
-            throw new ArgumentOutOfRangeException(nameof(x), $"X coordinate ({x}) is not between 0 and {Mode.Width}");
-        }
-
-        if (y < 0 || y >= Mode.Height)
-        {
-            throw new ArgumentOutOfRangeException(nameof(y), $"Y coordinate ({y}) is not between 0 and {Mode.Height}");
-        }
     }
 
     /// <summary>
