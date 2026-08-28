@@ -10,6 +10,17 @@ namespace Cosmos.Kernel.HAL.Vfs;
 /// - Permissions: owner/group/other read, write, execute (bits 0-8)
 /// - Special: sticky, setgid, setuid (bits 9-11)
 /// - File type: high nibble encodes the type (bits 12-15); mask with <see cref="FileTypeMask"/>.
+/// <para>
+/// The file-type nibble is an enumerated field, not a bit set, even though the
+/// type carries <see cref="FlagsAttribute"/> for the permission bits. Its values
+/// overlap: <see cref="BlockDevice"/> is <see cref="CharacterDevice"/> |
+/// <see cref="Directory"/>, <see cref="SymbolicLink"/> is
+/// <see cref="CharacterDevice"/> | <see cref="RegularFile"/>, and
+/// <see cref="Socket"/> is <see cref="Directory"/> | <see cref="RegularFile"/>.
+/// Test a type with <c>(mode &amp; FileTypeMask) == Directory</c> or with
+/// <see cref="VfsStat.IsDirectory"/>; <c>HasFlag</c> reports false positives on
+/// every file-type value.
+/// </para>
 /// </remarks>
 [Flags]
 public enum ModeEnum

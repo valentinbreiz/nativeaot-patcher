@@ -258,8 +258,7 @@ public static partial class VfsManager
         // A regular file resolves just as well as a directory. Without the type
         // check the caller gets a directory handle whose every operation then
         // fails inside the driver with a misleading error.
-        if (!inode.InodeOperations.GetAttr(inode, out VfsStat stat)
-            || (stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+        if (!inode.InodeOperations.GetAttr(inode, out VfsStat stat) || !stat.IsDirectory)
         {
             return false;
         }
@@ -276,8 +275,7 @@ public static partial class VfsManager
         VfsStat stat;
         if (inode.InodeOperations.GetAttr(inode, out stat))
         {
-            ModeEnum type = stat.Mode & ModeEnum.FileTypeMask;
-            if (type == ModeEnum.Directory)
+            if (stat.IsDirectory)
             {
                 return new VfsDirectoryHandle(name, inode);
             }

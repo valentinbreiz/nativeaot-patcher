@@ -38,7 +38,7 @@ public static partial class VfsManager
             return false;
         }
 
-        if ((stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+        if (!stat.IsDirectory)
         {
             return false;
         }
@@ -249,7 +249,7 @@ public static partial class VfsManager
             return false;
         }
 
-        bool oldIsDirectory = (oldStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+        bool oldIsDirectory = oldStat.IsDirectory;
         if (oldIsDirectory && newFullPath.StartsWith($"{oldFullPath}{s_directorySeparatorString}", StringComparison.Ordinal))
         {
             return false;
@@ -284,7 +284,7 @@ public static partial class VfsManager
 
         if (destinationExists && !sameEntry)
         {
-            bool newIsDirectory = (newStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+            bool newIsDirectory = newStat.IsDirectory;
             if (oldIsDirectory != newIsDirectory)
             {
                 return false;

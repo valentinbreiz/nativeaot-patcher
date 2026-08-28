@@ -31,4 +31,21 @@ public struct VfsStat
     public VfsTimespec Mtime;
     /// <summary>Last status change time (<c>st_ctim</c>).</summary>
     public VfsTimespec Ctime;
+
+    /// <summary>True when <see cref="Mode"/> encodes a directory.</summary>
+    /// <remarks>
+    /// The file-type nibble is an enumerated field, not a bit set. Test it with
+    /// this helper, never with <c>Mode.HasFlag(ModeEnum.Directory)</c>, which is
+    /// also true for <see cref="ModeEnum.BlockDevice"/> and
+    /// <see cref="ModeEnum.Socket"/>.
+    /// </remarks>
+    public readonly bool IsDirectory => (Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+
+    /// <summary>True when <see cref="Mode"/> encodes a regular file.</summary>
+    /// <remarks>See <see cref="IsDirectory"/> for why this is not a flag test.</remarks>
+    public readonly bool IsRegularFile => (Mode & ModeEnum.FileTypeMask) == ModeEnum.RegularFile;
+
+    /// <summary>True when <see cref="Mode"/> encodes a symbolic link.</summary>
+    /// <remarks>See <see cref="IsDirectory"/> for why this is not a flag test.</remarks>
+    public readonly bool IsSymbolicLink => (Mode & ModeEnum.FileTypeMask) == ModeEnum.SymbolicLink;
 }

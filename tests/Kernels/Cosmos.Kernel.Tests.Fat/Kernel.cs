@@ -530,7 +530,7 @@ public class Kernel : Sys.Kernel
             Assert.True(VfsManager.TryOpenDirectory(Fat32Mount, out IVfsDirectoryHandle? root));
             Assert.NotNull(root);
             Assert.True(root!.TryStat(out VfsStat stat));
-            Assert.True((stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory);
+            Assert.True(stat.IsDirectory);
         });
 
         TR.Run("Test_Fat32_OpenDirectory_RejectsRegularFile", () =>

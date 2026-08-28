@@ -87,6 +87,9 @@ Cosmos.Kernel.HAL.Vfs.VfsStat.Blocks -> ulong
 Cosmos.Kernel.HAL.Vfs.VfsStat.Ctime -> Cosmos.Kernel.HAL.Vfs.VfsTimespec
 Cosmos.Kernel.HAL.Vfs.VfsStat.Gid -> uint
 Cosmos.Kernel.HAL.Vfs.VfsStat.Ino -> ulong
+Cosmos.Kernel.HAL.Vfs.VfsStat.IsDirectory.get -> bool
+Cosmos.Kernel.HAL.Vfs.VfsStat.IsRegularFile.get -> bool
+Cosmos.Kernel.HAL.Vfs.VfsStat.IsSymbolicLink.get -> bool
 Cosmos.Kernel.HAL.Vfs.VfsStat.Mode -> Cosmos.Kernel.HAL.Vfs.ModeEnum
 Cosmos.Kernel.HAL.Vfs.VfsStat.Mtime -> Cosmos.Kernel.HAL.Vfs.VfsTimespec
 Cosmos.Kernel.HAL.Vfs.VfsStat.NLink -> uint

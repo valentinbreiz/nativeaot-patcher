@@ -105,7 +105,7 @@ internal static unsafe class FileDescriptorTable
                 return PalError.EEXIST;
             }
 
-            if ((stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory)
+            if (stat.IsDirectory)
             {
                 // SafeFileHandle.Open remaps EISDIR to EACCES, which is the
                 // BCL's documented behavior for opening a directory path.
@@ -451,7 +451,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.ENOENT;
         }
 
-        if ((stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory)
+        if (stat.IsDirectory)
         {
             return PalError.EISDIR;
         }
@@ -507,7 +507,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.ENOENT;
         }
 
-        if ((stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+        if (!stat.IsDirectory)
         {
             return PalError.ENOTDIR;
         }
@@ -545,7 +545,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.ENOENT;
         }
 
-        bool oldIsDirectory = (oldStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+        bool oldIsDirectory = oldStat.IsDirectory;
         if (oldIsDirectory && newFull.StartsWith(oldFull + "/", StringComparison.Ordinal))
         {
             return PalError.EINVAL;
@@ -573,7 +573,7 @@ internal static unsafe class FileDescriptorTable
 
             if (!sameEntry)
             {
-                bool newIsDirectory = (newStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+                bool newIsDirectory = newStat.IsDirectory;
                 if (oldIsDirectory && !newIsDirectory)
                 {
                     return PalError.ENOTDIR;
@@ -634,7 +634,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.ENOENT;
         }
 
-        if ((stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+        if (!stat.IsDirectory)
         {
             return PalError.ENOTDIR;
         }
@@ -674,7 +674,7 @@ internal static unsafe class FileDescriptorTable
                 return PalError.ENOENT;
             }
 
-            if ((stat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+            if (!stat.IsDirectory)
             {
                 return PalError.ENOTDIR;
             }
@@ -694,7 +694,7 @@ internal static unsafe class FileDescriptorTable
                 bool directoryEntry = entry.FileOperations == null;
                 if (entry.InodeOperations != null && entry.InodeOperations.GetAttr(entry, out VfsStat entryStat))
                 {
-                    directoryEntry = (entryStat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+                    directoryEntry = entryStat.IsDirectory;
                 }
 
                 isDirectory[i] = directoryEntry;
@@ -822,7 +822,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.ENOENT;
         }
 
-        if ((parentStat.Mode & ModeEnum.FileTypeMask) != ModeEnum.Directory)
+        if (!parentStat.IsDirectory)
         {
             return PalError.ENOTDIR;
         }

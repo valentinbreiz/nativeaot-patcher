@@ -204,7 +204,7 @@ internal static class FileCommands
     {
         VfsStat stat = default;
         bool haveStat = entry.InodeOperations != null && entry.InodeOperations.GetAttr(entry, out stat);
-        bool isDirectory = haveStat && (stat.Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+        bool isDirectory = haveStat && stat.IsDirectory;
 
         Console.Write("  ");
         if (isDirectory)
