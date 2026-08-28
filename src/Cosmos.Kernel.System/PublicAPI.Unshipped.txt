@@ -470,8 +470,7 @@ Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Close() -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Connect(Cosmos.Kernel.System.Network.IPv4.Address! dest, int destPort) -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Dispose() -> void
-Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.NonBlockingReceive(ref Cosmos.Kernel.System.Network.IPv4.EndPoint! source) -> byte[]?
-Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Receive(ref Cosmos.Kernel.System.Network.IPv4.EndPoint! source) -> byte[]!
+Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Receive(ref Cosmos.Kernel.System.Network.IPv4.EndPoint! source, int timeoutMs = 5000) -> byte[]?
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Send(byte[]! data) -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Send(byte[]! data, Cosmos.Kernel.System.Network.IPv4.Address! dest, int destPort) -> void
 Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.UdpClient() -> void

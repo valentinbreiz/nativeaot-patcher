@@ -181,35 +181,27 @@ public class UdpClient : IDisposable
     public bool Send(UdpPacket packet) => Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
 
     /// <summary>
-    /// Receives data from the given end-point (non-blocking).
+    /// Receives a datagram, waiting up to <paramref name="timeoutMs"/> for one
+    /// to arrive.
     /// </summary>
-    /// <param name="source">The source end point.</param>
-    public byte[]? NonBlockingReceive(ref EndPoint source)
+    /// <param name="source">Carries the sender's end point back when a datagram arrives.</param>
+    /// <param name="timeoutMs">How long to wait, in milliseconds; 0 polls and returns at once.</param>
+    /// <returns>The datagram payload, or <see langword="null"/> when none arrived in time.</returns>
+    public byte[]? Receive(ref EndPoint source, int timeoutMs = 5000)
     {
+        int waited = 0;
+        while (_rxBuffer.Count < 1 && waited < timeoutMs)
+        {
+            TimerManager.Wait(10);
+            waited += 10;
+        }
+
         if (_rxBuffer.Count < 1)
         {
             return null;
         }
 
-        var packet = new UdpPacket(_rxBuffer.Dequeue().RawData);
-        source.Address = packet.SourceIP;
-        source.Port = packet.SourcePort;
-
-        return packet.UDPData;
-    }
-
-    /// <summary>
-    /// Receives data from the given end-point (blocking).
-    /// </summary>
-    /// <param name="source">The source end point.</param>
-    public byte[] Receive(ref EndPoint source)
-    {
-        while (_rxBuffer.Count < 1)
-        {
-            ;
-        }
-
-        var packet = new UdpPacket(_rxBuffer.Dequeue().RawData);
+        UdpPacket packet = new(_rxBuffer.Dequeue().RawData);
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
@@ -219,7 +211,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// Waits for a datagram to arrive on this client's local port and returns the parsed
     /// <see cref="UdpPacket"/> itself, without re-parsing. Unlike
-    /// <see cref="NonBlockingReceive"/> and <see cref="Receive"/>, which return the payload
+    /// <see cref="Receive"/>, which returns the payload
     /// bytes alone, the returned packet exposes the ports, the source and destination
     /// addresses, and the payload. Polls the receive buffer in 10 millisecond slices.
     /// </summary>

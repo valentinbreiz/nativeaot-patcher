@@ -15,6 +15,12 @@ namespace Cosmos.Kernel.Plugs.System.Net.Sockets;
 [Plug(typeof(Socket))]
 public static class SocketPlug
 {
+    // Receive timeout for the UDP socket paths. Zero because SO_RCVTIMEO is not
+    // plumbed through yet: these poll once and leave the waiting to the caller,
+    // which is what the counter spin they replaced effectively did, without
+    // burning the cycles.
+    private const int UdpPollTimeoutMs = 0;
+
     // Store protocol type per socket (public for cross-assembly access when patched)
     public static readonly Dictionary<int, ProtocolType> _protocolTypes = new();
     // Store TCP state machine per socket instance
@@ -602,20 +608,8 @@ public static class SocketPlug
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
-        // Wait for data
-        int timeout = 0;
-        while (client._rxBuffer.Count < 1 && timeout < 100000)
-        {
-            timeout++;
-        }
-
-        if (client._rxBuffer.Count < 1)
-        {
-            return 0;
-        }
-
-        var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[]? data = client.NonBlockingReceive(ref ep);
+        KernelEndPoint ep = new(Address.Zero, 0);
+        byte[]? data = client.Receive(ref ep, UdpPollTimeoutMs);
 
         if (data == null)
         {
@@ -703,20 +697,8 @@ public static class SocketPlug
             throw new ArgumentOutOfRangeException("Invalid offset or size");
         }
 
-        // Wait for data
-        int timeout = 0;
-        while (client._rxBuffer.Count < 1 && timeout < 100000)
-        {
-            timeout++;
-        }
-
-        if (client._rxBuffer.Count < 1)
-        {
-            return 0;
-        }
-
-        var ep = new KernelEndPoint(Address.Zero, 0);
-        byte[]? data = client.NonBlockingReceive(ref ep);
+        KernelEndPoint ep = new(Address.Zero, 0);
+        byte[]? data = client.Receive(ref ep, UdpPollTimeoutMs);
 
         if (data == null)
         {
