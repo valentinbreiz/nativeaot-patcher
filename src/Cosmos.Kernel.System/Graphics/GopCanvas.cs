@@ -124,7 +124,7 @@ internal class GopCanvas : Canvas
     public override Mode Mode
     {
         get => _mode;
-        set
+        protected internal set
         {
             // GOP/Limine cannot change the framebuffer mode after boot (SetMode is
             // a no-op), so a requested mode must not shadow the real framebuffer

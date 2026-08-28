@@ -31,12 +31,31 @@ public unsafe class Canvas
     private Mode _mode;
 
     /// <summary>
-    /// The currently used display mode.
+    /// The currently used display mode. Setting it resizes a virtual canvas'
+    /// buffer, discarding its contents, and recomputes the pixel metrics.
+    /// Hardware-backed canvases reprogram the device in their override.
     /// </summary>
+    /// <remarks>
+    /// The setter is not part of the ring: a kernel picks its mode when it
+    /// acquires the canvas, through <see cref="GetFullScreen(Mode)"/> or the
+    /// virtual-canvas constructor.
+    /// </remarks>
     public virtual Mode Mode
     {
         get => _mode;
-        set => _mode = value;
+        protected internal set
+        {
+            _mode = value;
+            _bytesPerPixel = (int)value.ColorDepth / 8;
+            _stride = (int)value.ColorDepth / 8;
+            _pitch = (int)value.Width * _bytesPerPixel;
+
+            int length = (int)value.Width * (int)value.Height;
+            if (Buffer != null && Buffer.Length != length)
+            {
+                Buffer = new int[length];
+            }
+        }
     }
 
     /// <summary>

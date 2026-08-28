@@ -42,7 +42,7 @@ internal class SvgaIICanvas : Canvas
     public override Mode Mode
     {
         get => base.Mode;
-        set
+        protected internal set
         {
             ThrowIfModeIsNotValid(value);
             base.Mode = value;

@@ -94,7 +94,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     public override Mode Mode
     {
         get => base.Mode;
-        set
+        protected internal set
         {
             ThrowIfModeIsNotValid(value);
             base.Mode = value;
