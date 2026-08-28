@@ -67,10 +67,10 @@ public static class KeyboardManager
     }
 
     /// <summary>
-    /// Initializes the keyboard manager.
-    /// Call RegisterKeyboard() after this to add keyboards.
+    /// Initializes the keyboard manager. Called once during boot, before the
+    /// platform keyboards are registered.
     /// </summary>
-    public static void Initialize()
+    internal static void Initialize()
     {
         ThrowIfDisabled();
 

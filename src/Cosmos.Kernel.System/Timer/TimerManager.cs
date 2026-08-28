@@ -21,9 +21,10 @@ public static class TimerManager
     public static bool IsInitialized => s_initialized;
 
     /// <summary>
-    /// Initializes the timer manager.
+    /// Initializes the timer manager. Called once during boot, before the
+    /// platform timer is registered.
     /// </summary>
-    public static void Initialize()
+    internal static void Initialize()
     {
         if (s_initialized)
         {

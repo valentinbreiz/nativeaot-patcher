@@ -60,9 +60,10 @@ public static class StorageManager
     public static IReadOnlyList<Partition> Partitions => (IReadOnlyList<Partition>?)s_partitions ?? Array.Empty<Partition>();
 
     /// <summary>
-    /// Initializes the storage manager.
+    /// Initializes the storage manager. Called once during boot, before the
+    /// HAL block devices are registered.
     /// </summary>
-    public static void Initialize()
+    internal static void Initialize()
     {
         ThrowIfDisabled();
 
@@ -82,7 +83,7 @@ public static class StorageManager
     /// (AHCI ports, NVMe namespaces). Called once during boot after the HAL
     /// has initialized the controllers.
     /// </summary>
-    public static void RegisterHalDevices()
+    internal static void RegisterHalDevices()
     {
         if (!IsEnabled)
         {

@@ -100,9 +100,10 @@ public static class NetworkManager
     public static int DeviceCount => s_deviceCount;
 
     /// <summary>
-    /// Initializes the network manager.
+    /// Initializes the network manager. Called once during boot, before the
+    /// platform network device is registered.
     /// </summary>
-    public static void Initialize()
+    internal static void Initialize()
     {
         ThrowIfDisabled();
 

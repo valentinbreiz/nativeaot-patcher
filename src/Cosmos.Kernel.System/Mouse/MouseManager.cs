@@ -83,10 +83,10 @@ public static class MouseManager
     }
 
     /// <summary>
-    /// Initializes the mouse manager.
-    /// Call RegisterMouse() after this to add mice.
+    /// Initializes the mouse manager. Called once during boot, before the
+    /// platform mice are registered.
     /// </summary>
-    public static void Initialize()
+    internal static void Initialize()
     {
         ThrowIfDisabled();
 
