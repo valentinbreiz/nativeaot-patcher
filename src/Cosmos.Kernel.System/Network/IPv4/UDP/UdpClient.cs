@@ -50,6 +50,20 @@ public class UdpClient : IDisposable
     /// The RX buffer queue.
     /// </summary>
     internal Queue<UdpPacket> _rxBuffer;
+    private bool _disposed;
+
+    /// <summary>
+    /// Throws once <see cref="Dispose"/> has run. <see cref="Close"/> does not
+    /// arm this: closing only stops delivery to this client, and the DHCP flow
+    /// closes itself mid-exchange and keeps going.
+    /// </summary>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(UdpClient));
+        }
+    }
 
     /// <summary>
     /// Gets a UDP client running on the given port.
@@ -106,6 +120,8 @@ public class UdpClient : IDisposable
     /// <param name="destPort">The _destination port.</param>
     public void Connect(Address dest, int destPort)
     {
+        ThrowIfDisposed();
+
         _destination = dest;
         _destinationPort = destPort;
     }
@@ -127,6 +143,8 @@ public class UdpClient : IDisposable
     /// <param name="data">The data to send.</param>
     public void Send(byte[] data)
     {
+        ThrowIfDisposed();
+
         if (_destination == null || _destinationPort == 0)
         {
             throw new InvalidOperationException("Must establish a default remote host by calling Connect() before using this Send() overload");
@@ -144,6 +162,8 @@ public class UdpClient : IDisposable
     /// <param name="destPort">The _destination port.</param>
     public void Send(byte[] data, Address dest, int destPort)
     {
+        ThrowIfDisposed();
+
         Serial.WriteString("[UdpClient] Send to ");
         Serial.WriteString(dest.ToString());
         Serial.WriteString(":");
@@ -178,7 +198,12 @@ public class UdpClient : IDisposable
     /// <see langword="false"/> when no configured network interface matches the packet's
     /// source address.</returns>
     [Experimental(Experimentals.PacketSeamDiagId)]
-    public bool Send(UdpPacket packet) => Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+    public bool Send(UdpPacket packet)
+    {
+        ThrowIfDisposed();
+
+        return Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+    }
 
     /// <summary>
     /// Receives a datagram, waiting up to <paramref name="timeoutMs"/> for one
@@ -189,6 +214,8 @@ public class UdpClient : IDisposable
     /// <returns>The datagram payload, or <see langword="null"/> when none arrived in time.</returns>
     public byte[]? Receive(ref EndPoint source, int timeoutMs = 5000)
     {
+        ThrowIfDisposed();
+
         int waited = 0;
         while (_rxBuffer.Count < 1 && waited < timeoutMs)
         {
@@ -222,6 +249,8 @@ public class UdpClient : IDisposable
     [Experimental(Experimentals.PacketSeamDiagId)]
     public UdpPacket? ReceivePacket(int timeoutMs = 5000)
     {
+        ThrowIfDisposed();
+
         int waited = 0;
         while (_rxBuffer.Count < 1 && waited < timeoutMs)
         {
@@ -247,10 +276,18 @@ public class UdpClient : IDisposable
     }
 
     /// <summary>
-    /// Closes the client, like <see cref="Close"/>.
+    /// Closes the client and retires it. Unlike <see cref="Close"/>, which a
+    /// client reopens by connecting again, disposal is final: every other
+    /// member throws <see cref="ObjectDisposedException"/> afterwards.
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         Close();
     }
 }

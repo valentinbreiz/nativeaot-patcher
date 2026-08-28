@@ -20,6 +20,20 @@ public class IcmpClient : IDisposable
     /// The RX buffer queue.
     /// </summary>
     internal Queue<IcmpPacket> _rxBuffer;
+    private bool _disposed;
+
+    /// <summary>
+    /// Throws once <see cref="Dispose"/> has run. <see cref="Close"/> does not
+    /// arm this: closing only stops delivery to this client, and
+    /// <see cref="Connect"/> reopens it.
+    /// </summary>
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(IcmpClient));
+        }
+    }
 
     /// <summary>
     /// Gets a client by its IP address hash.
@@ -49,6 +63,8 @@ public class IcmpClient : IDisposable
     /// <param name="dest">The _destination address.</param>
     public void Connect(Address dest)
     {
+        ThrowIfDisposed();
+
         _destination = dest;
         s_clients[dest.Id] = this;
     }
@@ -71,6 +87,8 @@ public class IcmpClient : IDisposable
     /// <param name="sequence">The echo sequence number.</param>
     public void SendEcho(ushort id = 0x0001, ushort sequence = 0x0001)
     {
+        ThrowIfDisposed();
+
         if (_destination == null)
         {
             throw new InvalidOperationException("Must establish a _destination by calling Connect() before using SendEcho()");
@@ -89,7 +107,12 @@ public class IcmpClient : IDisposable
     /// <param name="packet">The packet to transmit; its headers and checksum must already be final.</param>
     /// <returns><see langword="false"/> when no configured interface matches the packet's source address; otherwise, <see langword="true"/>.</returns>
     [Experimental(Experimentals.PacketSeamDiagId)]
-    public bool Send(IcmpPacket packet) => Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+    public bool Send(IcmpPacket packet)
+    {
+        ThrowIfDisposed();
+
+        return Cosmos.Kernel.System.Network.NetworkStack.Send(packet);
+    }
 
     /// <summary>
     /// Receives one ICMP packet from this client's receive queue. Unlike
@@ -101,6 +124,8 @@ public class IcmpClient : IDisposable
     [Experimental(Experimentals.PacketSeamDiagId)]
     public IcmpPacket? ReceivePacket(int timeoutMs = 5000)
     {
+        ThrowIfDisposed();
+
         int waited = 0;
         while (_rxBuffer.Count < 1 && waited < timeoutMs)
         {
@@ -124,6 +149,8 @@ public class IcmpClient : IDisposable
     /// <returns>The elapsed time in milliseconds, or -1 if a timeout has been reached.</returns>
     public int Receive(ref EndPoint source, int timeout = 5000)
     {
+        ThrowIfDisposed();
+
         int waited = 0;
         while (_rxBuffer.Count < 1 && waited < timeout)
         {
@@ -152,10 +179,19 @@ public class IcmpClient : IDisposable
     }
 
     /// <summary>
-    /// Closes the client, like <see cref="Close"/>.
+    /// Closes the client and retires it. Unlike <see cref="Close"/>, which a
+    /// client reopens by calling <see cref="Connect"/> again, disposal is
+    /// final: every other member throws
+    /// <see cref="ObjectDisposedException"/> afterwards.
     /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         Close();
     }
 }

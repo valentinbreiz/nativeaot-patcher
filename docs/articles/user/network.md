@@ -315,6 +315,7 @@ The contract the packet types actually implement:
 - No TLS, so no `HttpClient`/HTTPS: raw TCP only.
 - Several NICs are registered and configured, and outbound packets are routed by matching the source address against each interface's configuration, so `NetworkManager.Primary` decides only where the unrouted helpers (`NetworkManager.Send`, the no-handle `IPConfig.Enable`) go.
 - Half-close is not supported: `Close()` on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.
+- On the Cosmos `UdpClient` and `IcmpClient`, `Close()` and `Dispose()` are not the same door. `Close()` stops delivery to the client and an `IcmpClient` reopens with another `Connect()`; `Dispose()` (including the one a `using` block runs) retires the client for good, and every other member throws `ObjectDisposedException` afterwards.
 
 ## How it works
 
