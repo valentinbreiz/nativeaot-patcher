@@ -103,7 +103,11 @@ internal static class SchedulerCommands
 
         Terminal.InfoLine("Scheduler", SchedulerInfo.SchedulerName!);
         Terminal.InfoLine("CPU Count", SchedulerInfo.CpuCount.ToString());
-        Terminal.InfoLine("Default quantum", (SchedulerInfo.DefaultQuantumNs / Units.NsPerMs).ToString() + " ms");
+        Terminal.InfoLine(
+            "Tick period",
+            SchedulerInfo.TickPeriodNs == 0
+                ? "no tick yet"
+                : (SchedulerInfo.TickPeriodNs / Units.NsPerMs).ToString() + " ms");
         Console.WriteLine();
 
         for (uint cpuId = 0; cpuId < SchedulerInfo.CpuCount; cpuId++)

@@ -36,11 +36,13 @@ public static class SchedulerManager
     private static ulong s_exitedNonIdleRuntimeNs;
 
     /// <summary>
-    /// The kernel's reference time slice in nanoseconds (10 ms). The boot
-    /// path arms the scheduler timer at this interval, so it is also the
-    /// value <see cref="IScheduler.OnTick"/> receives as <c>elapsedNs</c>.
-    /// A policy is free to preempt on its own terms and need not treat this
-    /// as its slice.
+    /// The interval the boot path asks the platform to arm the scheduler
+    /// timer at, in nanoseconds (10 ms), and the slice the built-in Stride
+    /// policy tunes itself against. It is a starting value, not a running
+    /// fact: a driver can retune the timer afterwards, so read
+    /// <see cref="TickPeriodNs"/> for what the kernel is actually ticking
+    /// at. A policy is free to preempt on its own terms and need not treat
+    /// either number as its slice.
     /// </summary>
     public const ulong DefaultQuantumNs = 10_000_000;
 
@@ -779,6 +781,17 @@ public static class SchedulerManager
     // Debug counter to avoid flooding serial output
     private static uint s_tickCount;
 
+    private static ulong s_tickPeriodNs;
+
+    /// <summary>
+    /// Interval between scheduler ticks in nanoseconds, as the timer last
+    /// reported it, or 0 before the first tick. This is the real preemption
+    /// granularity: whatever slice a policy believes it is handing out, it
+    /// cannot preempt more finely than the timer fires. Surfaced on the ring
+    /// as <c>SchedulerInfo.TickPeriodNs</c>.
+    /// </summary>
+    internal static ulong TickPeriodNs => s_tickPeriodNs;
+
     /// <summary>
     /// Called from timer interrupt handler to process scheduling.
     /// This is the main entry point for preemptive scheduling.
@@ -789,6 +802,13 @@ public static class SchedulerManager
     internal static void OnTimerInterrupt(uint cpuId, nuint currentRsp, ulong elapsedNs)
     {
         s_tickCount++;
+
+        // Recorded before the early returns below, so the period is readable
+        // whether or not the scheduler is armed yet. The timer owns this
+        // number: the boot path asks for DefaultQuantumNs, but a driver can
+        // retune the device afterwards, and on ARM64 the scheduler tick and
+        // the ring's TimerManager are the same device.
+        s_tickPeriodNs = elapsedNs;
 
         // Refresh the debug-live snapshot every 10 ticks (~100ms at 100Hz)
         // so the host-side QMP poller sees fresh thread state without

@@ -49,15 +49,14 @@ public static class SchedulerInfo
     public static uint CpuCount => SchedulerManager.CpuCount;
 
     /// <summary>
-    /// The kernel's reference time slice in nanoseconds, and the interval
-    /// the scheduler timer is armed at. It is not a promise about the
-    /// installed policy: nothing on <c>IScheduler</c> reports a slice, and a
-    /// policy is free to preempt on its own terms. The built-in Stride
-    /// policy uses this value twice, once to normalize its pass accounting
-    /// and once as the fallback "this thread has had its turn" test; the
-    /// Round-Robin policy in the test suite runs at twice it.
+    /// Interval between scheduler ticks in nanoseconds, as the timer last
+    /// reported it, or 0 before the first tick. This is the preemption
+    /// granularity of the running kernel: whatever slice the installed
+    /// policy believes it is handing out, it cannot preempt more finely than
+    /// the timer fires. A policy's own slice is a policy-private number;
+    /// nothing on the scheduler seam reports one.
     /// </summary>
-    public static ulong DefaultQuantumNs => SchedulerManager.DefaultQuantumNs;
+    public static ulong TickPeriodNs => SchedulerManager.TickPeriodNs;
 
     /// <summary>
     /// Total busy CPU time in nanoseconds, summed over all CPUs and all

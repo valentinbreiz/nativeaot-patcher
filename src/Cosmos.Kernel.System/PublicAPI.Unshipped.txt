@@ -591,7 +591,6 @@ static Cosmos.Kernel.System.Diagnostics.MemoryInfo.RamSizeBytes.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.TotalPages.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.BusyCpuTimeNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.CpuCount.get -> uint
-static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.DefaultQuantumNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.GetRunQueueCount(uint cpuId) -> int
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.IsRunning.get -> bool
@@ -600,6 +599,7 @@ static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.RequestKill(uint threadId)
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.SchedulerName.get -> string?
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.ThreadCount.get -> int
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.ThreadSlotCount.get -> int
+static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TickPeriodNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TryGetCurrentThread(uint cpuId, out Cosmos.Kernel.System.Diagnostics.KernelThreadInfo info) -> bool
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TryGetRunQueueThread(uint cpuId, int index, out Cosmos.Kernel.System.Diagnostics.KernelThreadInfo info) -> bool
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TryGetThreadInSlot(int slot, out Cosmos.Kernel.System.Diagnostics.KernelThreadInfo info) -> bool

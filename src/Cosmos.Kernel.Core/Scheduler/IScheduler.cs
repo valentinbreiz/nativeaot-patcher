@@ -140,9 +140,10 @@ public interface IScheduler
     /// <param name="cpuState">CPU being ticked.</param>
     /// <param name="current">Thread running on it.</param>
     /// <param name="elapsedNs">
-    /// The configured tick interval, not a measurement. It is
-    /// <see cref="SchedulerManager.DefaultQuantumNs"/>, which is what the
-    /// boot path arms the scheduler timer at.
+    /// The timer's configured period in nanoseconds, not a measurement of
+    /// how long the thread actually ran. Charging it to
+    /// <c>Thread.TotalRuntime</c> is the policy's job, and the ring's
+    /// busy-CPU-time reading depends on the policy doing it.
     /// </param>
     /// <returns>
     /// <see langword="true"/> to request a reschedule, which runs
