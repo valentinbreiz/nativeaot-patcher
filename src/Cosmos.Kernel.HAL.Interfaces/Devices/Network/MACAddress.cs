@@ -96,15 +96,6 @@ public class MACAddress : IComparable
 
 
     /// <summary>
-    /// Check that the address holds six bytes.
-    /// </summary>
-    /// <returns>True if the address is 6 bytes long.</returns>
-    public bool IsValid()
-    {
-        return _bytes.Length == 6;
-    }
-
-    /// <summary>
     /// Compare this address to another MAC address, byte by byte from the
     /// most significant byte.
     /// </summary>
@@ -173,7 +164,7 @@ public class MACAddress : IComparable
     /// most significant byte first.
     /// </summary>
     /// <returns>The address as a number.</returns>
-    public ulong ToNumber()
+    private ulong ToNumber()
     {
         return ((ulong)_bytes[0] << 40) | ((ulong)_bytes[1] << 32) | ((ulong)_bytes[2] << 24) |
             ((ulong)_bytes[3] << 16) | ((ulong)_bytes[4] << 8) | _bytes[5];
@@ -192,7 +183,7 @@ public class MACAddress : IComparable
     /// not round-trip back to an address.
     /// </summary>
     /// <returns>The folded address.</returns>
-    public uint To32BitNumber()
+    private uint To32BitNumber()
     {
         ulong value = ToNumber();
         return (uint)value ^ (uint)(value >> 32);
@@ -202,7 +193,7 @@ public class MACAddress : IComparable
     /// <summary>
     /// Hash value for this mac. Used to uniquely identify each mac
     /// </summary>
-    public uint Hash
+    internal uint Hash
     {
         get
         {

@@ -1,13 +1,9 @@
 #nullable enable
 Cosmos.Kernel.HAL.Devices.Network.MACAddress
 Cosmos.Kernel.HAL.Devices.Network.MACAddress.CompareTo(object? obj) -> int
-Cosmos.Kernel.HAL.Devices.Network.MACAddress.Hash.get -> uint
-Cosmos.Kernel.HAL.Devices.Network.MACAddress.IsValid() -> bool
 Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(byte[]! address) -> void
 Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(byte[]! buffer, int offset) -> void
 Cosmos.Kernel.HAL.Devices.Network.MACAddress.MACAddress(Cosmos.Kernel.HAL.Devices.Network.MACAddress! m) -> void
-Cosmos.Kernel.HAL.Devices.Network.MACAddress.To32BitNumber() -> uint
-Cosmos.Kernel.HAL.Devices.Network.MACAddress.ToNumber() -> ulong
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.BlockCount.get -> ulong
 Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.BlockSize.get -> ulong
