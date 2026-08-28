@@ -65,7 +65,7 @@ internal class InterruptEvent
     {
         ulong iterations = 0;
         SchedThread? currentThread = SchedulerManager.IsReady
-            ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())?.CurrentThread
+            ? SchedulerManager.CurrentCpuState?.CurrentThread
             : null;
         // The idle thread is the scheduler's fallback (PickNext ?? IdleThread):
         // blocking it only gets it resurrected on the next tick, which re-runs

@@ -231,7 +231,7 @@ namespace Cosmos.Kernel.Core.Runtime
         {
             if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.IsRunning)
             {
-                Scheduler.PerCpuState? cpuState = Scheduler.SchedulerManager.GetCpuState(Scheduler.SchedulerManager.GetCurrentCpuId());
+                Scheduler.PerCpuState? cpuState = Scheduler.SchedulerManager.CurrentCpuState;
                 return cpuState?.CurrentThread?.Id ?? 1;
             }
 

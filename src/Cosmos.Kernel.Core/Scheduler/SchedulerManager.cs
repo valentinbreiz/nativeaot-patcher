@@ -172,6 +172,14 @@ public static class SchedulerManager
     public static PerCpuState? GetCpuState(uint cpuId) => s_cpuStates?[cpuId];
 
     /// <summary>
+    /// The scheduling state of the CPU running this code, or
+    /// <see langword="null"/> when <see cref="IsReady"/> is false. Internal:
+    /// a policy is handed the <see cref="PerCpuState"/> it operates on by
+    /// every hook, so it never has to ask which CPU it is on.
+    /// </summary>
+    internal static PerCpuState? CurrentCpuState => s_cpuStates?[GetCurrentCpuId()];
+
+    /// <summary>
     /// Returns the per-CPU state array, or <see langword="null"/> before
     /// initialization.
     /// </summary>
@@ -227,7 +235,7 @@ public static class SchedulerManager
     /// <param name="parameter">Generic parameter of the Thread Start, it is decoded based on the <see cref="ThreadFlags"/> set in the thread.</param>
     internal static void InvokeCurrentThreadStart(IntPtr parameter)
     {
-        PerCpuState? cpuState = GetCpuState(GetCurrentCpuId());
+        PerCpuState? cpuState = CurrentCpuState;
         Thread? currentThread = cpuState?.CurrentThread;
 
         if (currentThread == null)
@@ -266,7 +274,7 @@ public static class SchedulerManager
             {
                 exitCode = 1;
                 // Re-query thread ID — locals may be clobbered across the catch funclet.
-                PerCpuState? exCpuState = GetCpuState(GetCurrentCpuId());
+                PerCpuState? exCpuState = CurrentCpuState;
                 uint exThreadId = exCpuState?.CurrentThread?.Id ?? 0;
                 Serial.WriteString("[SCHED] Thread ");
                 Serial.WriteNumber(exThreadId);
@@ -283,7 +291,7 @@ public static class SchedulerManager
         }
 
         // Re-query current thread for exit — locals may be corrupted after the catch funclet.
-        PerCpuState? exitCpuState = GetCpuState(GetCurrentCpuId());
+        PerCpuState? exitCpuState = CurrentCpuState;
         Thread? exitThread = exitCpuState?.CurrentThread;
         uint exitThreadId = exitThread?.Id ?? 0;
 
@@ -639,7 +647,7 @@ public static class SchedulerManager
     /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep.</param>
     internal static void Sleep(uint timeoutMs)
     {
-        Thread? currentThread = GetCpuState(GetCurrentCpuId())?.CurrentThread;
+        Thread? currentThread = CurrentCpuState?.CurrentThread;
         if (currentThread != null)
         {
             Sleep(currentThread.CpuId, currentThread, timeoutMs);
