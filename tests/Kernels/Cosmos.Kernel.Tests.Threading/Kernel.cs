@@ -614,8 +614,8 @@ public class Kernel : Sys.Kernel
     {
         uint cpuId = SchedulerManager.GetCurrentCpuId();
         Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData? cpuData =
-            SchedulerManager.GetCpuState(cpuId)
-                .GetSchedulerData<Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData>();
+            SchedulerManager.GetCpuState(cpuId)?.SchedulerData
+                as Cosmos.Kernel.Core.Scheduler.Stride.StrideCpuData;
         Assert.True(cpuData != null, "stride per-CPU data should exist");
 
         _idleMutex = new Cosmos.Kernel.Core.Scheduler.Mutex();
@@ -2038,12 +2038,13 @@ public class Kernel : Sys.Kernel
         // policy once at boot and never swaps back. The swap leaves the
         // remaining lifecycle (Finish/AfterRun) on the stock policy.
 
-        // Quiescence is a hard precondition in THIS direction: Stride reads
-        // its data slots with GetSchedulerData<T>, a hard cast, so a thread
-        // created under Round-Robin that were still alive here would fault
-        // Stride's next hook on it. Every Round-Robin worker above exited
-        // (each cell waits for it), which empties the run queue; the running
-        // main thread still carries the StrideThreadData it booted with.
+        // Quiescence is still asserted here, but as a statement about the
+        // swap rather than a safety precondition: both policies now read
+        // their data slots with 'as', so a Round-Robin thread surviving into
+        // Stride degrades to an absent record instead of faulting Stride's
+        // next hook on it. Every Round-Robin worker above exited (each cell
+        // waits for it), which empties the run queue; the running main thread
+        // still carries the StrideThreadData it booted with.
         PerCpuState preSwapState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!;
         Assert.Equal(0, SchedulerManager.Current!.GetRunQueueCount(preSwapState),
             "no Round-Robin thread may survive into the restored Stride policy");

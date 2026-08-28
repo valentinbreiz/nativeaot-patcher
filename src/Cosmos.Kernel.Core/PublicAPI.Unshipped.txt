@@ -30,7 +30,6 @@
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.CurrentThread.get -> Cosmos.Kernel.Core.Scheduler.Thread?
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.PerCpuState.IdleThread.get -> Cosmos.Kernel.Core.Scheduler.Thread?
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible
-[COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.GetSchedulerData<T>() -> T?
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.SchedulerData.get -> object?
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.SchedulerData.set -> void
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.SchedulerExtensible() -> void

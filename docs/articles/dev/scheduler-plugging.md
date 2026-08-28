@@ -70,12 +70,12 @@ public bool OnTick(PerCpuState state, Thread current, ulong elapsedNs)
 }
 ```
 
-Read with `as`, not `GetSchedulerData<T>()`, and handle `null` on every hook. Two things put a slot you did not write in front of your policy, and only one of them is rare:
+Read with `as`, never a cast, and handle `null` on every hook. Two things put a slot you did not write in front of your policy, and only one of them is rare:
 
-- **Threads that predate your policy.** Stride is installed during kernel startup and the boot thread is registered under it, so the moment you call `SetScheduler` you inherit at least one thread carrying a `StrideThreadData`. `SetScheduler` clears the per-CPU slots; it does not walk the thread registry. That thread reaches your `OnTick` with a foreign record.
+- **Threads that predate your policy.** Stride is installed during kernel startup and the boot thread is registered under it, so the moment you call `SetScheduler` you inherit at least one thread carrying a `StrideThreadData`. `SetScheduler` asks the outgoing policy to clear the per-CPU slots, through its `ShutdownCpu`; it does not walk the thread registry, and it does not clear anything itself. That thread reaches your `OnTick` with a foreign record.
 - **Threads that exit mid-tick.** `OnThreadExit` clears the slot, so a thread can lose its record between a tick and the hook that observes it.
 
-`GetSchedulerData<T>()` is `(T?)SchedulerData` — a cast. On the first case it throws, inside the timer interrupt. `as` degrades both cases to `null`, which every hook has to handle anyway. Keep the typed accessor for a policy that owns every thread from creation.
+A cast throws on the first case, inside the timer interrupt. `as` degrades both cases to `null`, which every hook has to handle anyway. The seam used to publish a typed `GetSchedulerData<T>()` accessor for a policy that owns every thread from creation; it was removed, because the shipped Stride policy is the one most exposed to a foreign record (it is the only policy that can be installed a second time) and it was the accessor's biggest user.
 
 One slot per object is the whole budget. A policy that needs several values defines one class holding them, as `StrideThreadData` and `StrideCpuData` do.
 

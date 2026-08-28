@@ -11,12 +11,13 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Every hook runs in the kernel's most sensitive window. Most are called
 /// with interrupts already masked, and the two scheduling hooks run inside
 /// the timer interrupt itself; each member below says which. No hook may
-/// block, park, or wait, and none may allocate on the tick path. The hooks
-/// the manager does not mask (<see cref="InitializeCpu"/>,
-/// <see cref="ShutdownCpu"/>, <see cref="SetPriority"/>, and the two
-/// run-queue diagnostics) must take
-/// <see cref="SchedulerManager.MaskInterrupts"/> themselves before touching
-/// the run structure.
+/// block, park, or wait, and none may allocate on the tick path. Six get no
+/// mask from the manager (<see cref="InitializeCpu"/>,
+/// <see cref="ShutdownCpu"/>, <see cref="SetPriority"/>,
+/// <see cref="GetPriority"/> and the two run-queue diagnostics) and must
+/// take <see cref="SchedulerManager.MaskInterrupts"/> themselves before
+/// touching the run structure. Three of those hold a spinlock, which
+/// excludes another caller but not the tick, so they are not a safer tier.
 /// </para>
 /// <para>
 /// Several hooks have no mechanism-side caller yet, because the kernel runs
@@ -28,7 +29,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// once for the same thread, and each must tolerate a
 /// <see cref="SchedulerExtensible.SchedulerData"/> slot that is null or was
 /// written by a different policy, which is why a hook reads the slot with
-/// <c>as</c> rather than <see cref="SchedulerExtensible.GetSchedulerData{T}"/>.
+/// <c>as</c> and never a cast.
 /// </para>
 /// <para>Inspired by Ekiben's EkibenScheduler trait.</para>
 /// </summary>

@@ -233,11 +233,11 @@ public sealed class RoundRobinScheduler : IScheduler
 
     // ========== Private Helpers ==========
 
-    // GetSchedulerData<T> casts, so on a policy that gets installed on a live
-    // kernel it would throw in interrupt context for threads still carrying
-    // the previous policy's bookkeeping (the boot main thread keeps its
-    // StrideThreadData across the swap). Read the slots with 'as' instead:
-    // foreign data degrades to "absent", which every hook already tolerates.
+    // Read the slots with 'as', never a cast: a policy installed on a live
+    // kernel is handed threads still carrying the previous policy's
+    // bookkeeping (the boot main thread keeps its StrideThreadData across
+    // the swap), and a cast would throw on them in interrupt context.
+    // Foreign data degrades to "absent", which every hook already tolerates.
     private static RoundRobinCpuData? CpuDataOf(PerCpuState cpuState)
     {
         return cpuState.SchedulerData as RoundRobinCpuData;
