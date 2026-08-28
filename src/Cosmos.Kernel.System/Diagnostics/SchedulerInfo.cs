@@ -35,7 +35,7 @@ public static class SchedulerInfo
     /// Whether the scheduler is processing timer ticks and preempting
     /// threads.
     /// </summary>
-    public static bool IsRunning => SchedulerManager.Enabled;
+    public static bool IsRunning => SchedulerManager.IsRunning;
 
     /// <summary>
     /// Name of the installed scheduler, or <see langword="null"/> before

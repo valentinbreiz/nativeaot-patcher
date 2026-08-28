@@ -25,10 +25,10 @@ internal static unsafe partial class GarbageCollector
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref AllocContext GetCurrentAllocContext()
     {
-        // SchedulerManager.Enabled is false during early boot (before scheduler init),
+        // SchedulerManager.IsRunning is false during early boot (before scheduler init),
         // so we safely fall back to the static context. CosmosFeatures.SchedulerEnabled
         // alone is a compile-time flag that doesn't guarantee _cpuStates is allocated.
-        if (CosmosFeatures.SchedulerEnabled && SchedulerManager.Enabled)
+        if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsRunning)
         {
             PerCpuState? cpuState = SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId());
             if (cpuState?.CurrentThread != null)

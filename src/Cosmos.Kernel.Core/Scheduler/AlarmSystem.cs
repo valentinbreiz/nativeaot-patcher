@@ -98,7 +98,7 @@ internal static class AlarmSystem
             return 0;
         }
 
-        if (!SchedulerManager.Enabled)
+        if (!SchedulerManager.IsRunning)
         {
             Serial.WriteString("[AlarmSystem] ERROR: scheduler is not running, alarm not scheduled\n");
             return 0;

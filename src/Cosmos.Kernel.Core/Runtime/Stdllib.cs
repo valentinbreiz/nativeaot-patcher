@@ -229,7 +229,7 @@ namespace Cosmos.Kernel.Core.Runtime
         [RuntimeExport("RhCurrentOSThreadId")]
         internal static ulong RhCurrentOSThreadId()
         {
-            if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.Enabled)
+            if (CosmosFeatures.SchedulerEnabled && Scheduler.SchedulerManager.IsRunning)
             {
                 Scheduler.PerCpuState? cpuState = Scheduler.SchedulerManager.GetCpuState(Scheduler.SchedulerManager.GetCurrentCpuId());
                 return cpuState?.CurrentThread?.Id ?? 1;

@@ -56,9 +56,12 @@ public static class SchedulerManager
     private const uint TickLogInterval = 50;
 
     /// <summary>
-    /// Whether scheduler support is enabled. Uses centralized feature flag.
+    /// Whether scheduler support is compiled into this kernel
+    /// (the <c>CosmosEnableScheduler</c> feature switch). Internal: the ring
+    /// already publishes this fact as <c>KernelFeatures.Scheduler</c> and
+    /// <c>SchedulerInfo.IsSupported</c>, so a policy author reads it there.
     /// </summary>
-    public static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
+    internal static bool IsEnabled => CosmosFeatures.SchedulerEnabled;
 
     /// <summary>
     /// Whether <see cref="Initialize"/> has run and per-CPU state exists.
@@ -175,9 +178,13 @@ public static class SchedulerManager
     }
 
     /// <summary>
-    /// Whether the scheduler is enabled and processing timer ticks.
+    /// Whether the scheduler is processing timer ticks and preempting
+    /// threads. The boot path arms it once the manager, the policy and the
+    /// idle threads are all wired, so the first tick cannot race a
+    /// half-built scheduler. Surfaced on the ring as
+    /// <c>SchedulerInfo.IsRunning</c>.
     /// </summary>
-    internal static bool Enabled
+    internal static bool IsRunning
     {
         get => s_enabled;
         set => s_enabled = value;

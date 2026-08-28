@@ -102,7 +102,7 @@ namespace Internal.Runtime.CompilerHelpers
             }
 
             // Enable scheduler (timer will start invoking it)
-            SchedulerManager.Enabled = true;
+            SchedulerManager.IsRunning = true;
             Serial.WriteString("[SCHED] Scheduler enabled\n");
 
         }

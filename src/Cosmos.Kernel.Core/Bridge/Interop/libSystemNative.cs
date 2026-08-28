@@ -107,7 +107,7 @@ internal static unsafe partial class libSystemNative
         // runs CoreLib's StartThread with the GCHandle<Thread> parameter itself.
         _ = startAddress;
 
-        if (!SchedulerManager.Enabled)
+        if (!SchedulerManager.IsRunning)
         {
             // Same behavior as before the scheduler existed: report success,
             // the thread simply never runs.
