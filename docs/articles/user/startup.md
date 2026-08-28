@@ -74,7 +74,7 @@ public static class CosmosEntryPoint
 
 `Cosmos.Kernel.System.Kernel` is the abstract base class of every user kernel. Its `Start()` drives the whole lifecycle:
 
-1. Calls `OnBoot()`, whose default implementation runs `Global.Init()`: this initializes the graphical `KernelConsole`, which is what makes `Console.WriteLine` work.
+1. Calls `OnBoot()`, whose default implementation initializes the graphical `KernelConsole`, which is what makes `Console.WriteLine` work.
 2. Enables hardware interrupts (everything before this point ran with interrupts off).
 3. Turns off the early-boot text renderer: up to here, the boot log you see on screen is the serial log mirrored by a minimal framebuffer writer; from now on the screen belongs to `Console` and the [Canvas](graphics.md).
 4. Calls `BeforeRun()` once.
@@ -121,7 +121,7 @@ An uncaught exception inside `Run()` propagates out of the loop, so wrap the bod
 ```csharp
 protected override void OnBoot()
 {
-    base.OnBoot();   // keep Global.Init() → KernelConsole; drop this line to boot headless
+    base.OnBoot();   // keep the KernelConsole setup; drop this line to boot headless
 
     // your early initialization here
 }

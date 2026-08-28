@@ -305,7 +305,7 @@ public class Kernel : Cosmos.Kernel.System.Kernel
 ```
 
 **Rules:**
-- Override `OnBoot()` only to customize boot (default calls `Global.Init()`).
+- Override `OnBoot()` only to customize boot (the default brings up `KernelConsole`).
 - Override `BeforeRun()` for one-time setup after the system is ready.
 - `Run()` is the main loop body, keep it focused.
 - Call `Stop()` to exit the main loop cleanly.
@@ -378,7 +378,7 @@ internal class X64PlatformInitializer : IPlatformInitializer
 ### HAL Registration
 
 ```csharp
-// At boot (in Global.Init or OnBoot):
+// At boot (from the library initializer, or from OnBoot):
 PlatformHAL.Initialize(new X64PlatformInitializer());
 ```
 

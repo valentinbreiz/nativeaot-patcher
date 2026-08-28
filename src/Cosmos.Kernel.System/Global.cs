@@ -30,10 +30,10 @@ public static class Global
     }
 
     /// <summary>
-    /// Initializes the system. Called by the Kernel base class during OnBoot().
-    /// Override OnBoot() in your kernel to customize initialization.
+    /// Initializes the system. Called once by <see cref="Kernel.OnBoot"/>;
+    /// a kernel customizes this step by overriding OnBoot instead.
     /// </summary>
-    public static void Init()
+    internal static void Init()
     {
         Serial.WriteString("[Global] Init() called\n");
 

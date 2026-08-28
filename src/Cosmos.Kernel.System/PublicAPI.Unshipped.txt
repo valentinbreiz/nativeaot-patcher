@@ -607,7 +607,6 @@ static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TryGetRunQueueThread(uint 
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.TryGetThread(int slot, out Cosmos.Kernel.System.Diagnostics.KernelThreadInfo info) -> bool
 static Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.TryParse(System.ReadOnlySpan<byte> bpb, out Cosmos.Kernel.System.Filesystems.Fat.FatBootSector? bootSector) -> bool
 static Cosmos.Kernel.System.Global.CurrentKernel.get -> Cosmos.Kernel.System.Kernel?
-static Cosmos.Kernel.System.Global.Init() -> void
 static Cosmos.Kernel.System.Global.RegisterKernel(Cosmos.Kernel.System.Kernel! kernel) -> void
 static Cosmos.Kernel.System.Global.StartKernel() -> void
 static Cosmos.Kernel.System.Graphics.Canvas.AlphaBlend(System.Drawing.Color to, System.Drawing.Color from, byte alpha) -> System.Drawing.Color
