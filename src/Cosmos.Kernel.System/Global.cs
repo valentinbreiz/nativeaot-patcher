@@ -30,12 +30,16 @@ public static class Global
     }
 
     /// <summary>
-    /// Initializes the system. Called once by <see cref="Kernel.OnBoot"/>;
-    /// a kernel customizes this step by overriding OnBoot instead.
+    /// Brings up the graphical <see cref="KernelConsole"/>, which is what makes
+    /// <c>Console.WriteLine</c> draw to the screen. Every other subsystem is
+    /// already up by this point: the library initializer wires the managers to
+    /// the HAL before any managed code runs. Called once by
+    /// <see cref="Kernel.OnBoot"/>; a kernel customizes this step by overriding
+    /// OnBoot instead.
     /// </summary>
-    internal static void Init()
+    internal static void Initialize()
     {
-        Serial.WriteString("[Global] Init() called\n");
+        Serial.WriteString("[Global] Initialize() called\n");
 
         // Initialize graphics console (framebuffer + font)
         if (Cosmos.Kernel.Core.CosmosFeatures.GraphicsEnabled)

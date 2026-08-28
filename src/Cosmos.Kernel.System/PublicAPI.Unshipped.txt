@@ -220,10 +220,8 @@ Cosmos.Kernel.System.Graphics.Texture.Width.get -> int
 Cosmos.Kernel.System.Kernel
 Cosmos.Kernel.System.Kernel.Kernel() -> void
 Cosmos.Kernel.System.Kernel.Started.get -> bool
-Cosmos.Kernel.System.Kernel.Started.set -> void
 Cosmos.Kernel.System.Kernel.Stop() -> void
 Cosmos.Kernel.System.Kernel.Stopped.get -> bool
-Cosmos.Kernel.System.Kernel.Stopped.set -> void
 Cosmos.Kernel.System.KernelFeatures
 Cosmos.Kernel.System.Keyboard.ConsoleKeyEx
 Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.A = 47 -> Cosmos.Kernel.System.Keyboard.ConsoleKeyEx

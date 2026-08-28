@@ -13,12 +13,14 @@ public abstract partial class Kernel
     /// <summary>
     /// True once BeforeRun has completed and the Run loop is active.
     /// </summary>
-    protected bool Started { get; set; }
+    protected bool Started { get; private set; }
 
     /// <summary>
-    /// Set by <see cref="Stop"/> to make the Run loop exit.
+    /// True once <see cref="Stop"/> has been called. The Run loop exits after
+    /// the current <see cref="Run"/> returns; call <see cref="Stop"/> to end
+    /// the kernel, this is the read side of it.
     /// </summary>
-    protected bool Stopped { get; set; }
+    protected bool Stopped { get; private set; }
 
     /// <summary>
     /// Constructs a new Kernel instance.
@@ -78,7 +80,7 @@ public abstract partial class Kernel
     /// </summary>
     protected virtual void OnBoot()
     {
-        Global.Init();
+        Global.Initialize();
     }
 
     /// <summary>
