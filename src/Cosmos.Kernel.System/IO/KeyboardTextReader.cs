@@ -20,7 +20,7 @@ internal sealed class KeyboardTextReader : TextReader
 
     public override int Peek()
     {
-        return KeyboardManager.Peek().KeyChar;
+        return KeyboardManager.KeyAvailable ? KeyboardManager.Peek().KeyChar : -1;
     }
 
     public override string? ReadLine()

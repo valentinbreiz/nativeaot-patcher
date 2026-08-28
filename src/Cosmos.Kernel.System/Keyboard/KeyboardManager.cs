@@ -185,10 +185,12 @@ public static class KeyboardManager
     /// <summary>
     /// Returns the KeyEvent at the beginning of the key queue without removing it.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <returns>The next pending key event, which stays in the queue.</returns>
+    /// <exception cref="InvalidOperationException">Keyboard support is disabled, or the queue is empty. Check <see cref="KeyAvailable"/> first.</exception>
     public static KeyEvent Peek()
     {
+        ThrowIfDisabled();
+
         if (s_queuedKeys == null)
         {
             throw new InvalidOperationException("KeyboardManager not initialized!");
