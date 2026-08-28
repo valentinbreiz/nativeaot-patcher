@@ -67,13 +67,17 @@ public static class SchedulerInfo
     public static ulong BusyCpuTimeNs => SchedulerManager.GetBusyCpuTimeNs();
 
     /// <summary>
-    /// Number of live threads in the registry.
+    /// Number of live threads in the registry. This is a population count,
+    /// not a bound: the registry is sparse, because a thread exiting leaves
+    /// its slot empty while later slots stay occupied. Enumerate with
+    /// <see cref="ThreadSlotCount"/> and <see cref="TryGetThreadInSlot"/>.
     /// </summary>
     public static int ThreadCount => SchedulerManager.ThreadCount;
 
     /// <summary>
-    /// Number of slots in the thread registry. Slots can be empty; iterate
-    /// from 0 to this value and probe each with <see cref="TryGetThread"/>.
+    /// Number of slots in the thread registry, and the only valid bound for
+    /// enumerating it. Slots can be empty; iterate from 0 to this value and
+    /// probe each with <see cref="TryGetThreadInSlot"/>.
     /// </summary>
     public static int ThreadSlotCount => SchedulerManager.Threads?.Length ?? 0;
 
@@ -83,7 +87,7 @@ public static class SchedulerInfo
     /// <param name="slot">Registry slot index, from 0 to <see cref="ThreadSlotCount"/> exclusive.</param>
     /// <param name="info">Snapshot of the thread occupying the slot.</param>
     /// <returns><see langword="false"/> when the slot is out of range or empty.</returns>
-    public static bool TryGetThread(int slot, out KernelThreadInfo info)
+    public static bool TryGetThreadInSlot(int slot, out KernelThreadInfo info)
     {
         SchedThread?[]? threads = SchedulerManager.Threads;
         if (threads == null || slot < 0 || slot >= threads.Length || threads[slot] is not SchedThread thread)
@@ -173,7 +177,7 @@ public static class SchedulerInfo
         // Resolve against the registry rather than the run queues: a blocked
         // or sleeping thread is dequeued by OnThreadBlocked but stays
         // registered, and reporting it as NotFound would contradict the
-        // snapshot TryGetThread just handed the caller.
+        // snapshot TryGetThreadInSlot just handed the caller.
         SchedThread? target = null;
         for (int slot = 0; slot < threads.Length; slot++)
         {

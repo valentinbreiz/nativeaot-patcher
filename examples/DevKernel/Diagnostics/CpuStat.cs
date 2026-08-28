@@ -412,7 +412,7 @@ internal static class CpuStat
         int drawn = 0;
         for (int slot = 0; slot < SchedulerInfo.ThreadSlotCount && drawn < maxEntries; slot++)
         {
-            if (!SchedulerInfo.TryGetThread(slot, out KernelThreadInfo info))
+            if (!SchedulerInfo.TryGetThreadInSlot(slot, out KernelThreadInfo info))
             {
                 continue;
             }
