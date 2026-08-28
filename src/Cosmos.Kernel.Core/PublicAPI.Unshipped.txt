@@ -62,7 +62,6 @@
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadState.Sleeping = 4 -> Cosmos.Kernel.Core.Scheduler.ThreadState
 [COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.Current.get -> Cosmos.Kernel.Core.Scheduler.IScheduler?
 [COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState(uint cpuId) -> Cosmos.Kernel.Core.Scheduler.PerCpuState?
-[COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCurrentCpuId() -> uint
 [COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetPriority(Cosmos.Kernel.Core.Scheduler.Thread! thread) -> long
 [COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady.get -> bool
 [COSMOS0001]static Cosmos.Kernel.Core.Scheduler.SchedulerManager.MaskInterrupts() -> Cosmos.Kernel.Core.Scheduler.InterruptMaskScope

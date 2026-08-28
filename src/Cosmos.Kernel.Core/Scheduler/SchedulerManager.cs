@@ -328,11 +328,15 @@ public static class SchedulerManager
     internal static int ThreadCount => s_allThreadCount;
 
     /// <summary>
-    /// Returns the CPU ID currently executing this code path. Single-CPU today.
+    /// Returns the CPU ID currently executing this code path. Single-CPU
+    /// today. Internal: a policy is handed the CPU it operates on by every
+    /// hook, and a caller holding a <see cref="Thread"/> reads
+    /// <see cref="Thread.CpuId"/>, which stays correct under SMP where this
+    /// constant does not.
     /// TODO(SMP): replace with x86_64 GS-relative per-CPU storage or ARM64 MPIDR_EL1
     /// affinity read once application processors are brought online.
     /// </summary>
-    public static uint GetCurrentCpuId() => 0;
+    internal static uint GetCurrentCpuId() => 0;
 
     /// <summary>
     /// Sum of TotalRuntime across all non-idle threads, in nanoseconds.
@@ -379,7 +383,12 @@ public static class SchedulerManager
     }
 
     /// <summary>
-    /// Registers a thread in the global registry. Called during thread creation.
+    /// Registers a thread in the global registry. Called during thread
+    /// creation. Runs with interrupts masked: the scan for a free slot and
+    /// the store into it have to be one step, or two creators racing (or one
+    /// preempted between them) both pick the same slot, the second store
+    /// wins, and the thread it displaced runs unregistered with a stack the
+    /// GC never scans.
     /// </summary>
     internal static void RegisterThread(Thread thread)
     {
@@ -388,23 +397,26 @@ public static class SchedulerManager
             return;
         }
 
-        // Idempotent: idle-thread setup goes through both CreateThread and
-        // SetupIdleThread, both of which call here. Avoid duplicate slots.
-        for (int i = 0; i < s_allThreads.Length; i++)
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            if (s_allThreads[i] == thread)
+            // Idempotent: idle-thread setup goes through both CreateThread and
+            // SetupIdleThread, both of which call here. Avoid duplicate slots.
+            for (int i = 0; i < s_allThreads.Length; i++)
             {
-                return;
+                if (s_allThreads[i] == thread)
+                {
+                    return;
+                }
             }
-        }
 
-        for (int i = 0; i < s_allThreads.Length; i++)
-        {
-            if (s_allThreads[i] == null)
+            for (int i = 0; i < s_allThreads.Length; i++)
             {
-                s_allThreads[i] = thread;
-                s_allThreadCount++;
-                return;
+                if (s_allThreads[i] == null)
+                {
+                    s_allThreads[i] = thread;
+                    s_allThreadCount++;
+                    return;
+                }
             }
         }
 
