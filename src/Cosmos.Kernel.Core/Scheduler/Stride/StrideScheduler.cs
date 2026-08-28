@@ -384,32 +384,37 @@ internal class StrideScheduler : IScheduler
             priority = 1;
         }
 
-        var cpuData = CpuDataOf(cpuState);
-        var threadData = ThreadDataOf(thread);
-
-        if (cpuData == null || threadData == null)
+        // The manager holds only a spinlock here, which excludes another
+        // caller but not the tick, and this rewrites the run queue.
+        using (InternalCpu.DisableInterruptsScope())
         {
-            return;
-        }
+            var cpuData = CpuDataOf(cpuState);
+            var threadData = ThreadDataOf(thread);
 
-        UpdateGlobalPass(cpuData);
+            if (cpuData == null || threadData == null)
+            {
+                return;
+            }
 
-        ulong oldTickets = threadData.Tickets;
-        ulong newTickets = (ulong)priority;
-        ulong newStride = Stride1 / newTickets;
+            UpdateGlobalPass(cpuData);
 
-        long remain = threadData.Pass - (long)cpuData.GlobalPass;
-        remain = (remain * (long)newStride) / (long)threadData.Stride;
-        threadData.Pass = (long)cpuData.GlobalPass + remain;
+            ulong oldTickets = threadData.Tickets;
+            ulong newTickets = (ulong)priority;
+            ulong newStride = Stride1 / newTickets;
 
-        cpuData.TotalTickets = cpuData.TotalTickets - oldTickets + newTickets;
-        threadData.Tickets = newTickets;
-        threadData.Stride = newStride;
+            long remain = threadData.Pass - (long)cpuData.GlobalPass;
+            remain = (remain * (long)newStride) / (long)threadData.Stride;
+            threadData.Pass = (long)cpuData.GlobalPass + remain;
 
-        if (thread.State == ThreadState.Ready)
-        {
-            RemoveThreadFromQueue(cpuData.RunQueue, thread);
-            InsertByPass(cpuData, thread);
+            cpuData.TotalTickets = cpuData.TotalTickets - oldTickets + newTickets;
+            threadData.Tickets = newTickets;
+            threadData.Stride = newStride;
+
+            if (thread.State == ThreadState.Ready)
+            {
+                RemoveThreadFromQueue(cpuData.RunQueue, thread);
+                InsertByPass(cpuData, thread);
+            }
         }
     }
 

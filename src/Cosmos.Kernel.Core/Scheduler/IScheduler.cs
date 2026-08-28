@@ -11,13 +11,12 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Every hook runs in the kernel's most sensitive window. Most are called
 /// with interrupts already masked, and the two scheduling hooks run inside
 /// the timer interrupt itself; each member below says which. No hook may
-/// block, park, or wait, and none may allocate on the tick path. Six get no
-/// mask from the manager (<see cref="InitializeCpu"/>,
-/// <see cref="ShutdownCpu"/>, <see cref="SetPriority"/>,
+/// block, park, or wait, and none may allocate on the tick path. Four get no
+/// mask from the manager (<see cref="SetPriority"/>,
 /// <see cref="GetPriority"/> and the two run-queue diagnostics) and must
 /// take <see cref="SchedulerManager.MaskInterrupts"/> themselves before
-/// touching the run structure. Three of those hold a spinlock, which
-/// excludes another caller but not the tick, so they are not a safer tier.
+/// touching the run structure. The spinlock around <see cref="SetPriority"/>
+/// is not a substitute: it excludes another caller, not the tick.
 /// </para>
 /// <para>
 /// Several hooks have no mechanism-side caller yet, because the kernel runs
@@ -50,12 +49,10 @@ public interface IScheduler
     /// Allocate this policy's per-CPU bookkeeping into
     /// <see cref="SchedulerExtensible.SchedulerData"/> on
     /// <paramref name="cpuState"/>. Called once per CPU by
-    /// <see cref="SchedulerManager.SetScheduler"/>, in thread context. The
-    /// spinlock it holds excludes another installer, not the timer: unless
-    /// the installing thread wraps the call in
-    /// <see cref="SchedulerManager.MaskInterrupts"/>, a tick can land between
-    /// the outgoing policy's <see cref="ShutdownCpu"/> and this call, and
-    /// reach a hook with an empty per-CPU slot.
+    /// <see cref="SchedulerManager.SetScheduler"/>, in thread context with
+    /// interrupts masked across the whole swap, so no tick observes the
+    /// window between the outgoing policy's <see cref="ShutdownCpu"/> and
+    /// this call.
     /// </summary>
     /// <param name="cpuState">CPU whose state to attach bookkeeping to.</param>
     void InitializeCpu(PerCpuState cpuState);
@@ -64,7 +61,7 @@ public interface IScheduler
     /// Release the per-CPU bookkeeping, leaving a clean slot for the incoming
     /// policy. Called once per CPU by
     /// <see cref="SchedulerManager.SetScheduler"/> before the replacement is
-    /// initialized, in thread context, with the same unmasked-tick caveat as
+    /// initialized, in thread context with interrupts masked, like
     /// <see cref="InitializeCpu"/>. Thread slots are not cleared here; see
     /// <see cref="SchedulerExtensible.SchedulerData"/>.
     /// </summary>
@@ -208,9 +205,9 @@ public interface IScheduler
     /// reads it as a ticket count, a real-time policy would read it as a
     /// priority level. Reached only through
     /// <see cref="SchedulerManager.SetPriority"/>, whose per-CPU spinlock
-    /// excludes another caller but not the timer, so a hook that touches the
-    /// run structure must take <see cref="SchedulerManager.MaskInterrupts"/>
-    /// itself.
+    /// excludes another caller but not the timer, so this hook must take
+    /// <see cref="SchedulerManager.MaskInterrupts"/> itself before touching
+    /// the run structure.
     /// </summary>
     /// <param name="cpuState">CPU whose state guards the update.</param>
     /// <param name="thread">Thread to reprioritize.</param>

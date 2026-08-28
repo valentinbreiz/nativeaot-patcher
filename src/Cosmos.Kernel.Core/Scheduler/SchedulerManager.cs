@@ -115,14 +115,22 @@ public static class SchedulerManager
     /// Installs a scheduling policy. The previous scheduler, if any, is
     /// shut down on every CPU (<see cref="IScheduler.ShutdownCpu"/>) before
     /// the new one is initialized (<see cref="IScheduler.InitializeCpu"/>).
+    /// The whole swap runs with interrupts masked, so no tick can land in
+    /// the window where the incoming policy is installed but its per-CPU
+    /// state does not exist yet.
     /// </summary>
     /// <param name="scheduler">Scheduler to install.</param>
     public static void SetScheduler(IScheduler scheduler)
     {
         ThrowIfCpuStateNotInitialized();
 
-        s_globalLock.Acquire();
-        try
+        // IRQ-safe, not the plain pair: between the ShutdownCpu loop nulling
+        // every per-CPU slot and the InitializeCpu loop refilling them, the
+        // installed policy is already the one the timer dispatches to. A tick
+        // in that window reaches its hooks with an empty slot, and the
+        // outgoing thread can be dropped from a run structure that no longer
+        // exists.
+        using (s_globalLock.AcquireIrqSafe())
         {
             if (s_currentScheduler != null)
             {
@@ -138,10 +146,6 @@ public static class SchedulerManager
             {
                 scheduler.InitializeCpu(s_cpuStates[i]);
             }
-        }
-        finally
-        {
-            s_globalLock.Release();
         }
     }
 
@@ -551,7 +555,15 @@ public static class SchedulerManager
 
         // Is Highly likely that the running thread have acquired some state on it's managed counter part (even if it wasn't started from a managed thread).
         // Here we call the OnThreadExit Callback for the managed thread so it may be cleaned.
-        nint managedCallback = OnThreadExitCallback;
+        //
+        // Only for the thread that is actually running: CoreLib's callback
+        // takes no argument and cleans whatever thread it is invoked on. Run
+        // it while killing someone else (SchedulerInfo.RequestKill reaps a
+        // queued thread from the killer's context) and it tears down the
+        // caller's managed thread instead of the victim's.
+        nint managedCallback = ReferenceEquals(GetCpuState(cpuId)?.CurrentThread, thread)
+            ? OnThreadExitCallback
+            : IntPtr.Zero;
         if (managedCallback != IntPtr.Zero)
         {
             Serial.WriteString("[ThreadPlug] Invoking managed thread exit callback for thread ");
@@ -612,7 +624,7 @@ public static class SchedulerManager
     /// </summary>
     /// <param name="cpuId">CPU ID of the thread.</param>
     /// <param name="thread">Thread to sleep.</param>
-    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 does not mean "forever": it sets a deadline of now, so the next tick wakes the thread.</param>
     internal static void Sleep(uint cpuId, Thread thread, uint timeoutMs)
     {
         MarkSleeping(cpuId, thread, timeoutMs);
@@ -632,7 +644,7 @@ public static class SchedulerManager
     /// </summary>
     /// <param name="cpuId">CPU ID of the thread.</param>
     /// <param name="thread">Thread to sleep.</param>
-    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep (until signaled).</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 does not mean "forever": it sets a deadline of now, so the next tick wakes the thread.</param>
     internal static void MarkSleeping(uint cpuId, Thread thread, uint timeoutMs)
     {
         ThrowIfCpuStateNotInitialized();
@@ -658,7 +670,7 @@ public static class SchedulerManager
     /// <summary>
     /// Puts the current thread to sleep with a timeout.
     /// </summary>
-    /// <param name="timeoutMs">Timeout in milliseconds. 0 means indefinite sleep.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. 0 does not mean "forever": the next tick wakes the thread.</param>
     internal static void Sleep(uint timeoutMs)
     {
         Thread? currentThread = CurrentCpuState?.CurrentThread;
@@ -716,7 +728,7 @@ public static class SchedulerManager
     /// (<see cref="IScheduler.SetPriority"/>). Interpretation is
     /// scheduler-specific.
     /// </summary>
-    /// <param name="cpuId">CPU whose state guards the update.</param>
+    /// <param name="cpuId">CPU whose run structure the update rewrites.</param>
     /// <param name="thread">Thread to reprioritize.</param>
     /// <param name="priority">New priority value.</param>
     public static void SetPriority(uint cpuId, Thread thread, long priority)
@@ -765,12 +777,14 @@ public static class SchedulerManager
 
     /// <summary>
     /// Masks maskable interrupts on the current CPU until the returned
-    /// scope is disposed. Schedulers use this around entry points the
-    /// manager does not already guard: their run-queue diagnostics hooks,
-    /// <see cref="IScheduler.InitializeCpu"/>, <see cref="IScheduler.ShutdownCpu"/>
-    /// and <see cref="IScheduler.SetPriority"/> (all three hold a spinlock
-    /// only), and any tuning setters the policy exposes. The tick hooks and
-    /// the thread-lifecycle hooks are already called with interrupts masked.
+    /// scope is disposed. Schedulers use this around the entry points the
+    /// manager does not guard: <see cref="IScheduler.SetPriority"/>,
+    /// <see cref="IScheduler.GetPriority"/>, the two run-queue diagnostics
+    /// hooks, and any tuning setters the policy exposes of its own. The
+    /// spinlock <see cref="SetPriority"/> holds is not a substitute: it
+    /// excludes another caller, and the tick path takes no lock at all. The
+    /// tick hooks, the thread-lifecycle hooks and the two per-CPU lifecycle
+    /// hooks are already called with interrupts masked.
     /// </summary>
     public static InterruptMaskScope MaskInterrupts() => new(InternalCpu.DisableInterruptsScope());
 
