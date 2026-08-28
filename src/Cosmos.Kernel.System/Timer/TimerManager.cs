@@ -13,26 +13,13 @@ public static class TimerManager
     private const ulong NanosecondsPerMillisecond = 1_000_000;
 
     private static ITimerDevice? s_timer;
-    private static bool s_initialized;
 
     /// <summary>
-    /// Gets whether the timer manager is initialized.
+    /// Gets whether a timer device is registered. False when the timer is
+    /// compiled out with CosmosEnableTimer=false, since every member of this
+    /// class answers off that device.
     /// </summary>
-    public static bool IsInitialized => s_initialized;
-
-    /// <summary>
-    /// Initializes the timer manager. Called once during boot, before the
-    /// platform timer is registered.
-    /// </summary>
-    internal static void Initialize()
-    {
-        if (s_initialized)
-        {
-            return;
-        }
-
-        s_initialized = true;
-    }
+    public static bool IsInitialized => s_timer != null;
 
     /// <summary>
     /// Registers a timer device with the manager.

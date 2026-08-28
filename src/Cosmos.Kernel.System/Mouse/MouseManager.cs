@@ -17,7 +17,6 @@ public static class MouseManager
     public static bool IsEnabled => CosmosFeatures.MouseEnabled;
 
     private static List<IMouseDevice>? s_mice;
-    private static bool s_initialized;
 
     /// <summary>
     /// Current X position (screen coordinates).
@@ -90,16 +89,14 @@ public static class MouseManager
     {
         ThrowIfDisabled();
 
-        if (s_initialized)
+        if (s_mice != null)
         {
             return;
         }
 
-        s_mice = new List<IMouseDevice>();
         X = ScreenWidth / 2;
         Y = ScreenHeight / 2;
-
-        s_initialized = true;
+        s_mice = new List<IMouseDevice>();
     }
 
     /// <summary>

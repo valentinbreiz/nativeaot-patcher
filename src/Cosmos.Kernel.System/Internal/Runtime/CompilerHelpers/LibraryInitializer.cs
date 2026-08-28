@@ -30,9 +30,7 @@ namespace Internal.Runtime.CompilerHelpers
                 if (CosmosFeatures.TimerEnabled)
                 {
                     Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
-                    TimerManager.Initialize();
-                    var timer = initializer.CreateTimer();
-                    TimerManager.RegisterTimer(timer);
+                    TimerManager.RegisterTimer(initializer.CreateTimer());
                 }
 
                 using (InternalCpu.DisableInterruptsScope())

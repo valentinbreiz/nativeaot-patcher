@@ -21,7 +21,6 @@ public static class KeyboardManager
     private static List<IKeyboardDevice>? s_keyboards;
     private static Queue<KeyEvent>? s_queuedKeys;
     private static ScanMapBase? s_scanMap;
-    private static bool s_initialized;
 
     /// <summary>
     /// The num-lock state.
@@ -74,16 +73,14 @@ public static class KeyboardManager
     {
         ThrowIfDisabled();
 
-        if (s_initialized)
+        if (s_keyboards != null)
         {
             return;
         }
 
-        s_keyboards = new List<IKeyboardDevice>();
         s_queuedKeys = new Queue<KeyEvent>();
         s_scanMap = new USStandardLayout();
-
-        s_initialized = true;
+        s_keyboards = new List<IKeyboardDevice>();
     }
 
     /// <summary>

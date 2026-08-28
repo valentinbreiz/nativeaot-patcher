@@ -34,12 +34,12 @@ public static class StorageManager
     private static IBlockDevice?[]? s_devices;
     private static int s_deviceCount;
     private static List<Partition>? s_partitions;
-    private static bool s_initialized;
 
     /// <summary>
-    /// Gets whether the storage manager is initialized.
+    /// Gets whether the storage manager is initialized, which is what makes
+    /// the device table exist.
     /// </summary>
-    public static bool IsInitialized => s_initialized;
+    public static bool IsInitialized => s_devices != null;
 
     /// <summary>
     /// Gets the primary block device (first one registered).
@@ -67,15 +67,14 @@ public static class StorageManager
     {
         ThrowIfDisabled();
 
-        if (s_initialized)
+        if (s_devices != null)
         {
             return;
         }
 
-        s_devices = new IBlockDevice[MaxDevices];
         s_deviceCount = 0;
         s_partitions = new List<Partition>();
-        s_initialized = true;
+        s_devices = new IBlockDevice[MaxDevices];
     }
 
     /// <summary>

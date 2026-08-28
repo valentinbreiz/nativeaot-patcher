@@ -27,12 +27,12 @@ public static class NetworkManager
     private static INetworkDevice?[]? s_devices;
     private static int s_deviceCount;
     private static int s_primaryIndex = -1;
-    private static bool s_initialized;
 
     /// <summary>
-    /// Gets whether the network manager is initialized.
+    /// Gets whether the network manager is initialized, which is what makes
+    /// the device table exist.
     /// </summary>
-    public static bool IsInitialized => s_initialized;
+    public static bool IsInitialized => s_devices != null;
 
     /// <summary>
     /// Gets the primary network device. Internal: a kernel names a device with
@@ -107,15 +107,14 @@ public static class NetworkManager
     {
         ThrowIfDisabled();
 
-        if (s_initialized)
+        if (s_devices != null)
         {
             return;
         }
 
-        s_devices = new INetworkDevice[8];
         s_deviceCount = 0;
         s_primaryIndex = -1;
-        s_initialized = true;
+        s_devices = new INetworkDevice[8];
     }
 
     /// <summary>
