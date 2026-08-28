@@ -136,8 +136,6 @@ Cosmos.Kernel.System.Graphics.Fonts.Font.Font(byte width, byte height, byte[]! d
 Cosmos.Kernel.System.Graphics.Fonts.Font.Height.get -> byte
 Cosmos.Kernel.System.Graphics.Fonts.Font.Width.get -> byte
 Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont
-Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.CreateVGAFont() -> byte[]!
-Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(char c, int sizePx) -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(int sizePx) -> int
@@ -555,8 +553,6 @@ abstract Cosmos.Kernel.System.Graphics.Canvas3D.IsAccelerated.get -> bool
 abstract Cosmos.Kernel.System.Kernel.Run() -> void
 abstract Cosmos.Kernel.System.Keyboard.ScanMapBase.InitKeys() -> void
 const Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.BootSectorLba = 0 -> ulong
-const Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default.DefaultFontKey = "Cosmos.Kernel.System.Graphics.Fonts.DefaultFont" -> string!
-const Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.Default.DefaultFontName = "Cosmos.Kernel.System.Graphics.Fonts.DefaultFont.psf" -> string!
 const Cosmos.Kernel.System.Storage.Gpt.FirstUsableLba = 34 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.PrimaryHeaderLba = 1 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.ProtectiveMbrStartLba = 1 -> uint

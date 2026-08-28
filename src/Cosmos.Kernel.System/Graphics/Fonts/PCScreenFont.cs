@@ -44,7 +44,7 @@ public class PCScreenFont : Font
     /// <summary>
     /// Names identifying the default font resource.
     /// </summary>
-    public static class Default
+    internal static class Default
     {
         /// <summary>
         /// The <see cref="AppContext"/> data key checked for an overriding
@@ -292,7 +292,7 @@ public class PCScreenFont : Font
     /// <summary>
     /// Converts the PC screen font to a VGA font.
     /// </summary>
-    public byte[] CreateVGAFont()
+    internal byte[] CreateVGAFont()
     {
         byte[] font = new byte[256 * Height * Width / 8];
 
