@@ -629,11 +629,9 @@ static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas3D(Cosm
 static Cosmos.Kernel.System.Graphics.FullScreenCanvas.IsInUse.get -> bool
 static Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas(Cosmos.Kernel.System.Graphics.Mode mode, out Cosmos.Kernel.System.Graphics.Canvas? canvas) -> bool
 static Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas3D(Cosmos.Kernel.System.Graphics.Mode mode, out Cosmos.Kernel.System.Graphics.Canvas3D? canvas) -> bool
-static Cosmos.Kernel.System.Graphics.KernelConsole.ConsoleColorToUint(System.ConsoleColor color) -> uint
 static Cosmos.Kernel.System.Graphics.KernelConsole.Default.get -> Cosmos.Kernel.System.Graphics.KernelConsole?
 static Cosmos.Kernel.System.Graphics.KernelConsole.Initialize() -> bool
 static Cosmos.Kernel.System.Graphics.KernelConsole.IsInitialized.get -> bool
-static Cosmos.Kernel.System.Graphics.KernelConsole.ThrowIfKernelConsoleNotInitialized() -> void
 static Cosmos.Kernel.System.Graphics.Mode.operator !=(Cosmos.Kernel.System.Graphics.Mode a, Cosmos.Kernel.System.Graphics.Mode b) -> bool
 static Cosmos.Kernel.System.Graphics.Mode.operator <(Cosmos.Kernel.System.Graphics.Mode a, Cosmos.Kernel.System.Graphics.Mode b) -> bool
 static Cosmos.Kernel.System.Graphics.Mode.operator <=(Cosmos.Kernel.System.Graphics.Mode a, Cosmos.Kernel.System.Graphics.Mode b) -> bool

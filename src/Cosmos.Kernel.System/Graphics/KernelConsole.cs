@@ -94,7 +94,7 @@ public class KernelConsole
     /// </summary>
     /// <exception cref="InvalidOperationException">The kernel console is not initialized.</exception>
     [MemberNotNull(nameof(Default))]
-    public static void ThrowIfKernelConsoleNotInitialized()
+    internal static void ThrowIfKernelConsoleNotInitialized()
     {
         if (Default is null)
         {
@@ -317,7 +317,7 @@ public class KernelConsole
     /// <summary>
     /// Converts ConsoleColor to uint color.
     /// </summary>
-    public static uint ConsoleColorToUint(ConsoleColor color)
+    internal static uint ConsoleColorToUint(ConsoleColor color)
     {
         return s_palette[(int)color];
     }
@@ -354,8 +354,10 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Gets whether the default console has been initialized.
+    /// Gets whether the default console has been initialized. When true,
+    /// <see cref="Default"/> is non-null.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(Default))]
     public static bool IsInitialized => Default != null;
 
     /// <summary>
