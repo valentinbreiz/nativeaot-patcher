@@ -9,30 +9,75 @@ namespace Cosmos.Kernel.System.Network.Config;
 /// </summary>
 public class IPConfig
 {
-    private static readonly List<IPConfig> s_ipConfigs = new();
-
     /// <summary>
-    /// Add the given IPv4 configuration.
+    /// One device and the configuration in force on it.
     /// </summary>
-    internal static void Add(IPConfig config)
+    private sealed class Entry
     {
-        s_ipConfigs.Add(config);
+        internal Entry(INetworkDevice device, IPConfig config)
+        {
+            Device = device;
+            Config = config;
+        }
+
+        internal INetworkDevice Device { get; }
+
+        internal IPConfig Config { get; }
     }
 
     /// <summary>
-    /// Removes the given IPv4 configuration.
+    /// Every configured interface. This is the only store: routing lookups and
+    /// per-device lookups read the same list, so neither can drift from the
+    /// other.
     /// </summary>
-    internal static void Remove(IPConfig config)
+    private static readonly List<Entry> s_configs = new();
+
+    /// <summary>
+    /// Record the configuration now in force on a device, replacing any
+    /// earlier one so a reconfigured device leaves no stale route behind.
+    /// </summary>
+    /// <param name="device">The configured device.</param>
+    /// <param name="config">The configuration applied to it.</param>
+    internal static void Set(INetworkDevice device, IPConfig config)
     {
-        s_ipConfigs.Remove(config);
+        for (int i = 0; i < s_configs.Count; i++)
+        {
+            if (s_configs[i].Device == device)
+            {
+                s_configs[i] = new Entry(device, config);
+                return;
+            }
+        }
+
+        s_configs.Add(new Entry(device, config));
     }
 
     /// <summary>
-    /// Remove all IPv4 configurations.
+    /// Forget every configured interface. Internal: this drops the routing
+    /// list alone, leaving the stack's address and MAC maps behind.
+    /// <see cref="NetworkStack.RemoveAllConfigIP"/> is the complete reset and
+    /// the only caller.
     /// </summary>
     internal static void RemoveAll()
     {
-        s_ipConfigs.Clear();
+        s_configs.Clear();
+    }
+
+    /// <summary>
+    /// The configuration in force on a device, or null when it has none.
+    /// </summary>
+    /// <param name="device">The device to look up.</param>
+    internal static IPConfig? Get(INetworkDevice device)
+    {
+        foreach (Entry entry in s_configs)
+        {
+            if (entry.Device == device)
+            {
+                return entry.Config;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -43,8 +88,10 @@ public class IPConfig
     {
         Address? defaultGw = null;
 
-        foreach (IPConfig ipConfig in s_ipConfigs)
+        foreach (Entry entry in s_configs)
         {
+            IPConfig ipConfig = entry.Config;
+
             if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
                 (destIP.Id & ipConfig.SubnetMask.Id))
             {
@@ -127,10 +174,12 @@ public class IPConfig
     /// <param name="destIP">The address to check.</param>
     internal static bool IsLocalAddress(Address destIP)
     {
-        for (int c = 0; c < s_ipConfigs.Count; c++)
+        for (int c = 0; c < s_configs.Count; c++)
         {
-            if ((s_ipConfigs[c].IPAddress.Id & s_ipConfigs[c].SubnetMask.Id) ==
-                (destIP.Id & s_ipConfigs[c].SubnetMask.Id))
+            IPConfig ipConfig = s_configs[c].Config;
+
+            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
+                (destIP.Id & ipConfig.SubnetMask.Id))
             {
                 return true;
             }
@@ -160,9 +209,9 @@ public class IPConfig
     internal static Address? FindRoute(Address destIP)
     {
         // TODO is this correct implementation?
-        for (int c = 0; c < s_ipConfigs.Count; c++)
+        for (int c = 0; c < s_configs.Count; c++)
         {
-            return s_ipConfigs[c].DefaultGateway;
+            return s_configs[c].Config.DefaultGateway;
         }
 
         return null;

@@ -93,9 +93,7 @@ public static class NetworkStack
         }
 
         ConfigIP(device, config.IPAddress);
-        IPConfig.Add(config);
-        NetworkConfigManager.AddConfig(device, config);
-        NetworkConfigManager.SetCurrentConfig(device, config);
+        IPConfig.Set(device, config);
     }
 
     /// <summary>
@@ -106,7 +104,6 @@ public static class NetworkStack
     {
         AddressMap?.Clear();
         MACMap?.Clear();
-        NetworkConfigManager.ClearConfigs();
         IPConfig.RemoveAll();
     }
 

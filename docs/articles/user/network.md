@@ -101,7 +101,7 @@ var dhcpClient = new DhcpClient();
 
 if (dhcpClient.SendDiscoverPacket() != -1)
 {
-    IPConfig? config = NetworkConfigManager.Current;
+    IPConfig? config = NetworkManager.Primary.IPConfig;
     Console.WriteLine("IP address: " + config.IPAddress.ToString());
     Console.WriteLine("Subnet:     " + config.SubnetMask.ToString());
     Console.WriteLine("Gateway:    " + config.DefaultGateway.ToString());
@@ -135,10 +135,13 @@ IPConfig.Enable(NetworkManager.GetAdapter(1),
 
 DHCP needs no handle: `SendDiscoverPacket` runs the exchange on every registered device.
 
-### Get the local IP address
+### Read the configuration back
+
+Each adapter carries the configuration in force on it, or `null` while it is unconfigured:
 
 ```csharp
-Console.WriteLine(NetworkConfigManager.CurrentAddress.ToString());
+Console.WriteLine(NetworkManager.Primary.IPConfig?.IPAddress.ToString());
+Console.WriteLine(NetworkManager.GetAdapter(1).IPConfig?.SubnetMask.ToString());
 ```
 
 ## UDP

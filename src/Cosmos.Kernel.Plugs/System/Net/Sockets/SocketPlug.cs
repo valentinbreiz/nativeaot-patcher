@@ -317,7 +317,7 @@ public static class SocketPlug
 
         sm.RemoteEndPoint.Address = Address.Parse(address.ToString()) ?? throw new Exception("Address can not be null");
         sm.RemoteEndPoint.Port = (ushort)port;
-        sm.LocalEndPoint.Address = NetworkConfigManager.CurrentAddress ?? throw new Exception("CurrentAddress can not be null");
+        sm.LocalEndPoint.Address = NetworkManager.Primary.IPConfig?.IPAddress ?? throw new Exception("No IPv4 configuration on the primary network device");
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);

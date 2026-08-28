@@ -179,7 +179,7 @@ public class Kernel : Sys.Kernel
         Log.WriteString(" ms\n");
 
         // Verify we got an IP configuration
-        IPConfig? netConfig = NetworkConfigManager.Current;
+        IPConfig? netConfig = NetworkManager.Primary.IPConfig;
         if (netConfig == null)
         {
             Log.WriteString("[Test] No network configuration after DHCP\n");

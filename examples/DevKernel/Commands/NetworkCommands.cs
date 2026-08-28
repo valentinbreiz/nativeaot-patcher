@@ -286,7 +286,7 @@ internal static class NetworkCommands
             return;
         }
 
-        IPConfig? netConfig = NetworkConfigManager.Current;
+        IPConfig? netConfig = NetworkManager.Primary.IPConfig;
         if (netConfig == null)
         {
             Terminal.Error("No network configuration after DHCP");

@@ -12,7 +12,7 @@ namespace Cosmos.Kernel.System.Network.Config;
 /// <summary>
 /// Represents DNS configuration.
 /// </summary>
-public class DnsConfig
+public static class DnsConfig
 {
     private static readonly List<Address> s_nameservers = new();
 

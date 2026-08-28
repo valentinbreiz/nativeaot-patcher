@@ -62,6 +62,20 @@ public readonly struct NetworkAdapter : IEquatable<NetworkAdapter>
     public bool Ready => Device?.Ready ?? false;
 
     /// <summary>
+    /// The IPv4 configuration in force on this device, or null when the device
+    /// is unconfigured or the handle names none. Assign one with
+    /// <see cref="Config.IPConfig.Enable(NetworkAdapter, IPv4.Address, IPv4.Address, IPv4.Address)"/>.
+    /// </summary>
+    public Config.IPConfig? IPConfig
+    {
+        get
+        {
+            INetworkDevice? device = Device;
+            return device == null ? null : Config.IPConfig.Get(device);
+        }
+    }
+
+    /// <summary>
     /// Whether two handles name the same registered device.
     /// </summary>
     /// <param name="other">The handle to compare against.</param>

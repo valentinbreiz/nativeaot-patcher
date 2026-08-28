@@ -419,14 +419,12 @@ Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout
 Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.USStandardLayout() -> void
 Cosmos.Kernel.System.Mouse.MouseManager
 Cosmos.Kernel.System.Network.Config.DnsConfig
-Cosmos.Kernel.System.Network.Config.DnsConfig.DnsConfig() -> void
 Cosmos.Kernel.System.Network.Config.IPConfig
 Cosmos.Kernel.System.Network.Config.IPConfig.DefaultGateway.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.Config.IPConfig.IPAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet) -> void
 Cosmos.Kernel.System.Network.Config.IPConfig.IPConfig(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> void
 Cosmos.Kernel.System.Network.Config.IPConfig.SubnetMask.get -> Cosmos.Kernel.System.Network.IPv4.Address!
-Cosmos.Kernel.System.Network.Config.NetworkConfigManager
 Cosmos.Kernel.System.Network.IPv4.Address
 Cosmos.Kernel.System.Network.IPv4.Address.Address(System.ReadOnlySpan<byte> buffer) -> void
 Cosmos.Kernel.System.Network.IPv4.Address.Address(byte aFirst, byte aSecond, byte aThird, byte aFourth) -> void
@@ -481,6 +479,7 @@ Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.UdpClient(int _localPort) -> voi
 Cosmos.Kernel.System.Network.NetworkManager
 Cosmos.Kernel.System.Network.NetworkAdapter
 Cosmos.Kernel.System.Network.NetworkAdapter.Equals(Cosmos.Kernel.System.Network.NetworkAdapter other) -> bool
+Cosmos.Kernel.System.Network.NetworkAdapter.IPConfig.get -> Cosmos.Kernel.System.Network.Config.IPConfig?
 Cosmos.Kernel.System.Network.NetworkAdapter.Index.get -> int
 Cosmos.Kernel.System.Network.NetworkAdapter.IsValid.get -> bool
 Cosmos.Kernel.System.Network.NetworkAdapter.LinkUp.get -> bool
@@ -690,10 +689,6 @@ static Cosmos.Kernel.System.Network.Config.DnsConfig.Remove(Cosmos.Kernel.System
 static Cosmos.Kernel.System.Network.Config.IPConfig.FindNetwork(Cosmos.Kernel.System.Network.IPv4.Address! destIP) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
 static Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.NetworkAdapter adapter, Cosmos.Kernel.System.Network.IPv4.Address! ip, Cosmos.Kernel.System.Network.IPv4.Address! subnet, Cosmos.Kernel.System.Network.IPv4.Address! gw) -> bool
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Count.get -> int
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.CurrentAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address?
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Current.get -> Cosmos.Kernel.System.Network.Config.IPConfig?
-static Cosmos.Kernel.System.Network.Config.NetworkConfigManager.Get(Cosmos.Kernel.System.Network.NetworkAdapter adapter) -> Cosmos.Kernel.System.Network.Config.IPConfig?
 static Cosmos.Kernel.System.Network.IPv4.Address.CIDRToAddress(int cidr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.Address.Parse(System.ReadOnlySpan<char> addr) -> Cosmos.Kernel.System.Network.IPv4.Address?
 static Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.GetDynamicPort(int tries = 10) -> ushort
