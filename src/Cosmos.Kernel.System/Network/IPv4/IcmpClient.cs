@@ -65,6 +65,11 @@ public class IcmpClient : IDisposable
     {
         ThrowIfDisposed();
 
+        // Reconnecting to a second host has to drop the first registration:
+        // s_clients is static, so a stale entry both misroutes replies and
+        // roots this client for the life of the kernel.
+        Close();
+
         _destination = dest;
         s_clients[dest.Id] = this;
     }

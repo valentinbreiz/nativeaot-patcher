@@ -586,7 +586,8 @@ private static void ThrowIfKeyboardDisabled()
 | Hardware failure, corrupted state | `Panic.Halt()` |
 | GC/allocator internal error | `Panic.Halt()` |
 | Invalid API usage | `throw` appropriate exception |
-| Missing feature at runtime | `throw InvalidOperationException` |
+| Missing feature at runtime, in a member that acts on it | `throw InvalidOperationException` naming the switch |
+| Missing feature at runtime, in a member that answers a question | Return `0`/`null`/`false`/empty |
 | User-facing error in kernel shell | `try/catch` + print error message |
 
 ---

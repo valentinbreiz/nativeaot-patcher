@@ -61,7 +61,9 @@ public static class KeyboardManager
     /// Throws when keyboard support is compiled out. Guards actions, not reads:
     /// a read answers honestly (0, null, false, empty) so a kernel can branch
     /// on it, and an action names the switch to set instead of failing
-    /// silently.
+    /// silently. <see cref="Peek"/> and <see cref="ReadKey"/> are the two
+    /// exceptions: they return a non-nullable <see cref="KeyEvent"/> and so
+    /// have no value for "no key".
     /// </summary>
     private static void ThrowIfDisabled()
     {
