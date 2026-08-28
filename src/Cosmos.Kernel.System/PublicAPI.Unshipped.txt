@@ -802,7 +802,7 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.DrawChar(char c, Cosmos.Kernel.Syst
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawCircle(System.Drawing.Color color, int xCenter, int yCenter, int radius) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawEllipse(System.Drawing.Color color, int xCenter, int yCenter, int xR, int yR) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawFilledCircle(System.Drawing.Color color, int x0, int y0, int radius) -> void
-virtual Cosmos.Kernel.System.Graphics.Canvas.DrawFilledEllipse(System.Drawing.Color color, int xCenter, int yCenter, int yR, int xR) -> void
+virtual Cosmos.Kernel.System.Graphics.Canvas.DrawFilledEllipse(System.Drawing.Color color, int xCenter, int yCenter, int xR, int yR) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawFilledRectangle(System.Drawing.Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, bool preventOffBoundPixels = true) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, int w, int h, bool preventOffBoundPixels = true) -> void

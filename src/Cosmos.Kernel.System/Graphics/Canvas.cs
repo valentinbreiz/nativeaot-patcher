@@ -693,7 +693,7 @@ public unsafe class Canvas
     /// <param name="yCenter">The Y center coordinate.</param>
     /// <param name="xR">The X radius.</param>
     /// <param name="yR">The Y radius.</param>
-    public virtual void DrawFilledEllipse(Color color, int xCenter, int yCenter, int yR, int xR)
+    public virtual void DrawFilledEllipse(Color color, int xCenter, int yCenter, int xR, int yR)
     {
         for (int y = -yR; y <= yR; y++)
         {
