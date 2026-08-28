@@ -228,20 +228,12 @@ public static class KeyboardManager
         return false;
     }
 
-    private static bool s_readKeyEntered = false;
-
     /// <summary>
     /// Reads the next key from the pending key-press buffer, blocking until available.
     /// </summary>
     public static KeyEvent ReadKey()
     {
         ThrowIfDisabled();
-
-        if (!s_readKeyEntered)
-        {
-            s_readKeyEntered = true;
-            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] ReadKey() entered\n");
-        }
 
         if (s_queuedKeys == null)
         {
@@ -260,34 +252,14 @@ public static class KeyboardManager
         return s_queuedKeys.Dequeue();
     }
 
-    private static uint s_pollCallCount = 0;
-
-    private static bool s_pollEntered = false;
-
     /// <summary>
     /// Polls all registered keyboards for events.
     /// </summary>
     private static void PollKeyboards()
     {
-        if (!s_pollEntered)
-        {
-            s_pollEntered = true;
-            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards() first call\n");
-        }
-
         if (s_keyboards == null)
         {
             return;
-        }
-
-        s_pollCallCount++;
-        if (s_pollCallCount % 100 == 0)
-        {
-            Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] PollKeyboards #");
-            Cosmos.Kernel.Core.IO.Serial.WriteNumber(s_pollCallCount);
-            Cosmos.Kernel.Core.IO.Serial.Write(" keyboards=");
-            Cosmos.Kernel.Core.IO.Serial.WriteNumber((uint)s_keyboards.Count);
-            Cosmos.Kernel.Core.IO.Serial.Write("\n");
         }
 
         foreach (var keyboard in s_keyboards)
