@@ -243,7 +243,12 @@ public static class KeyboardManager
             Cosmos.Kernel.Core.IO.Serial.Write("[KeyboardManager] ReadKey() entered\n");
         }
 
-        while (s_queuedKeys == null || s_queuedKeys.Count == 0)
+        if (s_queuedKeys == null)
+        {
+            throw new InvalidOperationException("KeyboardManager not initialized!");
+        }
+
+        while (s_queuedKeys.Count == 0)
         {
             // Poll all keyboards for events (in case interrupts aren't working)
             PollKeyboards();
