@@ -3,14 +3,14 @@
 using System;
 using System.Diagnostics;
 using Cosmos.Build.API.Attributes;
+using Cosmos.Kernel.System;
+using Cosmos.Kernel.System.Diagnostics;
 using Monitor = Cosmos.Kernel.Core.Scheduler.Monitor;
 using System.Runtime.InteropServices;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 #elif ARCH_ARM64
 using Cosmos.Kernel.HAL.ARM64.Devices.Clock;
-using Cosmos.Kernel.System;
-using Cosmos.Kernel.System.Diagnostics;
 #endif
 
 
