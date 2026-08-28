@@ -37,7 +37,7 @@ public abstract class ScanMapBase
     /// <param name="capsLock">Whether caps-lock is active.</param>
     /// <param name="scrollLock">Whether scroll-lock is active.</param>
     /// <returns>The translated <see cref="KeyEvent"/>.</returns>
-    public KeyEvent? ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock)
+    internal KeyEvent? ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock)
     {
         var keyEvent = new KeyEvent();
         bool found = false;
@@ -125,7 +125,7 @@ public abstract class ScanMapBase
     /// </summary>
     /// <param name="scanCode">The physical keyboard scan-code.</param>
     /// <param name="key">The virtual mapping key.</param>
-    public bool ScanCodeMatchesKey(byte scanCode, ConsoleKeyEx key)
+    internal bool ScanCodeMatchesKey(byte scanCode, ConsoleKeyEx key)
     {
         for (int i = 0; i < Keys.Count; i++)
         {

@@ -172,7 +172,7 @@ public static class MouseManager
     /// <summary>
     /// Polls all registered mice for events.
     /// </summary>
-    public static void Poll()
+    internal static void Poll()
     {
         if (s_mice == null)
         {

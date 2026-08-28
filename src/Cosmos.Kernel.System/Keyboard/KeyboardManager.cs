@@ -118,7 +118,7 @@ public static class KeyboardManager
     /// <summary>
     /// Handles a key-press by its physical key scan-code.
     /// </summary>
-    public static void HandleScanCode(byte scanCode, bool released)
+    private static void HandleScanCode(byte scanCode, bool released)
     {
         if (s_scanMap == null)
         {
@@ -202,7 +202,7 @@ public static class KeyboardManager
     /// <summary>
     /// Attempts to convert the given physical key scan-code to a KeyEvent.
     /// </summary>
-    public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)
+    private static bool GetKey(byte scanCode, out KeyEvent? keyInfo)
     {
         if (s_scanMap == null)
         {
