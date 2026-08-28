@@ -443,9 +443,10 @@ Cosmos.Kernel.System.Network.IPv4.Address.ToUInt32() -> uint
 Cosmos.Kernel.System.Network.IPv4.EndPoint
 Cosmos.Kernel.System.Network.IPv4.EndPoint.Address.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.IPv4.EndPoint.Address.set -> void
-Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(object? obj) -> int
+Cosmos.Kernel.System.Network.IPv4.EndPoint.CompareTo(Cosmos.Kernel.System.Network.IPv4.EndPoint? other) -> int
 Cosmos.Kernel.System.Network.IPv4.EndPoint.EndPoint(Cosmos.Kernel.System.Network.IPv4.Address! addr, ushort port) -> void
 Cosmos.Kernel.System.Network.IPv4.EndPoint.EndPoint(uint addr, ushort port) -> void
+Cosmos.Kernel.System.Network.IPv4.EndPoint.Equals(Cosmos.Kernel.System.Network.IPv4.EndPoint? other) -> bool
 Cosmos.Kernel.System.Network.IPv4.EndPoint.Port.get -> ushort
 Cosmos.Kernel.System.Network.IPv4.EndPoint.Port.set -> void
 Cosmos.Kernel.System.Network.IPv4.IcmpClient
@@ -576,6 +577,8 @@ override Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.InitKeys() -> v
 override Cosmos.Kernel.System.Network.IPv4.Address.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.IPv4.Address.GetHashCode() -> int
 override Cosmos.Kernel.System.Network.IPv4.Address.ToString() -> string!
+override Cosmos.Kernel.System.Network.IPv4.EndPoint.Equals(object? obj) -> bool
+override Cosmos.Kernel.System.Network.IPv4.EndPoint.GetHashCode() -> int
 override Cosmos.Kernel.System.Network.IPv4.EndPoint.ToString() -> string!
 override Cosmos.Kernel.System.Network.NetworkAdapter.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.NetworkAdapter.GetHashCode() -> int

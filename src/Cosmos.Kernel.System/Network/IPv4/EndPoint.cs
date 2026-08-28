@@ -3,7 +3,7 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 /// <summary>
 /// Represents an IPv4 end-point.
 /// </summary>
-public class EndPoint : IComparable
+public sealed class EndPoint : IComparable<EndPoint>, IEquatable<EndPoint>
 {
     /// <summary>
     /// The address of the end-point.
@@ -46,24 +46,46 @@ public class EndPoint : IComparable
     }
 
     /// <summary>
-    /// Compares this end point with another: 0 when address and port both
-    /// match, -1 otherwise; non-<see cref="EndPoint"/> arguments sort after.
+    /// Orders end points by <see cref="Address"/> first, then by <see cref="Port"/>.
+    /// A <see langword="null"/> end point sorts first.
     /// </summary>
-    /// <param name="obj">The object to compare with.</param>
-    public int CompareTo(object? obj)
+    /// <param name="other">The end point to compare with.</param>
+    /// <returns>A negative value when this end point sorts first, zero when both match, a positive value otherwise.</returns>
+    public int CompareTo(EndPoint? other)
     {
-        if (obj is EndPoint other)
+        if (other is null)
         {
-            if (other.Address.CompareTo(Address) != 0 || other.Port != Port)
-            {
-                return -1;
-            }
+            return 1;
+        }
 
-            return 0;
-        }
-        else
+        int order = Address.CompareTo(other.Address);
+        if (order != 0)
         {
-            throw new ArgumentException("'obj' is not an EndPoint instance", nameof(obj));
+            return order;
         }
+
+        return Port.CompareTo(other.Port);
+    }
+
+    /// <summary>
+    /// Whether another end point carries the same address and port.
+    /// </summary>
+    /// <param name="other">The end point to compare with.</param>
+    /// <returns>True when both the address and the port match.</returns>
+    public bool Equals(EndPoint? other)
+    {
+        return other is not null && Port == other.Port && Address.Equals(other.Address);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as EndPoint);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Address, Port);
     }
 }
