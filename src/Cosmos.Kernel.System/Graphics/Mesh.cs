@@ -5,7 +5,7 @@ namespace Cosmos.Kernel.System.Graphics;
 /// <summary>
 /// A set of 3D primitives uploaded to a 3D device. Created with one of the
 /// <see cref="Canvas3D"/> <c>CreateMesh</c> overloads and drawn with
-/// <see cref="Canvas3D.DrawMesh(Mesh, in System.Numerics.Matrix4x4)"/>;
+/// <see cref="Canvas3D.DrawMesh(Mesh, in global::System.Numerics.Matrix4x4)"/>;
 /// dispose it to release the device memory it occupies.
 /// </summary>
 public sealed class Mesh : IDisposable

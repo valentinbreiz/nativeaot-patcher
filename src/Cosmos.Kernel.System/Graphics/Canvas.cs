@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Graphics;
 
 /// <summary>
 /// Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
-/// canvas, or subclassed for hardware-backed canvases (e.g. <see cref="GopCanvas"/>).
+/// canvas, or subclassed for hardware-backed canvases.
 /// </summary>
 /// <remarks>
 /// Every drawing primitive clips. A pixel outside 0..<see cref="Width"/>-1 by

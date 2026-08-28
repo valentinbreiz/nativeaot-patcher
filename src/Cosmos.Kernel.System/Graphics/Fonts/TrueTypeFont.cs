@@ -20,7 +20,7 @@ public class TrueTypeFont : Font
 
     /// <summary>
     /// The text size in pixels used when this font is drawn through the
-    /// size-less <see cref="Canvas.DrawString(string, Font, System.Drawing.Color, int, int)"/>
+    /// size-less <see cref="Canvas.DrawString(string, Font, global::System.Drawing.Color, int, int)"/>
     /// overload that takes a plain <see cref="Font"/>.
     /// </summary>
     public int SizePx { get; set; }
@@ -129,7 +129,7 @@ public class TrueTypeFont : Font
     public int GetKerning(char left, char right, int sizePx) => _font.GetKerning(left, right, GetScale(sizePx));
 
     /// <summary>
-    /// Measures the width in pixels that <see cref="Canvas.DrawString(string, TrueTypeFont, int, System.Drawing.Color, int, int)"/>
+    /// Measures the width in pixels that <see cref="Canvas.DrawString(string, TrueTypeFont, int, global::System.Drawing.Color, int, int)"/>
     /// would use to draw the given text at the given size.
     /// </summary>
     /// <param name="text">The text to measure.</param>
