@@ -5,9 +5,11 @@ using Cosmos.Kernel.HAL.Vfs;
 namespace Cosmos.Kernel.System.Vfs;
 
 /// <summary>
-/// Common surface for VFS nodes (files or directories).
+/// Common surface for VFS nodes (files or directories). Every handle owns
+/// driver state and must be released, so the base interface is disposable and
+/// both handle kinds work in <c>using</c> blocks.
 /// </summary>
-public interface IVfsNodeHandle
+public interface IVfsNodeHandle : IDisposable
 {
     /// <summary>The name of the node inside its parent directory.</summary>
     string Name { get; }
@@ -26,7 +28,7 @@ public interface IVfsNodeHandle
 /// <summary>
 /// Managed handle for an open file with position and byte I/O.
 /// </summary>
-public interface IVfsFileHandle : IVfsNodeHandle, IDisposable
+public interface IVfsFileHandle : IVfsNodeHandle
 {
     /// <summary>The current byte offset of the file cursor.</summary>
     long Position { get; }

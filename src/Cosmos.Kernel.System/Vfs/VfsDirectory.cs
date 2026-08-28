@@ -8,7 +8,7 @@ namespace Cosmos.Kernel.System.Vfs;
 /// <summary>
 /// Managed handle for a directory node supporting lookup and mutation operations.
 /// </summary>
-public interface IVfsDirectoryHandle : IVfsNodeHandle, IDisposable
+public interface IVfsDirectoryHandle : IVfsNodeHandle
 {
     /// <summary>
     /// Lists the directory's entries.
@@ -102,7 +102,8 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
     public void Dispose()
     {
         // Unlike VfsFileHandle there is no open-file state to release; the
-        // interface is IDisposable so both handle kinds work in using blocks.
+        // method is here because IVfsNodeHandle is disposable, so both handle
+        // kinds work in using blocks.
     }
 
     public bool TryReadDir(out IReadOnlyList<IVfsInode> entries)

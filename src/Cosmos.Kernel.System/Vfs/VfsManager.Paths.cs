@@ -412,7 +412,10 @@ public static partial class VfsManager
         IVfsInode? backupInode = null;
         if (parent.TryLookup(backupLeaf, out IVfsNodeHandle? backupNode))
         {
-            backupInode = backupNode.Inode;
+            using (backupNode)
+            {
+                backupInode = backupNode.Inode;
+            }
         }
 
         bool pending = false;

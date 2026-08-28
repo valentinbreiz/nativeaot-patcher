@@ -672,7 +672,10 @@ public class Kernel : Sys.Kernel
             {
                 string name = "F" + IntToHex(i, HexNameDigits) + ".TXT";
                 Assert.True(root!.TryLookup(name, out IVfsNodeHandle? child));
-                Assert.NotNull(child);
+                using (child)
+                {
+                    Assert.NotNull(child);
+                }
             }
         });
 
@@ -704,11 +707,14 @@ public class Kernel : Sys.Kernel
             Assert.True(root!.TryCreateFile("GROW.BIN", ModeEnum.RegularFile, out IVfsNodeHandle? created));
             Assert.NotNull(created);
 
-            // SetAttr to enlarge the file from 0 to 4096 bytes; the FS must
-            // allocate clusters and zero-fill them.
-            VfsStat want = default;
-            want.Size = GrowTargetBytes;
-            Assert.True(created!.Inode.InodeOperations.SetAttr(created.Inode, SetAttrFlags.Size, want));
+            using (created)
+            {
+                // SetAttr to enlarge the file from 0 to 4096 bytes; the FS must
+                // allocate clusters and zero-fill them.
+                VfsStat want = default;
+                want.Size = GrowTargetBytes;
+                Assert.True(created!.Inode.InodeOperations.SetAttr(created.Inode, SetAttrFlags.Size, want));
+            }
 
             using IVfsFileHandle? r = OpenFile(Fat32Mount + "/GROW.BIN");
             Assert.NotNull(r);
