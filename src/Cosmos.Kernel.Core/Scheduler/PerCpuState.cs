@@ -6,8 +6,18 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Per-CPU scheduling state.
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
-public class PerCpuState : SchedulerExtensible
+public sealed class PerCpuState : SchedulerExtensible
 {
+    /// <summary>
+    /// Per-CPU state is created by <see cref="SchedulerManager"/> during CPU
+    /// bring-up. A scheduler receives one through its <see cref="IScheduler"/>
+    /// hooks and attaches its own state to
+    /// <see cref="SchedulerExtensible.SchedulerData"/>.
+    /// </summary>
+    internal PerCpuState()
+    {
+    }
+
     // ===== Identity =====
 
     /// <summary>

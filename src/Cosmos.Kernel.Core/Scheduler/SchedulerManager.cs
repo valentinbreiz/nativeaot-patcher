@@ -146,7 +146,7 @@ public static class SchedulerManager
     /// <summary>
     /// Number of CPUs the scheduler manages.
     /// </summary>
-    public static uint CpuCount => s_cpuCount;
+    internal static uint CpuCount => s_cpuCount;
 
     /// <summary>
     /// Returns the scheduling state of a CPU, or <see langword="null"/>
@@ -159,7 +159,7 @@ public static class SchedulerManager
     /// Returns the per-CPU state array, or <see langword="null"/> before
     /// initialization.
     /// </summary>
-    public static PerCpuState[]? GetAllCpuStates() => s_cpuStates;
+    internal static PerCpuState[]? GetAllCpuStates() => s_cpuStates;
 
     /// <summary>
     /// Sets up the idle thread for a CPU. Should only be called during initialization.
@@ -177,10 +177,10 @@ public static class SchedulerManager
     /// <summary>
     /// Whether the scheduler is enabled and processing timer ticks.
     /// </summary>
-    public static bool Enabled
+    internal static bool Enabled
     {
         get => s_enabled;
-        internal set => s_enabled = value;
+        set => s_enabled = value;
     }
 
     /// <summary>
@@ -290,12 +290,12 @@ public static class SchedulerManager
     /// <summary>
     /// Returns the thread registry array. Safe to call from GC (no allocations).
     /// </summary>
-    public static Thread?[]? Threads => s_allThreads;
+    internal static Thread?[]? Threads => s_allThreads;
 
     /// <summary>
     /// Returns the number of registered threads. Safe to call from GC.
     /// </summary>
-    public static int ThreadCount => s_allThreadCount;
+    internal static int ThreadCount => s_allThreadCount;
 
     /// <summary>
     /// Returns the CPU ID currently executing this code path. Single-CPU today.
@@ -311,7 +311,7 @@ public static class SchedulerManager
     /// Lock-free: registry slots are atomic and ulong reads are atomic on x64/ARM64;
     /// worst case is observing a stale value from an in-progress tick.
     /// </summary>
-    public static ulong GetBusyCpuTimeNs()
+    internal static ulong GetBusyCpuTimeNs()
     {
         Thread?[]? threads = s_allThreads;
         if (threads == null)
@@ -714,7 +714,7 @@ public static class SchedulerManager
     /// </summary>
     /// <param name="thread">Thread being placed.</param>
     /// <param name="currentCpu">CPU the thread is currently on.</param>
-    public static uint SelectCpu(Thread thread, uint currentCpu)
+    internal static uint SelectCpu(Thread thread, uint currentCpu)
     {
         ThrowIfSchedulerNotSet();
 
@@ -737,7 +737,7 @@ public static class SchedulerManager
     /// CPU (<see cref="IScheduler.Balance"/>).
     /// </summary>
     /// <param name="cpuId">CPU to balance.</param>
-    public static void Balance(uint cpuId)
+    internal static void Balance(uint cpuId)
     {
         ThrowIfCpuStateNotInitialized();
         ThrowIfSchedulerNotSet();

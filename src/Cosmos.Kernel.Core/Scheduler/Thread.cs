@@ -7,8 +7,18 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Thread Control Block for scheduling.
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
-public unsafe class Thread : SchedulerExtensible
+public sealed unsafe class Thread : SchedulerExtensible
 {
+    /// <summary>
+    /// Threads are created by <see cref="SchedulerManager"/>, which allocates
+    /// the stack and the id. A scheduler receives one through its
+    /// <see cref="IScheduler"/> hooks and attaches its own state to
+    /// <see cref="SchedulerExtensible.SchedulerData"/>.
+    /// </summary>
+    internal Thread()
+    {
+    }
+
     // ===== Identity =====
 
     /// <summary>
