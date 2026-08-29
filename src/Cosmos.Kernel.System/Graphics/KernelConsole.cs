@@ -519,20 +519,15 @@ public class KernelConsole
         // Clear screen with background color
         _canvas.Clear((int)_backgroundColor);
 
-        // Draw all cells
+        // Draw all cells. DrawCharAt repaints the cell background from the
+        // cell, not from the console's current one: a full repaint that used
+        // _backgroundColor for every cell erased the per-cell colours that the
+        // incremental painter had put there.
         for (int row = 0; row < _rows; row++)
         {
             for (int col = 0; col < _cols; col++)
             {
-                int index = GetIndex(row, col);
-                ref Cell cell = ref _cells[index];
-
-                if (cell.Char != '\0' && cell.Char != '\n')
-                {
-                    int pixelX = col * _charWidth;
-                    int pixelY = row * _charHeight;
-                    _canvas.DrawChar(cell.Char, Font, Color.FromArgb((int)cell.ForegroundColor), pixelX, pixelY);
-                }
+                DrawCharAt(col, row);
             }
         }
 
@@ -706,8 +701,12 @@ public class KernelConsole
 
         if (_cursorY >= _rows)
         {
-            Scroll();
+            // Home the cursor before scrolling. Scroll repaints the screen,
+            // which repaints the cursor, and an out-of-range row put it one
+            // line below the canvas: clipped away, but still marked drawn, so
+            // the caller's own repaint was then skipped and the caret vanished.
             _cursorY = _rows - 1;
+            Scroll();
         }
     }
 

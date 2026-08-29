@@ -54,6 +54,7 @@ public class ConsolePalPlug
         return false;
     }
 
+    [PlugMember]
     public static bool IsOutputRedirectedCore()
     {
         return false;
