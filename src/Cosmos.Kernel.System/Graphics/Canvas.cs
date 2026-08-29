@@ -1384,12 +1384,13 @@ public unsafe class Canvas
     }
 
     /// <summary>
-    /// Blends between color <paramref name="from"/> and <paramref name="to"/>,
-    /// using the given <paramref name="alpha"/> value.
+    /// Blends <paramref name="to"/> over <paramref name="from"/> at the given
+    /// <paramref name="alpha"/>. At alpha 255 the result is
+    /// <paramref name="to"/>, at 0 it is <paramref name="from"/>.
     /// </summary>
-    /// <param name="to">The background color.</param>
-    /// <param name="from">The foreground color.</param>
-    /// <param name="alpha">The alpha value.</param>
+    /// <param name="to">The color being laid on, weighted by <paramref name="alpha"/>.</param>
+    /// <param name="from">The color already there, weighted by the remainder.</param>
+    /// <param name="alpha">The opacity of <paramref name="to"/>, 0 to 255.</param>
     public static Color AlphaBlend(Color to, Color from, byte alpha)
     {
         byte R = (byte)(((to.R * alpha) + (from.R * (255 - alpha))) >> 8);

@@ -110,7 +110,9 @@ public class KernelConsole
     /// </summary>
     /// <param name="font">The font to measure.</param>
     /// <exception cref="ArgumentException">Thrown when no usable cell size can
-    /// be derived (would otherwise divide by zero when computing the grid).</exception>
+    /// be derived, or when a cell does not fit the canvas. Either would leave
+    /// a terminal with no cells at all, which every guard in this class reads
+    /// as a live buffer because it tests for null, not for length.</exception>
     private void ApplyFontMetrics(Font font)
     {
         _charWidth = font.GetMaxAdvance();
@@ -120,33 +122,55 @@ public class KernelConsole
         {
             throw new ArgumentException($"Font provides no usable character cell ({_charWidth}x{_charHeight}).", nameof(font));
         }
+
+        if (_charWidth > _canvas.Width || _charHeight > _canvas.Height)
+        {
+            throw new ArgumentException($"Font cell {_charWidth}x{_charHeight} does not fit the {_canvas.Width}x{_canvas.Height} canvas.", nameof(font));
+        }
     }
 
     /// <summary>
-    /// Gets or sets the font used in this console.
+    /// Gets or sets the font used in this console. Setting it resizes the
+    /// terminal grid to the new cell size, clearing the screen and homing the
+    /// cursor. Thread-safe.
     /// </summary>
+    /// <exception cref="ArgumentException">The font yields no usable character
+    /// cell, or a cell larger than the canvas.</exception>
     public Font Font
     {
         get => _font;
         set
         {
-            ApplyFontMetrics(value);
+            // Under the lock, like every other mutator: this replaces the cell
+            // buffer and both grid dimensions at once, and a concurrent write
+            // indexes _cells with a position computed against the old grid.
+            using (InternalCpu.DisableInterruptsScope())
+            {
+                _lock.Acquire();
+                try
+                {
+                    ApplyFontMetrics(value);
 
-            // Raw fields: the cursor setters take the console lock, and the
-            // whole canvas is cleared below, so there is nothing to repaint.
-            _cursorX = 0;
-            _cursorY = 0;
+                    _cursorX = 0;
+                    _cursorY = 0;
+                    _cursorDrawn = false;
 
-            _cols = _canvas.Width / _charWidth;
-            _rows = _canvas.Height / _charHeight;
-            _cells = new Cell[_cols * _rows];
+                    _cols = _canvas.Width / _charWidth;
+                    _rows = _canvas.Height / _charHeight;
+                    _cells = new Cell[_cols * _rows];
 
-            ClearCells();
+                    ClearCells();
 
-            _canvas.Clear((int)_backgroundColor);
-            _canvas.Display();
+                    _canvas.Clear((int)_backgroundColor);
+                    _canvas.Display();
 
-            _font = value;
+                    _font = value;
+                }
+                finally
+                {
+                    _lock.Release();
+                }
+            }
         }
     }
 
