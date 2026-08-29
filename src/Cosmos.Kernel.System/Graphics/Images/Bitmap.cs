@@ -107,14 +107,6 @@ public class Bitmap : Image
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
     /// <exception cref="DirectoryNotFoundException">Thrown if the specified path is invalid.</exception>
     /// <exception cref="PathTooLongException">Thrown if the specified path is exceed the system-defined max length.</exception>
-    public Bitmap(string path) : this(path, ColorOrder.BGR)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Bitmap"/> class, with a specified path to a BMP file.
-    /// </summary>
-    /// <param name="path">Path to file.</param>
     /// <param name="colorOrder">Order of colors in each pixel.</param>
     /// <exception cref="ArgumentException">
     /// <list type="bullet">
@@ -175,14 +167,6 @@ public class Bitmap : Image
     /// </list>
     /// </exception>
     /// <exception cref="NotImplementedException">Thrown if pixelsize is other then 32 / 24 or the file compressed.</exception>
-    public Bitmap(byte[] imageData) : this(imageData, ColorOrder.BGR) //Call the image constructor with wrong values
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Bitmap"/> class, with the specified image data byte array.
-    /// </summary>
-    /// <param name="imageData">byte array.</param>
     /// <param name="colorOrder">Order of colors in each pixel.</param>
     /// <exception cref="ArgumentNullException">Thrown if imageData is null / memory error.</exception>
     /// <exception cref="ArgumentException">Thrown on memory error.</exception>
@@ -402,14 +386,13 @@ public class Bitmap : Image
     public void Save(string path)
     {
         using FileStream fs = File.Open(path, FileMode.Create);
-        Save(fs, ImageFormat.BMP);
+        Save(fs);
     }
 
     /// <summary>
     /// Saves the image to the given stream.
     /// </summary>
     /// <param name="stream">The target stream.</param>
-    /// <param name="imageFormat">The format to save the image with.</param>
     /// <exception cref="ArgumentNullException">Thrown on memory error.</exception>
     /// <exception cref="RankException">Thrown on fatal error.</exception>
     /// <exception cref="ArrayTypeMismatchException">Thrown on fatal error.</exception>
@@ -420,7 +403,7 @@ public class Bitmap : Image
     /// <exception cref="IOException">Thrown on IO error.</exception>
     /// <exception cref="NotSupportedException">Thrown if the stream does not support writing.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the stream is closed.</exception>
-    public void Save(Stream stream, ImageFormat imageFormat = ImageFormat.BMP)
+    public void Save(Stream stream)
     {
         //Calculate padding
         int padding = 4 - ((int)Width * (int)Depth % 32 / 8);

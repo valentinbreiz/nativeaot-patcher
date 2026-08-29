@@ -45,12 +45,3 @@ public abstract class Image
         Depth = color;
     }
 }
-
-/// <summary>
-/// Supported image formats.
-/// </summary>
-public enum ImageFormat
-{
-    /// <summary>The Windows bitmap (.bmp) format.</summary>
-    BMP
-}

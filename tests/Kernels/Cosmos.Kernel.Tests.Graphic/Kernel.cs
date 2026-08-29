@@ -105,7 +105,7 @@ public class Kernel : Sys.Kernel
         Assert.True(bitmap.Width == 10 && bitmap.Height == 10, "Bitmap width and height set correctly");
         Assert.True(bitmap.RawData.Length == 100, "Bitmap data size makes sense");
         MemoryStream savedBitmap = new MemoryStream();
-        letter.Save(savedBitmap, ImageFormat.BMP);
+        letter.Save(savedBitmap);
         var bitmapData = savedBitmap.ToArray();
         Assert.Equal(bitmapData, letterData, "Saving a bitmap creates the same data as used to create it");
         Bitmap letter2 = new Bitmap(bitmapData);
