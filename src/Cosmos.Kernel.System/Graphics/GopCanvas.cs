@@ -180,7 +180,7 @@ internal class GopCanvas : Canvas
     /// </list>
     /// </para>
     /// </summary>
-    public override List<Mode> AvailableModes { get; } = new()
+    public override IReadOnlyList<Mode> AvailableModes { get; } = new List<Mode>
     {
         new Mode(320, 240, ColorDepth.ColorDepth32),
         new Mode(640, 480, ColorDepth.ColorDepth32),

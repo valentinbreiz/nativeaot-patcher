@@ -115,7 +115,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     public override Mode DefaultGraphicsMode => SvgaIIRender.DefaultMode;
 
     /// <inheritdoc />
-    public override List<Mode> AvailableModes { get; } = SvgaIIRender.CreateAvailableModes();
+    public override IReadOnlyList<Mode> AvailableModes { get; } = SvgaIIRender.CreateAvailableModes();
 
     /// <inheritdoc />
     public override void Disable()

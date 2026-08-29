@@ -19,15 +19,17 @@ namespace Cosmos.Kernel.System.Graphics;
 public unsafe class Canvas
 {
     /// <summary>
-    /// Pixel buffer for virtual canvases. Null for hardware-backed subclasses.
-    /// Each element is a raw ARGB pixel value.
+    /// Pixel buffer for virtual canvases. Null for hardware-backed subclasses,
+    /// which draw straight through their device. Each element is a raw ARGB
+    /// pixel value.
     /// </summary>
-    protected int[]? Buffer;
+    private int[]? _buffer;
 
     /// <summary>
-    /// The available graphics modes.
+    /// The graphics modes this canvas accepts, in the order the driver reports
+    /// them. <see cref="Mode"/> only accepts a mode from this list.
     /// </summary>
-    public virtual List<Mode> AvailableModes => new() { Mode };
+    public virtual IReadOnlyList<Mode> AvailableModes => new Mode[] { Mode };
 
     /// <summary>
     /// The default graphics mode.
@@ -57,9 +59,9 @@ public unsafe class Canvas
             _pitch = (int)value.Width * _bytesPerPixel;
 
             int length = (int)value.Width * (int)value.Height;
-            if (Buffer != null && Buffer.Length != length)
+            if (_buffer != null && _buffer.Length != length)
             {
-                Buffer = new int[length];
+                _buffer = new int[length];
             }
         }
     }
@@ -142,7 +144,7 @@ public unsafe class Canvas
         _bytesPerPixel = (int)colorDepth / 8;
         _stride = (int)colorDepth / 8;
         _pitch = width * _bytesPerPixel;
-        Buffer = new int[width * height];
+        _buffer = new int[width * height];
     }
 
     /// <summary>
@@ -159,12 +161,12 @@ public unsafe class Canvas
     /// <param name="color">The ARGB color to clear the screen with.</param>
     public virtual void Clear(int color)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return;
         }
 
-        Array.Fill(Buffer, color);
+        Array.Fill(_buffer, color);
     }
 
     /// <summary>
@@ -191,7 +193,7 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(Color color, int x, int y)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return;
         }
@@ -211,7 +213,7 @@ public unsafe class Canvas
             color = AlphaBlend(color, GetPointColor(x, y), color.A);
         }
 
-        Buffer[y * Width + x] = color.ToArgb();
+        _buffer[y * Width + x] = color.ToArgb();
     }
 
     /// <summary>
@@ -222,7 +224,7 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(uint color, int x, int y)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return;
         }
@@ -232,7 +234,7 @@ public unsafe class Canvas
             return;
         }
 
-        Buffer[y * Width + x] = (int)color;
+        _buffer[y * Width + x] = (int)color;
     }
 
     /// <summary>
@@ -243,7 +245,7 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual void DrawPoint(int color, int x, int y)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return;
         }
@@ -253,7 +255,7 @@ public unsafe class Canvas
             return;
         }
 
-        Buffer[y * Width + x] = color;
+        _buffer[y * Width + x] = color;
     }
 
     /// <summary>
@@ -276,7 +278,7 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual Color GetPointColor(int x, int y)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return Color.Black;
         }
@@ -286,7 +288,7 @@ public unsafe class Canvas
             return Color.Black;
         }
 
-        return Color.FromArgb(Buffer[y * Width + x]);
+        return Color.FromArgb(_buffer[y * Width + x]);
     }
 
     /// <summary>
@@ -296,7 +298,7 @@ public unsafe class Canvas
     /// <param name="y">The Y coordinate.</param>
     public virtual int GetRawPointColor(int x, int y)
     {
-        if (Buffer == null)
+        if (_buffer == null)
         {
             return 0;
         }
@@ -306,13 +308,13 @@ public unsafe class Canvas
             return 0;
         }
 
-        return Buffer[y * Width + x];
+        return _buffer[y * Width + x];
     }
 
     /// <summary>
     /// Gets the raw pixel buffer of this canvas. Returns null for hardware-backed canvases.
     /// </summary>
-    public int[]? GetBuffer() => Buffer;
+    public int[]? GetBuffer() => _buffer;
 
     internal int GetPointOffset(int x, int y)
     {
