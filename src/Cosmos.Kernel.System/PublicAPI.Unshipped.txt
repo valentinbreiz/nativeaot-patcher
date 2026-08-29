@@ -134,10 +134,13 @@ Cosmos.Kernel.System.Graphics.Fonts.Font.Width.get -> byte
 Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(char c, int sizePx) -> int
+Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent() -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAscent(int sizePx) -> int
+Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(char left, char right) -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetKerning(char left, char right, int sizePx) -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight(int sizePx) -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(int sizePx, out int ascent, out int descent, out int lineGap) -> void
+Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineMetrics(out int ascent, out int descent, out int lineGap) -> void
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.HasGlyph(char c) -> bool
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(string! text, int sizePx) -> int
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx.get -> int
@@ -546,6 +549,10 @@ const Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.BootSectorLba = 0 -> ul
 const Cosmos.Kernel.System.Storage.Gpt.FirstUsableLba = 34 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.PrimaryHeaderLba = 1 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.ProtectiveMbrStartLba = 1 -> uint
+override Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetAdvance(char c) -> int
+override Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetLineHeight() -> int
+override Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.GetMaxAdvance() -> int
+override Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(string! text) -> int
 override Cosmos.Kernel.System.Graphics.Mode.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Graphics.Mode.GetHashCode() -> int
 override Cosmos.Kernel.System.Graphics.Mode.ToString() -> string!
@@ -787,6 +794,10 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.Mode.set -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.MovePixel(int x, int y, int newX, int newY) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.Name.get -> string!
 virtual Cosmos.Kernel.System.Graphics.Canvas.RefreshRate.get -> int
+virtual Cosmos.Kernel.System.Graphics.Fonts.Font.GetAdvance(char c) -> int
+virtual Cosmos.Kernel.System.Graphics.Fonts.Font.GetLineHeight() -> int
+virtual Cosmos.Kernel.System.Graphics.Fonts.Font.GetMaxAdvance() -> int
+virtual Cosmos.Kernel.System.Graphics.Fonts.Font.MeasureString(string! text) -> int
 virtual Cosmos.Kernel.System.Kernel.AfterRun() -> void
 virtual Cosmos.Kernel.System.Kernel.BeforeRun() -> void
 virtual Cosmos.Kernel.System.Kernel.OnBoot() -> void

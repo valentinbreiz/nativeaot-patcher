@@ -60,6 +60,58 @@ public class TrueTypeFont : Font
     /// <param name="c">The character to look up.</param>
     public bool HasGlyph(char c) => _font.HasGlyph(c);
 
+    /// <inheritdoc cref="GetLineMetrics(int, out int, out int, out int)"/>
+    /// <param name="ascent">The scaled ascent in pixels.</param>
+    /// <param name="descent">The scaled descent in pixels (negative).</param>
+    /// <param name="lineGap">The scaled gap between lines in pixels.</param>
+    public void GetLineMetrics(out int ascent, out int descent, out int lineGap)
+        => GetLineMetrics(SizePx, out ascent, out descent, out lineGap);
+
+    /// <summary>
+    /// Gets the distance in pixels from the top of a text line to the baseline
+    /// at this font's <see cref="SizePx"/>.
+    /// </summary>
+    public int GetAscent() => GetAscent(SizePx);
+
+    /// <summary>
+    /// Gets the kerning adjustment in pixels for a pair of characters at this
+    /// font's <see cref="SizePx"/>.
+    /// </summary>
+    /// <param name="left">The left character of the pair.</param>
+    /// <param name="right">The right character of the pair.</param>
+    public int GetKerning(char left, char right) => GetKerning(left, right, SizePx);
+
+    /// <inheritdoc />
+    public override int GetLineHeight() => GetLineHeight(SizePx);
+
+    /// <inheritdoc />
+    public override int GetAdvance(char c) => GetAdvance(c, SizePx);
+
+    /// <inheritdoc />
+    public override int MeasureString(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        return MeasureString(text, SizePx);
+    }
+
+    /// <inheritdoc />
+    public override int GetMaxAdvance()
+    {
+        int maxAdvance = 0;
+
+        for (char c = '!'; c <= '~'; c++)
+        {
+            int advance = GetAdvance(c, SizePx);
+            if (advance > maxAdvance)
+            {
+                maxAdvance = advance;
+            }
+        }
+
+        return maxAdvance;
+    }
+
     /// <summary>
     /// Gets the vertical metrics of the font at the given size. The ascent is
     /// the distance from the top of a text line to the baseline, the descent

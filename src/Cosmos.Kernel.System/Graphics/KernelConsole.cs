@@ -113,26 +113,8 @@ public class KernelConsole
     /// be derived (would otherwise divide by zero when computing the grid).</exception>
     private void ApplyFontMetrics(Font font)
     {
-        if (font is TrueTypeFont trueType)
-        {
-            int maxAdvance = 0;
-            for (char c = '!'; c <= '~'; c++)
-            {
-                int advance = trueType.GetAdvance(c, trueType.SizePx);
-                if (advance > maxAdvance)
-                {
-                    maxAdvance = advance;
-                }
-            }
-
-            _charWidth = maxAdvance;
-            _charHeight = trueType.GetLineHeight(trueType.SizePx);
-        }
-        else
-        {
-            _charWidth = font.Width;
-            _charHeight = font.Height;
-        }
+        _charWidth = font.GetMaxAdvance();
+        _charHeight = font.GetLineHeight();
 
         if (_charWidth <= 0 || _charHeight <= 0)
         {
