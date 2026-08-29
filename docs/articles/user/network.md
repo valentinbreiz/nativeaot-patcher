@@ -54,10 +54,10 @@ using Cosmos.Kernel.System.Timer;
 `NetworkManager` owns the detected NICs. Check that a device is there and ready before configuring anything:
 
 ```csharp
-if (NetworkManager.HasDevice)
+if (NetworkManager.DeviceCount > 0)
 {
     Console.WriteLine("Device:  " + NetworkManager.Name);
-    Console.WriteLine("MAC:     " + NetworkManager.MacAddress.ToString());
+    Console.WriteLine("MAC:     " + NetworkManager.MacAddress?.ToString());
     Console.WriteLine("Link up: " + NetworkManager.LinkUp);
     Console.WriteLine("Ready:   " + NetworkManager.Ready);
 }
@@ -72,10 +72,14 @@ for (int i = 0; i < NetworkManager.DeviceCount; i++)
     Console.WriteLine($"[{i}] {adapter.Name}  {adapter.MacAddress}  link={adapter.LinkUp}");
 }
 
-NetworkManager.Primary = NetworkManager.GetAdapter(1);
+NetworkAdapter second = NetworkManager.GetAdapter(1);
+if (second.IsValid)
+{
+    NetworkManager.Primary = second;
+}
 ```
 
-A `NetworkAdapter` is a handle, not the device: it carries the registration index, so a default-constructed one names nothing and `IsValid` is false.
+A `NetworkAdapter` is a handle, not the device: it carries the registration index, so a default-constructed one names nothing and `IsValid` is false. `GetAdapter` answers with such a handle for an index no device occupies, which is why the assignment above is guarded: the `Primary` setter throws `ArgumentException` on a handle that names nothing, and QEMU gives the kernel a single NIC by default, so `GetAdapter(1)` names nothing there.
 
 <!-- screenshot: console showing "Device: Intel E1000E", the MAC, "Link up: True", "Ready: True" -->
 ![Network Device](images/network-device.png)
@@ -96,9 +100,12 @@ var dhcpClient = new DhcpClient();
 if (dhcpClient.SendDiscoverPacket() != -1)
 {
     IPConfig? config = NetworkManager.Primary.IPConfig;
-    Console.WriteLine("IP address: " + config.IPAddress.ToString());
-    Console.WriteLine("Subnet:     " + config.SubnetMask.ToString());
-    Console.WriteLine("Gateway:    " + config.DefaultGateway.ToString());
+    if (config != null)
+    {
+        Console.WriteLine("IP address: " + config.IPAddress.ToString());
+        Console.WriteLine("Subnet:     " + config.SubnetMask.ToString());
+        Console.WriteLine("Gateway:    " + config.DefaultGateway.ToString());
+    }
 }
 else
 {
@@ -238,7 +245,7 @@ To reach a listener inside QEMU user networking from your host, forward a host p
 
 ## DNS
 
-DNS uses the Cosmos `DnsClient` (the .NET `Dns` class is not plugged yet). Register a nameserver, ask for one domain, and read the answer back:
+DNS uses the Cosmos `DnsClient` (the .NET `Dns` class is not plugged yet). Register a nameserver, query one domain, and read the answer back:
 
 ```csharp
 DnsConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
@@ -246,11 +253,11 @@ DnsConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
 var dnsClient = new DnsClient();
 dnsClient.Connect(new Address(1, 1, 1, 1));
 
-/* Ask for a single domain name */
-dnsClient.SendAsk("github.com");
+/* Query a single domain name */
+dnsClient.SendQuery("github.com");
 
 /* Receive the answer (5 s timeout) */
-Address address = dnsClient.Receive(5000);
+Address? address = dnsClient.Receive(5000);
 if (address != null)
 {
     Console.WriteLine("github.com resolved to " + address.ToString());
@@ -276,7 +283,7 @@ The seam has three parts:
 
 | Part | Members |
 |------|---------|
-| Packet types | `EthernetPacket`, `ArpRequestEthernet`/`ArpReplyEthernet`, `IPPacket`, `IcmpEchoRequest`/`IcmpEchoReply`, `UdpPacket`, `DhcpDiscover`/`DhcpRequest`/`DhcpRelease`, `DnsPacketAsk`/`DnsPacketAnswer`, `TcpPacket` |
+| Packet types | `EthernetPacket`, `ArpRequestEthernet`/`ArpReplyEthernet`, `IPPacket`, `IcmpEchoRequest`/`IcmpEchoReply`, `UdpPacket`, `DhcpDiscover`/`DhcpRequest`/`DhcpRelease`, `DnsPacketQuery`/`DnsPacketAnswer`, `TcpPacket` |
 | Transmit and inject | `NetworkStack.Send(IPPacket)` queues a built packet with ARP resolution; `NetworkStack.HandlePacket` injects a raw frame into the receive path |
 | Packet-level client I/O | `UdpClient.Send(UdpPacket)` / `UdpClient.ReceivePacket(timeout)`, `IcmpClient.Send(IcmpPacket)` / `IcmpClient.ReceivePacket(timeout)` |
 
@@ -293,7 +300,7 @@ IcmpEchoRequest request = new IcmpEchoRequest(localIp, gateway, id: 0x1234, sequ
 NetworkStack.Send(request);
 
 if (icmp.ReceivePacket(5000) is IcmpEchoReply reply
-    && reply.ICMPID == 0x1234 && reply.ICMPSequence == 7)
+    && reply.IcmpId == 0x1234 && reply.IcmpSequence == 7)
 {
     Console.WriteLine("reply from " + reply.SourceIP.ToString());
 }
