@@ -99,9 +99,9 @@ internal class SvgaIICanvas : Canvas
     }
 
     /// <inheritdoc />
-    public override void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true)
+    public override void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height)
     {
-        SvgaIIRender.DrawFilledRectangle(this, Driver, color, xStart, yStart, width, height, preventOffBoundPixels);
+        SvgaIIRender.DrawFilledRectangle(this, Driver, color, xStart, yStart, width, height);
     }
 
     /// <inheritdoc />

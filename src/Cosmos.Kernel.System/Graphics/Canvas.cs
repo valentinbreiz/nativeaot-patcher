@@ -869,7 +869,12 @@ public unsafe class Canvas
     /// <param name="yStart">The Y coordinate of the top-left corner.</param>
     /// <param name="width">The width of the rectangle in pixels.</param>
     /// <param name="height">The height of the rectangle in pixels.</param>
-    public virtual void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true)
+    /// <remarks>
+    /// The shape is always clipped to the canvas. There is no opt-out, because
+    /// the hardware canvases fill straight into video memory and an unclipped
+    /// origin there is a write outside the framebuffer, not a stray pixel.
+    /// </remarks>
+    public virtual void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height)
     {
         if (height == -1)
         {

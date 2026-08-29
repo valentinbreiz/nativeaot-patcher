@@ -119,15 +119,32 @@ internal static class SvgaIIRender
     /// <summary>
     /// Fills a rectangle through the device's VRAM fill operation.
     /// </summary>
-    public static void DrawFilledRectangle(Canvas canvas, SvgaIIDriver driver, Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels)
+    public static void DrawFilledRectangle(Canvas canvas, SvgaIIDriver driver, Color color, int xStart, int yStart, int width, int height)
     {
-        int argb = color.ToArgb();
-
-        if (preventOffBoundPixels)
+        // Clamp both corners, and unconditionally: ClearVRAM resolves to an
+        // unchecked MemSet at Base + offset, so a negative origin here is a
+        // wild kernel write rather than a clipped shape.
+        if (xStart < 0)
         {
-            width = Math.Min(width, canvas.Width - xStart);
-            height = Math.Min(height, canvas.Height - yStart);
+            width += xStart;
+            xStart = 0;
         }
+
+        if (yStart < 0)
+        {
+            height += yStart;
+            yStart = 0;
+        }
+
+        width = Math.Min(width, canvas.Width - xStart);
+        height = Math.Min(height, canvas.Height - yStart);
+
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
+
+        int argb = color.ToArgb();
 
         for (int row = yStart; row < yStart + height; row++)
         {

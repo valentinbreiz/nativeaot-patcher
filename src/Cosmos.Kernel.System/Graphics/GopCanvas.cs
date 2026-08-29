@@ -387,27 +387,26 @@ internal class GopCanvas : Canvas
         _driver.CopyBuffer(aColors.AsMemory(startIndex), aX, aY, aWidth, aHeight);
     }
 
-    public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight, bool preventOffBoundPixels = true)
+    public override void DrawFilledRectangle(Color aColor, int aX, int aY, int aWidth, int aHeight)
     {
         ThrowIfDriverNotInitialized();
-        // ClearVRAM clears one uint at a time. So we clear pixelwise not byte wise. That's why we divide by 32 and not 8.
-        if (preventOffBoundPixels)
+
+        // Clamp unconditionally: the fill below goes straight into the
+        // framebuffer through an unchecked MemSet, so an origin outside the
+        // canvas is a write outside the framebuffer.
+        if (aX < 0) { aWidth += aX; aX = 0; }
+        if (aY < 0) { aHeight += aY; aY = 0; }
+        if (aX >= Mode.Width || aY >= Mode.Height)
         {
-            // Clamp to screen bounds
-            if (aX < 0) { aWidth += aX; aX = 0; }
-            if (aY < 0) { aHeight += aY; aY = 0; }
-            if (aX >= Mode.Width || aY >= Mode.Height)
-            {
-                return;
-            }
+            return;
+        }
 
-            aWidth = Math.Min(aWidth, Mode.Width - aX);
-            aHeight = Math.Min(aHeight, Mode.Height - aY);
+        aWidth = Math.Min(aWidth, Mode.Width - aX);
+        aHeight = Math.Min(aHeight, Mode.Height - aY);
 
-            if (aWidth <= 0 || aHeight <= 0)
-            {
-                return;
-            }
+        if (aWidth <= 0 || aHeight <= 0)
+        {
+            return;
         }
 
         var color = aColor.ToArgb();
