@@ -1,7 +1,5 @@
 using Cosmos.Kernel.Core;
 using Cosmos.Kernel.Core.Scheduler;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
-using SchedThreadState = Cosmos.Kernel.Core.Scheduler.ThreadState;
 
 namespace Cosmos.Kernel.System.Diagnostics;
 
@@ -104,8 +102,8 @@ public static class SchedulerInfo
     /// <returns><see langword="false"/> when the slot is out of range or empty.</returns>
     public static bool TryGetThreadInSlot(int slot, out KernelThreadInfo info)
     {
-        SchedThread?[]? threads = SchedulerManager.Threads;
-        if (threads == null || slot < 0 || slot >= threads.Length || threads[slot] is not SchedThread thread)
+        SchedulerThread?[]? threads = SchedulerManager.Threads;
+        if (threads == null || slot < 0 || slot >= threads.Length || threads[slot] is not SchedulerThread thread)
         {
             info = default;
             return false;
@@ -123,7 +121,7 @@ public static class SchedulerInfo
     /// <returns><see langword="false"/> when the CPU ID is out of range or no thread is current.</returns>
     public static bool TryGetCurrentThread(uint cpuId, out KernelThreadInfo info)
     {
-        SchedThread? thread = cpuId < SchedulerManager.CpuCount
+        SchedulerThread? thread = cpuId < SchedulerManager.CpuCount
             ? SchedulerManager.GetCpuState(cpuId)?.CurrentThread
             : null;
         if (thread == null)
@@ -165,7 +163,7 @@ public static class SchedulerInfo
     {
         IScheduler? scheduler = SchedulerManager.Current;
         PerCpuState? state = cpuId < SchedulerManager.CpuCount ? SchedulerManager.GetCpuState(cpuId) : null;
-        SchedThread? thread = scheduler != null && state != null ? scheduler.GetRunQueueThread(state, index) : null;
+        SchedulerThread? thread = scheduler != null && state != null ? scheduler.GetRunQueueThread(state, index) : null;
         if (thread == null)
         {
             info = default;
@@ -191,7 +189,7 @@ public static class SchedulerInfo
     public static ThreadKillResult RequestKill(uint threadId)
     {
         IScheduler? scheduler = SchedulerManager.Current;
-        SchedThread?[]? threads = SchedulerManager.Threads;
+        SchedulerThread?[]? threads = SchedulerManager.Threads;
         if (scheduler == null || threads == null)
         {
             return ThreadKillResult.NotFound;
@@ -201,10 +199,10 @@ public static class SchedulerInfo
         // or sleeping thread is dequeued by OnThreadBlocked but stays
         // registered, and reporting it as NotFound would contradict the
         // snapshot TryGetThreadInSlot just handed the caller.
-        SchedThread? target = null;
+        SchedulerThread? target = null;
         for (int slot = 0; slot < threads.Length; slot++)
         {
-            if (threads[slot] is SchedThread candidate && candidate.Id == threadId)
+            if (threads[slot] is SchedulerThread candidate && candidate.Id == threadId)
             {
                 target = candidate;
                 break;
@@ -216,7 +214,7 @@ public static class SchedulerInfo
             return ThreadKillResult.NotFound;
         }
 
-        if ((target.Flags & ThreadFlags.IdleThread) != 0)
+        if ((target.Flags & SchedulerThreadFlags.IdleThread) != 0)
         {
             return ThreadKillResult.RefusedIdle;
         }
@@ -231,7 +229,7 @@ public static class SchedulerInfo
 
             if (ReferenceEquals(state.CurrentThread, target))
             {
-                target.State = SchedThreadState.Dead;
+                target.State = SchedulerThreadState.Dead;
                 return ThreadKillResult.MarkedForExit;
             }
 
@@ -249,7 +247,7 @@ public static class SchedulerInfo
         return ThreadKillResult.RefusedBlocked;
     }
 
-    private static KernelThreadInfo Snapshot(SchedThread thread)
+    private static KernelThreadInfo Snapshot(SchedulerThread thread)
     {
         bool hasPriority = thread.SchedulerData != null;
         long priority = hasPriority ? SchedulerManager.Current?.GetPriority(thread) ?? 0 : 0;
@@ -257,21 +255,21 @@ public static class SchedulerInfo
             thread.Id,
             thread.CpuId,
             MapState(thread.State),
-            (thread.Flags & ThreadFlags.IdleThread) != 0,
-            (thread.Flags & ThreadFlags.Managed) != 0,
+            (thread.Flags & SchedulerThreadFlags.IdleThread) != 0,
+            (thread.Flags & SchedulerThreadFlags.Managed) != 0,
             thread.TotalRuntime,
             thread.StackSize,
             priority,
             hasPriority);
     }
 
-    private static KernelThreadState MapState(SchedThreadState state) => state switch
+    private static KernelThreadState MapState(SchedulerThreadState state) => state switch
     {
-        SchedThreadState.Created => KernelThreadState.Created,
-        SchedThreadState.Ready => KernelThreadState.Ready,
-        SchedThreadState.Running => KernelThreadState.Running,
-        SchedThreadState.Blocked => KernelThreadState.Blocked,
-        SchedThreadState.Sleeping => KernelThreadState.Sleeping,
+        SchedulerThreadState.Created => KernelThreadState.Created,
+        SchedulerThreadState.Ready => KernelThreadState.Ready,
+        SchedulerThreadState.Running => KernelThreadState.Running,
+        SchedulerThreadState.Blocked => KernelThreadState.Blocked,
+        SchedulerThreadState.Sleeping => KernelThreadState.Sleeping,
         _ => KernelThreadState.Dead,
     };
 }

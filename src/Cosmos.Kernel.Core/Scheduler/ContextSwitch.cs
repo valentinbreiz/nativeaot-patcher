@@ -17,17 +17,17 @@ internal static class ContextSwitch
     /// <param name="currentRsp">Current stack pointer (from IRQ context).</param>
     /// <param name="current">Currently running thread (may be null for idle).</param>
     /// <param name="next">Next thread to run.</param>
-    public static void Switch(nuint currentRsp, Thread? current, Thread next)
+    public static void Switch(nuint currentRsp, SchedulerThread? current, SchedulerThread next)
     {
         if (current != null)
         {
             current.StackPointer = currentRsp;
-            current.State = ThreadState.Ready;
+            current.State = SchedulerThreadState.Ready;
         }
 
-        bool isNewThread = next.State == ThreadState.Created;
+        bool isNewThread = next.State == SchedulerThreadState.Created;
 
-        next.State = ThreadState.Running;
+        next.State = SchedulerThreadState.Running;
         ContextSwitchNative.SetContextSwitchNewThread(isNewThread ? 1 : 0);
         ContextSwitchNative.SetContextSwitchSp(next.StackPointer);
     }

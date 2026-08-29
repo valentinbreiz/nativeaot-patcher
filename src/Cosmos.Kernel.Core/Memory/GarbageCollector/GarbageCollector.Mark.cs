@@ -82,7 +82,7 @@ internal static unsafe partial class GarbageCollector
     {
         if (CosmosFeatures.SchedulerEnabled && SchedulerManager.IsEnabled)
         {
-            Scheduler.Thread? current = SchedulerManager.CurrentCpuState?.CurrentThread;
+            Scheduler.SchedulerThread? current = SchedulerManager.CurrentCpuState?.CurrentThread;
 
             nuint stackEnd;
             if (current != null && current.StackBase != 0 && current.StackSize != 0)
@@ -103,7 +103,7 @@ internal static unsafe partial class GarbageCollector
                 for (int i = 0; i < threads.Length; i++)
                 {
                     var thread = threads[i];
-                    if (thread != null && !object.ReferenceEquals(thread, current) && thread.State != Scheduler.ThreadState.Dead)
+                    if (thread != null && !object.ReferenceEquals(thread, current) && thread.State != Scheduler.SchedulerThreadState.Dead)
                     {
                         ScanThreadStack(thread);
                     }
@@ -118,7 +118,7 @@ internal static unsafe partial class GarbageCollector
     }
 
     /// <summary>
-    /// Stack-end bound for the current thread when its <see cref="Scheduler.Thread"/> has no
+    /// Stack-end bound for the current thread when its <see cref="Scheduler.SchedulerThread"/> has no
     /// allocated <c>StackBase</c>/<c>StackSize</c> — the boot/idle thread runs on the bootloader's
     /// stack, whose top kmain captured before any managed code ran.
     /// </summary>
@@ -131,14 +131,14 @@ internal static unsafe partial class GarbageCollector
     /// Scans a thread's saved register state and stack for potential object references.
     /// </summary>
     /// <param name="thread">The thread whose stack and registers to scan.</param>
-    private static void ScanThreadStack(Scheduler.Thread thread)
+    private static void ScanThreadStack(Scheduler.SchedulerThread thread)
     {
         if (thread == null)
         {
             return;
         }
 
-        if (thread.State != Scheduler.ThreadState.Running)
+        if (thread.State != Scheduler.SchedulerThreadState.Running)
         {
             Scheduler.ThreadContext* ctx = thread.GetContext();
             if (ctx != null)
@@ -203,7 +203,7 @@ internal static unsafe partial class GarbageCollector
         nuint stackStart;
         nuint stackEnd;
 
-        if (thread.State == Scheduler.ThreadState.Running)
+        if (thread.State == Scheduler.SchedulerThreadState.Running)
         {
             // For the currently running thread, thread.StackPointer is stale (saved
             // during the last context switch). Use the actual RSP instead.

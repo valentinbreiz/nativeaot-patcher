@@ -78,7 +78,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the thread is being created on.</param>
     /// <param name="thread">Thread entering this policy's management.</param>
-    void OnThreadCreate(PerCpuState cpuState, Thread thread);
+    void OnThreadCreate(PerCpuState cpuState, SchedulerThread thread);
 
     /// <summary>
     /// Make the thread runnable: place it and insert it into the run
@@ -90,7 +90,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the thread is queued on.</param>
     /// <param name="thread">Thread becoming runnable.</param>
-    void OnThreadReady(PerCpuState cpuState, Thread thread);
+    void OnThreadReady(PerCpuState cpuState, SchedulerThread thread);
 
     /// <summary>
     /// Remove the thread from the run structure and save whatever must
@@ -99,7 +99,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the thread was queued on.</param>
     /// <param name="thread">Thread parking.</param>
-    void OnThreadBlocked(PerCpuState cpuState, Thread thread);
+    void OnThreadBlocked(PerCpuState cpuState, SchedulerThread thread);
 
     /// <summary>
     /// Remove the thread everywhere and drop its bookkeeping. Called with
@@ -107,7 +107,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the thread was managed on.</param>
     /// <param name="thread">Thread terminating.</param>
-    void OnThreadExit(PerCpuState cpuState, Thread thread);
+    void OnThreadExit(PerCpuState cpuState, SchedulerThread thread);
 
     /// <summary>
     /// Re-insert a thread that gave up the CPU while still runnable. Called
@@ -119,7 +119,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the thread is queued on.</param>
     /// <param name="thread">Thread giving up the CPU.</param>
-    void OnThreadYield(PerCpuState cpuState, Thread thread);
+    void OnThreadYield(PerCpuState cpuState, SchedulerThread thread);
 
     // ========== Scheduling Decisions ==========
 
@@ -138,7 +138,7 @@ public interface IScheduler
     /// manager does not check the thread's state either, so never return one
     /// that is dead or parked.
     /// </returns>
-    Thread? PickNext(PerCpuState cpuState);
+    SchedulerThread? PickNext(PerCpuState cpuState);
 
     /// <summary>
     /// Put back a thread the mechanism picked but could not switch to.
@@ -146,7 +146,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="cpuState">CPU the pick was made for.</param>
     /// <param name="thread">Thread that could not be switched to.</param>
-    void OnPickFailed(PerCpuState cpuState, Thread thread);
+    void OnPickFailed(PerCpuState cpuState, SchedulerThread thread);
 
     /// <summary>
     /// Account the elapsed time and decide whether to preempt. Called from
@@ -165,20 +165,20 @@ public interface IScheduler
     /// <see langword="true"/> to request a reschedule, which runs
     /// <see cref="PickNext"/> before this interrupt returns.
     /// </returns>
-    bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs);
+    bool OnTick(PerCpuState cpuState, SchedulerThread current, ulong elapsedNs);
 
     // ========== Load Balancing ==========
 
     /// <summary>
     /// Choose a starting CPU for a new or migrating thread, honouring
-    /// <see cref="ThreadFlags.Pinned"/>. Dormant until SMP lands: nothing
+    /// <see cref="SchedulerThreadFlags.Pinned"/>. Dormant until SMP lands: nothing
     /// calls it today, and this hook receives no <see cref="PerCpuState"/>.
     /// </summary>
     /// <param name="thread">Thread being placed.</param>
     /// <param name="currentCpu">CPU the thread is on now.</param>
     /// <param name="cpuCount">Number of CPUs the scheduler manages.</param>
     /// <returns>The CPU to place the thread on.</returns>
-    uint SelectCpu(Thread thread, uint currentCpu, uint cpuCount);
+    uint SelectCpu(SchedulerThread thread, uint currentCpu, uint cpuCount);
 
     /// <summary>
     /// Move a thread's bookkeeping, and any virtual-time base, between CPUs.
@@ -188,10 +188,10 @@ public interface IScheduler
     /// <param name="thread">Thread being migrated.</param>
     /// <param name="fromState">CPU the thread is leaving.</param>
     /// <param name="toState">CPU the thread is joining.</param>
-    void OnThreadMigrate(Thread thread, PerCpuState fromState, PerCpuState toState);
+    void OnThreadMigrate(SchedulerThread thread, PerCpuState fromState, PerCpuState toState);
 
     /// <summary>
-    /// Rebalance load across CPUs, honouring <see cref="ThreadFlags.Pinned"/>.
+    /// Rebalance load across CPUs, honouring <see cref="SchedulerThreadFlags.Pinned"/>.
     /// Dormant until SMP lands: nothing calls it today.
     /// </summary>
     /// <param name="cpuState">CPU asking for work, or offering it.</param>
@@ -212,7 +212,7 @@ public interface IScheduler
     /// <param name="cpuState">CPU whose state guards the update.</param>
     /// <param name="thread">Thread to reprioritize.</param>
     /// <param name="priority">New policy-defined priority.</param>
-    void SetPriority(PerCpuState cpuState, Thread thread, long priority);
+    void SetPriority(PerCpuState cpuState, SchedulerThread thread, long priority);
 
     /// <summary>
     /// Report a thread's current priority in the same policy-defined units
@@ -223,7 +223,7 @@ public interface IScheduler
     /// </summary>
     /// <param name="thread">Thread to query. This hook receives no <see cref="PerCpuState"/>.</param>
     /// <returns>The thread's priority, or 0 when the policy does not track one for it.</returns>
-    long GetPriority(Thread thread);
+    long GetPriority(SchedulerThread thread);
 
     // ========== Diagnostics ==========
 
@@ -248,5 +248,5 @@ public interface IScheduler
     /// <param name="cpuState">CPU to inspect.</param>
     /// <param name="index">Queue position, from 0 to <see cref="GetRunQueueCount"/> exclusive.</param>
     /// <returns>The queued thread, or <see langword="null"/> when the index is out of range.</returns>
-    Thread? GetRunQueueThread(PerCpuState cpuState, int index);
+    SchedulerThread? GetRunQueueThread(PerCpuState cpuState, int index);
 }

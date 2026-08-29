@@ -31,14 +31,14 @@ public sealed class PerCpuState : SchedulerExtensible
     /// Thread currently executing on this CPU, or <see langword="null"/>
     /// before the scheduler has run.
     /// </summary>
-    public Thread? CurrentThread { get; internal set; }
+    public SchedulerThread? CurrentThread { get; internal set; }
 
     /// <summary>
     /// This CPU's idle thread, scheduled when no other thread is runnable, or
     /// <see langword="null"/> before the scheduler has set one up. Once set it
     /// stays set: the idle thread is never unregistered.
     /// </summary>
-    public Thread? IdleThread { get; internal set; }
+    public SchedulerThread? IdleThread { get; internal set; }
 
     // Set by ReadyThread when it wakes a thread (typically an ISR-side
     // InterruptEvent.Signal); consumed by ReschedulePendingFromIrq on

@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.System.Diagnostics;
 /// scheduler, so fields of a thread that is being rescheduled concurrently
 /// may be one tick stale.
 /// <para>
-/// This is a projection of <see cref="global::Cosmos.Kernel.Core.Scheduler.Thread"/>,
+/// This is a projection of <see cref="global::Cosmos.Kernel.Core.Scheduler.SchedulerThread"/>,
 /// the thread control block on the experimental scheduler seam, and it is
 /// narrower on purpose. It carries what a monitor can render off an unlocked
 /// read: identity, state, and two totals. It leaves behind the saved stack

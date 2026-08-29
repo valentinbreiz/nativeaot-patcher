@@ -28,5 +28,5 @@ internal class StrideCpuData
     /// forbids. Mutex and InterruptEvent pre-size their wait lists for the
     /// same reason.
     /// </summary>
-    public List<Thread> RunQueue { get; } = new(Thread.MaxThreadCount);
+    public List<SchedulerThread> RunQueue { get; } = new(SchedulerThread.MaxThreadCount);
 }

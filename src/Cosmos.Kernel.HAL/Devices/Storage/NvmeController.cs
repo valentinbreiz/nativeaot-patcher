@@ -9,7 +9,6 @@ using Cosmos.Kernel.Core.Scheduler;
 using Cosmos.Kernel.HAL.Pci;
 using SchedMutex = Cosmos.Kernel.Core.Scheduler.Mutex;
 using SchedSpinLock = Cosmos.Kernel.Core.Scheduler.SpinLock;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.HAL.Devices.Storage;
 
@@ -155,7 +154,7 @@ internal unsafe class NvmeController
     // critical section so concurrent submits don't clobber _ioSqTail.
     private SchedSpinLock _slotLock;
     private SchedSpinLock _submitSqLock;
-    private readonly List<SchedThread> _slotWaiters = [];
+    private readonly List<SchedulerThread> _slotWaiters = [];
 
     // Polled-completion fallback path: serializes the entire submit/wait
     // sequence so concurrent callers don't race on _ioCqHead / _ioCqPhase.
@@ -507,7 +506,7 @@ internal unsafe class NvmeController
     /// </summary>
     private int AcquireSlot()
     {
-        SchedThread? current = SchedulerManager.IsReady
+        SchedulerThread? current = SchedulerManager.IsReady
             ? SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId()).CurrentThread
             : null;
         if (current == null)
@@ -556,7 +555,7 @@ internal unsafe class NvmeController
 
     private void ReleaseSlot(int index)
     {
-        SchedThread? waiter = null;
+        SchedulerThread? waiter = null;
         using (_slotLock.AcquireIrqSafe())
         {
             _ioSlots![index].InUse = false;

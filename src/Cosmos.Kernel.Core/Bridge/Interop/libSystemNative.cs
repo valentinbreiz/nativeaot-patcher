@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.Core.IO;
@@ -122,15 +122,15 @@ internal static unsafe partial class libSystemNative
 
         using (InternalCpu.DisableInterruptsScope())
         {
-            // Create scheduler thread with ThreadFlags.Managed set.
+            // Create scheduler thread with SchedulerThreadFlags.Managed set.
             // SchedulerManager.InvokeCurrentThreadStart evaluates it to
             // call the managed startup or not.
-            Scheduler.Thread thread = new Scheduler.Thread
+            Scheduler.SchedulerThread thread = new Scheduler.SchedulerThread
             {
                 Id = SchedulerManager.AllocateThreadId(),
                 CpuId = 0,
-                State = Scheduler.ThreadState.Created,
-                Flags = ThreadFlags.Managed
+                State = Scheduler.SchedulerThreadState.Created,
+                Flags = Scheduler.SchedulerThreadFlags.Managed
             };
 
             nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)&ThreadNative.EntryPointStub;

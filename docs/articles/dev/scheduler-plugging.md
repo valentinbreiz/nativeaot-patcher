@@ -12,7 +12,7 @@ Replacing the policy takes three steps:
 
 ## Experimental status
 
-The seam types (`IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `InterruptMaskScope`, `ThreadState`, `ThreadFlags`) carry `[Experimental("COSMOS0001")]`: they are usable today but make no compatibility promise, and they are promoted to the stable surface by removing the attribute once proven. Referencing them is a build error until the project acknowledges that contract:
+The seam types (`IScheduler`, `SchedulerManager`, `SchedulerThread`, `PerCpuState`, `SchedulerExtensible`, `InterruptMaskScope`, `SchedulerThreadState`, `SchedulerThreadFlags`) carry `[Experimental("COSMOS0001")]`: they are usable today but make no compatibility promise, and they are promoted to the stable surface by removing the attribute once proven. Referencing them is a build error until the project acknowledges that contract:
 
 ```xml
 <PropertyGroup>
@@ -53,16 +53,16 @@ Most hooks receive the `PerCpuState` they operate on, and run either under the m
 
 ## Attaching state
 
-`Thread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Allocate in the creation hooks, and read the slot with `as`:
+`SchedulerThread` and `PerCpuState` both inherit `SchedulerExtensible`, which carries exactly one `object?` slot, `SchedulerData`, reserved for the active policy. Allocate in the creation hooks, and read the slot with `as`:
 
 ```csharp
 public sealed class MyThreadData { public ulong Deadline; }
-public sealed class MyCpuData { public List<Thread> Queue { get; } = new(); }
+public sealed class MyCpuData { public List<SchedulerThread> Queue { get; } = new(); }
 
-public void OnThreadCreate(PerCpuState state, Thread thread)
+public void OnThreadCreate(PerCpuState state, SchedulerThread thread)
     => thread.SchedulerData = new MyThreadData();
 
-public bool OnTick(PerCpuState state, Thread current, ulong elapsedNs)
+public bool OnTick(PerCpuState state, SchedulerThread current, ulong elapsedNs)
 {
     MyThreadData? data = current.SchedulerData as MyThreadData;
     if (data == null) { return true; }   // not ours, or already exited
@@ -90,7 +90,7 @@ The hooks run inside the kernel's most sensitive window, so four rules are not o
 - **No `List<T>.Remove`, `Contains`, or `IndexOf` on scheduler paths.** They route through `EqualityComparer<T>.Default`, which needs runtime helpers the kernel does not provide. Scan with `ReferenceEquals` and use `RemoveAt`, as `StrideScheduler.RemoveThreadFromQueue` does.
 - **Guard structure mutations against the tick.** A hook mutating the run structure can itself be interrupted by the timer unless interrupts are masked. The lifecycle hooks, the tick hooks and the two per-CPU hooks get that masking from the manager. Four do not: `SetPriority`, `GetPriority`, `GetRunQueueCount` and `GetRunQueueThread`. The spinlock around `SetPriority` is no help here, because the tick path takes no lock at all. Those, and any *additional* entry point a policy exposes (a tuning setter, a stats read), must take `SchedulerManager.MaskInterrupts()` themselves. Masking inside a hook makes one call atomic and no more: a caller that reads `GetRunQueueCount` and then walks the indices needs its own mask around the whole walk.
 
-Bookkeeping the mechanism already does, so a policy does not have to: `Thread.State` transitions, the thread registry, `_needReschedule` on wakes, TLAB return on exit, and the idle-thread fallback when `PickNext` returns `null`.
+Bookkeeping the mechanism already does, so a policy does not have to: `SchedulerThread.State` transitions, the thread registry, `_needReschedule` on wakes, TLAB return on exit, and the idle-thread fallback when `PickNext` returns `null`.
 
 ---
 
@@ -105,7 +105,7 @@ A FIFO queue with fixed-quantum preemption.
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | A queue of threads |
-| `Thread.SchedulerData` | A remaining-quantum counter |
+| `SchedulerThread.SchedulerData` | A remaining-quantum counter |
 | `OnThreadReady` | Enqueue at the tail |
 | `OnThreadBlocked` | Remove from the queue (a running thread is not in it; removal covers a queued thread going to sleep) |
 | `OnTick` | Charge `elapsedNs` against the quantum; return `true` at zero |
@@ -114,7 +114,7 @@ A FIFO queue with fixed-quantum preemption.
 
 FIFO order already bounds latency at `quantum * queue depth`, so Round-Robin needs no wakeup placement logic at all.
 
-This sketch exists in-tree as a working policy: [`RoundRobinScheduler`](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/tests/Kernels/Cosmos.Kernel.Tests.Threading/RoundRobinScheduler.cs) lives in the Threading suite exactly as a user policy would, over the public seam only. The suite validates it two ways, and the split is worth copying. The run-structure invariants — tail enqueue, head pick, quantum accounting, block/yield/exit — are asserted by driving the hooks directly on a throwaway `PerCpuState` and `Thread`, which needs no timer and no dispatch and so cannot flake; the policy keeps all its state in the data slots, so a throwaway instance exercises the real logic. Only what genuinely needs a running kernel — that threads get dispatched, that a spinner is preempted at quantum expiry, that shares come out equal whatever priority is requested, that the run queue tracks blocking and waking — is measured live, after swapping the policy in at a quiescent point. Note what the live half deliberately does *not* assert: the order threads reach their delegate is not the order they became ready, because a thread preempted inside its dispatch preamble is re-queued at the tail.
+This sketch exists in-tree as a working policy: [`RoundRobinScheduler`](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/tests/Kernels/Cosmos.Kernel.Tests.Threading/RoundRobinScheduler.cs) lives in the Threading suite exactly as a user policy would, over the public seam only. The suite validates it two ways, and the split is worth copying. The run-structure invariants — tail enqueue, head pick, quantum accounting, block/yield/exit — are asserted by driving the hooks directly on a throwaway `PerCpuState` and `SchedulerThread`, which needs no timer and no dispatch and so cannot flake; the policy keeps all its state in the data slots, so a throwaway instance exercises the real logic. Only what genuinely needs a running kernel — that threads get dispatched, that a spinner is preempted at quantum expiry, that shares come out equal whatever priority is requested, that the run queue tracks blocking and waking — is measured live, after swapping the policy in at a quiescent point. Note what the live half deliberately does *not* assert: the order threads reach their delegate is not the order they became ready, because a thread preempted inside its dispatch preamble is re-queued at the tail.
 
 Both swap directions are worth copying as well. Going out, `RoundRobinScheduler` reads every slot with `as` for the reason [above](#attaching-state): it inherits the boot thread's `StrideThreadData` and must not throw on it inside the timer interrupt. Coming back has no such tolerance — the stock Stride policy hard-casts — so restoring it is only safe while no thread created under the outgoing policy is still alive, which the suite checks before swapping back.
 
@@ -125,7 +125,7 @@ Several priority levels; threads demote when they burn a full quantum and promot
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | An array of queues, one per level |
-| `Thread.SchedulerData` | Current level and quantum-used counter |
+| `SchedulerThread.SchedulerData` | Current level and quantum-used counter |
 | `OnThreadReady` | Enqueue at the thread's current level |
 | `OnThreadBlocked` | Promote one level (it blocked before its quantum ran out: treat as interactive) |
 | `OnTick` | Charge time; a full quantum at this level demotes on the next yield |
@@ -141,7 +141,7 @@ The default policy of most RTOSes (FreeRTOS, Zephyr, ThreadX): the highest-prior
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | An array of queues indexed by priority |
-| `Thread.SchedulerData` | A static priority |
+| `SchedulerThread.SchedulerData` | A static priority |
 | `OnThreadReady` | Enqueue at the thread's level; the `_needReschedule` the manager sets makes a higher-priority wake preempt on the next interrupt exit |
 | `OnTick` | Return `true` if any level above the current thread's is non-empty (pure priority, no quantum) |
 | `PickNext` | Top-down scan, dequeue the first head |
@@ -156,7 +156,7 @@ Dynamic priority by absolute deadline; optimal on one CPU (100% utilization agai
 | Hook | Behavior |
 |------|----------|
 | `PerCpuState.SchedulerData` | A min-heap keyed on absolute deadline |
-| `Thread.SchedulerData` | Period, relative deadline, absolute deadline |
+| `SchedulerThread.SchedulerData` | Period, relative deadline, absolute deadline |
 | `OnThreadReady` | `absolute = now + relative`, insert into the heap |
 | `OnTick` | Return `true` if the heap root's deadline is earlier than the current thread's |
 | `PickNext` | Pop the root |

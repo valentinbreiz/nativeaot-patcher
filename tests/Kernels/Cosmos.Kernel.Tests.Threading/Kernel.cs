@@ -8,7 +8,6 @@ using Cosmos.Kernel.System.Timer;
 using Cosmos.TestRunner.Framework;
 using Sys = Cosmos.Kernel.System;
 using Monitor = System.Threading.Monitor;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 using SysThread = System.Threading.Thread;
 using TR = Cosmos.TestRunner.Framework.TestRunner;
 
@@ -1412,12 +1411,12 @@ public class Kernel : Sys.Kernel
     private static volatile bool _spinStop;
     private static volatile bool _spinAReady, _spinBReady;
     private static volatile bool _spinADone, _spinBDone;
-    private static SchedThread? _spinAThread, _spinBThread;
+    private static SchedulerThread? _spinAThread, _spinBThread;
     // Written by each worker before its volatile done flag; read by main after it.
     private static ulong _spinACount, _spinBCount;
     private static long _observedPriorityA, _observedPriorityB;
 
-    private static SchedThread? CurrentSchedulerThread()
+    private static SchedulerThread? CurrentSchedulerThread()
     {
         return SchedulerManager.GetCpuState(SchedulerManager.GetCurrentCpuId())!.CurrentThread;
     }
@@ -1428,7 +1427,7 @@ public class Kernel : Sys.Kernel
     /// executing this scan, every other runnable thread is Ready, so a
     /// spinning worker must be queued and a parked one must not.
     /// </summary>
-    private static bool RunQueueHolds(SchedThread? thread)
+    private static bool RunQueueHolds(SchedulerThread? thread)
     {
         if (thread == null)
         {
@@ -1664,9 +1663,9 @@ public class Kernel : Sys.Kernel
         PerCpuState state = new();
         policy.InitializeCpu(state);
 
-        SchedThread first = new();
-        SchedThread second = new();
-        SchedThread third = new();
+        SchedulerThread first = new();
+        SchedulerThread second = new();
+        SchedulerThread third = new();
         policy.OnThreadCreate(state, first);
         policy.OnThreadCreate(state, second);
         policy.OnThreadCreate(state, third);
@@ -1698,7 +1697,7 @@ public class Kernel : Sys.Kernel
         PerCpuState state = new();
         policy.InitializeCpu(state);
 
-        SchedThread thread = new();
+        SchedulerThread thread = new();
         policy.OnThreadCreate(state, thread);
 
         policy.OnThreadReady(state, thread);
@@ -1714,8 +1713,8 @@ public class Kernel : Sys.Kernel
         PerCpuState state = new();
         policy.InitializeCpu(state);
 
-        SchedThread running = new();
-        SchedThread waiting = new();
+        SchedulerThread running = new();
+        SchedulerThread waiting = new();
         policy.OnThreadCreate(state, running);
         policy.OnThreadCreate(state, waiting);
         policy.OnThreadReady(state, waiting);
@@ -1732,7 +1731,7 @@ public class Kernel : Sys.Kernel
         // Sole runnable thread: expiry grants a fresh slice in place rather
         // than bouncing through the idle thread and back.
         policy.PickNext(state);
-        SchedThread alone = new();
+        SchedulerThread alone = new();
         policy.OnThreadCreate(state, alone);
         bool aloneAtExpiry = policy.OnTick(state, alone, RoundRobinScheduler.QuantumNs);
 
@@ -1746,8 +1745,8 @@ public class Kernel : Sys.Kernel
         PerCpuState state = new();
         policy.InitializeCpu(state);
 
-        SchedThread parked = new();
-        SchedThread other = new();
+        SchedulerThread parked = new();
+        SchedulerThread other = new();
         policy.OnThreadCreate(state, parked);
         policy.OnThreadCreate(state, other);
         policy.OnThreadReady(state, parked);
@@ -1882,7 +1881,7 @@ public class Kernel : Sys.Kernel
     // ===== Round-Robin run-queue diagnostics =====
     private static volatile bool _gateRelease;
     private static volatile bool _gateAStarted, _gateBStarted, _gateCStarted;
-    private static SchedThread? _gateAThread, _gateBThread, _gateCThread;
+    private static SchedulerThread? _gateAThread, _gateBThread, _gateCThread;
 
     private static void GateWorkerA()
     {
@@ -1961,7 +1960,7 @@ public class Kernel : Sys.Kernel
     private static volatile bool _blockWorkerStarted;
     private static volatile bool _blockWorkerThrough;
     private static volatile bool _blockRelease;
-    private static SchedThread? _blockWorkerThread;
+    private static SchedulerThread? _blockWorkerThread;
 
     private static void BlockProbeWorker()
     {
@@ -2004,11 +2003,11 @@ public class Kernel : Sys.Kernel
         }
 
         for (int i = 0; i < FlagPollRetries
-            && _blockWorkerThread!.State != Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked; i++)
+            && _blockWorkerThread!.State != Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.Blocked; i++)
         {
             TimerManager.Wait(FlagPollIntervalMs);
         }
-        Assert.True(_blockWorkerThread!.State == Cosmos.Kernel.Core.Scheduler.ThreadState.Blocked,
+        Assert.True(_blockWorkerThread!.State == Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.Blocked,
             "the worker should park on the held mutex");
         Assert.False(RunQueueHolds(_blockWorkerThread),
             "a mutex-parked thread must leave the Round-Robin run queue");

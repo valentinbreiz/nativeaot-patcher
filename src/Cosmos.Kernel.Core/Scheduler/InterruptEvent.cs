@@ -1,7 +1,6 @@
 // This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using Cosmos.Kernel.Core.CPU;
-using SchedThread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.Core.Scheduler;
 
@@ -29,7 +28,7 @@ internal class InterruptEvent
 
     private SpinLock _lockGuard;
     private uint _pendingSignals;
-    private readonly List<SchedThread> _waiters;
+    private readonly List<SchedulerThread> _waiters;
 
     public InterruptEvent()
     {
@@ -39,7 +38,7 @@ internal class InterruptEvent
         // (an allocation there can trigger GC, making the IRQ-off window
         // unbounded). More than 4 simultaneous waiters would still grow
         // the list under the lock; driver flows park at most one or two.
-        _waiters = new List<SchedThread>(InitialWaiterCapacity);
+        _waiters = new List<SchedulerThread>(InitialWaiterCapacity);
     }
 
     /// <summary>
@@ -64,7 +63,7 @@ internal class InterruptEvent
     private bool WaitCore(ulong maxIterations)
     {
         ulong iterations = 0;
-        SchedThread? currentThread = SchedulerManager.IsReady
+        SchedulerThread? currentThread = SchedulerManager.IsReady
             ? SchedulerManager.CurrentCpuState?.CurrentThread
             : null;
         // The idle thread is the scheduler's fallback (PickNext ?? IdleThread):
@@ -73,7 +72,7 @@ internal class InterruptEvent
         // subtracts tickets that OnThreadReady never added for it). Treat an
         // idle-thread caller — the main kernel thread — like the no-context
         // case and poll the latch instead.
-        if (currentThread != null && (currentThread.Flags & ThreadFlags.IdleThread) != 0)
+        if (currentThread != null && (currentThread.Flags & SchedulerThreadFlags.IdleThread) != 0)
         {
             currentThread = null;
         }
@@ -141,7 +140,7 @@ internal class InterruptEvent
             // retrying the latch immediately. A wake racing in after this
             // check costs at most one timer tick — no worse than the
             // unconditional halt it replaces.
-            if (currentThread.State == ThreadState.Blocked)
+            if (currentThread.State == SchedulerThreadState.Blocked)
             {
                 InternalCpu.Halt();
             }
@@ -170,7 +169,7 @@ internal class InterruptEvent
         }
     }
 
-    private bool ContainsWaiterLocked(SchedThread thread)
+    private bool ContainsWaiterLocked(SchedulerThread thread)
     {
         for (int i = 0; i < _waiters.Count; i++)
         {
@@ -186,7 +185,7 @@ internal class InterruptEvent
     // ReferenceEquals scan on purpose: List<T>.Remove routes through
     // EqualityComparer<T>.Default, which this runtime's scheduler avoids
     // (see StrideScheduler.RemoveThreadFromQueue). Caller holds the lock.
-    private void RemoveWaiterLocked(SchedThread thread)
+    private void RemoveWaiterLocked(SchedulerThread thread)
     {
         for (int i = 0; i < _waiters.Count; i++)
         {
@@ -211,7 +210,7 @@ internal class InterruptEvent
         // IRQ-safe acquire — Signal runs in ISR context; using the plain
         // Acquire would deadlock against a same-CPU mainline Wait that is
         // already holding the lock when the ISR fires.
-        SchedThread? toReady = null;
+        SchedulerThread? toReady = null;
         using (_lockGuard.AcquireIrqSafe())
         {
             _pendingSignals++;

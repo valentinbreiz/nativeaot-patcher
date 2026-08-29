@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Cosmos.Kernel.Core.Scheduler;
-using Thread = Cosmos.Kernel.Core.Scheduler.Thread;
 
 namespace Cosmos.Kernel.Tests.Threading;
 
@@ -39,12 +38,12 @@ public sealed class RoundRobinScheduler : IScheduler
 
     // ========== Thread Lifecycle ==========
 
-    public void OnThreadCreate(PerCpuState cpuState, Thread thread)
+    public void OnThreadCreate(PerCpuState cpuState, SchedulerThread thread)
     {
         thread.SchedulerData = new RoundRobinThreadData { RemainingNs = QuantumNs };
     }
 
-    public void OnThreadReady(PerCpuState cpuState, Thread thread)
+    public void OnThreadReady(PerCpuState cpuState, SchedulerThread thread)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null)
@@ -58,7 +57,7 @@ public sealed class RoundRobinScheduler : IScheduler
         EnqueueTail(cpuData, thread);
     }
 
-    public void OnThreadBlocked(PerCpuState cpuState, Thread thread)
+    public void OnThreadBlocked(PerCpuState cpuState, SchedulerThread thread)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null)
@@ -69,7 +68,7 @@ public sealed class RoundRobinScheduler : IScheduler
         RemoveFromQueue(cpuData, thread);
     }
 
-    public void OnThreadYield(PerCpuState cpuState, Thread thread)
+    public void OnThreadYield(PerCpuState cpuState, SchedulerThread thread)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null)
@@ -82,7 +81,7 @@ public sealed class RoundRobinScheduler : IScheduler
         EnqueueTail(cpuData, thread);
     }
 
-    public void OnThreadExit(PerCpuState cpuState, Thread thread)
+    public void OnThreadExit(PerCpuState cpuState, SchedulerThread thread)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData != null)
@@ -95,7 +94,7 @@ public sealed class RoundRobinScheduler : IScheduler
 
     // ========== Scheduling Decisions ==========
 
-    public Thread? PickNext(PerCpuState cpuState)
+    public SchedulerThread? PickNext(PerCpuState cpuState)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null || cpuData.RunQueue.Count == 0)
@@ -103,12 +102,12 @@ public sealed class RoundRobinScheduler : IScheduler
             return null;
         }
 
-        Thread head = cpuData.RunQueue[0];
+        SchedulerThread head = cpuData.RunQueue[0];
         cpuData.RunQueue.RemoveAt(0);
         return head;
     }
 
-    public void OnPickFailed(PerCpuState cpuState, Thread thread)
+    public void OnPickFailed(PerCpuState cpuState, SchedulerThread thread)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null)
@@ -124,7 +123,7 @@ public sealed class RoundRobinScheduler : IScheduler
         }
     }
 
-    public bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs)
+    public bool OnTick(PerCpuState cpuState, SchedulerThread current, ulong elapsedNs)
     {
         RoundRobinCpuData? cpuData = CpuDataOf(cpuState);
         if (cpuData == null || current == null)
@@ -165,14 +164,14 @@ public sealed class RoundRobinScheduler : IScheduler
 
     // ========== Load Balancing (dormant until SMP) ==========
 
-    public uint SelectCpu(Thread thread, uint currentCpu, uint cpuCount)
+    public uint SelectCpu(SchedulerThread thread, uint currentCpu, uint cpuCount)
     {
         // One FIFO per CPU and no load metric worth consulting: keep the
-        // thread where it is, which also honors ThreadFlags.Pinned.
+        // thread where it is, which also honors SchedulerThreadFlags.Pinned.
         return currentCpu;
     }
 
-    public void OnThreadMigrate(Thread thread, PerCpuState fromState, PerCpuState toState)
+    public void OnThreadMigrate(SchedulerThread thread, PerCpuState fromState, PerCpuState toState)
     {
         RoundRobinCpuData? fromData = CpuDataOf(fromState);
         RoundRobinCpuData? toData = CpuDataOf(toState);
@@ -193,13 +192,13 @@ public sealed class RoundRobinScheduler : IScheduler
 
     // ========== Dynamic Reconfiguration ==========
 
-    public void SetPriority(PerCpuState cpuState, Thread thread, long priority)
+    public void SetPriority(PerCpuState cpuState, SchedulerThread thread, long priority)
     {
         // Round-Robin has no priorities: every thread gets the same fixed
         // quantum, so the request is deliberately ignored.
     }
 
-    public long GetPriority(Thread thread)
+    public long GetPriority(SchedulerThread thread)
     {
         return 0;
     }
@@ -217,7 +216,7 @@ public sealed class RoundRobinScheduler : IScheduler
         }
     }
 
-    public Thread? GetRunQueueThread(PerCpuState cpuState, int index)
+    public SchedulerThread? GetRunQueueThread(PerCpuState cpuState, int index)
     {
         using (SchedulerManager.MaskInterrupts())
         {
@@ -243,12 +242,12 @@ public sealed class RoundRobinScheduler : IScheduler
         return cpuState.SchedulerData as RoundRobinCpuData;
     }
 
-    private static RoundRobinThreadData? ThreadDataOf(Thread thread)
+    private static RoundRobinThreadData? ThreadDataOf(SchedulerThread thread)
     {
         return thread.SchedulerData as RoundRobinThreadData;
     }
 
-    private static bool QueueHolds(RoundRobinCpuData cpuData, Thread thread)
+    private static bool QueueHolds(RoundRobinCpuData cpuData, SchedulerThread thread)
     {
         for (int i = 0; i < cpuData.RunQueue.Count; i++)
         {
@@ -261,7 +260,7 @@ public sealed class RoundRobinScheduler : IScheduler
         return false;
     }
 
-    private static void EnqueueTail(RoundRobinCpuData cpuData, Thread thread)
+    private static void EnqueueTail(RoundRobinCpuData cpuData, SchedulerThread thread)
     {
         // Presence guard: ReadyThread can fire for a thread the interrupt
         // exit will also re-queue (the idle thread's block/resurrect churn in
@@ -272,7 +271,7 @@ public sealed class RoundRobinScheduler : IScheduler
         }
     }
 
-    private static void RemoveFromQueue(RoundRobinCpuData cpuData, Thread thread)
+    private static void RemoveFromQueue(RoundRobinCpuData cpuData, SchedulerThread thread)
     {
         // List<T>.Remove/Contains route through EqualityComparer<T>.Default,
         // which needs runtime helpers the kernel does not provide; scan with
@@ -295,7 +294,7 @@ public sealed class RoundRobinScheduler : IScheduler
 /// </summary>
 public sealed class RoundRobinCpuData
 {
-    public List<Thread> RunQueue { get; } = new(Thread.MaxThreadCount);
+    public List<SchedulerThread> RunQueue { get; } = new(SchedulerThread.MaxThreadCount);
 }
 
 /// <summary>

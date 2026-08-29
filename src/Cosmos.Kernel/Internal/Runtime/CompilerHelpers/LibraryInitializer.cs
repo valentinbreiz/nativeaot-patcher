@@ -80,12 +80,12 @@ namespace Internal.Runtime.CompilerHelpers
             // When the shell is preempted, its context is saved to this thread
             for (uint cpu = 0; cpu < cpuCount; cpu++)
             {
-                var idleThread = new Cosmos.Kernel.Core.Scheduler.Thread
+                var idleThread = new Cosmos.Kernel.Core.Scheduler.SchedulerThread
                 {
                     Id = SchedulerManager.AllocateThreadId(),
                     CpuId = cpu,
-                    State = Cosmos.Kernel.Core.Scheduler.ThreadState.Running,  // Already running (it's the current code!)
-                    Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
+                    State = Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.Running,  // Already running (it's the current code!)
+                    Flags = SchedulerThreadFlags.Pinned | SchedulerThreadFlags.IdleThread
                 };
 
                 // DON'T initialize a separate stack - the idle thread IS the current execution

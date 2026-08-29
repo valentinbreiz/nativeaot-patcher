@@ -31,7 +31,7 @@ internal class Thread
     {
         if (CosmosFeatures.SchedulerEnabled)
         {
-            Scheduler.Thread? current = SchedulerManager.CurrentCpuState?.CurrentThread;
+            Scheduler.SchedulerThread? current = SchedulerManager.CurrentCpuState?.CurrentThread;
             if (current != null && current.StackBase != 0)
             {
                 pStackLow = (nint)current.StackBase;
@@ -52,7 +52,7 @@ internal class Thread
     [RuntimeExport("RhGetDefaultStackSize")]
     internal static IntPtr RhGetDefaultStackSize()
     {
-        return (nint)Scheduler.Thread.DefaultStackSize;
+        return (nint)Scheduler.SchedulerThread.DefaultStackSize;
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ internal class Thread
         Serial.WriteString("RhYield Called\n");
         if (CosmosFeatures.SchedulerEnabled)
         {
-            Scheduler.Thread? thread = SchedulerManager.CurrentCpuState?.CurrentThread;
+            Scheduler.SchedulerThread? thread = SchedulerManager.CurrentCpuState?.CurrentThread;
             if (thread != null)
             {
                 //TODO: Switch Threads (if possible)

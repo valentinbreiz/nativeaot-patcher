@@ -11,7 +11,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// diagnostic first.
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
-public sealed unsafe class Thread : SchedulerExtensible
+public sealed unsafe class SchedulerThread : SchedulerExtensible
 {
     /// <summary>
     /// Threads are created by <see cref="SchedulerManager"/>, which allocates
@@ -19,7 +19,7 @@ public sealed unsafe class Thread : SchedulerExtensible
     /// <see cref="IScheduler"/> hooks and attaches its own state to
     /// <see cref="SchedulerExtensible.SchedulerData"/>.
     /// </summary>
-    internal Thread()
+    internal SchedulerThread()
     {
     }
 
@@ -42,12 +42,12 @@ public sealed unsafe class Thread : SchedulerExtensible
     /// <see cref="SchedulerManager"/>; schedulers observe the state but do
     /// not change it.
     /// </summary>
-    public ThreadState State { get; internal set; }
+    public SchedulerThreadState State { get; internal set; }
 
     /// <summary>
     /// Thread attribute flags.
     /// </summary>
-    public ThreadFlags Flags { get; internal set; }
+    public SchedulerThreadFlags Flags { get; internal set; }
 
     // ===== Context (architecture-specific values) =====
 
@@ -153,7 +153,7 @@ public sealed unsafe class Thread : SchedulerExtensible
         // (where XMM registers are, as expected by the IRQ stub)
         StackPointer = contextAddr;
         InstructionPointer = entryPoint;
-        State = ThreadState.Created;
+        State = SchedulerThreadState.Created;
     }
 
     internal ref object[][] GetThreadStaticStorage()

@@ -6,7 +6,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// Thread execution state.
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
-public enum ThreadState : byte
+public enum SchedulerThreadState : byte
 {
     /// <summary>Just created, not yet scheduled.</summary>
     Created,
@@ -32,7 +32,7 @@ public enum ThreadState : byte
 /// </summary>
 [Flags]
 [Experimental(Experimentals.SchedulerSeamDiagId)]
-public enum ThreadFlags : ushort
+public enum SchedulerThreadFlags : ushort
 {
     /// <summary>
     /// No flags set
