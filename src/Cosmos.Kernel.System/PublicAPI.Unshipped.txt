@@ -772,7 +772,7 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.CroppedDrawImage(Cosmos.Kernel.Syst
 virtual Cosmos.Kernel.System.Graphics.Canvas.DefaultGraphicsMode.get -> Cosmos.Kernel.System.Graphics.Mode
 virtual Cosmos.Kernel.System.Graphics.Canvas.Disable() -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.Display() -> void
-virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArc(int x, int y, int width, int height, System.Drawing.Color color, int startAngle = 0, int endAngle = 360) -> void
+virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArc(System.Drawing.Color color, int xCenter, int yCenter, int xR, int yR, int startAngle = 0, int endAngle = 360) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArray(System.Drawing.Color[]! colors, int x, int y, int width, int height) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArray(int[]! colors, int x, int y, int width, int height) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArray(int[]! colors, int x, int y, int width, int height, int startIndex) -> void

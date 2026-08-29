@@ -249,7 +249,7 @@ public class Kernel : Sys.Kernel
         canvas.DrawCircle(color, 69, 69, 10);
 
         color = Color.CadetBlue;
-        canvas.DrawArc(45, 45, 35, 35, color, 90, 270);
+        canvas.DrawArc(color, 45, 45, 35, 35, 90, 270);
 
         color = Color.DimGray;
         canvas.DrawEllipse(color, 100, 69, 10, 50);

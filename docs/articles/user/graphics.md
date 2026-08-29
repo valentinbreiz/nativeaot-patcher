@@ -83,7 +83,7 @@ canvas.DrawFilledCircle(Color.MediumOrchid, 130, 320, 40);
 canvas.DrawEllipse(Color.DeepSkyBlue, 300, 350, 60, 30);
 
 /* An arc: angles are in degrees */
-canvas.DrawArc(500, 400, 50, 50, Color.CadetBlue, 90, 270);
+canvas.DrawArc(Color.CadetBlue, 500, 400, 50, 50, 90, 270);
 
 /* Triangles and polygons */
 canvas.DrawTriangle(Color.Gold, 600, 100, 650, 200, 550, 200);

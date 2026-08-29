@@ -727,16 +727,16 @@ public unsafe class Canvas
     /// <summary>
     /// Draws an arc.
     /// </summary>
-    /// <param name="x">The starting X coordinate.</param>
-    /// <param name="y">The ending X coordinate.</param>
-    /// <param name="width">The width of the arc.</param>
-    /// <param name="height">The height of the arc.</param>
     /// <param name="color">The color of the arc.</param>
+    /// <param name="xCenter">The X coordinate of the arc's center.</param>
+    /// <param name="yCenter">The Y coordinate of the arc's center.</param>
+    /// <param name="xR">The X radius of the arc.</param>
+    /// <param name="yR">The Y radius of the arc.</param>
     /// <param name="startAngle">The starting angle of the arc, in degrees.</param>
     /// <param name="endAngle">The ending angle of the arc, in degrees.</param>
-    public virtual void DrawArc(int x, int y, int width, int height, Color color, int startAngle = 0, int endAngle = 360)
+    public virtual void DrawArc(Color color, int xCenter, int yCenter, int xR, int yR, int startAngle = 0, int endAngle = 360)
     {
-        if (width == 0 || height == 0)
+        if (xR == 0 || yR == 0)
         {
             return;
         }
@@ -744,9 +744,9 @@ public unsafe class Canvas
         for (double angle = startAngle; angle < endAngle; angle += 0.5)
         {
             double angleRadians = Math.PI * angle / 180;
-            int IX = (int)(width * Math.Cos(angleRadians));
-            int IY = (int)(height * Math.Sin(angleRadians));
-            DrawPoint(color, x + IX, y + IY);
+            int IX = (int)(xR * Math.Cos(angleRadians));
+            int IY = (int)(yR * Math.Sin(angleRadians));
+            DrawPoint(color, xCenter + IX, yCenter + IY);
         }
     }
 
