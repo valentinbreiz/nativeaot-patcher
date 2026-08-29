@@ -214,15 +214,32 @@ internal static class SvgaIIRender
     }
 
     /// <summary>
-    /// Reads a rectangle of pixels back from VRAM into a bitmap.
+    /// Reads a rectangle of pixels back from VRAM into a bitmap. Pixels
+    /// outside the canvas read as 0, as they do on every other canvas.
     /// </summary>
     public static Bitmap GetImage(Canvas canvas, SvgaIIDriver driver, int x, int y, int width, int height)
     {
         int[] all = new int[width * height];
 
-        for (int row = 0; row < height; row++)
+        if (width > 0 && height > 0)
         {
-            driver.GetVRAM(canvas.GetPointOffset(x, y + row), all, width * row, width);
+            // GetVRAM resolves to an unchecked MemCopy from Base + offset, so
+            // the read window has to be clipped here rather than relying on the
+            // caller: an out-of-range row reads unmapped memory, which on this
+            // kernel is a fault, not a garbage pixel.
+            int startX = Math.Max(0, x);
+            int startY = Math.Max(0, y);
+            int endX = Math.Min(x + width, canvas.Width);
+            int endY = Math.Min(y + height, canvas.Height);
+
+            int offsetX = Math.Max(0, -x);
+            int offsetY = Math.Max(0, -y);
+
+            for (int row = startY; row < endY; row++)
+            {
+                int destOffset = ((row - startY + offsetY) * width) + offsetX;
+                driver.GetVRAM(canvas.GetPointOffset(startX, row), all, destOffset, endX - startX);
+            }
         }
 
         Bitmap bitmap = new Bitmap(width, height, ColorDepth.ColorDepth32)
