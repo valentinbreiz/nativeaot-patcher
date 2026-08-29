@@ -106,7 +106,11 @@ internal static class NetworkCommands
             return;
         }
 
-        session.ConfigureStatic();
+        if (!session.ConfigureStatic())
+        {
+            Terminal.Error("No adapter took the configuration");
+            return;
+        }
 
         Terminal.Success("Network configured!\n");
         Terminal.InfoLine("IP", session.LocalIp!.ToString());

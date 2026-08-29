@@ -56,13 +56,25 @@ First, register a FAT driver under a name of your choice, then mount a partition
 ```csharp
 FatFilesystemType fat = new();
 
-VfsManager.RegisterFilesystem("fat", fat);
+if (!VfsManager.RegisterFilesystem("fat", fat))
+{
+    Console.WriteLine("The name \"fat\" is already registered.");
+    return;
+}
+
+if (StorageManager.Partitions.Count == 0)
+{
+    Console.WriteLine("No partitions found.");
+    return;
+}
 
 if (VfsManager.TryMount("fat", StorageManager.Partitions[0], MountFlags.None, "/mnt", out VfsManager.VfsMount? mount))
 {
     Console.WriteLine("Mounted " + mount.Name + " at " + mount.MountPoint);
 }
 ```
+
+`Partitions` is empty before storage is scanned, when no disk is attached, and when storage is compiled out, so index it only after checking `Count`. Every call above returns whether it worked: `RegisterFilesystem` refuses a name already in use, and `TryMount` refuses a source the driver does not recognize.
 
 `StorageManager.GetPartitions(device)` lists the partitions of one disk, numbered the way a user numbers them; `StorageManager.Partitions` is the flat list across every disk.
 
@@ -112,10 +124,13 @@ The FAT driver accepts an injected device directly. Register it as usual and lea
 MemoryBlockDevice ramDisk = new("RAMDISK", 512, 65536);   // 32 MiB
 FatFilesystemType fat = new(ramDisk);
 
-VfsManager.RegisterFilesystem("ramfat", fat);
-
-VfsManager.TryFormat("ramfat", "", new FatFormatOptions { Type = FatType.Fat16 });
-VfsManager.TryMount("ramfat", "", MountFlags.None, "/mnt", out _);
+if (!VfsManager.RegisterFilesystem("ramfat", fat)
+    || !VfsManager.TryFormat("ramfat", "", new FatFormatOptions { Type = FatType.Fat16 })
+    || !VfsManager.TryMount("ramfat", "", MountFlags.None, "/mnt", out _))
+{
+    Console.WriteLine("RAM disk setup failed.");
+    return;
+}
 ```
 
 ## Format a disk
@@ -129,7 +144,8 @@ FatFormatOptions options = new()
     VolumeLabel = "COSMOS     ",
 };
 
-if (!VfsManager.TryFormat("fat", StorageManager.Partitions[0], options))
+if (StorageManager.Partitions.Count == 0
+    || !VfsManager.TryFormat("fat", StorageManager.Partitions[0], options))
 {
     Console.WriteLine("Format failed");
 }

@@ -252,7 +252,7 @@ internal static class SchedulerCommands
                 Terminal.Warning("Thread " + threadId + " is running; marked for exit at its next reschedule");
                 break;
             case ThreadKillResult.RefusedBlocked:
-                Terminal.Error("Thread " + threadId + " is blocked or sleeping; wake it before killing it");
+                Terminal.Error("Thread " + threadId + " is neither running nor queued; it may be blocked, sleeping, never started, or already marked for exit");
                 break;
             case ThreadKillResult.RefusedIdle:
                 Terminal.Error("Cannot kill idle thread " + threadId);

@@ -44,15 +44,15 @@ internal sealed class NetworkSession
     /// The subnet and gateway are passed through so <c>IPConfig.FindNetwork()</c>
     /// can route outbound packets.
     /// </summary>
-    public void ConfigureStatic()
+    /// <returns>Whether an adapter took the configuration.</returns>
+    public bool ConfigureStatic()
     {
         LocalIp = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGuestHostOctet);
         GatewayIp = new Address(QemuNetOctet1, QemuNetOctet2, QemuNetOctet3, QemuGatewayHostOctet);
         Address subnet = new(SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskFullOctet, SubnetMaskHostOctet);
 
-        IPConfig.Enable(LocalIp, subnet, GatewayIp);
-
-        IsConfigured = true;
+        IsConfigured = IPConfig.Enable(LocalIp, subnet, GatewayIp);
+        return IsConfigured;
     }
 
     /// <summary>Records the addresses a DHCP server handed out.</summary>

@@ -119,19 +119,28 @@ else
 ### Manually
 
 ```csharp
-IPConfig.Enable(
-    new Address(192, 168, 1, 69),     // local address
-    new Address(255, 255, 255, 0),    // subnet mask
-    new Address(192, 168, 1, 254));   // gateway
+if (!IPConfig.Enable(
+        new Address(192, 168, 1, 69),     // local address
+        new Address(255, 255, 255, 0),    // subnet mask
+        new Address(192, 168, 1, 254)))   // gateway
+{
+    Console.WriteLine("No adapter to configure");
+}
 ```
 
-That configures the primary adapter. To configure a specific one, pass its handle:
+That configures the primary adapter. To configure a specific one, pass its handle. `Enable` returns `false` when the handle names no device, which is what an index past the last adapter gives you:
 
 ```csharp
-IPConfig.Enable(NetworkManager.GetAdapter(1),
-    new Address(192, 168, 2, 69),
-    new Address(255, 255, 255, 0),
-    new Address(192, 168, 2, 254));
+NetworkAdapter second = NetworkManager.GetAdapter(1);
+
+if (second.IsValid
+    && IPConfig.Enable(second,
+        new Address(192, 168, 2, 69),
+        new Address(255, 255, 255, 0),
+        new Address(192, 168, 2, 254)))
+{
+    Console.WriteLine("Configured the second adapter");
+}
 ```
 
 DHCP needs no handle: `SendDiscoverPacket` runs the exchange on every registered device.
@@ -297,7 +306,12 @@ IcmpClient icmp = new IcmpClient();
 icmp.Connect(gateway);
 
 IcmpEchoRequest request = new IcmpEchoRequest(localIp, gateway, id: 0x1234, sequence: 7);
-NetworkStack.Send(request);
+
+if (!NetworkStack.Send(request))
+{
+    Console.WriteLine("No interface carries " + localIp.ToString());
+    return;
+}
 
 if (icmp.ReceivePacket(5000) is IcmpEchoReply reply
     && reply.IcmpId == 0x1234 && reply.IcmpSequence == 7)

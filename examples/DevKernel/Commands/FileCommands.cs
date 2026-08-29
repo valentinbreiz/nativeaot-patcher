@@ -384,7 +384,13 @@ internal static class FileCommands
             }
 
             long written = file.Write(bytes);
-            file.TryFlush();
+
+            if (!file.TryFlush())
+            {
+                Terminal.Error("Wrote " + written + " bytes to " + fullPath + " but the flush failed");
+                return;
+            }
+
             Terminal.Success("Wrote " + written + " bytes to " + fullPath);
         }
         finally

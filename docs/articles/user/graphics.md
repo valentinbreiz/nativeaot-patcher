@@ -308,7 +308,12 @@ A kernel cannot implement `Canvas3D` itself. Its constructor is `private protect
 The DevKernel `cube` command builds a whole scene from those calls: a mesh with one color per face, the ground grid, and a flat triangle that points where the mouse pushes. The pointer drives the roll, so the further it sits from the center of the screen, the faster the cube rolls that way.
 
 ```csharp
-Canvas3D canvas3D = (Canvas3D)Canvas.GetFullScreen();
+if (Canvas.GetFullScreen() is not Canvas3D canvas3D)
+{
+    Console.WriteLine("This display device has no 3D.");
+    return;
+}
+
 MouseManager.SetScreenSize(canvas3D.Width, canvas3D.Height);
 canvas3D.Camera = new Camera3D(new Vector3(0f, 2.6f, 4.6f), new Vector3(0f, 0.9f, 0f));
 
