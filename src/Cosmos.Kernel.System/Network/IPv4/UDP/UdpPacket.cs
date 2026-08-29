@@ -211,22 +211,21 @@ public class UdpPacket : IPPacket
     public ushort UdpDataLength => (ushort)(UdpLength - 8);
 
     /// <summary>
-    /// Gets the UDP payload. Each access allocates and returns a fresh copy of the payload
-    /// bytes; the packet's underlying buffer is not exposed.
+    /// Returns a fresh copy of the UDP payload (the bytes after the 8-byte UDP
+    /// header). Each call allocates; the packet's underlying buffer is not
+    /// exposed, so mutating the returned array does not affect the packet.
     /// </summary>
-    public byte[] UdpData
+    /// <returns>A new array holding the payload bytes.</returns>
+    public byte[] GetUdpData()
     {
-        get
+        byte[] data = new byte[UdpDataLength];
+
+        for (int b = 0; b < data.Length; b++)
         {
-            byte[] data = new byte[UdpDataLength];
-
-            for (int b = 0; b < data.Length; b++)
-            {
-                data[b] = RawData[DataOffset + 8 + b];
-            }
-
-            return data;
+            data[b] = RawData[DataOffset + 8 + b];
         }
+
+        return data;
     }
 
     /// <summary>

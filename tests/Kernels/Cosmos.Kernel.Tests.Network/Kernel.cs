@@ -607,7 +607,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(echo.DestinationPort == seamPort, "Echoed datagram should target the port the client is bound to");
 
-        byte[] echoedPayload = echo.UdpData;
+        byte[] echoedPayload = echo.GetUdpData();
         bool payloadMatches = echoedPayload.Length == payload.Length;
         if (payloadMatches)
         {

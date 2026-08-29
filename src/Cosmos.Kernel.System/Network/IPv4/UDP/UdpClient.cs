@@ -238,7 +238,7 @@ public class UdpClient : IDisposable
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
-        return packet.UdpData;
+        return packet.GetUdpData();
     }
 
     /// <summary>

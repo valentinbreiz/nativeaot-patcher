@@ -943,8 +943,8 @@ virtual Cosmos.Kernel.System.Kernel.Start() -> void
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Send(Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket! packet) -> bool
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.DestinationPort.get -> ushort
+[COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.GetUdpData() -> byte[]!
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.SourcePort.get -> ushort
-[COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.UdpData.get -> byte[]!
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.UdpDataLength.get -> ushort
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.UdpLength.get -> ushort
 [COSMOS0002]Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.UdpPacket(byte[]! rawData) -> void
