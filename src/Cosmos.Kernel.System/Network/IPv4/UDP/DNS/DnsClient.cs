@@ -37,6 +37,8 @@ public class DnsClient : UdpClient
     /// Sends a DNS query for the given domain name string.
     /// </summary>
     /// <param name="url">The domain name string to query the DNS for.</param>
+    /// <exception cref="InvalidOperationException">No DNS server has been set
+    /// with Connect, or no configured interface can reach it.</exception>
     public void SendQuery(string url)
     {
         if (_destination is null)
@@ -57,7 +59,12 @@ public class DnsClient : UdpClient
     /// Receives data from the DNS remote host.
     /// </summary>
     /// <param name="timeout">The timeout value - by default 5000ms.</param>
-    /// <returns>The address corresponding to the previously specified domain name.</returns>
+    /// <returns>The first address for the queried name, or
+    /// <see langword="null"/>. The null covers every way a lookup can fail
+    /// (no reply before the timeout, a reply for a different name, a server
+    /// error code, a name that does not exist, a reply carrying no A record),
+    /// so a caller that needs to tell them apart must read the reply packet
+    /// itself off the seam.</returns>
     public Address? Receive(int timeout = 5000)
     {
         List<Address>? addresses = ReceiveAll(timeout);
@@ -68,7 +75,9 @@ public class DnsClient : UdpClient
     /// Resolves any CNAME chain and returns every A record for the final name.
     /// </summary>
     /// <param name="timeout">The timeout value - by default 5000ms.</param>
-    /// <returns>All resolved addresses, in server order, or null on failure/timeout.</returns>
+    /// <returns>All resolved addresses, in server order, or
+    /// <see langword="null"/> for any failure or timeout; see
+    /// <see cref="Receive"/> for what the null covers.</returns>
     public List<Address>? ReceiveAll(int timeout = 5000)
     {
         // Wait in 100ms intervals, checking for data each time

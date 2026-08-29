@@ -47,7 +47,11 @@ public readonly struct NetworkAdapter : IEquatable<NetworkAdapter>
     public string? Name => Device?.Name;
 
     /// <summary>
-    /// The device's MAC address, or null when the handle names no device.
+    /// The device's MAC address, or null when the handle names no device. A
+    /// device that has not finished initializing reports
+    /// <see cref="MACAddress.None"/>, the all-zero address, rather than null:
+    /// the two sentinels are different questions, and <see cref="Ready"/>
+    /// answers the second one.
     /// </summary>
     public MACAddress? MacAddress => Device?.MacAddress;
 

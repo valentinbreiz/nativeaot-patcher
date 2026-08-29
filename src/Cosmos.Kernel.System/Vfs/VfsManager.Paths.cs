@@ -239,6 +239,13 @@ public static partial class VfsManager
     /// destination survives a failed rename, and a destination that is still
     /// open goes delete-pending instead of being dropped under its handles.
     /// </summary>
+    /// <param name="oldFullPath">Absolute path of the entry to move.</param>
+    /// <param name="newFullPath">Absolute path it should have afterwards.</param>
+    /// <returns><see langword="false"/> when either path is a mount point, the
+    /// source does not exist, the destination is inside the source's own
+    /// subtree, the two sit on different mounts, the two are of different
+    /// kinds, the destination is a directory that is not empty, or the driver
+    /// refuses the move. Renaming a path onto itself succeeds.</returns>
     public static bool TryRename(string oldFullPath, string newFullPath)
     {
         if (IsMountPoint(oldFullPath) || IsMountPoint(newFullPath))

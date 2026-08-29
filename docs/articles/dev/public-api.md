@@ -65,6 +65,29 @@ Two members cannot follow the read half and say so in their XML docs: `KeyboardM
 
 ---
 
+## How a member reports failure
+
+The compiled-out table is one case of a wider rule. A ring member has exactly one channel for saying it did not work, and which channel it is follows from the member's shape.
+
+| The member is | It says so with |
+|---------------|-----------------|
+| A read that has an empty value of its own | that value: `0`, `null`, `false`, an empty list, an invalid handle |
+| An operation that fails for reasons a caller can act on | a `bool`, spelled `Try` when it also has an `out` |
+| An operation whose failures a caller must tell apart | an outcome enum, as `SchedulerInfo.RequestKill` returns `ThreadKillResult` |
+| Anything reached in a state a correct kernel cannot produce | an exception, documented with `<exception>` and never a bare `Exception` |
+
+Four rules make that table usable.
+
+**A `Try` does not throw for the failure its own bool carries.** `IVfsFileHandle` splits on exactly this: `TrySeek`, `TryFlush`, `TrySetAttr` and `TryStat` answer `false` for a handle that has been disposed, while `Read` and `Write` throw, because a byte count has no value that means "the handle is gone" rather than "no bytes moved". A `Try` that reaches a `Dictionary` lookup, an indexer or a `Dequeue` on the caller's behalf owns the argument and emptiness checks that would otherwise throw through it: `VfsManager.TryMount` guards the driver name the way `RegisterFilesystem` does, and `KeyboardManager.TryReadKey` takes the key with `TryDequeue` because the producer is an interrupt and the queue can empty between a `Count` test and a `Dequeue`.
+
+**The shape decides, not the prefix.** The middle row of the compiled-out table already says this, and it applies here the same way. `IInodeOperations` spells the driver side of the VFS as plain verbs, `Lookup`, `Create`, `Mkdir`, `Rename`, next to an `IVfsDirectoryHandle` that spells the consumer side as `TryLookup`, `TryCreateFile`, `TryCreateDirectory`, `TryRename`. Both are `Try` members for every rule on this page. The naming split is worth keeping, because it marks which side of the VFS a reader is on, but it buys no exemption.
+
+**Every nullable-reference `out` of a `Try` carries `[NotNullWhen(true)]`, and only where every true path assigns.** Without it each call site pays a `!` or a redundant `x != null`, and the redundancy is invisible: the compiler cannot tell a clause that guards a real hole from one that guards nothing. The attribute is checked at the declaring method's return points, but flow analysis is not interprocedural, so a method that forwards another's `out` needs that one annotated too: `FatInodeOperations.Create` cannot prove its own postcondition until `FatSuperblock.AllocateDirectoryEntry` is annotated. Never put the attribute on an input parameter. It is legal and Roslyn honours it there, the way `string.IsNullOrEmpty` uses it, so it stops meaning "the out is populated" and starts asserting that the caller's argument was not null. `IVfsFilesystemType.TryFormat` shipped exactly that, four lines under a doc sentence saying `null` selects the driver's defaults.
+
+**A sentinel that collides with a real value needs a second member that separates them.** `SchedulerInfo.GetRunQueueCount` returns `0` for an empty queue and for a CPU id past the end, and that is honest because `CpuCount` states the range; adding a `TryGetRunQueueCount` beside it would be a third spelling of a question the ring already answers. `MACAddress.None` and a null `MACAddress` are two sentinels for one question, so the members that can return either say which and point at `NetworkAdapter.Ready`.
+
+---
+
 ## The declared surface
 
 Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). That covers `Cosmos.Kernel.System`, `Cosmos.Kernel.Core`, `Cosmos.Kernel.HAL`, and `Cosmos.Kernel.HAL.Interfaces`.

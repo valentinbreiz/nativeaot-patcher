@@ -86,20 +86,23 @@ public class IcmpClient : IDisposable
     }
 
     /// <summary>
-    /// Sends an ICMP echo request to the connected _destination.
+    /// Sends an ICMP echo request to the connected destination.
     /// </summary>
     /// <param name="id">The echo identifier.</param>
     /// <param name="sequence">The echo sequence number.</param>
+    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">No destination has been set,
+    /// or no configured interface can reach it.</exception>
     public void SendEcho(ushort id = 0x0001, ushort sequence = 0x0001)
     {
         ThrowIfDisposed();
 
         if (_destination == null)
         {
-            throw new InvalidOperationException("Must establish a _destination by calling Connect() before using SendEcho()");
+            throw new InvalidOperationException("Call Connect before using SendEcho.");
         }
 
-        Address source = IPConfig.FindNetwork(_destination) ?? throw new InvalidOperationException("No network route to _destination");
+        Address source = IPConfig.FindNetwork(_destination) ?? throw new InvalidOperationException("No configured interface can reach the destination address.");
         var request = new IcmpEchoRequest(source, _destination, id, sequence);
         OutgoingBuffer.AddPacket(request);
         NetworkStack.Update();

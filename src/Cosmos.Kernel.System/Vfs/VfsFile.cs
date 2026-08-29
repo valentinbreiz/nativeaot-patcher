@@ -21,12 +21,19 @@ public interface IVfsNodeHandle : IDisposable
     /// Reads the node's metadata (size, timestamps, mode).
     /// </summary>
     /// <param name="stat">The node's metadata when the call succeeds.</param>
-    /// <returns><see langword="true"/> when the driver produced the metadata.</returns>
+    /// <returns><see langword="true"/> when the driver produced the metadata;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TryStat(out VfsStat stat);
 }
 
 /// <summary>
-/// Managed handle for an open file with position and byte I/O.
+/// Managed handle for an open file with position and byte I/O. Disposal is
+/// the one state the two halves of this interface report differently: every
+/// <c>Try</c> member answers <see langword="false"/> for a disposed handle,
+/// because that is what its bool already means, while
+/// <see cref="Read(Span{byte})"/> and <see cref="Write(ReadOnlySpan{byte})"/>
+/// throw, having no count that means "the handle is gone" rather than "no
+/// bytes moved".
 /// </summary>
 public interface IVfsFileHandle : IVfsNodeHandle
 {
@@ -37,14 +44,18 @@ public interface IVfsFileHandle : IVfsNodeHandle
     /// Reads bytes at the current position, advancing it by the amount read.
     /// </summary>
     /// <param name="buffer">The destination buffer.</param>
-    /// <returns>The number of bytes read; 0 at end of file.</returns>
+    /// <returns>The number of bytes read; 0 at end of file, and also when the
+    /// driver cannot resolve the file's storage.</returns>
+    /// <exception cref="ObjectDisposedException">The handle has been disposed.</exception>
     long Read(Span<byte> buffer);
 
     /// <summary>
     /// Writes bytes at the current position, advancing it by the amount written.
     /// </summary>
     /// <param name="buffer">The bytes to write.</param>
-    /// <returns>The number of bytes written.</returns>
+    /// <returns>The number of bytes written, which is short of
+    /// <paramref name="buffer"/> when the volume runs out of room.</returns>
+    /// <exception cref="ObjectDisposedException">The handle has been disposed.</exception>
     long Write(ReadOnlySpan<byte> buffer);
 
     /// <summary>
@@ -52,13 +63,15 @@ public interface IVfsFileHandle : IVfsNodeHandle
     /// </summary>
     /// <param name="offset">The offset relative to <paramref name="whence"/>.</param>
     /// <param name="whence">The origin the offset is applied from.</param>
-    /// <returns><see langword="true"/> when the resulting position is valid.</returns>
+    /// <returns><see langword="true"/> when the resulting position is valid;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TrySeek(long offset, SeekWhence whence);
 
     /// <summary>
     /// Flushes buffered writes to the underlying device.
     /// </summary>
-    /// <returns><see langword="true"/> when the driver flushed successfully.</returns>
+    /// <returns><see langword="true"/> when the driver flushed successfully;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TryFlush();
 
     /// <summary>
@@ -67,7 +80,8 @@ public interface IVfsFileHandle : IVfsNodeHandle
     /// </summary>
     /// <param name="flags">Which fields of <paramref name="attributes"/> to apply.</param>
     /// <param name="attributes">The new attribute values.</param>
-    /// <returns><see langword="true"/> when the driver applied the change.</returns>
+    /// <returns><see langword="true"/> when the driver applied the change;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes);
 }
 

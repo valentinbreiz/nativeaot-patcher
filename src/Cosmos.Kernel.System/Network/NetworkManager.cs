@@ -88,7 +88,10 @@ public static class NetworkManager
     public static string? Name => PrimaryDevice?.Name;
 
     /// <summary>
-    /// The primary device's MAC address, or null when there is no device.
+    /// The primary device's MAC address, or null when there is no device. A
+    /// device that has not finished initializing reports
+    /// <see cref="MACAddress.None"/>, the all-zero address, rather than null;
+    /// see <see cref="Ready"/>.
     /// </summary>
     public static MACAddress? MacAddress => PrimaryDevice?.MacAddress;
 

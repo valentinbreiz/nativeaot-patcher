@@ -11,6 +11,22 @@ namespace Cosmos.Kernel.System.Diagnostics;
 /// to terminate a thread by ID. All reads are allocation-free and safe to
 /// poll from a monitor loop; snapshots of threads that are being
 /// rescheduled concurrently may be one tick stale.
+/// <para>
+/// Three shapes report "nothing there", and which one a member uses follows
+/// from what it is. A plain read answers with its own empty value, so
+/// <see cref="CpuCount"/>, <see cref="ThreadCount"/>,
+/// <see cref="ThreadSlotCount"/>, <see cref="TickPeriodNs"/>,
+/// <see cref="BusyCpuTimeNs"/> and <see cref="GetRunQueueCount"/> are 0 and
+/// <see cref="SchedulerName"/> is null before the scheduler exists, with no
+/// separate error channel. A read that must hand back a whole snapshot cannot
+/// express absence in the snapshot itself, so it is a <c>Try</c> and the bool
+/// carries that answer. <see cref="RequestKill"/> is the one member that acts
+/// rather than reads, and a bool would not tell a caller which of five things
+/// happened, so it returns <see cref="ThreadKillResult"/>; that enum is its
+/// failure channel as well, and it reports
+/// <see cref="ThreadKillResult.NotFound"/> rather than throwing when the
+/// scheduler is compiled out.
+/// </para>
 /// </summary>
 public static class SchedulerInfo
 {

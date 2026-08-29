@@ -5,7 +5,11 @@ namespace Cosmos.Kernel.System.Diagnostics;
 /// </summary>
 public enum ThreadKillResult : byte
 {
-    /// <summary>No live thread has the requested ID.</summary>
+    /// <summary>
+    /// No live thread has the requested ID. Also the answer when no scheduler
+    /// is installed and when scheduler support is compiled out, since neither
+    /// leaves a registry to search.
+    /// </summary>
     NotFound,
 
     /// <summary>The thread was removed from its run queue and terminated.</summary>
@@ -25,9 +29,11 @@ public enum ThreadKillResult : byte
     RefusedIdle,
 
     /// <summary>
-    /// The thread is blocked or sleeping. Waiting threads sit outside the
-    /// run queues with their share already returned to the policy, so
-    /// terminating one from here would return it twice; wake it first.
+    /// The thread is registered but is neither running nor queued: blocked,
+    /// sleeping, created and never started, or already marked for exit by an
+    /// earlier request. Blocked and sleeping threads sit outside the run
+    /// queues with their share already returned to the policy, so terminating
+    /// one from here would return it twice; wake it first.
     /// </summary>
     RefusedBlocked,
 }

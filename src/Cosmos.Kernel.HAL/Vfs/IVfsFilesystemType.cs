@@ -28,11 +28,16 @@ public interface IVfsFilesystemType
     /// live mount, since rewriting the volume underneath a superblock's
     /// cached geometry corrupts it.
     /// </summary>
+    /// <param name="source">Backing store identifier (device path, partition index, etc.).</param>
+    /// <param name="options">Driver-specific format options, or null for the driver's defaults.</param>
+    /// <returns>true when the volume was formatted.</returns>
     bool TryFormat(ReadOnlySpan<char> source, IVfsFormatOptions? options);
 
     /// <summary>
     /// Wipe the filesystem signature on the backing store so it no longer
     /// mounts. The underlying device is not zeroed in full.
     /// </summary>
+    /// <param name="source">Backing store identifier (device path, partition index, etc.).</param>
+    /// <returns>true when the signature was wiped.</returns>
     bool TryDestroy(ReadOnlySpan<char> source);
 }

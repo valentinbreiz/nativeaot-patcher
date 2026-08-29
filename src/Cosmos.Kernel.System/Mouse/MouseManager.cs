@@ -209,6 +209,9 @@ public static class MouseManager
     /// <summary>
     /// Sets the mouse position directly (useful for initialization or reset).
     /// </summary>
+    /// <param name="x">New horizontal position, clamped to the screen width.</param>
+    /// <param name="y">New vertical position, clamped to the screen height.</param>
+    /// <exception cref="InvalidOperationException">Mouse support is disabled.</exception>
     public static void SetPosition(int x, int y)
     {
         ThrowIfDisabled();
@@ -241,6 +244,9 @@ public static class MouseManager
     /// <summary>
     /// Updates screen dimensions (call when resolution changes).
     /// </summary>
+    /// <param name="width">New screen width in pixels.</param>
+    /// <param name="height">New screen height in pixels.</param>
+    /// <exception cref="InvalidOperationException">Mouse support is disabled.</exception>
     public static void SetScreenSize(int width, int height)
     {
         ThrowIfDisabled();

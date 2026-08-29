@@ -191,7 +191,7 @@ public static class KeyboardManager
     /// Returns the KeyEvent at the beginning of the key queue without removing it.
     /// </summary>
     /// <returns>The next pending key event, which stays in the queue.</returns>
-    /// <exception cref="InvalidOperationException">Keyboard support is disabled, or the queue is empty. Check <see cref="KeyAvailable"/> first.</exception>
+    /// <exception cref="InvalidOperationException">Keyboard support is disabled, no keyboard has been registered, or the queue is empty. Check <see cref="KeyAvailable"/> first.</exception>
     public static KeyEvent Peek()
     {
         ThrowIfDisabled();
@@ -221,6 +221,11 @@ public static class KeyboardManager
     /// <summary>
     /// If available, reads the next key from the pending key-press buffer.
     /// </summary>
+    /// <param name="key">The key that was taken off the queue.</param>
+    /// <returns><see langword="false"/> when no key is pending, no keyboard
+    /// has been registered, or keyboard support is compiled out. This is the
+    /// member to use when either answer is normal, since it is the only one
+    /// here that does not throw for an empty queue.</returns>
     public static bool TryReadKey([NotNullWhen(true)] out KeyEvent? key)
     {
         // TryDequeue rather than Count-then-Dequeue: the producer is the
@@ -240,6 +245,12 @@ public static class KeyboardManager
     /// <summary>
     /// Reads the next key from the pending key-press buffer, blocking until available.
     /// </summary>
+    /// <returns>The next key, once one arrives.</returns>
+    /// <exception cref="InvalidOperationException">Keyboard support is disabled,
+    /// or no keyboard has been registered. This member returns a non-nullable
+    /// <see cref="KeyEvent"/> and so has no value meaning "no key", and with
+    /// the feature off it would otherwise wait forever on an interrupt no
+    /// keyboard will raise.</exception>
     public static KeyEvent ReadKey()
     {
         ThrowIfDisabled();
@@ -283,6 +294,8 @@ public static class KeyboardManager
     /// <summary>
     /// Gets the currently used keyboard layout.
     /// </summary>
+    /// <returns>The active layout, or <see langword="null"/> before a keyboard
+    /// has been registered and when keyboard support is compiled out.</returns>
     public static ScanMapBase? GetKeyLayout() => s_scanMap;
 
     /// <summary>

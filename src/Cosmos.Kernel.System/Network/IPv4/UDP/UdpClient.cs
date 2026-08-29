@@ -141,13 +141,16 @@ public class UdpClient : IDisposable
     /// Sends data to the client.
     /// </summary>
     /// <param name="data">The data to send.</param>
+    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">No default remote host has
+    /// been set, or no configured interface can reach it.</exception>
     public void Send(byte[] data)
     {
         ThrowIfDisposed();
 
         if (_destination == null || _destinationPort == 0)
         {
-            throw new InvalidOperationException("Must establish a default remote host by calling Connect() before using this Send() overload");
+            throw new InvalidOperationException("Call Connect before using the Send overload that takes only the data.");
         }
 
         Send(data, _destination, _destinationPort);
@@ -160,6 +163,9 @@ public class UdpClient : IDisposable
     /// <param name="data">The data to send.</param>
     /// <param name="dest">Destination address.</param>
     /// <param name="destPort">Destination port.</param>
+    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">No configured interface can
+    /// reach <paramref name="dest"/>.</exception>
     public void Send(byte[] data, Address dest, int destPort)
     {
         ThrowIfDisposed();
@@ -176,7 +182,7 @@ public class UdpClient : IDisposable
         if (source == null)
         {
             Serial.WriteString("[UdpClient] ERROR: IPConfig.FindNetwork returned null!\n");
-            throw new InvalidOperationException("No network route to _destination");
+            throw new InvalidOperationException("No configured interface can reach the destination address.");
         }
 
         Serial.WriteString("[UdpClient] Source IP: ");
