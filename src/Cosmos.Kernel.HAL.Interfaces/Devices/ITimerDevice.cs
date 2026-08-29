@@ -44,7 +44,8 @@ internal interface ITimerDevice
     /// Unregisters a previously registered software timer.
     /// </summary>
     /// <param name="timer">Timer to unregister.</param>
-    void UnregisterTimer(SoftwareTimer timer);
+    /// <returns>True when the timer was registered and has been removed.</returns>
+    bool UnregisterTimer(SoftwareTimer timer);
 
     /// <summary>
     /// Event handler for timer tick events.

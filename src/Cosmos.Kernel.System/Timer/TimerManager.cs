@@ -9,8 +9,8 @@ namespace Cosmos.Kernel.System.Timer;
 /// </summary>
 public static class TimerManager
 {
-    /// <summary>Nanoseconds in one millisecond.</summary>
-    private const ulong NanosecondsPerMillisecond = 1_000_000;
+    /// <summary>Nanoseconds in one <see cref="TimeSpan"/> tick.</summary>
+    private const ulong NanosecondsPerTick = 100;
 
     private static ITimerDevice? s_timer;
 
@@ -59,53 +59,100 @@ public static class TimerManager
     /// <summary>
     /// Schedules a callback to run once after the specified delay. The callback
     /// runs in interrupt context and must not block; use
-    /// <see cref="AlarmManager"/> for callbacks that need thread context.
+    /// <see cref="AlarmManager.Schedule"/> for callbacks that need thread
+    /// context.
     /// </summary>
     /// <param name="callback">Method to invoke when the delay expires.</param>
-    /// <param name="delayMs">Delay in milliseconds.</param>
+    /// <param name="delay">
+    /// Delay before the timer fires. The timer device's tick is the resolution,
+    /// so a delay shorter than one tick, and a zero or negative delay, fire on
+    /// the next tick.
+    /// </param>
     /// <returns>The scheduled timer, or null if no timer device is registered.</returns>
-    public static SoftwareTimer? Schedule(Action callback, uint delayMs)
+    public static SoftwareTimer? Schedule(Action callback, TimeSpan delay)
     {
-        return ScheduleCore(callback, delayMs, recurring: false);
+        return ScheduleCore(callback, ToNanoseconds(delay), recurring: false);
     }
 
     /// <summary>
     /// Schedules a callback to run repeatedly with the specified period. The
     /// callback runs in interrupt context and must not block; use
-    /// <see cref="AlarmManager"/> for callbacks that need thread context.
+    /// <see cref="AlarmManager.ScheduleRecurring"/> for callbacks that need
+    /// thread context.
     /// </summary>
     /// <param name="callback">Method to invoke each period.</param>
-    /// <param name="periodMs">Period in milliseconds.</param>
-    /// <returns>The scheduled timer, or null if no timer device is registered.</returns>
-    public static SoftwareTimer? ScheduleRecurring(Action callback, uint periodMs)
+    /// <param name="period">
+    /// Period between firings; must be positive. The timer device's tick is the
+    /// resolution, so a period shorter than one tick fires on every tick.
+    /// </param>
+    /// <returns>
+    /// The scheduled timer, or null if no timer device is registered or the
+    /// period is not positive.
+    /// </returns>
+    public static SoftwareTimer? ScheduleRecurring(Action callback, TimeSpan period)
     {
-        return ScheduleCore(callback, periodMs, recurring: true);
+        if (period <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        return ScheduleCore(callback, ToNanoseconds(period), recurring: true);
     }
 
     /// <summary>
     /// Cancels a timer returned by <see cref="Schedule"/> or <see cref="ScheduleRecurring"/>.
     /// </summary>
     /// <param name="timer">Timer to cancel.</param>
-    public static void Cancel(SoftwareTimer? timer)
+    /// <returns>
+    /// True when the timer was pending and has been cancelled; false when it is
+    /// null, had already fired, was already cancelled, or no timer device is
+    /// registered.
+    /// </returns>
+    public static bool Cancel(SoftwareTimer? timer)
     {
-        if (timer == null)
+        if (timer == null || s_timer == null)
         {
-            return;
+            return false;
         }
 
-        s_timer?.UnregisterTimer(timer);
+        return s_timer.UnregisterTimer(timer);
     }
 
-    private static SoftwareTimer? ScheduleCore(Action callback, uint ms, bool recurring)
+    private static SoftwareTimer? ScheduleCore(Action callback, ulong timeoutNs, bool recurring)
     {
         if (s_timer == null || callback == null)
         {
             return null;
         }
 
-        SoftwareTimer timer = new(callback, ms * NanosecondsPerMillisecond, recurring);
+        SoftwareTimer timer = new(callback, timeoutNs, recurring);
         s_timer.RegisterTimer(timer);
         return timer;
+    }
+
+    /// <summary>
+    /// Converts a duration to the nanoseconds a <see cref="SoftwareTimer"/>
+    /// counts down. A non-positive duration becomes 0, which fires on the next
+    /// device tick, and a duration too large to express in nanoseconds
+    /// saturates rather than wrapping.
+    /// </summary>
+    private static ulong ToNanoseconds(TimeSpan value)
+    {
+        if (value <= TimeSpan.Zero)
+        {
+            return 0;
+        }
+
+        // ulong.MaxValue nanoseconds is roughly 584 years; past that the
+        // multiply below would wrap and produce a near-immediate timer.
+        const long MaxTicks = (long)(ulong.MaxValue / NanosecondsPerTick);
+
+        if (value.Ticks >= MaxTicks)
+        {
+            return ulong.MaxValue;
+        }
+
+        return (ulong)value.Ticks * NanosecondsPerTick;
     }
 
     /// <summary>

@@ -60,11 +60,15 @@ internal abstract class TimerDevice : Device, ITimerDevice
     /// Unregisters a previously registered software timer.
     /// </summary>
     /// <param name="timer">Timer to unregister.</param>
-    public virtual void UnregisterTimer(SoftwareTimer timer)
+    /// <returns>
+    /// True when the timer was registered and has been removed; false when it
+    /// is null, had already fired, or was already unregistered.
+    /// </returns>
+    public virtual bool UnregisterTimer(SoftwareTimer timer)
     {
         if (timer == null)
         {
-            return;
+            return false;
         }
 
         using (InternalCpu.DisableInterruptsScope())
@@ -77,10 +81,12 @@ internal abstract class TimerDevice : Device, ITimerDevice
                 {
                     timer.SetActive(false);
                     _timers.RemoveAt(i);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     /// <summary>

@@ -187,14 +187,14 @@ internal static class SchedulerCommands
         s_timerFireCount = 0;
         s_alarmFireCount = 0;
 
-        SoftwareTimer? timer = TimerManager.Schedule(static () => s_timerFireCount++, TimerDelayMs);
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_timerFireCount++, TimeSpan.FromMilliseconds(TimerDelayMs));
         if (timer == null)
         {
             Terminal.Error("No timer device registered");
             return;
         }
 
-        ulong alarmId = AlarmManager.Schedule(TimeSpan.FromMilliseconds(AlarmDelayMs), static () => s_alarmFireCount++);
+        ulong alarmId = AlarmManager.Schedule(static () => s_alarmFireCount++, TimeSpan.FromMilliseconds(AlarmDelayMs));
         if (alarmId == 0)
         {
             Terminal.Error("Scheduler is not running, alarm not scheduled");
@@ -211,6 +211,7 @@ internal static class SchedulerCommands
         Terminal.InfoLine("Alarm fired", s_alarmFireCount + "x");
 
         // Both were one-shot, so cancelling now reports that they already fired.
+        Terminal.InfoLine("Cancel timer", TimerManager.Cancel(timer) ? "was still pending" : "already fired");
         Terminal.InfoLine("Cancel alarm", AlarmManager.Cancel(alarmId) ? "was still pending" : "already fired");
         Console.WriteLine();
     }

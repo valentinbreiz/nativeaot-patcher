@@ -24,8 +24,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Timer Tests] Starting test suite\n");
 
 #if ARCH_X64
-        // x64: Stopwatch (2) + PIT (3) + TimerManager (5) + LAPIC (3) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 24
-        TR.Start("Timer Tests", expectedTests: 24);
+        // x64: Stopwatch (2) + PIT (3) + TimerManager (6) + LAPIC (3) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 25
+        TR.Start("Timer Tests", expectedTests: 25);
 
         // PIT Tests (using Stopwatch for verification)
         TR.Run("PIT_Initialized", TestPITInitialized);
@@ -39,8 +39,8 @@ public class Kernel : Sys.Kernel
 
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        // Stopwatch (2) + TimerManager (5) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 18
-        TR.Start("Timer Tests", expectedTests: 18);
+        // Stopwatch (2) + TimerManager (6) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 19
+        TR.Start("Timer Tests", expectedTests: 19);
 #endif
 
         // Stopwatch/TSC Tests - must run first to verify timing source
@@ -53,6 +53,7 @@ public class Kernel : Sys.Kernel
         TR.Run("TimerManager_Schedule_OneShot", TestScheduleOneShot);
         TR.Run("TimerManager_Schedule_Recurring", TestScheduleRecurring);
         TR.Run("TimerManager_Schedule_Cancel", TestScheduleCancel);
+        TR.Run("TimerManager_Schedule_RejectsNonPositivePeriod", TestScheduleRejectsNonPositivePeriod);
 
         // Alarm Tests
         TR.Run("Alarm_Schedule_Fires", TestAlarmFires);
@@ -238,7 +239,7 @@ public class Kernel : Sys.Kernel
     private static void TestScheduleOneShot()
     {
         s_oneShotFireCount = 0;
-        SoftwareTimer? timer = TimerManager.Schedule(static () => s_oneShotFireCount++, 50);
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_oneShotFireCount++, TimeSpan.FromMilliseconds(50));
 
         Assert.True(timer != null, "Schedule: should return a timer");
         Assert.True(timer!.IsActive, "Schedule: timer should be active before firing");
@@ -251,12 +252,13 @@ public class Kernel : Sys.Kernel
 
         Assert.True(s_oneShotFireCount == 1, "Schedule: one-shot timer should fire exactly once");
         Assert.True(!timer.IsActive, "Schedule: one-shot timer should be inactive after firing");
+        Assert.True(!TimerManager.Cancel(timer), "Schedule: fired timer should no longer be cancellable");
     }
 
     private static void TestScheduleRecurring()
     {
         s_recurringFireCount = 0;
-        SoftwareTimer? timer = TimerManager.ScheduleRecurring(static () => s_recurringFireCount++, 50);
+        SoftwareTimer? timer = TimerManager.ScheduleRecurring(static () => s_recurringFireCount++, TimeSpan.FromMilliseconds(50));
 
         Assert.True(timer != null, "ScheduleRecurring: should return a timer");
 
@@ -267,7 +269,7 @@ public class Kernel : Sys.Kernel
         Serial.WriteNumber((ulong)count);
         Serial.WriteString("\n");
 
-        TimerManager.Cancel(timer);
+        Assert.True(TimerManager.Cancel(timer), "ScheduleRecurring: pending timer should be cancellable");
 
         Assert.True(count >= 3, "ScheduleRecurring: timer should fire repeatedly (>= 3 in 500ms)");
         Assert.True(!timer!.IsActive, "ScheduleRecurring: cancelled timer should be inactive");
@@ -276,14 +278,33 @@ public class Kernel : Sys.Kernel
     private static void TestScheduleCancel()
     {
         s_cancelledFireCount = 0;
-        SoftwareTimer? timer = TimerManager.Schedule(static () => s_cancelledFireCount++, 200);
+        SoftwareTimer? timer = TimerManager.Schedule(static () => s_cancelledFireCount++, TimeSpan.FromMilliseconds(200));
 
-        TimerManager.Cancel(timer);
+        Assert.True(TimerManager.Cancel(timer), "Cancel: pending timer should be cancellable");
+        Assert.True(!TimerManager.Cancel(timer), "Cancel: Cancel should return false the second time");
 
         TimerManager.Wait(400);
 
         Assert.True(s_cancelledFireCount == 0, "Cancel: cancelled timer should not fire");
         Assert.True(timer != null && !timer.IsActive, "Cancel: cancelled timer should be inactive");
+    }
+
+    private static void TestScheduleRejectsNonPositivePeriod()
+    {
+        // A zero or negative period would reload to 0 and fire on every device
+        // tick, so it is refused the way AlarmManager refuses a sub-millisecond
+        // one.
+        Assert.True(
+            TimerManager.ScheduleRecurring(static () => { }, TimeSpan.Zero) == null,
+            "ScheduleRecurring: a zero period should be refused");
+        Assert.True(
+            TimerManager.ScheduleRecurring(static () => { }, TimeSpan.FromMilliseconds(-50)) == null,
+            "ScheduleRecurring: a negative period should be refused");
+
+        // A one-shot delay has no such floor: it fires on the next tick.
+        SoftwareTimer? timer = TimerManager.Schedule(static () => { }, TimeSpan.Zero);
+        Assert.True(timer != null, "Schedule: a zero delay should still be scheduled");
+        TimerManager.Cancel(timer);
     }
 
     // ==================== Alarm Tests ====================
@@ -295,7 +316,7 @@ public class Kernel : Sys.Kernel
     private static void TestAlarmFires()
     {
         s_alarmFireCount = 0;
-        ulong id = AlarmManager.Schedule(TimeSpan.FromMilliseconds(50), static () => s_alarmFireCount++);
+        ulong id = AlarmManager.Schedule(static () => s_alarmFireCount++, TimeSpan.FromMilliseconds(50));
 
         Assert.True(id != 0, "Alarm: Schedule should return a valid ID");
 
@@ -312,7 +333,7 @@ public class Kernel : Sys.Kernel
     private static void TestAlarmRecurring()
     {
         s_alarmRecurringCount = 0;
-        ulong id = AlarmManager.ScheduleRecurring(TimeSpan.FromMilliseconds(50), static () => s_alarmRecurringCount++);
+        ulong id = AlarmManager.ScheduleRecurring(static () => s_alarmRecurringCount++, TimeSpan.FromMilliseconds(50));
 
         Assert.True(id != 0, "Alarm: ScheduleRecurring should return a valid ID");
 
@@ -330,7 +351,7 @@ public class Kernel : Sys.Kernel
     private static void TestAlarmRemove()
     {
         s_alarmRemovedCount = 0;
-        ulong id = AlarmManager.Schedule(TimeSpan.FromMilliseconds(200), static () => s_alarmRemovedCount++);
+        ulong id = AlarmManager.Schedule(static () => s_alarmRemovedCount++, TimeSpan.FromMilliseconds(200));
 
         Assert.True(AlarmManager.Cancel(id), "Alarm: pending alarm should be cancellable");
 

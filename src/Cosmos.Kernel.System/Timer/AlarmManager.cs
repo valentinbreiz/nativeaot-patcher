@@ -17,10 +17,10 @@ public static class AlarmManager
     /// Schedules a callback to run once after the specified delay, in thread
     /// context.
     /// </summary>
-    /// <param name="delay">Delay before the alarm fires.</param>
     /// <param name="callback">Method to invoke when the delay expires.</param>
+    /// <param name="delay">Delay before the alarm fires.</param>
     /// <returns>The alarm ID to pass to <see cref="Cancel"/>, or 0 when the alarm could not be scheduled because the scheduler is not running.</returns>
-    public static ulong Schedule(TimeSpan delay, Action callback)
+    public static ulong Schedule(Action callback, TimeSpan delay)
     {
         return AlarmSystem.Add(delay, callback);
     }
@@ -30,10 +30,10 @@ public static class AlarmManager
     /// thread context. The period restarts when the callback returns, so it
     /// must be longer than the callback takes to run.
     /// </summary>
-    /// <param name="period">Period between firings; at least 1 ms.</param>
     /// <param name="callback">Method to invoke each period.</param>
+    /// <param name="period">Period between firings; at least 1 ms.</param>
     /// <returns>The alarm ID to pass to <see cref="Cancel"/>, or 0 when the alarm could not be scheduled because the scheduler is not running or the period is under 1 ms.</returns>
-    public static ulong ScheduleRecurring(TimeSpan period, Action callback)
+    public static ulong ScheduleRecurring(Action callback, TimeSpan period)
     {
         return AlarmSystem.AddRecurring(period, callback);
     }
