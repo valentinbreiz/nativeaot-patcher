@@ -144,7 +144,7 @@ foreach (string arg in Environment.GetCommandLineArgs())
 
 ## Watching a boot
 
-Every phase above logs to the serial port (COM1), which `make run` and `cosmos run` connect to your terminal, the first thing to read when a kernel does not come up:
+Every phase above logs to the serial port (COM1), which `cosmos run` connects to your terminal, the first thing to read when a kernel does not come up:
 
 ```
 ========================================
