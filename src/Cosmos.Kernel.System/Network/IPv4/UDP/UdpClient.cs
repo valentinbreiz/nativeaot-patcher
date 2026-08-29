@@ -42,7 +42,7 @@ public class UdpClient : IDisposable
     private int _destinationPort;
 
     /// <summary>
-    /// The _destination address.
+    /// Destination address.
     /// </summary>
     internal Address? _destination;
 
@@ -68,7 +68,7 @@ public class UdpClient : IDisposable
     /// <summary>
     /// Gets a UDP client running on the given port.
     /// </summary>
-    /// <param name="destPort">The _destination port.</param>
+    /// <param name="destPort">Destination port.</param>
     /// <returns>If a client is running on the given port, the <see cref="UdpClient"/>; otherwise, <see langword="null"/>.</returns>
     internal static UdpClient? GetClient(ushort destPort)
     {
@@ -89,15 +89,15 @@ public class UdpClient : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="UdpClient"/> class.
     /// </summary>
-    /// <param name="_localPort">Local port.</param>
-    public UdpClient(int _localPort)
+    /// <param name="localPort">Local port.</param>
+    public UdpClient(int localPort)
     {
         _rxBuffer = new Queue<UdpPacket>(8);
 
-        this._localPort = _localPort;
-        if (_localPort > 0)
+        _localPort = localPort;
+        if (localPort > 0)
         {
-            s_clients[(uint)_localPort] = this;
+            s_clients[(uint)localPort] = this;
         }
     }
 
@@ -116,8 +116,8 @@ public class UdpClient : IDisposable
     /// <summary>
     /// Connects to the given client.
     /// </summary>
-    /// <param name="dest">The _destination address.</param>
-    /// <param name="destPort">The _destination port.</param>
+    /// <param name="dest">Destination address.</param>
+    /// <param name="destPort">Destination port.</param>
     public void Connect(Address dest, int destPort)
     {
         ThrowIfDisposed();
@@ -158,8 +158,8 @@ public class UdpClient : IDisposable
     /// Sends data to a remote host.
     /// </summary>
     /// <param name="data">The data to send.</param>
-    /// <param name="dest">The _destination address.</param>
-    /// <param name="destPort">The _destination port.</param>
+    /// <param name="dest">Destination address.</param>
+    /// <param name="destPort">Destination port.</param>
     public void Send(byte[] data, Address dest, int destPort)
     {
         ThrowIfDisposed();
@@ -232,7 +232,7 @@ public class UdpClient : IDisposable
         source.Address = packet.SourceIP;
         source.Port = packet.SourcePort;
 
-        return packet.UDPData;
+        return packet.UdpData;
     }
 
     /// <summary>

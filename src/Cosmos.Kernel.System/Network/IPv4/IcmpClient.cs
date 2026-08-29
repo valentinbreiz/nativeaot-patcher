@@ -12,7 +12,7 @@ public class IcmpClient : IDisposable
     private static readonly Dictionary<uint, IcmpClient> s_clients = new();
 
     /// <summary>
-    /// The _destination address.
+    /// Destination address.
     /// </summary>
     internal Address? _destination;
 
@@ -60,7 +60,7 @@ public class IcmpClient : IDisposable
     /// <summary>
     /// Connects to the given client.
     /// </summary>
-    /// <param name="dest">The _destination address.</param>
+    /// <param name="dest">Destination address.</param>
     public void Connect(Address dest)
     {
         ThrowIfDisposed();

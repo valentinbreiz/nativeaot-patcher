@@ -204,7 +204,7 @@ public class TcpPacket : IPPacket
 
         //Checksum computation
         byte[] header = MakeHeader();
-        ushort calculatedcrc = CalcOcCRC(header, 0, header.Length);
+        ushort calculatedcrc = CalcOcCrc(header, 0, header.Length);
 
         //Checksum
         RawData[DataOffset + 16] = (byte)((calculatedcrc >> 8) & 0xFF);
@@ -222,8 +222,8 @@ public class TcpPacket : IPPacket
         DestinationPort = (ushort)((RawData[DataOffset + 2] << 8) | RawData[DataOffset + 3]);
         SequenceNumber = (uint)((RawData[DataOffset + 4] << 24) | (RawData[DataOffset + 5] << 16) | (RawData[DataOffset + 6] << 8) | RawData[DataOffset + 7]);
         AckNumber = (uint)((RawData[DataOffset + 8] << 24) | (RawData[DataOffset + 9] << 16) | (RawData[DataOffset + 10] << 8) | RawData[DataOffset + 11]);
-        TCPHeaderLength = (byte)((RawData[DataOffset + 12] >> 4) * 4);
-        TCPFlags = RawData[DataOffset + 13];
+        TcpHeaderLength = (byte)((RawData[DataOffset + 12] >> 4) * 4);
+        FlagBits = RawData[DataOffset + 13];
         WindowSize = (ushort)((RawData[DataOffset + 14] << 8) | RawData[DataOffset + 15]);
         Checksum = (ushort)((RawData[DataOffset + 16] << 8) | RawData[DataOffset + 17]);
         UrgentPointer = (ushort)((RawData[DataOffset + 18] << 8) | RawData[DataOffset + 19]);
@@ -235,11 +235,11 @@ public class TcpPacket : IPPacket
         _rst = (RawData[47] & (byte)TcpFlags.RST) != 0;
         _urg = (RawData[47] & (byte)TcpFlags.URG) != 0;
 
-        if (TCPHeaderLength > 20) //options
+        if (TcpHeaderLength > 20) //options
         {
             Options = new List<TcpOption>();
 
-            for (int i = 0; i < TCP_DataLength; i++)
+            for (int i = 0; i < TcpDataLength; i++)
             {
                 var option = new TcpOption();
                 option.Kind = RawData[DataOffset + 20 + i];
@@ -289,7 +289,7 @@ public class TcpPacket : IPPacket
     /// </summary>
     internal byte[] MakeHeader()
     {
-        byte[] header = new byte[12 + TCPHeaderLength + TCP_DataLength];
+        byte[] header = new byte[12 + TcpHeaderLength + TcpDataLength];
 
         /* Pseudo Header */
         //Addresses
@@ -302,7 +302,7 @@ public class TcpPacket : IPPacket
         header[8] = 0x00;
         //Protocol (TCP)
         header[9] = 0x06;
-        ushort tcplen = (ushort)(TCPHeaderLength + TCP_DataLength);
+        ushort tcplen = (ushort)(TcpHeaderLength + TcpDataLength);
         //TCP Length
         header[10] = (byte)((tcplen >> 8) & 0xFF);
         header[11] = (byte)((tcplen >> 0) & 0xFF);
@@ -375,11 +375,11 @@ public class TcpPacket : IPPacket
     /// <summary>
     /// Gets the TCP header length in bytes, decoded from the data offset field at construction.
     /// </summary>
-    public byte TCPHeaderLength { get; private set; }
+    public byte TcpHeaderLength { get; private set; }
     /// <summary>
     /// Gets the raw flag byte from the header, a snapshot taken at construction; see <see cref="TcpFlags"/> for the bit values.
     /// </summary>
-    public byte TCPFlags { get; private set; }
+    public byte FlagBits { get; private set; }
     /// <summary>
     /// Gets the advertised window size, a snapshot parsed from the header at construction.
     /// </summary>
@@ -397,20 +397,20 @@ public class TcpPacket : IPPacket
     /// <summary>
     /// Gets the payload length in bytes: the IP total length minus the IP header length minus the TCP header length, computed from the header snapshots.
     /// </summary>
-    public ushort TCP_DataLength => (ushort)(IPLength - HeaderLength - TCPHeaderLength);
+    public ushort TcpDataLength => (ushort)(IPLength - HeaderLength - TcpHeaderLength);
 
     /// <summary>
     /// Get TCP data.
     /// </summary>
-    internal byte[] TCP_Data
+    internal byte[] TcpData
     {
         get
         {
-            byte[] data = new byte[TCP_DataLength];
+            byte[] data = new byte[TcpDataLength];
 
             for (int b = 0; b < data.Length; b++)
             {
-                data[b] = RawData[DataOffset + TCPHeaderLength + b];
+                data[b] = RawData[DataOffset + TcpHeaderLength + b];
             }
 
             return data;

@@ -289,9 +289,9 @@ public static class SocketPlug
             _localEndPoints[id] = new IPEndPoint(IPAddress.Any, localPort);
         }
 
-        // Parse destination address
-        var destAddr = Address.Parse(address.ToString())
-            ?? throw new Exception("Address can not be null");
+        // Use GetAddressBytes directly to avoid string parsing (byte.Parse can trigger resource loading)
+        byte[] destBytes = address.GetAddressBytes();
+        var destAddr = new Address(destBytes[0], destBytes[1], destBytes[2], destBytes[3]);
         client.Connect(destAddr, port);
 
         _remoteEndPoints[id] = new IPEndPoint(address, port);
@@ -321,7 +321,9 @@ public static class SocketPlug
             throw new Exception("Client must be closed before setting a new connection.");
         }
 
-        sm.RemoteEndPoint.Address = Address.Parse(address.ToString()) ?? throw new Exception("Address can not be null");
+        // Use GetAddressBytes directly to avoid string parsing (byte.Parse can trigger resource loading)
+        byte[] remoteBytes = address.GetAddressBytes();
+        sm.RemoteEndPoint.Address = new Address(remoteBytes[0], remoteBytes[1], remoteBytes[2], remoteBytes[3]);
         sm.RemoteEndPoint.Port = (ushort)port;
         sm.LocalEndPoint.Address = NetworkManager.Primary.IPConfig?.IPAddress ?? throw new Exception("No IPv4 configuration on the primary network device");
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();

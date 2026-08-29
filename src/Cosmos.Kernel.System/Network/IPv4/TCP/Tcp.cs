@@ -403,7 +403,7 @@ internal class Tcp : IDisposable
         else
         {
             // Check sequence number and segment data.
-            if (TCB.RcvNxt <= packet.SequenceNumber && packet.SequenceNumber + packet.TCP_DataLength < TCB.RcvNxt + TCB.RcvWnd)
+            if (TCB.RcvNxt <= packet.SequenceNumber && packet.SequenceNumber + packet.TcpDataLength < TCB.RcvNxt + TCB.RcvWnd)
             {
                 switch (Status)
                 {
@@ -539,7 +539,7 @@ internal class Tcp : IDisposable
 
                 Status = Status.ESTABLISHED;
             }
-            else if (packet.TCPFlags == (byte)TcpFlags.SYN)
+            else if (packet.FlagBits == (byte)TcpFlags.SYN)
             {
                 Status = Status.CLOSED;
                 Serial.WriteString("[TCP] Simultaneous open not supported.\n");
@@ -616,12 +616,12 @@ internal class Tcp : IDisposable
             if (packet._psh)
             {
                 Serial.WriteString("[TCP] PSH received, data length: ");
-                Serial.WriteNumber((ulong)packet.TCP_DataLength);
+                Serial.WriteNumber((ulong)packet.TcpDataLength);
                 Serial.WriteString(", storing data\n");
 
-                TCB.RcvNxt += packet.TCP_DataLength;
+                TCB.RcvNxt += packet.TcpDataLength;
 
-                AppendToData(packet.TCP_Data);
+                AppendToData(packet.TcpData);
 
                 Serial.WriteString("[TCP] Data buffer now has ");
                 Serial.WriteNumber((ulong)(_data?.Length ?? 0));
@@ -661,11 +661,11 @@ internal class Tcp : IDisposable
                 return;
             }
 
-            if (packet.TCP_DataLength > 0 && packet.SequenceNumber >= TCB.RcvNxt) //packet sequencing
+            if (packet.TcpDataLength > 0 && packet.SequenceNumber >= TCB.RcvNxt) //packet sequencing
             {
-                TCB.RcvNxt += packet.TCP_DataLength;
+                TCB.RcvNxt += packet.TcpDataLength;
 
-                AppendToData(packet.TCP_Data);
+                AppendToData(packet.TcpData);
             }
         }
         if (packet._rst)

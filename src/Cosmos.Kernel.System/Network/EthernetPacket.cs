@@ -15,10 +15,10 @@ namespace Cosmos.Kernel.System.Network;
 [Experimental(Experimentals.PacketSeamDiagId)]
 public class EthernetPacket
 {
-    /// <summary>Parsed source MAC address backing <see cref="SourceMAC"/>.</summary>
+    /// <summary>Parsed source MAC address backing <see cref="SourceMac"/>.</summary>
     protected MACAddress srcMAC = null!;
 
-    /// <summary>Parsed destination MAC address backing <see cref="DestinationMAC"/>.</summary>
+    /// <summary>Parsed destination MAC address backing <see cref="DestinationMac"/>.</summary>
     protected MACAddress destMAC = null!;
 
     /// <summary>
@@ -91,7 +91,7 @@ public class EthernetPacket
     /// it stamps the sending device's address) rewrites the buffer and
     /// re-parses the whole packet.
     /// </summary>
-    public MACAddress SourceMAC
+    public MACAddress SourceMac
     {
         get => srcMAC;
         internal set
@@ -109,7 +109,7 @@ public class EthernetPacket
     /// once ARP resolution completes) rewrites the buffer and re-parses the
     /// whole packet.
     /// </summary>
-    public MACAddress DestinationMAC
+    public MACAddress DestinationMac
     {
         get => destMAC;
         internal set

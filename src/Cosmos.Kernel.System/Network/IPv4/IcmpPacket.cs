@@ -15,13 +15,13 @@ namespace Cosmos.Kernel.System.Network.IPv4;
 [Experimental(Experimentals.PacketSeamDiagId)]
 public class IcmpPacket : IPPacket
 {
-    /// <summary>Parsed ICMP type backing <see cref="ICMPType"/>.</summary>
+    /// <summary>Parsed ICMP type backing <see cref="IcmpType"/>.</summary>
     protected byte icmpType;
 
-    /// <summary>Parsed ICMP code backing <see cref="ICMPCode"/>.</summary>
+    /// <summary>Parsed ICMP code backing <see cref="IcmpCode"/>.</summary>
     protected byte icmpCode;
 
-    /// <summary>Parsed or computed ICMP checksum backing <see cref="ICMPCRC"/>.</summary>
+    /// <summary>Parsed or computed ICMP checksum backing <see cref="IcmpCrc"/>.</summary>
     protected ushort icmpCRC;
 
     private static int s_echoRequestsReplied;
@@ -45,7 +45,7 @@ public class IcmpPacket : IPPacket
     {
         var icmpPacket = new IcmpPacket(packetData);
 
-        switch (icmpPacket.ICMPType)
+        switch (icmpPacket.IcmpType)
         {
             case 0: // Echo reply
                 Serial.WriteString("[ICMP] Received echo reply from ");
@@ -68,7 +68,7 @@ public class IcmpPacket : IPPacket
                 OutgoingBuffer.AddPacket(reply);
                 NetworkStack.Update();
 
-                s_lastEchoRequestData = request.GetICMPData();
+                s_lastEchoRequestData = request.GetIcmpData();
                 s_echoRequestsReplied++;
                 break;
         }
@@ -123,7 +123,7 @@ public class IcmpPacket : IPPacket
         RawData[DataOffset + 6] = (byte)((seq >> 8) & 0xFF);
         RawData[DataOffset + 7] = (byte)((seq >> 0) & 0xFF);
 
-        icmpCRC = CalcICMPCRC(icmpLength);
+        icmpCRC = CalcIcmpCrc(icmpLength);
 
         RawData[DataOffset + 2] = (byte)((icmpCRC >> 8) & 0xFF);
         RawData[DataOffset + 3] = (byte)((icmpCRC >> 0) & 0xFF);
@@ -138,43 +138,43 @@ public class IcmpPacket : IPPacket
     /// </summary>
     /// <param name="length">The number of bytes to sum: the ICMP header plus payload.</param>
     /// <returns>The checksum value.</returns>
-    protected ushort CalcICMPCRC(ushort length)
+    protected ushort CalcIcmpCrc(ushort length)
     {
-        return CalcOcCRC(DataOffset, length);
+        return CalcOcCrc(DataOffset, length);
     }
 
     /// <summary>
     /// The ICMP packet type, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public byte ICMPType => icmpType;
+    public byte IcmpType => icmpType;
 
     /// <summary>
     /// The ICMP packet code, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public byte ICMPCode => icmpCode;
+    public byte IcmpCode => icmpCode;
 
     /// <summary>
     /// The ICMP checksum, a snapshot taken at construction time. It is
     /// computed in the constructors and never recomputed afterward.
     /// </summary>
-    public ushort ICMPCRC => icmpCRC;
+    public ushort IcmpCrc => icmpCRC;
 
     /// <summary>
     /// The length in bytes of the ICMP payload: the IP payload length minus
     /// the 8-byte ICMP header.
     /// </summary>
-    public ushort ICMPDataLength => (ushort)(DataLength - 8);
+    public ushort IcmpDataLength => (ushort)(DataLength - 8);
 
     /// <summary>
     /// Returns a fresh copy of the ICMP payload (the bytes after the 8-byte
     /// ICMP header). Mutating the returned array does not affect the packet.
     /// </summary>
     /// <returns>A new array holding the payload bytes.</returns>
-    public byte[] GetICMPData()
+    public byte[] GetIcmpData()
     {
-        byte[] data = new byte[ICMPDataLength];
+        byte[] data = new byte[IcmpDataLength];
 
-        for (int b = 0; b < ICMPDataLength; b++)
+        for (int b = 0; b < IcmpDataLength; b++)
         {
             data[b] = RawData[DataOffset + 8 + b];
         }
@@ -203,10 +203,10 @@ public class IcmpPacket : IPPacket
 [Experimental(Experimentals.PacketSeamDiagId)]
 public class IcmpEchoRequest : IcmpPacket
 {
-    /// <summary>Parsed ICMP identifier backing <see cref="ICMPID"/>.</summary>
+    /// <summary>Parsed ICMP identifier backing <see cref="IcmpId"/>.</summary>
     protected ushort icmpID;
 
-    /// <summary>Parsed ICMP sequence number backing <see cref="ICMPSequence"/>.</summary>
+    /// <summary>Parsed ICMP sequence number backing <see cref="IcmpSequence"/>.</summary>
     protected ushort icmpSequence;
 
     /// <summary>
@@ -234,14 +234,14 @@ public class IcmpEchoRequest : IcmpPacket
     public IcmpEchoRequest(Address source, Address dest, ushort id, ushort sequence)
         : base(source, dest, 8, 0, id, sequence, 40)
     {
-        for (int b = 8; b < ICMPDataLength; b++)
+        for (int b = 8; b < IcmpDataLength; b++)
         {
             RawData[DataOffset + b] = (byte)b;
         }
 
         RawData[DataOffset + 2] = 0x00;
         RawData[DataOffset + 3] = 0x00;
-        icmpCRC = CalcICMPCRC((ushort)(ICMPDataLength + 8));
+        icmpCRC = CalcIcmpCrc((ushort)(IcmpDataLength + 8));
         RawData[DataOffset + 2] = (byte)((icmpCRC >> 8) & 0xFF);
         RawData[DataOffset + 3] = (byte)((icmpCRC >> 0) & 0xFF);
     }
@@ -260,12 +260,12 @@ public class IcmpEchoRequest : IcmpPacket
     /// <summary>
     /// The ICMP echo identifier, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public ushort ICMPID => icmpID;
+    public ushort IcmpId => icmpID;
 
     /// <summary>
     /// The ICMP echo sequence number, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public ushort ICMPSequence => icmpSequence;
+    public ushort IcmpSequence => icmpSequence;
 
     /// <summary>
     /// Returns a string describing the request's source, destination, identifier, and sequence number.
@@ -288,10 +288,10 @@ public class IcmpEchoRequest : IcmpPacket
 [Experimental(Experimentals.PacketSeamDiagId)]
 public class IcmpEchoReply : IcmpPacket
 {
-    /// <summary>Parsed ICMP identifier backing <see cref="ICMPID"/>.</summary>
+    /// <summary>Parsed ICMP identifier backing <see cref="IcmpId"/>.</summary>
     protected ushort icmpID;
 
-    /// <summary>Parsed ICMP sequence number backing <see cref="ICMPSequence"/>.</summary>
+    /// <summary>Parsed ICMP sequence number backing <see cref="IcmpSequence"/>.</summary>
     protected ushort icmpSequence;
 
     /// <summary>
@@ -315,16 +315,16 @@ public class IcmpEchoReply : IcmpPacket
     /// </summary>
     /// <param name="request">The ICMP echo request to answer.</param>
     public IcmpEchoReply(IcmpEchoRequest request)
-        : base(request.DestinationIP, request.SourceIP, 0, 0, request.ICMPID, request.ICMPSequence, (ushort)(request.ICMPDataLength + 8))
+        : base(request.DestinationIP, request.SourceIP, 0, 0, request.IcmpId, request.IcmpSequence, (ushort)(request.IcmpDataLength + 8))
     {
-        for (int b = 0; b < ICMPDataLength; b++)
+        for (int b = 0; b < IcmpDataLength; b++)
         {
             RawData[DataOffset + 8 + b] = request.RawData[DataOffset + 8 + b];
         }
 
         RawData[DataOffset + 2] = 0x00;
         RawData[DataOffset + 3] = 0x00;
-        icmpCRC = CalcICMPCRC((ushort)(ICMPDataLength + 8));
+        icmpCRC = CalcIcmpCrc((ushort)(IcmpDataLength + 8));
         RawData[DataOffset + 2] = (byte)((icmpCRC >> 8) & 0xFF);
         RawData[DataOffset + 3] = (byte)((icmpCRC >> 0) & 0xFF);
     }
@@ -343,12 +343,12 @@ public class IcmpEchoReply : IcmpPacket
     /// <summary>
     /// The ICMP echo identifier, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public ushort ICMPID => icmpID;
+    public ushort IcmpId => icmpID;
 
     /// <summary>
     /// The ICMP echo sequence number, a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction time.
     /// </summary>
-    public ushort ICMPSequence => icmpSequence;
+    public ushort IcmpSequence => icmpSequence;
 
     /// <summary>
     /// Returns a string describing the reply's source, destination, identifier, and sequence number.

@@ -81,10 +81,13 @@ public class IPConfig
     }
 
     /// <summary>
-    /// Finds the network address for the specified destination IP address.
+    /// Finds the source address to send to the specified destination from.
+    /// Internal: every caller is a client inside this assembly choosing its own
+    /// source address, and a kernel names an interface with a
+    /// <see cref="NetworkAdapter"/> instead.
     /// </summary>
-    /// <param name="destIP">The destination IP address.</param>
-    public static Address? FindNetwork(Address destIP)
+    /// <param name="destination">The destination IP address.</param>
+    internal static Address? FindNetwork(Address destination)
     {
         Address? defaultGw = null;
 
@@ -93,7 +96,7 @@ public class IPConfig
             IPConfig ipConfig = entry.Config;
 
             if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
-                (destIP.Id & ipConfig.SubnetMask.Id))
+                (destination.Id & ipConfig.SubnetMask.Id))
             {
                 return ipConfig.IPAddress;
             }
@@ -102,7 +105,7 @@ public class IPConfig
                 defaultGw = ipConfig.IPAddress;
             }
 
-            if (!IsLocalAddress(destIP))
+            if (!IsLocalAddress(destination))
             {
                 return ipConfig.IPAddress;
             }
@@ -115,15 +118,15 @@ public class IPConfig
     /// Enables a network device with the specified IP configuration.
     /// </summary>
     /// <param name="device">The network device to enable.</param>
-    /// <param name="ip">The IP address to assign to the device.</param>
-    /// <param name="subnet">The subnet mask to use for the device.</param>
-    /// <param name="gw">The default gateway address to use for the device.</param>
+    /// <param name="address">The IP address to assign to the device.</param>
+    /// <param name="subnetMask">The subnet mask to use for the device.</param>
+    /// <param name="defaultGateway">The default gateway address to use for the device.</param>
     /// <returns><see langword="true"/> if the device was successfully enabled, <see langword="false"/> otherwise.</returns>
-    internal static bool Enable(INetworkDevice device, Address ip, Address subnet, Address gw)
+    internal static bool Enable(INetworkDevice device, Address address, Address subnetMask, Address defaultGateway)
     {
         if (device != null)
         {
-            var config = new IPConfig(ip, subnet, gw);
+            var config = new IPConfig(address, subnetMask, defaultGateway);
             NetworkStack.ConfigIP(device, config);
             Serial.WriteString("[IPConfig] Config OK.\n");
             return true;
@@ -134,11 +137,11 @@ public class IPConfig
     /// <summary>
     /// Assign an IPv4 configuration to the primary network device.
     /// </summary>
-    /// <param name="ip">The IP address to assign.</param>
-    /// <param name="subnet">The subnet mask to use.</param>
-    /// <param name="gw">The default gateway address to use.</param>
+    /// <param name="address">The IP address to assign.</param>
+    /// <param name="subnetMask">The subnet mask to use.</param>
+    /// <param name="defaultGateway">The default gateway address to use.</param>
     /// <returns><see langword="true"/> if the configuration was applied, <see langword="false"/> when there is no device.</returns>
-    public static bool Enable(Address ip, Address subnet, Address gw)
+    public static bool Enable(Address address, Address subnetMask, Address defaultGateway)
     {
         INetworkDevice? device = NetworkManager.PrimaryDevice;
         if (device == null)
@@ -146,18 +149,18 @@ public class IPConfig
             return false;
         }
 
-        return Enable(device, ip, subnet, gw);
+        return Enable(device, address, subnetMask, defaultGateway);
     }
 
     /// <summary>
     /// Assign an IPv4 configuration to a named network device.
     /// </summary>
     /// <param name="adapter">Handle to the device, from <see cref="NetworkManager.GetAdapter(int)"/>.</param>
-    /// <param name="ip">The IP address to assign.</param>
-    /// <param name="subnet">The subnet mask to use.</param>
-    /// <param name="gw">The default gateway address to use.</param>
+    /// <param name="address">The IP address to assign.</param>
+    /// <param name="subnetMask">The subnet mask to use.</param>
+    /// <param name="defaultGateway">The default gateway address to use.</param>
     /// <returns><see langword="true"/> if the configuration was applied, <see langword="false"/> when the handle names no device.</returns>
-    public static bool Enable(NetworkAdapter adapter, Address ip, Address subnet, Address gw)
+    public static bool Enable(NetworkAdapter adapter, Address address, Address subnetMask, Address defaultGateway)
     {
         INetworkDevice? device = adapter.Device;
         if (device == null)
@@ -165,7 +168,7 @@ public class IPConfig
             return false;
         }
 
-        return Enable(device, ip, subnet, gw);
+        return Enable(device, address, subnetMask, defaultGateway);
     }
 
     /// <summary>
@@ -214,26 +217,19 @@ public class IPConfig
     }
 
     /// <summary>
-    /// Creates a IPv4 Configuration with no default gateway.
+    /// Creates a IPv4 Configuration. Internal: a kernel reads a configuration
+    /// back from <see cref="NetworkAdapter.IPConfig"/> and applies one with
+    /// <see cref="Enable(Address, Address, Address)"/>; it never supplies the
+    /// object itself, and the only caller is this class's own Enable.
     /// </summary>
-    /// <param name="ip">IP Address</param>
-    /// <param name="subnet">Subnet Mask</param>
-    public IPConfig(Address ip, Address subnet)
-        : this(ip, subnet, Address.Zero)
+    /// <param name="address">The IP address.</param>
+    /// <param name="subnetMask">The subnet mask.</param>
+    /// <param name="defaultGateway">The default gateway.</param>
+    internal IPConfig(Address address, Address subnetMask, Address defaultGateway)
     {
-    }
-
-    /// <summary>
-    /// Creates a IPv4 Configuration.
-    /// </summary>
-    /// <param name="ip">IP Address</param>
-    /// <param name="subnet">Subnet Mask</param>
-    /// <param name="gw">Default gateway</param>
-    public IPConfig(Address ip, Address subnet, Address gw)
-    {
-        IPAddress = ip;
-        SubnetMask = subnet;
-        DefaultGateway = gw;
+        IPAddress = address;
+        SubnetMask = subnetMask;
+        DefaultGateway = defaultGateway;
     }
 
     /// <summary>

@@ -16,12 +16,12 @@ public abstract class ArpPacketEthernet : ArpPacket
     /// <summary>
     /// The sender MAC address.
     /// </summary>
-    protected MACAddress senderMAC = null!;
+    protected MACAddress senderMac = null!;
 
     /// <summary>
     /// The target MAC address.
     /// </summary>
-    protected MACAddress targetMAC = null!;
+    protected MACAddress targetMac = null!;
 
     /// <summary>
     /// The sender IP address.
@@ -52,36 +52,36 @@ public abstract class ArpPacketEthernet : ArpPacket
     protected override void InitializeFields()
     {
         base.InitializeFields();
-        senderMAC = new MACAddress(RawData, 22);
+        senderMac = new MACAddress(RawData, 22);
         senderIP = new Address(RawData, 28);
-        targetMAC = new MACAddress(RawData, 32);
+        targetMac = new MACAddress(RawData, 32);
         targetIP = new Address(RawData, 38);
     }
 
     /// <summary>
     /// Initializes a new IPv4-over-Ethernet ARP packet for sending. Allocates a frame of
     /// <paramref name="packetSize"/> bytes, writes the Ethernet header (destination
-    /// <paramref name="targetMAC"/>, source <paramref name="senderMAC"/>, EtherType 0x0806),
+    /// <paramref name="targetMac"/>, source <paramref name="senderMac"/>, EtherType 0x0806),
     /// the fixed ARP header (hardware type 1, protocol type 0x0800, address lengths 6 and 4,
     /// <paramref name="operation"/>), and the four address fields, then parses them back into
     /// the properties.
     /// </summary>
     /// <param name="operation">Operation code (OPER); 1 for a request, 2 for a reply.</param>
-    /// <param name="senderMAC">Sender hardware address (SHA); also the Ethernet source address.</param>
+    /// <param name="senderMac">Sender hardware address (SHA); also the Ethernet source address.</param>
     /// <param name="senderIP">Sender protocol address (SPA).</param>
-    /// <param name="targetMAC">Destination MAC address of the Ethernet frame.</param>
+    /// <param name="targetMac">Destination MAC address of the Ethernet frame.</param>
     /// <param name="targetIP">Target protocol address (TPA).</param>
     /// <param name="packetSize">Total frame size in bytes.</param>
-    /// <param name="arpTargetMAC">Target hardware address (THA), the value written into the ARP
+    /// <param name="arpTargetMac">Target hardware address (THA), the value written into the ARP
     /// body at offset 32; it can differ from the Ethernet destination, as in a broadcast request.</param>
-    protected ArpPacketEthernet(ushort operation, MACAddress senderMAC, Address senderIP,
-        MACAddress targetMAC, Address targetIP, int packetSize, MACAddress arpTargetMAC)
-        : base(targetMAC, senderMAC, 1, 0x0800, 6, 4, operation, packetSize)
+    protected ArpPacketEthernet(ushort operation, MACAddress senderMac, Address senderIP,
+        MACAddress targetMac, Address targetIP, int packetSize, MACAddress arpTargetMac)
+        : base(targetMac, senderMac, 1, 0x0800, 6, 4, operation, packetSize)
     {
         for (int i = 0; i < 6; i++)
         {
-            RawData[22 + i] = senderMAC._bytes[i];
-            RawData[32 + i] = arpTargetMAC._bytes[i];
+            RawData[22 + i] = senderMac._bytes[i];
+            RawData[32 + i] = arpTargetMac._bytes[i];
         }
         for (int i = 0; i < 4; i++)
         {
@@ -96,13 +96,13 @@ public abstract class ArpPacketEthernet : ArpPacket
     /// Gets the sender hardware address (SHA). This is a snapshot parsed from
     /// <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    public MACAddress SenderMAC => senderMAC;
+    public MACAddress SenderMac => senderMac;
 
     /// <summary>
     /// Gets the target hardware address (THA), read from the ARP body, not from the Ethernet
     /// header. This is a snapshot parsed from <see cref="EthernetPacket.RawData"/> at construction.
     /// </summary>
-    public MACAddress TargetMAC => targetMAC;
+    public MACAddress TargetMac => targetMac;
 
     /// <summary>
     /// Gets the sender protocol address (SPA). This is a snapshot parsed from
@@ -123,7 +123,7 @@ public abstract class ArpPacketEthernet : ArpPacket
     /// <returns>A string representation of the packet.</returns>
     public override string ToString()
     {
-        return "IPv4 Ethernet ARP Packet SenderMAC=" + senderMAC + ", TargetMAC=" + targetMAC + ", SenderIP=" + senderIP +
+        return "IPv4 Ethernet ARP Packet SenderMac=" + senderMac + ", TargetMac=" + targetMac + ", SenderIP=" + senderIP +
             ", TargetIP=" + targetIP + ", Operation=" + opCode;
     }
 }
@@ -149,18 +149,18 @@ public class ArpReplyEthernet : ArpPacketEthernet
 
     /// <summary>
     /// Initializes a new 42-byte ARP reply for sending. The frame is sent unicast to
-    /// <paramref name="targetMAC"/>, which is written both as the Ethernet destination and as
+    /// <paramref name="targetMac"/>, which is written both as the Ethernet destination and as
     /// the ARP target hardware address (THA), so the reply carries the requester's MAC in both
     /// places.
     /// </summary>
-    /// <param name="ourMAC">Our MAC address: the sender hardware address (SHA) and the Ethernet
+    /// <param name="ourMac">Our MAC address: the sender hardware address (SHA) and the Ethernet
     /// source address.</param>
     /// <param name="ourIP">Our IP address: the sender protocol address (SPA).</param>
-    /// <param name="targetMAC">The requester's MAC address: the Ethernet destination and the ARP
+    /// <param name="targetMac">The requester's MAC address: the Ethernet destination and the ARP
     /// target hardware address (THA).</param>
     /// <param name="targetIP">The requester's IP address: the target protocol address (TPA).</param>
-    public ArpReplyEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP)
-        : base(2, ourMAC, ourIP, targetMAC, targetIP, 42, targetMAC)
+    public ArpReplyEthernet(MACAddress ourMac, Address ourIP, MACAddress targetMac, Address targetIP)
+        : base(2, ourMac, ourIP, targetMac, targetIP, 42, targetMac)
     { }
 
     /// <summary>
@@ -196,20 +196,20 @@ public class ArpRequestEthernet : ArpPacketEthernet
 
     /// <summary>
     /// Initializes a new 42-byte ARP request for sending. Callers normally pass
-    /// <see cref="MACAddress.Broadcast"/> as <paramref name="targetMAC"/> (the Ethernet
-    /// destination) and <see cref="MACAddress.None"/> as <paramref name="arpTargetMAC"/>: the
+    /// <see cref="MACAddress.Broadcast"/> as <paramref name="targetMac"/> (the Ethernet
+    /// destination) and <see cref="MACAddress.None"/> as <paramref name="arpTargetMac"/>: the
     /// target hardware address field of a request is zero because it is the value being asked for.
     /// </summary>
-    /// <param name="ourMAC">Our MAC address: the sender hardware address (SHA) and the Ethernet
+    /// <param name="ourMac">Our MAC address: the sender hardware address (SHA) and the Ethernet
     /// source address.</param>
     /// <param name="ourIP">Our IP address: the sender protocol address (SPA).</param>
-    /// <param name="targetMAC">Destination MAC address of the Ethernet frame, normally
+    /// <param name="targetMac">Destination MAC address of the Ethernet frame, normally
     /// <see cref="MACAddress.Broadcast"/>.</param>
     /// <param name="targetIP">The IP address being resolved: the target protocol address (TPA).</param>
-    /// <param name="arpTargetMAC">Target hardware address (THA) written into the ARP body,
+    /// <param name="arpTargetMac">Target hardware address (THA) written into the ARP body,
     /// normally <see cref="MACAddress.None"/>.</param>
-    public ArpRequestEthernet(MACAddress ourMAC, Address ourIP, MACAddress targetMAC, Address targetIP, MACAddress arpTargetMAC)
-        : base(1, ourMAC, ourIP, targetMAC, targetIP, 42, arpTargetMAC)
+    public ArpRequestEthernet(MACAddress ourMac, Address ourIP, MACAddress targetMac, Address targetIP, MACAddress arpTargetMac)
+        : base(1, ourMac, ourIP, targetMac, targetIP, 42, arpTargetMac)
     { }
 
     /// <summary>

@@ -90,7 +90,7 @@ internal static class NetworkCommands
     /// <summary>Reports the absence of a primary NIC, and whether one is present.</summary>
     private static bool RequireDevice()
     {
-        if (!NetworkManager.HasDevice)
+        if (NetworkManager.DeviceCount == 0)
         {
             Terminal.Error("No network device found");
             return false;
@@ -320,7 +320,7 @@ internal static class NetworkCommands
 
         DnsClient dnsClient = new();
         dnsClient.Connect(dnsServer);
-        dnsClient.SendAsk(domain);
+        dnsClient.SendQuery(domain);
 
         Address? resolvedIP = dnsClient.Receive(DnsReceiveTimeoutMs);
 

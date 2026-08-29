@@ -66,6 +66,15 @@ internal static class DnsRecordType
 public class DnsQuery
 {
     /// <summary>
+    /// Parse products are produced by <see cref="DnsPacketAnswer"/>; every
+    /// setter on this type is internal, so a caller-built instance could never
+    /// be filled in.
+    /// </summary>
+    internal DnsQuery()
+    {
+    }
+
+    /// <summary>
     /// The queried domain name, read label by label from the question section without following
     /// compression pointers.
     /// </summary>
@@ -90,13 +99,22 @@ public class DnsQuery
 public class DnsAnswer
 {
     /// <summary>
+    /// Parse products are produced by <see cref="DnsPacketAnswer"/>; every
+    /// setter on this type is internal, so a caller-built instance could never
+    /// be filled in.
+    /// </summary>
+    internal DnsAnswer()
+    {
+    }
+
+    /// <summary>
     /// The raw 16-bit NAME field exactly as read from the record, usually a compression pointer
     /// (top two bits set) rather than a name.
     /// </summary>
-    public ushort Name { get; internal set; }
+    public ushort NameField { get; internal set; }
 
     /// <summary>
-    /// The domain name obtained by following the compression pointer in <see cref="Name"/>, or null
+    /// The domain name obtained by following the compression pointer in <see cref="NameField"/>, or null
     /// when the NAME field is not a compression pointer (inline names are not resolved).
     /// </summary>
     public string? ResolvedName { get; internal set; }
@@ -197,7 +215,7 @@ public class DnsPacket : UdpPacket
     {
         base.InitializeFields();
         TransactionID = (ushort)((RawData[this.DataOffset + 8] << 8) | RawData[this.DataOffset + 9]);
-        DNSFlags = (ushort)((RawData[this.DataOffset + 10] << 8) | RawData[this.DataOffset + 11]);
+        DnsFlags = (ushort)((RawData[this.DataOffset + 10] << 8) | RawData[this.DataOffset + 11]);
         Questions = (ushort)((RawData[this.DataOffset + 12] << 8) | RawData[this.DataOffset + 13]);
         AnswerRRs = (ushort)((RawData[this.DataOffset + 14] << 8) | RawData[this.DataOffset + 15]);
         AuthorityRRs = (ushort)((RawData[this.DataOffset + 16] << 8) | RawData[this.DataOffset + 17]);
@@ -330,7 +348,7 @@ public class DnsPacket : UdpPacket
     /// The 16-bit DNS header flags, parsed at construction. The lower four bits of a response hold
     /// its <see cref="ReplyCode"/>.
     /// </summary>
-    public ushort DNSFlags { get; private set; }
+    public ushort DnsFlags { get; private set; }
 
     /// <summary>
     /// The number of questions announced in the header, parsed at construction.
@@ -360,13 +378,13 @@ public class DnsPacket : UdpPacket
 /// A DNS query packet that composes a single A/IN question for a given domain name.
 /// </summary>
 [Experimental(Experimentals.PacketSeamDiagId)]
-public class DnsPacketAsk : DnsPacket
+public class DnsPacketQuery : DnsPacket
 {
     /// <summary>
     /// Parses a DNS query packet from a received frame. The buffer is aliased without copying.
     /// </summary>
     /// <param name="rawData">The complete Ethernet frame containing the DNS message.</param>
-    public DnsPacketAsk(byte[] rawData)
+    public DnsPacketQuery(byte[] rawData)
         : base(rawData)
     { }
 
@@ -378,7 +396,7 @@ public class DnsPacketAsk : DnsPacket
     /// <param name="source">The source IPv4 address.</param>
     /// <param name="dest">The destination IPv4 address (the DNS server).</param>
     /// <param name="url">The domain name to resolve.</param>
-    public DnsPacketAsk(Address source, Address dest, string url)
+    public DnsPacketQuery(Address source, Address dest, string url)
         : base(source, dest, 1, (ushort)(url.Length + url.Split('.').Length + 1 + 4))
     {
         int b = 0;
@@ -435,7 +453,7 @@ public class DnsPacketAnswer : DnsPacket
     {
         base.InitializeFields();
 
-        if ((ushort)(DNSFlags & 0x0F) != (ushort)ReplyCode.OK)
+        if ((ushort)(DnsFlags & 0x0F) != (ushort)ReplyCode.OK)
         {
             Serial.WriteString("[DNS] Packet response not OK. Passing packet.\n");
             return;
@@ -463,8 +481,8 @@ public class DnsPacketAnswer : DnsPacket
             for (int i = 0; i < AnswerRRs; i++)
             {
                 var answer = new DnsAnswer();
-                answer.Name = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
-                answer.ResolvedName = ResolveRRName(answer.Name, RawData, DataOffset + 8);
+                answer.NameField = (ushort)((RawData[index + 0] << 8) | RawData[index + 1]);
+                answer.ResolvedName = ResolveRRName(answer.NameField, RawData, DataOffset + 8);
                 answer.Type = (ushort)((RawData[index + 2] << 8) | RawData[index + 3]);
                 answer.Class = (ushort)((RawData[index + 4] << 8) | RawData[index + 5]);
                 answer.TimeToLive = (RawData[index + 6] << 24) | (RawData[index + 7] << 16) | (RawData[index + 8] << 8) | RawData[index + 9];

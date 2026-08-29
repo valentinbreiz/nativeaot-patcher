@@ -104,9 +104,9 @@ public class Kernel : Sys.Kernel
 
     private static void TestNetworkDeviceDetected()
     {
-        Assert.True(NetworkManager.HasDevice, "Network device should be detected");
+        Assert.True(NetworkManager.DeviceCount > 0, "Network device should be detected");
 
-        if (NetworkManager.HasDevice)
+        if (NetworkManager.DeviceCount > 0)
         {
             Log.WriteString("[Test] Device detected: ");
             Log.WriteString(NetworkManager.Name!);
@@ -116,7 +116,7 @@ public class Kernel : Sys.Kernel
 
     private static void TestNetworkDeviceReady()
     {
-        if (!NetworkManager.HasDevice)
+        if (NetworkManager.DeviceCount == 0)
         {
             Assert.True(false, "No network device available");
             return;
@@ -544,15 +544,15 @@ public class Kernel : Sys.Kernel
         if (replyPacket is IcmpEchoReply reply)
         {
             Log.WriteString("[Test] Echo reply id=");
-            Log.WriteNumber((ulong)reply.ICMPID);
+            Log.WriteNumber((ulong)reply.IcmpId);
             Log.WriteString(" seq=");
-            Log.WriteNumber((ulong)reply.ICMPSequence);
+            Log.WriteNumber((ulong)reply.IcmpSequence);
             Log.WriteString(" from ");
             Log.WriteString(reply.SourceIP.ToString());
             Log.WriteString("\n");
 
-            Assert.True(reply.ICMPID == echoId, "Echo reply should carry the identifier the request was built with");
-            Assert.True(reply.ICMPSequence == echoSequence, "Echo reply should carry the sequence number the request was built with");
+            Assert.True(reply.IcmpId == echoId, "Echo reply should carry the identifier the request was built with");
+            Assert.True(reply.IcmpSequence == echoSequence, "Echo reply should carry the sequence number the request was built with");
             Assert.True(reply.SourceIP.CompareTo(target) == 0, "Echo reply should come from the pinged address");
         }
         else
@@ -607,7 +607,7 @@ public class Kernel : Sys.Kernel
 
         Assert.True(echo.DestinationPort == seamPort, "Echoed datagram should target the port the client is bound to");
 
-        byte[] echoedPayload = echo.UDPData;
+        byte[] echoedPayload = echo.UdpData;
         bool payloadMatches = echoedPayload.Length == payload.Length;
         if (payloadMatches)
         {
@@ -1014,7 +1014,7 @@ public class Kernel : Sys.Kernel
         Log.WriteString(domain);
         Log.WriteString("\n");
 
-        dnsClient.SendAsk(domain);
+        dnsClient.SendQuery(domain);
 
         // Wait for response with timeout
         Address resolvedIP = dnsClient.Receive(5000);
@@ -1065,7 +1065,7 @@ public class Kernel : Sys.Kernel
         var dnsClient = new DnsClient();
         dnsClient.Connect(dnsServer);
 
-        dnsClient.SendAsk(domain);
+        dnsClient.SendQuery(domain);
 
         List<Address>? addresses = dnsClient.ReceiveAll(5000);
 
@@ -1115,7 +1115,7 @@ public class Kernel : Sys.Kernel
         var dnsClient = new DnsClient();
         dnsClient.Connect(dnsServer);
 
-        dnsClient.SendAsk("valentin.bzh");
+        dnsClient.SendQuery("valentin.bzh");
         Address? first = dnsClient.Receive(5000);
 
         if (first == null)
@@ -1130,7 +1130,7 @@ public class Kernel : Sys.Kernel
 
         Log.WriteString("[Test] First query resolved, repeating on the same client\n");
 
-        dnsClient.SendAsk("github.com");
+        dnsClient.SendQuery("github.com");
         Address? second = dnsClient.Receive(5000);
 
         Assert.True(second != null, "a second query on the same DnsClient must resolve");
@@ -1163,7 +1163,7 @@ public class Kernel : Sys.Kernel
         var dnsClient = new DnsClient();
         dnsClient.Connect(dnsServer);
 
-        dnsClient.SendAsk(domain);
+        dnsClient.SendQuery(domain);
 
         List<Address>? addresses = dnsClient.ReceiveAll(5000);
 

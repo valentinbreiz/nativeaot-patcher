@@ -70,10 +70,10 @@ public class DhcpPacket : UdpPacket
     /// Initializes a new instance of the <see cref="DhcpPacket"/> class as a broadcast request,
     /// sent from 0.0.0.0 to 255.255.255.255 (the form used by discover and request packets).
     /// </summary>
-    /// <param name="mac_src">The MAC address of the sending network device.</param>
+    /// <param name="sourceMac">The MAC address of the sending network device.</param>
     /// <param name="dhcpDataSize">The size in bytes of the DHCP options that follow the fixed BOOTP header.</param>
-    public DhcpPacket(MACAddress mac_src, ushort dhcpDataSize)
-        : this(Address.Zero, Address.Broadcast, mac_src, dhcpDataSize)
+    public DhcpPacket(MACAddress sourceMac, ushort dhcpDataSize)
+        : this(Address.Zero, Address.Broadcast, sourceMac, dhcpDataSize)
     { }
 
     /// <summary>

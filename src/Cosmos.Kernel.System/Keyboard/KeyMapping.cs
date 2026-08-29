@@ -138,8 +138,8 @@ namespace Cosmos.Kernel.System.Keyboard
         }
 
         /// <inheritdoc cref="KeyMapping(byte, char, char, char, char, char, char, char, char, char, char, ConsoleKeyEx, ConsoleKeyEx)"/>
-        public KeyMapping(byte scanCode, char normal, char shift, char numLock, char capsLock, char shiftCapsLock, char shiftNumLock, char ctrlAlt, char ctrlAltShift, ConsoleKeyEx aKey)
-            : this(scanCode, normal, shift, numLock, capsLock, shiftCapsLock, shiftNumLock, ctrlAlt, ctrlAltShift, '\0', '\0', aKey)
+        public KeyMapping(byte scanCode, char normal, char shift, char numLock, char capsLock, char shiftCapsLock, char shiftNumLock, char ctrlAlt, char ctrlAltShift, ConsoleKeyEx key)
+            : this(scanCode, normal, shift, numLock, capsLock, shiftCapsLock, shiftNumLock, ctrlAlt, ctrlAltShift, '\0', '\0', key)
         {
         }
 

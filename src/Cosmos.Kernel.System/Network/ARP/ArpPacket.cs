@@ -57,7 +57,7 @@ public class ArpPacket : EthernetPacket
                     return;
                 }
 
-                ArpCache.Update(arpRequest.SenderIP, arpRequest.SenderMAC!);
+                ArpCache.Update(arpRequest.SenderIP, arpRequest.SenderMac!);
 
                 if (NetworkStack.AddressMap.ContainsKey(arpRequest.TargetIP!.Id))
                 {
@@ -71,7 +71,7 @@ public class ArpPacket : EthernetPacket
                     var reply = new ArpReplyEthernet(
                         nicMac,
                         arpRequest.TargetIP,
-                        arpRequest.SenderMAC!,
+                        arpRequest.SenderMac!,
                         arpRequest.SenderIP
                     );
 
@@ -88,7 +88,7 @@ public class ArpPacket : EthernetPacket
                 Serial.WriteString("[ARP] Reply received from ");
                 Serial.WriteString(arpReply.SenderIP!.ToString());
                 Serial.WriteString("\n");
-                ArpCache.Update(arpReply.SenderIP, arpReply.SenderMAC!);
+                ArpCache.Update(arpReply.SenderIP, arpReply.SenderMac!);
             }
         }
     }
@@ -120,7 +120,7 @@ public class ArpPacket : EthernetPacket
     }
 
     /// <summary>
-    /// Initializes a new ARP packet for sending. Allocates a frame of <paramref name="packet_size"/>
+    /// Initializes a new ARP packet for sending. Allocates a frame of <paramref name="packetSize"/>
     /// bytes, writes the Ethernet header with EtherType 0x0806 and the ARP header fields into it,
     /// then parses the header back into the properties. Nothing is recomputed after construction.
     /// </summary>
@@ -131,10 +131,10 @@ public class ArpPacket : EthernetPacket
     /// <param name="hwLen">Hardware address length in bytes (HLEN); 6 for Ethernet.</param>
     /// <param name="protoLen">Protocol address length in bytes (PLEN); 4 for IPv4.</param>
     /// <param name="operation">Operation code (OPER); 1 for a request, 2 for a reply.</param>
-    /// <param name="packet_size">Total frame size in bytes.</param>
+    /// <param name="packetSize">Total frame size in bytes.</param>
     protected ArpPacket(MACAddress dest, MACAddress src, ushort hwType, ushort protoType,
-        byte hwLen, byte protoLen, ushort operation, int packet_size)
-        : base(dest, src, 0x0806, packet_size)
+        byte hwLen, byte protoLen, ushort operation, int packetSize)
+        : base(dest, src, 0x0806, packetSize)
     {
         RawData[14] = (byte)(hwType >> 8);
         RawData[15] = (byte)(hwType >> 0);

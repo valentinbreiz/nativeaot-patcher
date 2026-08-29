@@ -48,11 +48,6 @@ public static class NetworkManager
         s_primaryIndex >= 0 && s_devices != null ? s_devices[s_primaryIndex] : null;
 
     /// <summary>
-    /// Whether a network device has been enumerated and registered.
-    /// </summary>
-    public static bool HasDevice => PrimaryDevice != null;
-
-    /// <summary>
     /// The adapter the ring uses when no other is named: the target of
     /// <see cref="Send"/>, of the primary shortcuts on this class, and of
     /// <see cref="Config.IPConfig.Enable(IPv4.Address, IPv4.Address, IPv4.Address)"/>.

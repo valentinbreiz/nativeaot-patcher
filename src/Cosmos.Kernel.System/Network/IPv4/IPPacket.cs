@@ -42,7 +42,7 @@ public class IPPacket : EthernetPacket
         Serial.WriteNumber((ulong)ipPacket.Protocol);
         Serial.WriteString("\n");
 
-        ArpCache.Update(ipPacket.SourceIP, ipPacket.SourceMAC);
+        ArpCache.Update(ipPacket.SourceIP, ipPacket.SourceMac);
 
         // Check if packet is for us
         bool isForUs = NetworkStack.AddressMap.ContainsKey(ipPacket.DestinationIP.Id);
@@ -188,7 +188,7 @@ public class IPPacket : EthernetPacket
             RawData[26 + b] = source.Parts[b];
             RawData[30 + b] = dest.Parts[b];
         }
-        IPCRC = CalcIPCRC(20);
+        IPCRC = CalcIPCrc(20);
         RawData[24] = (byte)((IPCRC >> 8) & 0xFF);
         RawData[25] = (byte)((IPCRC >> 0) & 0xFF);
 
@@ -202,7 +202,7 @@ public class IPPacket : EthernetPacket
     /// </summary>
     /// <param name="offset">The offset, in bytes.</param>
     /// <param name="length">The length, in bytes.</param>
-    protected ushort CalcOcCRC(ushort offset, ushort length) => CalcOcCRC(RawData, offset, length);
+    protected ushort CalcOcCrc(ushort offset, ushort length) => CalcOcCrc(RawData, offset, length);
 
     /// <summary>
     /// Computes the Internet ones'-complement checksum over a range of the
@@ -211,7 +211,7 @@ public class IPPacket : EthernetPacket
     /// <param name="buffer">The buffer to use.</param>
     /// <param name="offset">The offset, in bytes.</param>
     /// <param name="length">The length, in bytes.</param>
-    protected static ushort CalcOcCRC(byte[] buffer, ushort offset, int length)
+    protected static ushort CalcOcCrc(byte[] buffer, ushort offset, int length)
     {
         return (ushort)~SumShortValues(buffer, offset, length);
     }
@@ -247,9 +247,9 @@ public class IPPacket : EthernetPacket
     /// <paramref name="headerLength"/> bytes of the IP header.
     /// </summary>
     /// <param name="headerLength">The length of the header, in bytes.</param>
-    protected ushort CalcIPCRC(ushort headerLength)
+    protected ushort CalcIPCrc(ushort headerLength)
     {
-        return CalcOcCRC(14, headerLength);
+        return CalcOcCrc(14, headerLength);
     }
 
     /// <summary>
