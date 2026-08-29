@@ -47,7 +47,9 @@ public static class StorageManager
     public static bool IsInitialized => s_devices != null;
 
     /// <summary>
-    /// Gets the primary block device (first one registered).
+    /// Gets the primary block device (first one registered), or
+    /// <see langword="null"/> when storage is compiled out or no device
+    /// registered at boot.
     /// </summary>
     public static IBlockDevice? PrimaryDevice => s_primaryDevice;
 

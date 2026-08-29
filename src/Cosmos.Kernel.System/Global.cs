@@ -14,7 +14,10 @@ public static class Global
     private static Kernel? s_kernel;
 
     /// <summary>
-    /// Gets the current kernel instance.
+    /// Gets the current kernel instance, or <see langword="null"/> until
+    /// <see cref="RegisterKernel"/> has been called. The generated entry point
+    /// registers it before <see cref="StartKernel"/> runs, so kernel code
+    /// reached from <see cref="Kernel.Run"/> always sees one.
     /// </summary>
     public static Kernel? CurrentKernel => s_kernel;
 

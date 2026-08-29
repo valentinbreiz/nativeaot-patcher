@@ -34,7 +34,9 @@ public sealed class PerCpuState : SchedulerExtensible
     public Thread? CurrentThread { get; internal set; }
 
     /// <summary>
-    /// This CPU's idle thread, scheduled when no other thread is runnable.
+    /// This CPU's idle thread, scheduled when no other thread is runnable, or
+    /// <see langword="null"/> before the scheduler has set one up. Once set it
+    /// stays set: the idle thread is never unregistered.
     /// </summary>
     public Thread? IdleThread { get; internal set; }
 

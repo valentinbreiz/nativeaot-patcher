@@ -76,7 +76,8 @@ public class DnsQuery
 
     /// <summary>
     /// The queried domain name, read label by label from the question section without following
-    /// compression pointers.
+    /// compression pointers, or <see langword="null"/> on a query this packet built rather than
+    /// parsed: only the parse path fills it in.
     /// </summary>
     public string? Name { get; internal set; }
 
@@ -141,7 +142,8 @@ public class DnsAnswer
 
     /// <summary>
     /// The raw RDATA bytes of the record: the four address bytes for an A record, but the encoded
-    /// (possibly compressed) name bytes for a CNAME record.
+    /// (possibly compressed) name bytes for a CNAME record. <see langword="null"/> on an answer
+    /// this packet built rather than parsed: only the parse path fills it in.
     /// </summary>
     public byte[]? Address { get; internal set; }
 

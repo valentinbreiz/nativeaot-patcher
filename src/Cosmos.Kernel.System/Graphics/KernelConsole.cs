@@ -15,7 +15,10 @@ public class KernelConsole
 {
     // The default (global) instance, created by Initialize()
     /// <summary>
-    /// Gets the default (global) console instance.
+    /// Gets the default (global) console instance, or <see langword="null"/>
+    /// until <see cref="Initialize"/> has returned true. Test
+    /// <see cref="IsInitialized"/> rather than this, which tells the compiler
+    /// the same thing.
     /// </summary>
     public static KernelConsole? Default { get; private set; }
 
