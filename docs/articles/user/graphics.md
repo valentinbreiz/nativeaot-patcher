@@ -264,12 +264,36 @@ canvas.DrawPoint(Color.Red, 69, 69);
 Color color = canvas.GetPointColor(69, 69);   // Color.Red
 ```
 
+## 3D rendering
+
+3D is reachable on one display device only: the VMware SVGA II adapter, and only when it negotiates SVGA3D during FIFO initialization. Every other path, the UEFI framebuffer that `make run` and `make test` use on both architectures included, hands back a plain `Canvas`. QEMU's `vmware-svga` exposes no 3D capability either, so in practice this means real VMware Workstation or ESXi.
+
+That is why there is no `GetFullScreen3D`. A kernel acquires the canvas the usual way and tests what it got:
+
+```csharp
+Canvas canvas = Canvas.GetFullScreen();
+
+if (canvas is Canvas3D canvas3D)
+{
+    canvas3D.Camera = new Camera3D(new Vector3(0f, 0f, 5f), Vector3.Zero);
+
+    canvas3D.ClearScene(Color.Black);
+    canvas3D.DrawCube(Vector3.Zero, new Vector3(1f, 1f, 1f), Color.OrangeRed);
+    canvas3D.DrawGrid(10, 1f, Color.DimGray);
+    canvas3D.Display();
+}
+```
+
+`Canvas3D` is a `Canvas`, so every 2D call still works on it and `Display()` presents the frame either way. Meshes come from `CreateMesh` and textures from `CreateTexture(Image)`; `DrawMesh(mesh, world)` places one with a transform. `IsAccelerated` reports whether the drawing is going through the device rather than the CPU.
+
+A kernel cannot implement `Canvas3D` itself. Its constructor is `private protected` and both implementations are internal, so the abstract members on it are call targets, not an extension contract.
+
 ## Current limitations
 
 - Only 32-bit color depth is supported end to end; BMP loading additionally accepts 24-bit files.
 - The video mode cannot be changed at runtime: the framebuffer resolution is whatever the bootloader negotiated at boot.
 - Supported image formats are BMP (uncompressed, 24 or 32 bpp) and PNG; there is no JPEG support.
-- No hardware acceleration: every primitive is drawn pixel by pixel by the CPU.
+- No hardware acceleration on the framebuffer path: every 2D primitive is drawn pixel by pixel by the CPU.
 - `Canvas.DisableFullScreen()` exists but there is no VGA text mode to fall back to on UEFI machines.
 
 ## How it works
