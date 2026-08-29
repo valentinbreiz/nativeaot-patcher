@@ -42,6 +42,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/32518f7e8c2ba2c2d56edcbfa986c3d26b7f4765026ea92642a6b10efba5/Index.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/332e2a21449ad65f2368d672a116246eadf3842dfcb45f35a713d912c51731c5/String.Comparison.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/53b578ffaf4d15d31df9df84211006ddaf861a469ed9ffa7e33de13df8764/Buffer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/5c21b9149ef32e1f68396d6e6fc7311324c9829ed40328c33f6d5f859a757/ThrowHelper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8d231c208f71c9dca17771aabf431d173a8e4815bcf7143eaa35e7c91733de/Range.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/918e155e8b6314bf1ab45285187d2e7bd8553bc3fa2ac27c405a8cd0d6dc4aed/Ordinal.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/b29ea313179d1a40fddc56a26f34dd223cf0cc5fa5caa2d547c3ef6e43e94ce/Assert.cs" root0="FORCE_HIGHLIGHTING" />
@@ -145,42 +146,43 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "58c56b00-f81e-48fd-a74f-c8e84271fcf4.executor": "Debug",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/address__ipv6",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "editor.preferences.appearance",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;58c56b00-f81e-48fd-a74f-c8e84271fcf4.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/address__ipv6&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.appearance&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "GitStage.ChangesTree.GroupingKeys": [
-      "directory",
-      "module",
-      "repository"
+  &quot;keyToStringList&quot;: {
+    &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;module&quot;,
+      &quot;repository&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
     </key>
   </component>
+  <component name="RunManager" selected="edb67497-2456-4adf-84d6-770e6fdf1172" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="" />
@@ -364,55 +366,29 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs</url>
-          <line>408</line>
-          <properties documentPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs" containingFunctionPresentation="Method 'NormalizeBuffer'">
-            <startOffsets>
-              <option value="13157" />
-            </startOffsets>
-            <endOffsets>
-              <option value="13198" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/tests/Cosmos.Kernel.Tests.System/Network/IPv6/Address6Test.cs</url>
-          <line>89</line>
-          <properties documentPath="$PROJECT_DIR$/src/tests/Cosmos.Kernel.Tests.System/Network/IPv6/Address6Test.cs" containingFunctionPresentation="Method 'GivenSampleSource_ReturnsCorrectAddress'">
-            <startOffsets>
-              <option value="3213" />
-            </startOffsets>
-            <endOffsets>
-              <option value="3289" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs</url>
-          <line>202</line>
+          <line>213</line>
           <properties documentPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs" containingFunctionPresentation="Method 'IsStartMask'">
             <startOffsets>
-              <option value="6347" />
+              <option value="6766" />
             </startOffsets>
             <endOffsets>
-              <option value="6384" />
+              <option value="6803" />
             </endOffsets>
           </properties>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs</url>
-          <line>118</line>
-          <properties documentPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs" containingFunctionPresentation="Property 'IPv6AddressType'">
+          <line>508</line>
+          <properties documentPath="$PROJECT_DIR$/src/Cosmos.Kernel.System/Network/IPv6/Address6.cs" containingFunctionPresentation="Method 'ToString'">
             <startOffsets>
-              <option value="3423" />
+              <option value="15981" />
             </startOffsets>
             <endOffsets>
-              <option value="3440" />
+              <option value="15996" />
             </endOffsets>
           </properties>
-          <option name="timeStamp" value="18" />
+          <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

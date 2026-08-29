@@ -12,13 +12,13 @@ using Cosmos.Kernel.System.Network.IPv6;
 
 namespace Cosmos.Kernel.System.Network;
 
-public enum AddressType
+public enum AddressFamily
 {
     IPv4,
     IPv6
 }
 
-public enum AddressParsingStyle
+public enum AddressNumericStyle
 {
     Dec,
     Hex
@@ -33,7 +33,7 @@ public abstract class Address : IComparable<Address>
     public bool IsIpv6 => !IsIpv4;
     public abstract bool IsZero { get; }
     public abstract MaskedAddress Parts { get; }
-    public AddressType AddressType => IsIpv6 ? AddressType.IPv6 : AddressType.IPv4;
+    public AddressFamily AddressFamily => IsIpv6 ? AddressFamily.IPv6 : AddressFamily.IPv4;
     public abstract bool IsBroadcastAddress { get; }
 
     /// <summary>
@@ -72,7 +72,7 @@ public abstract class Address : IComparable<Address>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public abstract ImmutableArray<byte> ToBytes();
+    public abstract ReadOnlySpan<byte> ToBytes();
 
     public int CompareTo(Address? other)
     {
@@ -120,12 +120,12 @@ public readonly ref struct MaskedAddress: IEquatable<MaskedAddress>
     public uint Segment2 { get; }
     public uint Segment3 { get; }
     public uint Segment4 { get; }
-    public AddressType AddressType { get; }
+    public AddressFamily AddressFamily { get; }
 
     public MaskedAddress(uint segment1)
     {
         Segment1 = segment1;
-        AddressType = AddressType.IPv4;
+        AddressFamily = AddressFamily.IPv4;
     }
     public MaskedAddress(uint segment1, uint  segment2, uint segment3, uint segment4)
     {
@@ -133,12 +133,12 @@ public readonly ref struct MaskedAddress: IEquatable<MaskedAddress>
         Segment2 = segment2;
         Segment3 = segment3;
         Segment4 = segment4;
-        AddressType = AddressType.IPv6;
+        AddressFamily = AddressFamily.IPv6;
     }
 
     public bool Equals(MaskedAddress other) => Segment1 == other.Segment1 && Segment2 == other.Segment2 &&
                                                Segment3 == other.Segment3 && Segment4 == other.Segment4 &&
-                                               AddressType == other.AddressType;
+                                               AddressFamily == other.AddressFamily;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(MaskedAddress a, MaskedAddress b)
@@ -157,7 +157,7 @@ public readonly ref struct MaskedAddress: IEquatable<MaskedAddress>
             {
                 throw new ArgumentOutOfRangeException($"{nameof(index)} can not be lower than zero");
             }
-            int maxIndex = AddressType == AddressType.IPv4 ? 4 : 16;
+            int maxIndex = AddressFamily == AddressFamily.IPv4 ? 4 : 16;
             ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, maxIndex, nameof(index));
             uint segment = (index / 4) switch
             {

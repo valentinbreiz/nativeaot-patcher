@@ -1,7 +1,10 @@
 // This code is licensed under MIT license (see LICENSE for details)
 
 using System.Collections.Immutable;
+using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv6;
+using Cosmos.Kernel.Tests.System.Network.IPv4;
 using NUnit.Framework;
 
 namespace Cosmos.Kernel.Tests.System.Network.IPv6;
@@ -52,15 +55,15 @@ public class Address6Test
         {
             yield return CreateTestCaseData("::", [], []);
             yield return CreateTestCaseData("0010::", [new Range(0, 4)], []);
-            yield return CreateTestCaseData("0010::0020", [new (0, 4)], [new (6, 10)]);
-            yield return CreateTestCaseData("0010:0020::0030", [new (0, 4), new (5, 9)], [new (11, 15)]);
+            yield return CreateTestCaseData("0010::0020", [new(0, 4)], [new(6, 10)]);
+            yield return CreateTestCaseData("0010:0020::0030", [new(0, 4), new(5, 9)], [new(11, 15)]);
         }
 
         private static TestValidCaseData CreateTestCaseData(string source, ImmutableArray<Range> expectedLeft,
             ImmutableArray<Range> expectedRight)
         {
             var fragments = source.AsSpan().Split(':');
-            return new (source, [.. fragments], expectedLeft, expectedRight);
+            return new(source, [.. fragments], expectedLeft, expectedRight);
         }
 
         [TestCase(":::")]
@@ -106,7 +109,7 @@ public class Address6Test
             Assert.That(actual, Is.Null);
         }
 
-        [TestCaseSource(nameof(TestValidCases))]
+        [TestCaseSource(nameof(TestCases))]
         public void GivenSampleSource_ReturnsCorrectAddress(TestValidCaseData dt)
         {
             var actual = Address6.Parse(dt.Addr);
@@ -118,13 +121,13 @@ public class Address6Test
             string Addr,
             ImmutableArray<uint> ExpectedSegments);
 
-        private static IEnumerable<TestValidCaseData> TestValidCases()
+        private static IEnumerable<TestValidCaseData> TestCases()
         {
-            yield return new("::", [0,0,0,0]);
+            yield return new("::", [0, 0, 0, 0]);
             yield return new("0010::", [0x0010_0000, 0, 0, 0]);
             yield return new("0010::0020", [0x0010_0000, 0, 0, 0x0020]);
             yield return new("0010:0020::0030", [0x0010_0020, 0, 0, 0x0000_0030]);
-            yield return new ("::ffff:c000:0280", [0x0, 0x0, 0x0000FFFF, 0xC0000280]); // 192.0.2.128
+            yield return new("::ffff:c000:0280", [0x0, 0x0, 0x0000FFFF, 0xC0000280]); // 192.0.2.128
         }
     }
 
@@ -146,6 +149,80 @@ public class Address6Test
             var target = Address6.Parse(address);
 
             return target?.AddressType;
+        }
+    }
+
+    public class ToStringDefault : Address6Test
+    {
+        [TestCase("ff02:0:0:0:0:1:ff00:0", ExpectedResult = "ff02::1:ff00:0")]
+        public string? GivenSampleAddress_ReturnsStringRepresentation(string address)
+        {
+            var target = Address6.Parse(address);
+
+            return target?.ToString();
+        }
+    }
+
+    public new class ToString : Address4Test
+    {
+        [TestCaseSource(nameof(TestCases))]
+        public void GivenSampleAddress_ReturnsStringRepresentation(TestCaseData data)
+        {
+            var address = new Address6(data.Addr.AsSpan());
+
+            string actual = address.ToString(data.LeadingZeros, data.GroupZeros);
+
+            Assert.That(actual, Is.EqualTo(data.ExpectedResult));
+        }
+
+        public readonly record struct TestCaseData(
+            ImmutableArray<ushort> Addr,
+            bool LeadingZeros,
+            bool GroupZeros,
+            string? ExpectedResult);
+
+        private static IEnumerable<TestCaseData> TestCases()
+        {
+            yield return new TestCaseData([0, 0, 0, 0, 0, 0, 0, 0], false, false,
+                "0:0:0:0:0:0:0:0");
+            yield return new TestCaseData([0, 0, 0, 0, 0, 0, 0, 0], true, false,
+                "0000:0000:0000:0000:0000:0000:0000:0000");
+            yield return new TestCaseData([0, 0, 0, 0, 0, 0, 0, 0], false, true,
+                "::");
+            yield return new TestCaseData([0, 0, 0, 0, 0, 0, 0, 0], true, false,
+                "0000:0000:0000:0000:0000:0000:0000:0000");
+            yield return new TestCaseData([0, 0, 0, 0, 0, 0, 0, 0], false, true,
+                "::");
+            yield return new TestCaseData([0, 0, 0, 0, 0x8010, 0, 0, 0], false, false,
+                "0:0:0:0:8010:0:0:0");
+            yield return new TestCaseData([0, 0, 0, 0, 0x8010, 0, 0, 0], false, true,
+                "::8010:0:0:0");
+            yield return new TestCaseData([0, 0xff, 0, 0, 0x8010, 0, 0, 0], false, true,
+                "0:ff:0:0:8010::");
+        }
+    }
+
+    public class FindLargestZeroGroup : Address6Test
+    {
+        [TestCaseSource(nameof(TestCases))]
+        public void GivenSampleAddress_FindsLargestGroup(TestCaseData data)
+        {
+            var actual = Address6.FindLargestZeroGroup(data.Addr.AsSpan());
+
+            Assert.That(actual, Is.EqualTo(data.ExpectedResult));
+        }
+
+        public readonly record struct TestCaseData(
+            ImmutableArray<ushort> Addr,
+            (int Start, int Length)? ExpectedResult);
+
+        private static IEnumerable<TestCaseData> TestCases()
+        {
+            yield return new([0, 0, 0, 0, 0, 0, 0, 0], (0, 8));
+            yield return new([0, 0, 0, 8, 0, 0, 0, 0], (4, 4));
+            yield return new([0, 0, 0, 8, 0, 2, 0, 0], (0, 3));
+            yield return new([0, 1, 0, 8, 0, 2, 0, 0], (6, 2));
+            yield return new([0x0, 0x0, 0x0, 0xFFFF, 0xC000, 0x0280], (0, 3)); // 192.0.2.128
         }
     }
 }

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text;
 using Cosmos.Kernel.System.Network.IPv4;
 
 namespace Cosmos.Kernel.System.Network.IPv6;
@@ -79,14 +80,28 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
         Segment4 = (uint)(buffer[6] << 16 | buffer[7]);
     }
 
-    public override ImmutableArray<byte> ToBytes()
+    public override ReadOnlySpan<byte> ToBytes()
     {
         Span<byte> data = new byte[16];
         SegmentToSpan(Segment1, data);
         SegmentToSpan(Segment2, data[4..7]);
         SegmentToSpan(Segment3, data[8..11]);
         SegmentToSpan(Segment4, data[12..15]);
-        return [.. data];
+        return data;
+    }
+
+    public ReadOnlySpan<ushort> ToUShorts()
+    {
+        Span<ushort> data = new ushort[8];
+        data[0] = (ushort)(Segment1 >> 16);
+        data[1] = (ushort)(Segment1 & 0xFFFF);
+        data[2] = (ushort)(Segment2 >> 16);
+        data[3] = (ushort)(Segment2 & 0xFFFF);
+        data[4] = (ushort)(Segment3 >> 16);
+        data[5] = (ushort)(Segment3 & 0xFFFF);
+        data[6] = (ushort)(Segment4 >> 16);
+        data[7] = (ushort)(Segment4 & 0xFFFF);
+        return data;
     }
 
     internal static int CountSeparators(ReadOnlySpan<char> addr)
@@ -482,5 +497,109 @@ public class Address6 : Address, IComparable<Address6>, IEquatable<Address6>
                && Segment2 == other.Segment2
                && Segment3 == other.Segment3
                && Segment4 == other.Segment4;
+    }
+
+    public override string ToString() => ToString(leadingZeros: false);
+
+    public string ToString(bool leadingZeros = false, bool groupZeros = true)
+    {
+        string format = leadingZeros ? "x4" : "x";
+        var data = ToUShorts();
+        var sb = new StringBuilder();
+        if (groupZeros)
+        {
+            var largestZeroGroup = FindLargestZeroGroup(data);
+            if (largestZeroGroup is not null)
+            {
+                var (start, length) = largestZeroGroup.Value;
+                if (start == 0)
+                {
+                    sb.Append(':');
+                }
+                for (int i = 0; i < start; i++)
+                {
+                    sb.Append(data[i].ToString(format, CultureInfo.InvariantCulture));
+                    sb.Append(':');
+                }
+
+                if (start + length == data.Length)
+                {
+                    sb.Append(':');
+                }
+                else
+                {
+                    for (int i = start + length; i < data.Length; i++)
+                    {
+                        sb.Append(':');
+                        sb.Append(data[i].ToString(format, CultureInfo.InvariantCulture));
+                    }
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        sb.Append(data[0].ToString(format, CultureInfo.InvariantCulture));
+        for (int i = 1; i < data.Length; i++)
+        {
+            sb.Append(':');
+            sb.Append(data[i].ToString(format, CultureInfo.InvariantCulture));
+        }
+
+        return sb.ToString();
+    }
+
+    internal static (int Start, int Length)? FindLargestZeroGroup(ReadOnlySpan<ushort> data)
+    {
+        int? largestStart = null;
+        int? largestLength = null;
+        int? start = null;
+        int length = 0;
+        for (int i = 0; i < data.Length; i++)
+        {
+            if (data[i] == 0)
+            {
+                if (start is null)
+                {
+                    start = i;
+                    length = 1;
+                }
+                else
+                {
+                    length++;
+                }
+            }
+            else
+            {
+                if (length == 1)
+                {
+                    start = null;
+                }
+                else if (length > 1)
+                {
+                    if (largestLength is null || length > largestLength)
+                    {
+                        largestStart = start!.Value;
+                        largestLength = length;
+                    }
+
+                    start = null;
+                    length = 0;
+                }
+            }
+        }
+
+        if (largestLength is null || length > largestLength)
+        {
+            largestStart = start!.Value;
+            largestLength = length;
+        }
+
+        if (largestStart is not null && largestLength > 1)
+        {
+            return (largestStart.Value, largestLength.Value);
+        }
+
+        return null;
     }
 }

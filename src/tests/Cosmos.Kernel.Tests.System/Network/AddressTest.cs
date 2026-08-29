@@ -30,9 +30,9 @@ public class AddressTest
         {
             Address address = Address4.Zero;
 
-            var actual = address.AddressType;
+            var actual = address.AddressFamily;
 
-            Assert.That(actual, Is.EqualTo(Kernel.System.Network.AddressType.IPv4));
+            Assert.That(actual, Is.EqualTo(Kernel.System.Network.AddressFamily.IPv4));
         }
     }
 

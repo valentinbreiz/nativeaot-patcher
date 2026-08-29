@@ -32,14 +32,14 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         Segment1 = address;
     }
 
-    public static Address4? Parse(ReadOnlySpan<char> addr, AddressParsingStyle style)
+    public static Address4? Parse(ReadOnlySpan<char> addr, AddressNumericStyle style)
     {
         var fragments = addr.Split('.');
         Span<byte> addressBytes = stackalloc byte[4];
 
         int index = 0;
         bool isGood = false;
-        var numberStyles = style == AddressParsingStyle.Dec ? NumberStyles.Number : NumberStyles.HexNumber;
+        var numberStyles = style == AddressNumericStyle.Dec ? NumberStyles.Number : NumberStyles.HexNumber;
         foreach (var fragment in fragments)
         {
             // too many fragments?
@@ -119,11 +119,11 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
     public override MaskedAddress Parts => new(Segment1);
     public override bool IsZero => Equals(Zero);
 
-    public override ImmutableArray<byte> ToBytes()
+    public override ReadOnlySpan<byte> ToBytes()
     {
-        byte[] data = new byte[4];
-        SegmentToSpan(Segment1, data.AsSpan());
-        return [..data];
+        Span<byte> data = new byte[4];
+        SegmentToSpan(Segment1, data);
+        return data;
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
 
     public override string ToString()
     {
-        return $"{Segment1 >> 24}.{(Segment1 >> 16) & 0xFF}.{(Segment1 >> 8) & 0xFF}.{Segment1 & 0xFF}";
+        return ToString(AddressNumericStyle.Hex);
     }
 
     public int CompareTo(Address4? other)
@@ -192,5 +192,18 @@ public sealed class Address4: Address, IComparable<Address4>, IEquatable<Address
         }
 
         return Segment1 == other.Segment1;
+    }
+
+    public string ToString(AddressNumericStyle numericStyle = AddressNumericStyle.Dec, bool leadingZeros = false)
+    {
+        string format = numericStyle switch
+        {
+            AddressNumericStyle.Hex => leadingZeros ? "x2" : "x",
+            AddressNumericStyle.Dec => leadingZeros ? "000" : "",
+            _ => throw new ArgumentOutOfRangeException(nameof(numericStyle), numericStyle, null)
+        };
+        var data = ToBytes();
+        return
+            $"{data[0].ToString(format, CultureInfo.InvariantCulture)}.{data[1].ToString(format, CultureInfo.InvariantCulture)}.{data[2].ToString(format, CultureInfo.InvariantCulture)}.{data[3].ToString(format, CultureInfo.InvariantCulture)}";
     }
 }

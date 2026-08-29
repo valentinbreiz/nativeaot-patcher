@@ -7,6 +7,7 @@ using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
 using Cosmos.Kernel.System.Network.IPv4.TCP;
+using AddressFamily = System.Net.Sockets.AddressFamily;
 using KernelEndPoint = Cosmos.Kernel.System.Network.IPv4.EndPoint;
 using KernelUdpClient = Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient;
 
@@ -245,8 +246,8 @@ public static class SocketPlug
             ;
         }
 
-        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToBytes().AsSpan()), sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes().AsSpan()), sm.LocalEndPoint.Port);
+        _remoteEndPoints[id] = new IPEndPoint(new IPAddress(sm.RemoteEndPoint.Address.ToBytes()), sm.RemoteEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes()), sm.LocalEndPoint.Port);
 
         return aThis;
     }
@@ -321,7 +322,7 @@ public static class SocketPlug
         sm.LocalEndPoint.Port = Tcp.GetDynamicPort();
 
         _remoteEndPoints[id] = new IPEndPoint(address, sm.RemoteEndPoint.Port);
-        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes().AsSpan()), sm.LocalEndPoint.Port);
+        _localEndPoints[id] = new IPEndPoint(new IPAddress(sm.LocalEndPoint.Address.ToBytes()), sm.LocalEndPoint.Port);
 
         // Simple sequence number generation
         uint sequenceNumber = (uint)(1000 + id);
@@ -724,7 +725,7 @@ public static class SocketPlug
         }
 
         // Update the remote endpoint (use byte array to avoid endianness issues)
-        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToBytes().AsSpan()), ep.Port);
+        remoteEP = new IPEndPoint(new IPAddress(ep.Address.ToBytes()), ep.Port);
 
         int bytesToCopy = Math.Min(data.Length, size);
         Buffer.BlockCopy(data, 0, buffer, offset, bytesToCopy);
