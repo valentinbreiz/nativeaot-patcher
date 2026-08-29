@@ -561,6 +561,11 @@ public unsafe class Canvas
         var px = x1;
         var py = y1;
 
+        // The loops below step before they draw, so they end on (x2, y2) and
+        // would skip the start. Paint it here to keep both endpoints, matching
+        // the axis-aligned paths.
+        DrawPoint(color, px, py);
+
         if (dxabs >= dyabs) // the line is more horizontal than vertical
         {
             for (i = 0; i < dxabs; i++)
@@ -599,6 +604,9 @@ public unsafe class Canvas
     /// <param name="y1">The starting point Y coordinate.</param>
     /// <param name="x2">The end point X coordinate.</param>
     /// <param name="y2">The end point Y coordinate.</param>
+    /// <remarks>
+    /// Both endpoints are painted, so a line from x to x is one pixel.
+    /// </remarks>
     public virtual void DrawLine(Color color, int x1, int y1, int x2, int y2)
     {
         // Trim the given line to fit inside the canvas boundaries
@@ -609,16 +617,17 @@ public unsafe class Canvas
 
         if (dy == 0) // The line is horizontal
         {
+            // Both endpoints are painted, so the run is the distance plus one.
             // DrawHorizontalLine only walks in the positive direction; start
             // from the leftmost point so right-to-left lines are not dropped.
-            DrawHorizontalLine(color, Math.Abs(dx), Math.Min(x1, x2), y1);
+            DrawHorizontalLine(color, Math.Abs(dx) + 1, Math.Min(x1, x2), y1);
             return;
         }
 
         if (dx == 0) // The line is vertical
         {
             // Same as above: start from the topmost point.
-            DrawVerticalLine(color, Math.Abs(dy), x1, Math.Min(y1, y2));
+            DrawVerticalLine(color, Math.Abs(dy) + 1, x1, Math.Min(y1, y2));
             return;
         }
 
@@ -826,36 +835,40 @@ public unsafe class Canvas
     }
 
     /// <summary>
-    /// Draws a rectangle.
+    /// Draws the outline of a rectangle, covering the same area
+    /// <see cref="DrawFilledRectangle"/> fills for the same arguments.
     /// </summary>
     /// <param name="color">The color to draw with.</param>
-    /// <param name="x">The X coordinate.</param>
-    /// <param name="y">The Y coordinate.</param>
-    /// <param name="width">The width of the rectangle.</param>
-    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="x">The X coordinate of the top-left corner.</param>
+    /// <param name="y">The Y coordinate of the top-left corner.</param>
+    /// <param name="width">The width of the rectangle in pixels.</param>
+    /// <param name="height">The height of the rectangle in pixels.</param>
     public virtual void DrawRectangle(Color color, int x, int y, int width, int height)
     {
-        // Draw top edge from (x, y) to (x + width, y)
-        DrawLine(color, x, y, x + width, y);
+        if (width <= 0 || height <= 0)
+        {
+            return;
+        }
 
-        // Draw left edge from (x, y) to (x, y + height)
-        DrawLine(color, x, y, x, y + height);
+        // The far edges sit on the last covered pixel, not one past it, so the
+        // outline covers the same width x height area DrawFilledRectangle fills.
+        int right = x + width - 1;
+        int bottom = y + height - 1;
 
-        // Draw bottom edge from (x, y + height) to (x + width, y + height)
-        DrawLine(color, x, y + height, x + width, y + height);
-
-        // Draw right edge from (x + width, y) to (x + width, y + height)
-        DrawLine(color, x + width, y, x + width, y + height);
+        DrawLine(color, x, y, right, y);
+        DrawLine(color, x, y, x, bottom);
+        DrawLine(color, x, bottom, right, bottom);
+        DrawLine(color, right, y, right, bottom);
     }
 
     /// <summary>
     /// Draws a filled rectangle.
     /// </summary>
     /// <param name="color">The color to draw the rectangle with.</param>
-    /// <param name="xStart">The starting point X coordinate.</param>
-    /// <param name="yStart">The starting point Y coordinate.</param>
-    /// <param name="width">The width of the rectangle.</param>
-    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="xStart">The X coordinate of the top-left corner.</param>
+    /// <param name="yStart">The Y coordinate of the top-left corner.</param>
+    /// <param name="width">The width of the rectangle in pixels.</param>
+    /// <param name="height">The height of the rectangle in pixels.</param>
     public virtual void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height, bool preventOffBoundPixels = true)
     {
         if (height == -1)

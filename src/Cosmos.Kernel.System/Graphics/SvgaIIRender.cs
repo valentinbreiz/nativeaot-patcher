@@ -141,29 +141,37 @@ internal static class SvgaIIRender
     /// </summary>
     public static void DrawRectangle(Canvas canvas, Color color, int x, int y, int width, int height)
     {
-        if (color.A < 255)
+        if (width <= 0 || height <= 0)
         {
-            canvas.DrawLine(color, x, y, x + width, y);
-            canvas.DrawLine(color, x, y, x, y + height);
-            canvas.DrawLine(color, x, y + height, x + width, y + height);
-            canvas.DrawLine(color, x + width, y, x + width, y + height);
             return;
         }
 
-        int rawColor = color.ToArgb();
-        int bottomY = y + height;
-        int rightX = x + width;
+        // The far edges sit on the last covered pixel, so the outline covers
+        // the same width x height area DrawFilledRectangle fills.
+        int rightX = x + width - 1;
+        int bottomY = y + height - 1;
 
-        for (int posX = x; posX < rightX; posX++)
+        if (color.A < 255)
         {
-            canvas.DrawPoint((uint)rawColor, posX, y);
-            canvas.DrawPoint((uint)rawColor, posX, bottomY);
+            canvas.DrawLine(color, x, y, rightX, y);
+            canvas.DrawLine(color, x, y, x, bottomY);
+            canvas.DrawLine(color, x, bottomY, rightX, bottomY);
+            canvas.DrawLine(color, rightX, y, rightX, bottomY);
+            return;
         }
 
-        for (int posY = y; posY < bottomY; posY++)
+        uint rawColor = (uint)color.ToArgb();
+
+        for (int posX = x; posX <= rightX; posX++)
         {
-            canvas.DrawPoint((uint)rawColor, x, posY);
-            canvas.DrawPoint((uint)rawColor, rightX, posY);
+            canvas.DrawPoint(rawColor, posX, y);
+            canvas.DrawPoint(rawColor, posX, bottomY);
+        }
+
+        for (int posY = y; posY <= bottomY; posY++)
+        {
+            canvas.DrawPoint(rawColor, x, posY);
+            canvas.DrawPoint(rawColor, rightX, posY);
         }
     }
 

@@ -365,6 +365,27 @@ public class Kernel : Sys.Kernel
         vCanvas.DrawFilledRectangle(Color.Yellow, 50, 20, 40, 30);
         Assert.Equal(vCanvas.GetPointColor(70, 35).ToArgb(), Color.Yellow.ToArgb(), "Virtual canvas DrawFilledRectangle works");
 
+        // A width x height shape covers exactly width x height pixels. The far
+        // column and row used to be left unpainted, because the axis-aligned
+        // DrawLine dropped its end point, and a 1-pixel shape drew nothing.
+        Assert.Equal(vCanvas.GetPointColor(89, 49).ToArgb(), Color.Yellow.ToArgb(), "DrawFilledRectangle covers its far corner");
+        Assert.Equal(vCanvas.GetPointColor(90, 49).ToArgb(), Color.DarkBlue.ToArgb(), "DrawFilledRectangle stops at its far corner");
+
+        vCanvas.DrawFilledRectangle(Color.Cyan, 5, 5, 1, 1);
+        Assert.Equal(vCanvas.GetPointColor(5, 5).ToArgb(), Color.Cyan.ToArgb(), "A one-pixel DrawFilledRectangle paints one pixel");
+
+        // The outline covers the same area the fill does, so its far edges land
+        // on the last covered pixel rather than one past it.
+        vCanvas.DrawRectangle(Color.Orange, 120, 20, 40, 30);
+        Assert.Equal(vCanvas.GetPointColor(159, 20).ToArgb(), Color.Orange.ToArgb(), "DrawRectangle paints its top-right corner");
+        Assert.Equal(vCanvas.GetPointColor(159, 49).ToArgb(), Color.Orange.ToArgb(), "DrawRectangle paints its bottom-right corner");
+        Assert.Equal(vCanvas.GetPointColor(160, 49).ToArgb(), Color.DarkBlue.ToArgb(), "DrawRectangle stops at its far corner");
+
+        // Both endpoints of a line are painted, on the diagonal path too.
+        vCanvas.DrawLine(Color.White, 10, 60, 20, 70);
+        Assert.Equal(vCanvas.GetPointColor(10, 60).ToArgb(), Color.White.ToArgb(), "A diagonal line paints its start point");
+        Assert.Equal(vCanvas.GetPointColor(20, 70).ToArgb(), Color.White.ToArgb(), "A diagonal line paints its end point");
+
         // GetBuffer should return the backing array
         int[]? buffer = vCanvas.GetBuffer();
         Assert.NotNull(buffer, "Virtual canvas GetBuffer returns non-null");
