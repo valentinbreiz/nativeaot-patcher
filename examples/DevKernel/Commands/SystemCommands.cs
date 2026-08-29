@@ -121,7 +121,7 @@ internal static class SystemCommands
             Mode mode = KernelConsole.Default.Canvas.Mode;
             Terminal.InfoLine(
                 "Framebuffer",
-                mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Default.Canvas.Name() + ")");
+                mode.Width + "x" + mode.Height + "x" + (int)mode.ColorDepth + " (" + KernelConsole.Default.Canvas.Name + ")");
         }
         else
         {

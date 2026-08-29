@@ -259,7 +259,7 @@ public unsafe class Canvas
     /// <summary>
     /// The name of the Canvas implementation.
     /// </summary>
-    public virtual string Name() => "Canvas";
+    public virtual string Name => "Canvas";
 
     /// <summary>
     /// Updates the screen to display the underlying frame-buffer.

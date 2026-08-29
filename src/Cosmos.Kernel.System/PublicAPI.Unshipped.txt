@@ -801,7 +801,7 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.GetRawPointColor(int x, int y) -> i
 virtual Cosmos.Kernel.System.Graphics.Canvas.Mode.get -> Cosmos.Kernel.System.Graphics.Mode
 virtual Cosmos.Kernel.System.Graphics.Canvas.Mode.set -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.MovePixel(int x, int y, int newX, int newY) -> void
-virtual Cosmos.Kernel.System.Graphics.Canvas.Name() -> string!
+virtual Cosmos.Kernel.System.Graphics.Canvas.Name.get -> string!
 virtual Cosmos.Kernel.System.Graphics.Canvas.RefreshRate.get -> int
 virtual Cosmos.Kernel.System.Kernel.AfterRun() -> void
 virtual Cosmos.Kernel.System.Kernel.BeforeRun() -> void

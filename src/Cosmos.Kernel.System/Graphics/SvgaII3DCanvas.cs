@@ -82,7 +82,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     }
 
     /// <inheritdoc />
-    public override string Name() => "VMWareSVGAII3D";
+    public override string Name => "VMWareSVGAII3D";
 
     /// <inheritdoc />
     public override bool IsAccelerated => true;

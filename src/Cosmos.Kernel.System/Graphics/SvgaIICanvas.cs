@@ -34,7 +34,7 @@ internal class SvgaIICanvas : Canvas
     }
 
     /// <inheritdoc />
-    public override string Name() => "VMWareSVGAII";
+    public override string Name => "VMWareSVGAII";
 
     /// <summary>
     /// Gets or sets the current graphics mode.

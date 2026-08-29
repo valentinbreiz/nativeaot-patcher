@@ -119,7 +119,7 @@ internal class GopCanvas : Canvas
         //_driver.DisableDisplay();
     }
 
-    public override string Name() => "GopCanvas";
+    public override string Name => "GopCanvas";
 
     public override Mode Mode
     {
