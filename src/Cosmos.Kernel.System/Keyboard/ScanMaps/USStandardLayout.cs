@@ -16,7 +16,7 @@ public class USStandardLayout : ScanMapBase
     }
 
     /// <inheritdoc />
-    protected override void InitKeys()
+    protected override void InitializeKeys()
     {
         Keys = new List<KeyMapping>(100);
 

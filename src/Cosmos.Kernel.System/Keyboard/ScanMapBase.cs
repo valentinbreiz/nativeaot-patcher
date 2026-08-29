@@ -1,4 +1,4 @@
-// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
+﻿// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/ScanMapBase.cs
 
 namespace Cosmos.Kernel.System.Keyboard;
@@ -14,16 +14,18 @@ public abstract class ScanMapBase
     protected List<KeyMapping> Keys = null!;
 
     /// <summary>
-    /// Initializes the key list.
+    /// Fills <see cref="Keys"/> with this layout's mappings. Called once by
+    /// the base constructor, so a layout is usable the moment it is
+    /// constructed.
     /// </summary>
-    protected abstract void InitKeys();
+    protected abstract void InitializeKeys();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScanMapBase"/> class.
     /// </summary>
     protected ScanMapBase()
     {
-        InitKeys();
+        InitializeKeys();
     }
 
     /// <summary>

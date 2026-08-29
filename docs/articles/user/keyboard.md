@@ -168,7 +168,7 @@ The switch is visible immediately: below, the same six physical keys are typed t
 <!-- video: typing the six keys right of Tab under the US layout ("qwerty"), switching to FRStandardLayout, typing them again ("azerty") -->
 <video src="images/keyboard-layouts.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video>
 
-`KeyboardManager.GetKeyLayout()` returns the active scan map, and a custom layout is a class deriving from `ScanMapBase` that fills the `Keys` list with `KeyMapping` entries.
+`KeyboardManager.GetKeyLayout()` returns the active scan map, and a custom layout is a class deriving from `ScanMapBase` that overrides `InitializeKeys()` to fill the `Keys` list with `KeyMapping` entries. The base constructor calls it, so the list is populated by the time `SetKeyLayout` sees the instance.
 
 ## Current limitations
 

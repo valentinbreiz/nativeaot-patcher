@@ -506,7 +506,7 @@ abstract Cosmos.Kernel.System.Graphics.Canvas3D.CreateTexture(Cosmos.Kernel.Syst
 abstract Cosmos.Kernel.System.Graphics.Canvas3D.DrawMesh(Cosmos.Kernel.System.Graphics.Mesh! mesh, in System.Numerics.Matrix4x4 world) -> void
 abstract Cosmos.Kernel.System.Graphics.Canvas3D.IsAccelerated.get -> bool
 abstract Cosmos.Kernel.System.Kernel.Run() -> void
-abstract Cosmos.Kernel.System.Keyboard.ScanMapBase.InitKeys() -> void
+abstract Cosmos.Kernel.System.Keyboard.ScanMapBase.InitializeKeys() -> void
 const Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.BootSectorLba = 0 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.FirstUsableLba = 34 -> ulong
 const Cosmos.Kernel.System.Storage.Gpt.PrimaryHeaderLba = 1 -> ulong
@@ -518,13 +518,13 @@ override Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.MeasureString(string! 
 override Cosmos.Kernel.System.Graphics.Mode.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Graphics.Mode.GetHashCode() -> int
 override Cosmos.Kernel.System.Graphics.Mode.ToString() -> string!
-override Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitKeys() -> void
-override Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.InitKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.DEStandardLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.ESStandardLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.FRStandardLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.GBStandardLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.TRStandardLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.USDvorakLayout.InitializeKeys() -> void
+override Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.InitializeKeys() -> void
 override Cosmos.Kernel.System.Network.IPv4.Address.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.IPv4.Address.GetHashCode() -> int
 override Cosmos.Kernel.System.Network.IPv4.Address.ToString() -> string!
