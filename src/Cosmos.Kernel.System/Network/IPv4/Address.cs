@@ -70,8 +70,8 @@ public sealed class Address : IComparable<Address>
     /// <summary>
     /// Creates a new <see cref="Address"/> instance, with the specified byte span.
     /// </summary>
-    /// <param name="buffer"></param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <param name="buffer">The four address bytes, most significant first.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="buffer"/> is not exactly four bytes long.</exception>
     public Address(ReadOnlySpan<byte> buffer)
     {
         if (buffer.Length != 4)

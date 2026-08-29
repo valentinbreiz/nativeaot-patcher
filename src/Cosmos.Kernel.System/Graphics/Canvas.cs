@@ -868,7 +868,8 @@ public unsafe class Canvas
     /// <param name="xStart">The X coordinate of the top-left corner.</param>
     /// <param name="yStart">The Y coordinate of the top-left corner.</param>
     /// <param name="width">The width of the rectangle in pixels.</param>
-    /// <param name="height">The height of the rectangle in pixels.</param>
+    /// <param name="height">The height of the rectangle in pixels, or -1 to
+    /// reuse <paramref name="width"/> and draw a square.</param>
     /// <remarks>
     /// The shape is always clipped to the canvas. There is no opt-out, because
     /// the hardware canvases fill straight into video memory and an unclipped

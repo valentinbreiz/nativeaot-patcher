@@ -17,8 +17,11 @@ public class UdpClient : IDisposable
     /// <summary>
     /// Gets a dynamic port (simple incrementing approach for AOT compatibility).
     /// </summary>
-    /// <param name="tries"></param>
-    /// <returns></returns>
+    /// <param name="tries">How many consecutive ports to try before giving up.</param>
+    /// <returns>A port no live client is bound to, or 0 when
+    /// <paramref name="tries"/> consecutive candidates were all taken. Zero is
+    /// not a usable port, but it is also what an unbound client reports, so a
+    /// caller that keeps the value must not later read it back as a binding.</returns>
     public static ushort GetDynamicPort(int tries = 10)
     {
         for (int i = 0; i < tries; i++)

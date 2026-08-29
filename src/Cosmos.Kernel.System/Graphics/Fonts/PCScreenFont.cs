@@ -136,11 +136,10 @@ public class PCScreenFont : Font
     /// <summary>
     /// Loads the given PC Screen Font using the given raw data array.
     /// </summary>
-    /// <param name="fontData">The raw PCF data.</param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException">Thrown when a PCF version 2 file is provided.</exception>
-    /// <exception cref="ArgumentException">Thrown when the provided font data is incorrect.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="fontData"/> is <see langword="null"/>.</exception>
+    /// <param name="fontData">The raw PSF data. Both version 1 and version 2 are parsed.</param>
+    /// <returns>The parsed font, with its glyph bitmaps and any Unicode table the file carried.</returns>
+    /// <exception cref="ArgumentException"><paramref name="fontData"/> starts with neither
+    /// version's magic number, or carries a header the parser cannot use.</exception>
     public static PCScreenFont LoadFont(byte[] fontData)
     {
         byte charHeight;
@@ -155,7 +154,9 @@ public class PCScreenFont : Font
         if (!version1 && !version2)
         {
             Serial.WriteString($"PCF load: Invalid magic {fontData[0]} {fontData[1]} {fontData[2]} {fontData[3]}");
-            throw new Exception($"Invalid magic value {fontData[0]} {fontData[1]} {fontData[2]} {fontData[3]}.");
+            throw new ArgumentException(
+                $"Invalid magic value {fontData[0]} {fontData[1]} {fontData[2]} {fontData[3]}.",
+                nameof(fontData));
         }
 
         if (version1)

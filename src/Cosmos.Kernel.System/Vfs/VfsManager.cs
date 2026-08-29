@@ -208,6 +208,13 @@ public static partial class VfsManager
     /// what <paramref name="source"/> means (partition index, injected device,
     /// etc.) and casts <paramref name="options"/> to its own option type.
     /// </summary>
+    /// <param name="name">Registered filesystem name.</param>
+    /// <param name="source">Driver-specific backing-store identifier.</param>
+    /// <param name="options">Driver-specific format options, or null for its defaults.</param>
+    /// <returns><see langword="false"/> when no driver is registered under
+    /// <paramref name="name"/>, when that driver already has
+    /// <paramref name="source"/> mounted, or when the driver itself refuses
+    /// the format.</returns>
     public static bool TryFormat(string name, ReadOnlySpan<char> source, IVfsFormatOptions? options)
     {
         if (!TryGetFilesystem(name, out IVfsFilesystemType? filesystemType))
@@ -239,6 +246,10 @@ public static partial class VfsManager
     /// Wipe the filesystem signature on the backing store for a registered
     /// driver so it no longer mounts.
     /// </summary>
+    /// <returns><see langword="false"/> when no driver is registered under
+    /// <paramref name="name"/>, when that driver already has
+    /// <paramref name="source"/> mounted, or when the driver itself refuses
+    /// to wipe the signature.</returns>
     public static bool TryDestroy(string name, ReadOnlySpan<char> source)
     {
         if (!TryGetFilesystem(name, out IVfsFilesystemType? filesystemType))
@@ -257,6 +268,9 @@ public static partial class VfsManager
     /// superblock (which flushes per the driver's Drop semantics) and
     /// removes the mount from the table.
     /// </summary>
+    /// <returns><see langword="false"/> when no mount sits at
+    /// <paramref name="mountPoint"/> once it is normalized. A driver whose
+    /// Drop fails does not report it here.</returns>
     public static bool TryUnmount(string mountPoint)
     {
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
@@ -295,6 +309,8 @@ public static partial class VfsManager
     /// <summary>
     /// Retrieve a mount by its mount point.
     /// </summary>
+    /// <returns><see langword="false"/> when no mount sits at
+    /// <paramref name="mountPoint"/> once it is normalized.</returns>
     public static bool TryGetMount(string mountPoint, [NotNullWhen(true)] out VfsMount? mount)
     {
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
@@ -337,6 +353,9 @@ public static partial class VfsManager
     /// <summary>
     /// Open a file at the given path and return a managed handle wrapper.
     /// </summary>
+    /// <returns><see langword="false"/> when <paramref name="path"/> does not
+    /// resolve, or resolves to an inode whose driver offers no file
+    /// operations, which is what a directory looks like from here.</returns>
     public static bool TryOpenFile(string path, [NotNullWhen(true)] out IVfsFileHandle? file)
     {
         file = null;
@@ -367,6 +386,9 @@ public static partial class VfsManager
     /// Open a directory at the given path and return a managed handle wrapper.
     /// Fails when the path names something other than a directory.
     /// </summary>
+    /// <returns><see langword="false"/> when <paramref name="path"/> does not
+    /// resolve, when its attributes cannot be read, or when it names something
+    /// other than a directory.</returns>
     public static bool TryOpenDirectory(string path, [NotNullWhen(true)] out IVfsDirectoryHandle? directory)
     {
         directory = null;
