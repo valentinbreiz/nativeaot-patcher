@@ -49,7 +49,6 @@
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.Thread.WakeupTime.get -> ulong
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags.IdleThread = 2 -> Cosmos.Kernel.Core.Scheduler.ThreadFlags
-[COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags.KernelThread = 1 -> Cosmos.Kernel.Core.Scheduler.ThreadFlags
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags.Managed = 8 -> Cosmos.Kernel.Core.Scheduler.ThreadFlags
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags.None = 0 -> Cosmos.Kernel.Core.Scheduler.ThreadFlags
 [COSMOS0001]Cosmos.Kernel.Core.Scheduler.ThreadFlags.Pinned = 4 -> Cosmos.Kernel.Core.Scheduler.ThreadFlags

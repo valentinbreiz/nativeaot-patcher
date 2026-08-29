@@ -39,10 +39,6 @@ public enum ThreadFlags : ushort
     /// </summary>
     None = 0,
     /// <summary>
-    /// Kernel-mode thread
-    /// </summary>
-    KernelThread = 1 << 0,
-    /// <summary>
     /// Per-CPU idle thread
     /// </summary>
     IdleThread = 1 << 1,

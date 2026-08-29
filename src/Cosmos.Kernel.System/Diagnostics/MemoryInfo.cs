@@ -6,10 +6,13 @@ namespace Cosmos.Kernel.System.Diagnostics;
 
 /// <summary>
 /// Read-only view of the kernel's physical-memory and garbage-collector
-/// statistics, plus a forced collection. All reads are plain field reads
-/// with no allocation, so they are safe to poll from a monitor loop at
-/// display refresh rate. Managed-heap figures beyond these counters come
-/// from the BCL (<see cref="global::System.GC.GetGCMemoryInfo()"/>).
+/// statistics, plus a forced collection. Every figure is a property, and
+/// each is a plain field read with no allocation, so they are safe to poll
+/// from a monitor loop at display refresh rate. The two collector counters
+/// are read independently rather than as a pair, so a collection landing
+/// between two reads shows up in one of them and not the other.
+/// Managed-heap figures beyond these counters come from the BCL
+/// (<see cref="global::System.GC.GetGCMemoryInfo()"/>).
 /// </summary>
 public static class MemoryInfo
 {
@@ -40,12 +43,15 @@ public static class MemoryInfo
     public static int GcTimePercent => GarbageCollector.GetLastGCPercentTimeInGC();
 
     /// <summary>
-    /// Returns the kernel garbage collector's lifetime counters.
+    /// Number of collections the kernel collector has run since boot.
     /// </summary>
-    /// <param name="totalCollections">Number of collections since boot.</param>
-    /// <param name="totalObjectsFreed">Number of objects freed since boot.</param>
-    public static void GetGcStats(out int totalCollections, out int totalObjectsFreed) =>
-        GarbageCollector.GetStats(out totalCollections, out totalObjectsFreed);
+    public static int TotalCollections => GarbageCollector.GetCollectionIndex();
+
+    /// <summary>
+    /// Number of objects the sweep phase has freed since boot, summed over
+    /// every collection.
+    /// </summary>
+    public static int TotalObjectsFreed => GarbageCollector.GetTotalObjectsFreed();
 
     /// <summary>
     /// Forces an immediate garbage collection and returns the number of

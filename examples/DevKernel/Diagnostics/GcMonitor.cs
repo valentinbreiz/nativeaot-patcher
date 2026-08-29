@@ -97,9 +97,8 @@ internal static class GcMonitor
             rowY += lineHeight;
 
             int pct = MemoryInfo.GcTimePercent;
-            MemoryInfo.GetGcStats(out int totalCollections, out int totalObjectsFreed);
             canvas.DrawString(
-                $"Last GC % time in GC: {pct,PercentAlignment}%, Collections: {totalCollections,CountAlignment}, Objects Freed: {totalObjectsFreed,CountAlignment}",
+                $"Last GC % time in GC: {pct,PercentAlignment}%, Collections: {MemoryInfo.TotalCollections,CountAlignment}, Objects Freed: {MemoryInfo.TotalObjectsFreed,CountAlignment}",
                 font,
                 Color.Green,
                 x,

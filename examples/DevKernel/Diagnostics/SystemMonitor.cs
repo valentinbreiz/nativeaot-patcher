@@ -105,13 +105,11 @@ internal static class SystemMonitor
     /// <summary>Draws the collector counters; returns the next free row.</summary>
     private static int DrawGcSection(Canvas canvas, PCScreenFont font, int x, int rowY, int lineHeight)
     {
-        MemoryInfo.GetGcStats(out int totalCollections, out int totalObjectsFreed);
-
         canvas.DrawString("GCinfo", font, Color.Cyan, x, rowY);
         rowY += lineHeight;
-        canvas.DrawString("Collections: " + totalCollections, font, Color.White, x, rowY);
+        canvas.DrawString("Collections: " + MemoryInfo.TotalCollections, font, Color.White, x, rowY);
         rowY += lineHeight;
-        canvas.DrawString("Objects Freed: " + totalObjectsFreed, font, Color.White, x, rowY);
+        canvas.DrawString("Objects Freed: " + MemoryInfo.TotalObjectsFreed, font, Color.White, x, rowY);
         return rowY + lineHeight * OverlayLayout.SectionBreakRowCount;
     }
 

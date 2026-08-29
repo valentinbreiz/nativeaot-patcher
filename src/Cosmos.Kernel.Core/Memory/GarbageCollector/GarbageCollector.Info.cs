@@ -252,6 +252,11 @@ internal static unsafe partial class GarbageCollector
         return s_totalCollections;
     }
 
+    public static int GetTotalObjectsFreed()
+    {
+        return s_totalObjectsFreed;
+    }
+
     public static int GetCondemnedGeneration()
     {
         return 0; // only gen 0 exists currently
