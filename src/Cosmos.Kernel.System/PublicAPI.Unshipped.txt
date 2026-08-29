@@ -159,39 +159,11 @@ Cosmos.Kernel.System.Graphics.Image.RawData.set -> void
 Cosmos.Kernel.System.Graphics.Image.Width.get -> int
 Cosmos.Kernel.System.Graphics.Image.Width.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole
-Cosmos.Kernel.System.Graphics.KernelConsole.BackgroundColor.get -> uint
-Cosmos.Kernel.System.Graphics.KernelConsole.BackgroundColor.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.Canvas.get -> Cosmos.Kernel.System.Graphics.Canvas!
-Cosmos.Kernel.System.Graphics.KernelConsole.Clear() -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.Cols.get -> int
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorVisible.get -> bool
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorVisible.set -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorX.get -> int
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorX.set -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorY.get -> int
-Cosmos.Kernel.System.Graphics.KernelConsole.CursorY.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.Font.get -> Cosmos.Kernel.System.Graphics.Fonts.Font!
 Cosmos.Kernel.System.Graphics.KernelConsole.Font.set -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.ForegroundColor.get -> uint
-Cosmos.Kernel.System.Graphics.KernelConsole.ForegroundColor.set -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.GetCharAt(int col, int row) -> char
-Cosmos.Kernel.System.Graphics.KernelConsole.KernelConsole(Cosmos.Kernel.System.Graphics.Canvas! canvas, Cosmos.Kernel.System.Graphics.Fonts.Font? font = null) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorDown() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorLeft() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorRight() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorUp() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.Redraw() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.ResetColors() -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.Rows.get -> int
-Cosmos.Kernel.System.Graphics.KernelConsole.SetBackgroundColor(System.ConsoleColor color) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.SetCursorPosition(int x, int y) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.SetForegroundColor(System.ConsoleColor color) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.Write(System.ReadOnlySpan<char> buffer) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.Write(char c) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.Write(string! text) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.WriteLine() -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.WriteLine(char c) -> void
-Cosmos.Kernel.System.Graphics.KernelConsole.WriteLine(string! text) -> void
 Cosmos.Kernel.System.Graphics.Mesh
 Cosmos.Kernel.System.Graphics.Mesh.Dispose() -> void
 Cosmos.Kernel.System.Graphics.Mesh.IndexCount.get -> int

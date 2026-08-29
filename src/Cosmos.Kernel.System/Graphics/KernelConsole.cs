@@ -75,7 +75,7 @@ public class KernelConsole
     /// </summary>
     /// <param name="canvas">The canvas to render to.</param>
     /// <param name="font">The font to use (defaults to PCScreenFont.DefaultFont).</param>
-    public KernelConsole(Canvas canvas, Font? font = null)
+    internal KernelConsole(Canvas canvas, Font? font = null)
     {
         _canvas = canvas;
         _font = font ?? PCScreenFont.DefaultFont;
@@ -154,7 +154,7 @@ public class KernelConsole
     /// Gets or sets the cursor X position (column). Thread-safe; a column
     /// outside the terminal is ignored.
     /// </summary>
-    public int CursorX
+    internal int CursorX
     {
         get => _cursorX;
         set
@@ -181,7 +181,7 @@ public class KernelConsole
     /// Gets or sets the cursor Y position (row). Thread-safe; a row outside
     /// the terminal is ignored.
     /// </summary>
-    public int CursorY
+    internal int CursorY
     {
         get => _cursorY;
         set
@@ -217,7 +217,7 @@ public class KernelConsole
     /// <summary>
     /// Gets or sets whether the cursor is visible. Thread-safe.
     /// </summary>
-    public bool CursorVisible
+    internal bool CursorVisible
     {
         get => _cursorVisible;
         set
@@ -250,24 +250,6 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Gets or sets the foreground color.
-    /// </summary>
-    public uint ForegroundColor
-    {
-        get => _foregroundColor;
-        set => _foregroundColor = value;
-    }
-
-    /// <summary>
-    /// Gets or sets the background color.
-    /// </summary>
-    public uint BackgroundColor
-    {
-        get => _backgroundColor;
-        set => _backgroundColor = value;
-    }
-
-    /// <summary>
     /// Gets the canvas this console renders to.
     /// </summary>
     public Canvas Canvas => _canvas;
@@ -275,7 +257,7 @@ public class KernelConsole
     /// <summary>
     /// Sets the foreground color from ConsoleColor enum.
     /// </summary>
-    public void SetForegroundColor(ConsoleColor color)
+    internal void SetForegroundColor(ConsoleColor color)
     {
         _foregroundColor = s_palette[(int)color];
     }
@@ -283,7 +265,7 @@ public class KernelConsole
     /// <summary>
     /// Sets the background color from ConsoleColor enum.
     /// </summary>
-    public void SetBackgroundColor(ConsoleColor color)
+    internal void SetBackgroundColor(ConsoleColor color)
     {
         _backgroundColor = s_palette[(int)color];
     }
@@ -366,7 +348,7 @@ public class KernelConsole
     /// Sets the cursor position.
     /// Thread-safe.
     /// </summary>
-    public void SetCursorPosition(int x, int y)
+    internal void SetCursorPosition(int x, int y)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -499,31 +481,6 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Redraws the entire screen from the cell buffer.
-    /// Thread-safe.
-    /// </summary>
-    public void Redraw()
-    {
-        using (InternalCpu.DisableInterruptsScope())
-        {
-            if (_cells == null)
-            {
-                return;
-            }
-
-            _lock.Acquire();
-            try
-            {
-                RedrawInternal();
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-    }
-
-    /// <summary>
     /// Internal redraw (must be called with lock held).
     /// </summary>
     private void RedrawInternal()
@@ -562,7 +519,7 @@ public class KernelConsole
     /// Writes a character at the current cursor position.
     /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
-    public void Write(char c)
+    internal void Write(char c)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -640,7 +597,7 @@ public class KernelConsole
     /// Writes a string at the current cursor position.
     /// Thread-safe: uses spinlock with interrupt protection.
     /// </summary>
-    public void Write(string text)
+    internal void Write(string text)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -668,7 +625,7 @@ public class KernelConsole
     /// Writes a Span of character at the current cursor position
     /// </summary>
     /// <param name="buffer">Span of characters to write</param>
-    public void Write(ReadOnlySpan<char> buffer)
+    internal void Write(ReadOnlySpan<char> buffer)
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -693,70 +650,10 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Writes a character followed by a newline.
-    /// Thread-safe.
-    /// </summary>
-    public void WriteLine(char c)
-    {
-        using (InternalCpu.DisableInterruptsScope())
-        {
-            if (_cells == null)
-            {
-                return;
-            }
-
-            _lock.Acquire();
-            try
-            {
-                WriteInternal(c);
-                EraseCursor();
-                DoLineFeed();
-                DrawCursor();
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Writes a string followed by a newline.
-    /// Thread-safe.
-    /// </summary>
-    public void WriteLine(string text)
-    {
-        using (InternalCpu.DisableInterruptsScope())
-        {
-            if (_cells == null)
-            {
-                return;
-            }
-
-            _lock.Acquire();
-            try
-            {
-                foreach (char c in text)
-                {
-                    WriteInternal(c);
-                }
-                EraseCursor();
-                DoLineFeed();
-                DrawCursor();
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
-    }
-
-    /// <summary>
     /// Writes a newline.
     /// Thread-safe.
     /// </summary>
-    public void WriteLine()
+    internal void WriteLine()
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -826,7 +723,7 @@ public class KernelConsole
     /// Moves the cursor left by one position. Thread-safe; a no-op in the
     /// first column.
     /// </summary>
-    public void MoveCursorLeft()
+    internal void MoveCursorLeft()
     {
         MoveCursorBy(-1, 0);
     }
@@ -835,27 +732,9 @@ public class KernelConsole
     /// Moves the cursor right by one position. Thread-safe; a no-op in the
     /// last column.
     /// </summary>
-    public void MoveCursorRight()
+    internal void MoveCursorRight()
     {
         MoveCursorBy(1, 0);
-    }
-
-    /// <summary>
-    /// Moves the cursor up by one position. Thread-safe; a no-op on the first
-    /// row.
-    /// </summary>
-    public void MoveCursorUp()
-    {
-        MoveCursorBy(0, -1);
-    }
-
-    /// <summary>
-    /// Moves the cursor down by one position. Thread-safe; a no-op on the last
-    /// row.
-    /// </summary>
-    public void MoveCursorDown()
-    {
-        MoveCursorBy(0, 1);
     }
 
     /// <summary>
@@ -895,7 +774,7 @@ public class KernelConsole
     /// Clears the entire screen.
     /// Thread-safe.
     /// </summary>
-    public void Clear()
+    internal void Clear()
     {
         using (InternalCpu.DisableInterruptsScope())
         {
@@ -919,52 +798,10 @@ public class KernelConsole
     /// <summary>
     /// Resets colors to default (white on black).
     /// </summary>
-    public void ResetColors()
+    internal void ResetColors()
     {
         _foregroundColor = (uint)Color.White.ToArgb();
         _backgroundColor = (uint)Color.Black.ToArgb();
     }
 
-    /// <summary>
-    /// Gets the character at the specified position.
-    /// </summary>
-    public char GetCharAt(int col, int row)
-    {
-        if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
-        {
-            return '\0';
-        }
-
-        int index = GetIndex(row, col);
-        return _cells[index].Char;
-    }
-
-    /// <summary>
-    /// Gets the cell at the specified position.
-    /// </summary>
-    internal Cell GetCellAt(int col, int row)
-    {
-        if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
-        {
-            return Cell.Empty(_foregroundColor, _backgroundColor);
-        }
-
-        int index = GetIndex(row, col);
-        return _cells[index];
-    }
-
-    /// <summary>
-    /// Sets the cell at the specified position.
-    /// </summary>
-    internal void SetCellAt(int col, int row, Cell cell)
-    {
-        if (_cells == null || col < 0 || col >= _cols || row < 0 || row >= _rows)
-        {
-            return;
-        }
-
-        int index = GetIndex(row, col);
-        _cells[index] = cell;
-        DrawCharAt(col, row);
-    }
 }
