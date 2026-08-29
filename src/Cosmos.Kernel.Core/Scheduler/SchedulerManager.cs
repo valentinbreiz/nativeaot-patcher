@@ -457,18 +457,25 @@ public static class SchedulerManager
     [MemberNotNull(nameof(s_cpuStates))]
     private static void ThrowIfCpuStateNotInitialized()
     {
+        // The switch first: with the scheduler compiled out the per-CPU state
+        // is never built, so every member guarded here would otherwise report
+        // "not initialized" for a kernel whose only mistake is a csproj line.
+        ThrowIfDisabled();
+
         if (s_cpuStates is null)
         {
-            throw new Exception($"{nameof(SchedulerManager)} not initialized");
+            throw new InvalidOperationException("The scheduler has not been initialized; the boot path builds its per-CPU state.");
         }
     }
 
     [MemberNotNull(nameof(s_currentScheduler))]
     private static void ThrowIfSchedulerNotSet()
     {
+        ThrowIfDisabled();
+
         if (s_currentScheduler is null)
         {
-            throw new Exception($"{nameof(SchedulerManager)}{nameof(s_currentScheduler)} not initialized");
+            throw new InvalidOperationException("No scheduling policy is installed; call SchedulerManager.SetScheduler first.");
         }
     }
 

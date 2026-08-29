@@ -1,5 +1,6 @@
 // This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
+using Cosmos.Kernel.Core;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Timer;
@@ -15,11 +16,35 @@ public static class TimerManager
     private static ITimerDevice? s_timer;
 
     /// <summary>
+    /// Whether timer support is compiled into this kernel
+    /// (the <c>CosmosEnableTimer</c> feature switch).
+    /// </summary>
+    public static bool IsEnabled => CosmosFeatures.TimerEnabled;
+
+    /// <summary>
     /// Gets whether a timer device is registered. False when the timer is
     /// compiled out with CosmosEnableTimer=false, since every member of this
     /// class answers off that device.
     /// </summary>
     public static bool IsInitialized => s_timer != null;
+
+    /// <summary>
+    /// Throws when timer support is compiled out. Guards the two members that
+    /// would otherwise do nothing and say nothing: a wait that returns at once
+    /// and a frequency change that lands nowhere both read as a kernel bug
+    /// rather than as a switch left off in a csproj. The reads on this class
+    /// answer honestly instead (<see cref="Frequency"/> is 0,
+    /// <see cref="IsInitialized"/> is false), and <see cref="Schedule"/>,
+    /// <see cref="ScheduleRecurring"/> and <see cref="Cancel"/> already carry
+    /// the answer in what they return.
+    /// </summary>
+    private static void ThrowIfDisabled()
+    {
+        if (!IsEnabled)
+        {
+            throw new InvalidOperationException("Timer support is disabled. Set CosmosEnableTimer=true in your csproj to enable it.");
+        }
+    }
 
     /// <summary>
     /// Registers a timer device with the manager.
@@ -42,8 +67,12 @@ public static class TimerManager
     /// <summary>
     /// Sets the timer frequency in Hz.
     /// </summary>
+    /// <param name="frequency">New tick frequency in Hz.</param>
+    /// <exception cref="InvalidOperationException">Timer support is disabled.</exception>
     public static void SetFrequency(uint frequency)
     {
+        ThrowIfDisabled();
+
         s_timer?.SetFrequency(frequency);
     }
 
@@ -51,8 +80,11 @@ public static class TimerManager
     /// Blocks for the specified number of milliseconds.
     /// </summary>
     /// <param name="ms">Milliseconds to wait.</param>
+    /// <exception cref="InvalidOperationException">Timer support is disabled.</exception>
     public static void Wait(uint ms)
     {
+        ThrowIfDisabled();
+
         s_timer?.Wait(ms);
     }
 

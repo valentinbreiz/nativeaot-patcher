@@ -686,6 +686,7 @@ static Cosmos.Kernel.System.Timer.AlarmManager.Schedule(System.Action! callback,
 static Cosmos.Kernel.System.Timer.AlarmManager.ScheduleRecurring(System.Action! callback, System.TimeSpan period) -> ulong
 static Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer? timer) -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.Frequency.get -> uint
+static Cosmos.Kernel.System.Timer.TimerManager.IsEnabled.get -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action! callback, System.TimeSpan delay) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
 static Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action! callback, System.TimeSpan period) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
