@@ -9,7 +9,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// One-shot binary completion event with auto-reset semantics, designed
 /// to be signaled from an ISR and waited on from a normal thread.
 ///
-/// <para><see cref="Wait"/> blocks the caller via <see cref="SchedulerManager.BlockThread"/>
+/// <para><see cref="Wait()"/> blocks the caller via <see cref="SchedulerManager.BlockThread"/>
 /// until <see cref="Signal"/> is called. <see cref="Signal"/> only walks
 /// internal state with the spinlock held and calls
 /// <see cref="SchedulerManager.ReadyThread"/> — no allocation, no
@@ -20,7 +20,7 @@ namespace Cosmos.Kernel.Core.Scheduler;
 /// consumers can wait; <see cref="Signal"/> wakes one. Signals are
 /// counted, not latched as a single bit: two <see cref="Signal"/>s with
 /// two parked waiters wake both, and signals arriving while no consumer
-/// waits are consumed one per subsequent <see cref="Wait"/>.</para>
+/// waits are consumed one per subsequent <see cref="Wait()"/>.</para>
 /// </summary>
 internal class InterruptEvent
 {
@@ -199,10 +199,10 @@ internal class InterruptEvent
     }
 
     /// <summary>
-    /// Signals the event. Latches the signal so the next <see cref="Wait"/>
+    /// Signals the event. Latches the signal so the next <see cref="Wait()"/>
     /// consumes it immediately, and wakes one parked waiter (if any).
     /// Latching is required because the woken thread re-enters
-    /// <see cref="Wait"/>'s loop and must see something durable rather
+    /// <see cref="Wait()"/>'s loop and must see something durable rather
     /// than just "I'm not in the waiters list anymore". Safe to call
     /// from interrupt context.
     /// </summary>

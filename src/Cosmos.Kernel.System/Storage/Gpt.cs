@@ -491,9 +491,11 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Applies <paramref name="mutator"/> to the entry's 0..55 byte region;
-    /// returns false (nothing written) to abort the mutation.
+    /// Rewrites one partition entry in place. Receives the entry's 0..55 byte
+    /// region and returns false, having written nothing, to abort the mutation.
     /// </summary>
+    /// <param name="entry">The entry's 0..55 byte region.</param>
+    /// <returns>true when <paramref name="entry"/> was rewritten and should be committed.</returns>
     private delegate bool EntryMutator(Span<byte> entry);
 
     /// <summary>

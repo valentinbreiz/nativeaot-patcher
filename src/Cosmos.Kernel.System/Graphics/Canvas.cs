@@ -1225,7 +1225,10 @@ public unsafe class Canvas
     /// Draws a single character using the given bitmap font.
     /// </summary>
     /// <param name="c">The character to draw.</param>
-    /// <inheritdoc cref="DrawString(string, Font, Color, int, int)"/>
+    /// <param name="font">The bitmap font to use.</param>
+    /// <param name="color">The color to write the character with.</param>
+    /// <param name="x">The origin X coordinate.</param>
+    /// <param name="y">The origin Y coordinate.</param>
     public virtual void DrawChar(char c, Font font, Color color, int x, int y)
     {
         ArgumentNullException.ThrowIfNull(font);
