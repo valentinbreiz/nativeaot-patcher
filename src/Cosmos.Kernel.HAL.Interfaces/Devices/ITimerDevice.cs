@@ -23,10 +23,15 @@ internal interface ITimerDevice
     uint Frequency { get; }
 
     /// <summary>
-    /// Sets the timer frequency in Hz.
+    /// Sets the timer frequency in Hz. Devices divide a fixed input clock, so
+    /// each has a range it can express and rejects the rest.
     /// </summary>
     /// <param name="frequency">Frequency in Hz.</param>
-    void SetFrequency(uint frequency);
+    /// <returns>
+    /// True when the device accepted the frequency; false when it is outside
+    /// what the device can divide to, in which case the tick is unchanged.
+    /// </returns>
+    bool SetFrequency(uint frequency);
 
     /// <summary>
     /// Blocks for the specified number of milliseconds.

@@ -346,32 +346,40 @@ public static class SchedulerManager
     /// Sum of TotalRuntime across all non-idle threads, in nanoseconds.
     /// One timer tick is charged to exactly one current thread per CPU, so this sum
     /// over a wall-clock window equals total busy CPU time for that window.
-    /// Lock-free: registry slots are atomic and ulong reads are atomic on x64/ARM64;
-    /// worst case is observing a stale value from an in-progress tick.
+    /// The walk masks interrupts because the exiting half of the same figure is
+    /// split across two stores: <see cref="UnregisterThread"/> folds the thread's
+    /// runtime into the exited total and then empties its slot, both inside
+    /// <see cref="ExitThread"/>'s own scope. An unmasked walk that read the exited
+    /// total first and met that pair mid-scan would count the thread in neither
+    /// term and report less than the previous call, which is the one thing
+    /// <c>SchedulerInfo.BusyCpuTimeNs</c> promises never happens.
     /// </summary>
     internal static ulong GetBusyCpuTimeNs()
     {
-        Thread?[]? threads = s_allThreads;
-        if (threads == null)
+        using (CPU.InternalCpu.DisableInterruptsScope())
         {
-            return 0;
-        }
+            Thread?[]? threads = s_allThreads;
+            if (threads == null)
+            {
+                return 0;
+            }
 
-        ulong sum = s_exitedNonIdleRuntimeNs;
-        for (int i = 0; i < threads.Length; i++)
-        {
-            Thread? t = threads[i];
-            if (t == null)
+            ulong sum = s_exitedNonIdleRuntimeNs;
+            for (int i = 0; i < threads.Length; i++)
             {
-                continue;
+                Thread? t = threads[i];
+                if (t == null)
+                {
+                    continue;
+                }
+                if ((t.Flags & ThreadFlags.IdleThread) != 0)
+                {
+                    continue;
+                }
+                sum += t.TotalRuntime;
             }
-            if ((t.Flags & ThreadFlags.IdleThread) != 0)
-            {
-                continue;
-            }
-            sum += t.TotalRuntime;
+            return sum;
         }
-        return sum;
     }
 
     internal static nint OnThreadExitCallback

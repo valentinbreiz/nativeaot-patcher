@@ -44,7 +44,11 @@ internal abstract class TimerDevice : Device, ITimerDevice
     /// Sets the timer frequency in Hz.
     /// </summary>
     /// <param name="frequency">Frequency in Hz.</param>
-    public abstract void SetFrequency(uint frequency);
+    /// <returns>
+    /// True when the device accepted the frequency; false when it is outside
+    /// what the device can divide to, in which case the tick is unchanged.
+    /// </returns>
+    public abstract bool SetFrequency(uint frequency);
 
     /// <summary>
     /// Registers a software timer driven by this device's periodic tick.

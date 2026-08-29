@@ -534,22 +534,24 @@ override Cosmos.Kernel.System.Network.IPv4.EndPoint.ToString() -> string!
 override Cosmos.Kernel.System.Network.NetworkAdapter.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.NetworkAdapter.GetHashCode() -> int
 static Cosmos.Kernel.System.Diagnostics.Log.Write(params object?[]! args) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.Write(string! text) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteBytes(System.ReadOnlySpan<byte> bytes) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(uint number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(ulong number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix(uint number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix(ulong number) -> void
-static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(int number, bool hex = false) -> void
-static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(long number, bool hex = false) -> void
-static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(uint number, bool hex = false) -> void
-static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(ulong number, bool hex = false) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(int number) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(long number) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(uint number) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(ulong number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteString(string! text) -> void
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.Collect() -> int
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.FreePages.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.GcTimePercent.get -> int
-static Cosmos.Kernel.System.Diagnostics.MemoryInfo.GetGcStats(out int totalCollections, out int totalObjectsFreed) -> void
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.PageSizeBytes.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.RamSizeBytes.get -> ulong
+static Cosmos.Kernel.System.Diagnostics.MemoryInfo.TotalCollections.get -> int
+static Cosmos.Kernel.System.Diagnostics.MemoryInfo.TotalObjectsFreed.get -> int
 static Cosmos.Kernel.System.Diagnostics.MemoryInfo.TotalPages.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.BusyCpuTimeNs.get -> ulong
 static Cosmos.Kernel.System.Diagnostics.SchedulerInfo.CpuCount.get -> uint
@@ -686,11 +688,11 @@ static Cosmos.Kernel.System.Timer.AlarmManager.Schedule(System.Action! callback,
 static Cosmos.Kernel.System.Timer.AlarmManager.ScheduleRecurring(System.Action! callback, System.TimeSpan period) -> ulong
 static Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer? timer) -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.Frequency.get -> uint
+static Cosmos.Kernel.System.Timer.TimerManager.Frequency.set -> void
 static Cosmos.Kernel.System.Timer.TimerManager.IsEnabled.get -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action! callback, System.TimeSpan delay) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
 static Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action! callback, System.TimeSpan period) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
-static Cosmos.Kernel.System.Timer.TimerManager.SetFrequency(uint frequency) -> void
 static Cosmos.Kernel.System.Timer.TimerManager.Wait(uint ms) -> void
 static Cosmos.Kernel.System.Vfs.VfsManager.Mounts.get -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.System.Vfs.VfsManager.VfsMount!>!
 static Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(string! name, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType! filesystemType) -> bool

@@ -292,25 +292,30 @@ public static class KeyboardManager
     }
 
     /// <summary>
-    /// Gets the currently used keyboard layout.
+    /// Gets the scan map that turns scan codes into characters.
     /// </summary>
     /// <returns>The active layout, or <see langword="null"/> before a keyboard
-    /// has been registered and when keyboard support is compiled out.</returns>
+    /// has been registered and when keyboard support is compiled out;
+    /// registration installs <see cref="ScanMaps.USStandardLayout"/>.</returns>
     public static ScanMapBase? GetKeyLayout() => s_scanMap;
 
     /// <summary>
-    /// Sets the currently used keyboard layout.
+    /// Sets the scan map that turns scan codes into characters. This is a
+    /// method rather than a settable property beside
+    /// <see cref="GetKeyLayout"/> because the two halves cannot share a type:
+    /// the read is honestly nullable, while a null layout would leave the
+    /// interrupt path with nothing to decode with. A parameter refuses that
+    /// at compile time; a nullable property would only refuse it at runtime.
     /// </summary>
-    /// <param name="scanMap">The layout to use. Ignored when null.</param>
+    /// <param name="scanMap">The layout to use.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="scanMap"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Keyboard support is disabled.</exception>
     public static void SetKeyLayout(ScanMapBase scanMap)
     {
+        ArgumentNullException.ThrowIfNull(scanMap);
         ThrowIfDisabled();
 
-        if (scanMap != null)
-        {
-            s_scanMap = scanMap;
-        }
+        s_scanMap = scanMap;
     }
 
 }

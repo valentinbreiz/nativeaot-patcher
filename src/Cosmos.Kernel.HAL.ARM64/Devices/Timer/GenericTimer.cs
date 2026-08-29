@@ -102,15 +102,16 @@ internal class GenericTimer : TimerDevice
     }
 
     /// <inheritdoc/>
-    public override void SetFrequency(uint frequency)
+    public override bool SetFrequency(uint frequency)
     {
         if (frequency == 0)
         {
-            return;
+            return false;
         }
 
         ulong periodNs = 1_000_000_000UL / frequency;
         SetPeriod(periodNs);
+        return true;
     }
 
     /// <summary>

@@ -20,38 +20,42 @@ public static class Log
     public static void WriteString(string text) => Serial.WriteString(text);
 
     /// <summary>
-    /// Writes an unsigned 64-bit number in decimal, or hexadecimal without
-    /// a <c>0x</c> prefix when <paramref name="hex"/> is set.
+    /// Writes a string to the log without appending a line terminator, the
+    /// same as <see cref="WriteString"/>. This overload exists so that
+    /// <c>Log.Write("text")</c> keeps the allocation-free promise made at the
+    /// top of this class: without it the call binds to the
+    /// params overload below, which allocates an array for the one argument.
     /// </summary>
-    /// <param name="number">Value to write.</param>
-    /// <param name="hex">Write base-16 digits instead of base-10.</param>
-    public static void WriteNumber(ulong number, bool hex = false) => Serial.WriteNumber(number, hex);
+    /// <param name="text">Text to write.</param>
+    public static void Write(string text) => Serial.WriteString(text);
 
     /// <summary>
-    /// Writes an unsigned 32-bit number in decimal, or hexadecimal without
-    /// a <c>0x</c> prefix when <paramref name="hex"/> is set.
+    /// Writes an unsigned 64-bit number in decimal. Use
+    /// <see cref="WriteHex(ulong)"/> for base-16 digits.
     /// </summary>
     /// <param name="number">Value to write.</param>
-    /// <param name="hex">Write base-16 digits instead of base-10.</param>
-    public static void WriteNumber(uint number, bool hex = false) => Serial.WriteNumber(number, hex);
+    public static void WriteNumber(ulong number) => Serial.WriteNumber(number);
 
     /// <summary>
-    /// Writes a signed 32-bit number in decimal, or hexadecimal without a
-    /// <c>0x</c> prefix when <paramref name="hex"/> is set. Negative values
-    /// are prefixed with <c>-</c>.
+    /// Writes an unsigned 32-bit number in decimal. Use
+    /// <see cref="WriteHex(uint)"/> for base-16 digits.
     /// </summary>
     /// <param name="number">Value to write.</param>
-    /// <param name="hex">Write base-16 digits instead of base-10.</param>
-    public static void WriteNumber(int number, bool hex = false) => Serial.WriteNumber(number, hex);
+    public static void WriteNumber(uint number) => Serial.WriteNumber(number);
 
     /// <summary>
-    /// Writes a signed 64-bit number in decimal, or hexadecimal without a
-    /// <c>0x</c> prefix when <paramref name="hex"/> is set. Negative values
-    /// are prefixed with <c>-</c>.
+    /// Writes a signed 32-bit number in decimal. Negative values are
+    /// prefixed with <c>-</c>.
     /// </summary>
     /// <param name="number">Value to write.</param>
-    /// <param name="hex">Write base-16 digits instead of base-10.</param>
-    public static void WriteNumber(long number, bool hex = false) => Serial.WriteNumber(number, hex);
+    public static void WriteNumber(int number) => Serial.WriteNumber(number);
+
+    /// <summary>
+    /// Writes a signed 64-bit number in decimal. Negative values are
+    /// prefixed with <c>-</c>.
+    /// </summary>
+    /// <param name="number">Value to write.</param>
+    public static void WriteNumber(long number) => Serial.WriteNumber(number);
 
     /// <summary>
     /// Writes an unsigned 64-bit number as hexadecimal digits without a

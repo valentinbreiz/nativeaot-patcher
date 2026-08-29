@@ -91,12 +91,19 @@ internal class PIT : TimerDevice
     /// </summary>
     public override uint Frequency => PITFrequency / _t0Countdown;
 
+    /// <summary>
+    /// Lowest frequency the 16-bit divisor can express: <see cref="PITFrequency"/>
+    /// divided by 65535, rounded up. The highest is <see cref="PITFrequency"/>
+    /// itself, at a divisor of 1.
+    /// </summary>
+    public const uint MinFrequency = 19;
+
     public uint T0Frequency
     {
         get => PITFrequency / _t0Countdown;
         set
         {
-            if (value < 19 || value > 1193180)
+            if (value < MinFrequency || value > PITFrequency)
             {
                 Serial.Write("[PIT] ERROR: Frequency must be between 19 and 1193180!\n");
                 return;
@@ -106,13 +113,16 @@ internal class PIT : TimerDevice
         }
     }
 
-    /// <summary>
-    /// Sets the timer frequency in Hz.
-    /// </summary>
-    /// <param name="frequency">Frequency in Hz.</param>
-    public override void SetFrequency(uint frequency)
+    /// <inheritdoc/>
+    public override bool SetFrequency(uint frequency)
     {
+        if (frequency < MinFrequency || frequency > PITFrequency)
+        {
+            return false;
+        }
+
         T0Frequency = frequency;
+        return true;
     }
 
     public uint T0DelayNS

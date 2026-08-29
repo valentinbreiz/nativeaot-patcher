@@ -60,20 +60,37 @@ public static class TimerManager
     }
 
     /// <summary>
-    /// Gets the current timer frequency in Hz.
+    /// Tick frequency of the timer device in Hz, or 0 when no device is
+    /// registered, which <see cref="IsInitialized"/> reports and an
+    /// assignment made in that state does nothing. Assigning reprograms the
+    /// device, which divides a fixed input clock, so the value read back is
+    /// the nearest tick the divisor can express rather than the value
+    /// assigned. A frequency the device cannot divide to at all is refused
+    /// rather than silently dropped.
     /// </summary>
-    public static uint Frequency => s_timer?.Frequency ?? 0;
-
-    /// <summary>
-    /// Sets the timer frequency in Hz.
-    /// </summary>
-    /// <param name="frequency">New tick frequency in Hz.</param>
     /// <exception cref="InvalidOperationException">Timer support is disabled.</exception>
-    public static void SetFrequency(uint frequency)
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The timer device cannot run at this frequency. The x64 PIT divides
+    /// 1193180 Hz by a 16-bit value, so it accepts 19 Hz to 1193180 Hz; the
+    /// ARM64 generic timer accepts anything but zero.
+    /// </exception>
+    public static uint Frequency
     {
-        ThrowIfDisabled();
+        get => s_timer?.Frequency ?? 0;
+        set
+        {
+            ThrowIfDisabled();
 
-        s_timer?.SetFrequency(frequency);
+            if (s_timer == null)
+            {
+                return;
+            }
+
+            if (!s_timer.SetFrequency(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), value, "The timer device cannot run at this frequency.");
+            }
+        }
     }
 
     /// <summary>
