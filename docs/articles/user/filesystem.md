@@ -51,18 +51,22 @@ using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.HAL.Vfs;
 ```
 
-First, register a FAT driver under a name of your choice, then mount a partition at a mount point. For the FAT driver, the `source` argument is the index into `StorageManager.Partitions` as a string (`"0"` = first discovered partition across all disks). Add this to your kernel's `BeforeRun()`:
+First, register a FAT driver under a name of your choice, then mount a partition at a mount point. Add this to your kernel's `BeforeRun()`:
 
 ```csharp
 FatFilesystemType fat = new();
 
 VfsManager.RegisterFilesystem("fat", fat);
 
-if (VfsManager.TryMount("fat", "0", MountFlags.None, "/mnt", out VfsManager.VfsMount? mount))
+if (VfsManager.TryMount("fat", StorageManager.Partitions[0], MountFlags.None, "/mnt", out VfsManager.VfsMount? mount))
 {
-    Console.WriteLine("Mounted " + mount.Name + " partition " + mount.Source + " at " + mount.MountPoint);
+    Console.WriteLine("Mounted " + mount.Name + " at " + mount.MountPoint);
 }
 ```
+
+`StorageManager.GetPartitions(device)` lists the partitions of one disk, numbered the way a user numbers them; `StorageManager.Partitions` is the flat list across every disk.
+
+There is a second spelling, `VfsManager.TryMount("fat", "0", ...)`, where `source` is a driver-specific string. Every driver accepts one, and the FAT driver reads it as an index into `StorageManager.Partitions`. Prefer the `Partition` overload: creating or deleting a partition renumbers that list, so an index held across a rescan can come to name a different partition.
 
 <!-- screenshot: kernel console right after boot showing the "Mounted fat partition 0 at /mnt" line -->
 ![Mount](images/filesystem-mount.png)
@@ -102,21 +106,21 @@ internal sealed class MemoryBlockDevice : IBlockDevice
 }
 ```
 
-The FAT driver accepts an injected device directly (leave `source` empty when formatting and mounting):
+The FAT driver accepts an injected device directly. Register it as usual and leave `source` empty: with a device already in hand the driver has nothing to look up.
 
 ```csharp
 MemoryBlockDevice ramDisk = new("RAMDISK", 512, 65536);   // 32 MiB
 FatFilesystemType fat = new(ramDisk);
 
-fat.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16 });
-
 VfsManager.RegisterFilesystem("ramfat", fat);
+
+VfsManager.TryFormat("ramfat", "", new FatFormatOptions { Type = FatType.Fat16 });
 VfsManager.TryMount("ramfat", "", MountFlags.None, "/mnt", out _);
 ```
 
 ## Format a disk
 
-To format (mkfs) a partition through the VFS, use `VfsManager.TryFormat` with the driver name, the partition index and the driver's option type. The FAT formatter picks sane geometry from the options you give it:
+To format (mkfs) a partition through the VFS, use `VfsManager.TryFormat` with the driver name, the partition and the driver's option type. The FAT formatter picks sane geometry from the options you give it:
 
 ```csharp
 FatFormatOptions options = new()
@@ -125,7 +129,7 @@ FatFormatOptions options = new()
     VolumeLabel = "COSMOS     ",
 };
 
-if (!VfsManager.TryFormat("fat", "0", options))
+if (!VfsManager.TryFormat("fat", StorageManager.Partitions[0], options))
 {
     Console.WriteLine("Format failed");
 }
@@ -146,6 +150,21 @@ foreach (VfsManager.VfsMount m in VfsManager.Mounts)
 
 <!-- screenshot: console output of the mount-table loop, e.g. "/mnt -> fat (source 0)" -->
 ![Mounts](images/filesystem-mounts.png)
+
+`m.Partition` is the partition itself, for mounts made with the `Partition` overload. Prefer it to parsing `m.Source` back into an index: it keeps naming the same range on the same disk after a rescan renumbers `StorageManager.Partitions`.
+
+## Check free space
+
+`VfsManager.TryStatFs` reports a mount's block accounting. Free space is the available block count times the block size:
+
+```csharp
+if (VfsManager.TryStatFs("/mnt", out VfsStatFs stats))
+{
+    ulong freeBytes = stats.Bavail * stats.BlockSize;
+    ulong totalBytes = stats.Blocks * stats.BlockSize;
+    Console.WriteLine(freeBytes + " of " + totalBytes + " bytes free");
+}
+```
 
 ## Get a list of files
 
@@ -362,7 +381,7 @@ With **nothing mounted at all**, `System.IO` still degrades gracefully: `Directo
 
 - Symbolic links and hard links are not supported (`ENOTSUP`/`EPERM` under the hood; the BCL surfaces `IOException`).
 - File timestamps are not persisted yet (`File.SetLastWriteTime` is accepted but a FAT timestamp lands later).
-- `DriveInfo` (free-space queries) is not wired up yet.
+- `DriveInfo` is not wired up yet; use `VfsManager.TryStatFs` for free-space queries.
 - FAT is the only filesystem driver today; the `IVfsFilesystemType` interface is what a new driver implements.
 
 ## How it works
