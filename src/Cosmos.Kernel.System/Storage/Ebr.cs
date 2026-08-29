@@ -1,4 +1,4 @@
-// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
+﻿// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
@@ -39,11 +39,11 @@ public static class Ebr
     }
 
     /// <summary>
-    /// Walk the EBR chain rooted at <paramref name="extendedStartLba"/> and
+    /// Walk the EBR chain rooted at <paramref name="extendedStartSector"/> and
     /// return one entry per logical partition. <c>StartSector</c> values are
     /// absolute LBAs on <paramref name="device"/>.
     /// </summary>
-    public static List<MbrPartitionEntry> Parse(IBlockDevice device, ulong extendedStartLba)
+    public static List<MbrPartitionEntry> Parse(IBlockDevice device, ulong extendedStartSector)
     {
         List<MbrPartitionEntry> logicals = new();
         if (device == null)
@@ -51,7 +51,7 @@ public static class Ebr
             return logicals;
         }
 
-        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        List<ChainNode> chain = WalkChain(device, extendedStartSector);
         for (int i = 0; i < chain.Count; i++)
         {
             ChainNode node = chain[i];
@@ -73,7 +73,7 @@ public static class Ebr
     /// follows the new EBR (one sector for the EBR, then <paramref name="sectorCount"/> sectors).
     /// </summary>
     /// <param name="device">The disk holding the extended container.</param>
-    /// <param name="extendedStartLba">Absolute LBA where the extended container begins.</param>
+    /// <param name="extendedStartSector">Absolute LBA where the extended container begins.</param>
     /// <param name="extendedSectorCount">Length of the extended container in sectors.</param>
     /// <param name="systemId">Partition type byte to stamp on the new logical.</param>
     /// <param name="sectorCount">Length of the new logical's data area in sectors.</param>
@@ -85,7 +85,7 @@ public static class Ebr
     /// </returns>
     public static bool TryAddLogical(
         IBlockDevice device,
-        ulong extendedStartLba,
+        ulong extendedStartSector,
         ulong extendedSectorCount,
         byte systemId,
         ulong sectorCount,
@@ -108,19 +108,19 @@ public static class Ebr
         // The envelope is caller-supplied on-disk metadata (the MBR's
         // extended entry): clamp it to the device end so a corrupt count
         // can never authorize stamping a logical past the disk.
-        if (extendedStartLba >= device.BlockCount)
+        if (extendedStartSector >= device.BlockCount)
         {
             return false;
         }
-        ulong extendedEnd = extendedSectorCount > device.BlockCount - extendedStartLba
+        ulong extendedEnd = extendedSectorCount > device.BlockCount - extendedStartSector
             ? device.BlockCount
-            : extendedStartLba + extendedSectorCount;
-        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+            : extendedStartSector + extendedSectorCount;
+        List<ChainNode> chain = WalkChain(device, extendedStartSector);
 
         ulong newEbrLba;
         if (chain.Count == 0)
         {
-            newEbrLba = extendedStartLba;
+            newEbrLba = extendedStartSector;
         }
         else
         {
@@ -138,7 +138,7 @@ public static class Ebr
         if (chain.Count > 0)
         {
             ChainNode tail = chain[^1];
-            uint newNextRelative = (uint)(newEbrLba - extendedStartLba);
+            uint newNextRelative = (uint)(newEbrLba - extendedStartSector);
             WriteEbrSector(
                 device,
                 tail.EbrLba,
@@ -156,9 +156,9 @@ public static class Ebr
     /// Remove the <paramref name="logicalIndex"/>-th logical partition from
     /// the chain (0-based, in chain order).
     /// </summary>
-    public static bool RemoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex)
+    public static bool RemoveLogical(IBlockDevice device, ulong extendedStartSector, int logicalIndex)
     {
-        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        List<ChainNode> chain = WalkChain(device, extendedStartSector);
         if (logicalIndex < 0 || logicalIndex >= chain.Count)
         {
             return false;
@@ -169,20 +169,20 @@ public static class Ebr
             if (chain.Count == 1)
             {
                 Span<byte> wipe = new byte[device.BlockSize];
-                device.WriteBlock(extendedStartLba, 1, wipe);
+                device.WriteBlock(extendedStartSector, 1, wipe);
                 return true;
             }
 
-            // Promote node[1] into the fixed first EBR slot at extendedStartLba.
+            // Promote node[1] into the fixed first EBR slot at extendedStartSector.
             // LogicalRelativeStart is relative to the EBR sector holding the
             // entry, so it must be rebased from successor.EbrLba to the first
             // EBR; NextRelative is already extended-relative and stays as-is.
             ChainNode successor = chain[1];
             uint promotedRelativeStart =
-                (uint)(successor.EbrLba + successor.LogicalRelativeStart - extendedStartLba);
+                (uint)(successor.EbrLba + successor.LogicalRelativeStart - extendedStartSector);
             WriteEbrSector(
                 device,
-                extendedStartLba,
+                extendedStartSector,
                 successor.LogicalSystemId,
                 promotedRelativeStart,
                 successor.LogicalSectorCount,
@@ -206,7 +206,7 @@ public static class Ebr
     /// <summary>Rewrite the SectorCount of the <paramref name="logicalIndex"/>-th logical partition.</summary>
     public static bool ResizeLogical(
         IBlockDevice device,
-        ulong extendedStartLba,
+        ulong extendedStartSector,
         int logicalIndex,
         ulong newSectorCount)
     {
@@ -215,7 +215,7 @@ public static class Ebr
             return false;
         }
 
-        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        List<ChainNode> chain = WalkChain(device, extendedStartSector);
         if (logicalIndex < 0 || logicalIndex >= chain.Count)
         {
             return false;
@@ -225,7 +225,7 @@ public static class Ebr
         ulong absoluteEnd = node.EbrLba + node.LogicalRelativeStart + newSectorCount;
         ulong upperBound = logicalIndex + 1 < chain.Count
             ? chain[logicalIndex + 1].EbrLba
-            : extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+            : extendedStartSector + ResolveExtendedCount(device, extendedStartSector);
         if (absoluteEnd > upperBound)
         {
             return false;
@@ -242,41 +242,42 @@ public static class Ebr
     }
 
     /// <summary>
-    /// Rewrite the start LBA of the <paramref name="logicalIndex"/>-th logical
-    /// partition. The hosting EBR sector stays put; only the relative offset
-    /// inside the EBR changes. Caller is responsible for making sure data
+    /// Rewrite the start of the <paramref name="logicalIndex"/>-th logical
+    /// partition so its data begins at the absolute host LBA
+    /// <paramref name="newStartSector"/>. The hosting EBR sector stays put;
+    /// only the relative offset inside the EBR changes. Caller is responsible for making sure data
     /// at the new range is what's expected (use
     /// <see cref="PartitionManager.MoveWithData"/> for a data-copying move).
     /// </summary>
     public static bool MoveLogical(
         IBlockDevice device,
-        ulong extendedStartLba,
+        ulong extendedStartSector,
         int logicalIndex,
-        ulong newAbsoluteStart)
+        ulong newStartSector)
     {
-        List<ChainNode> chain = WalkChain(device, extendedStartLba);
+        List<ChainNode> chain = WalkChain(device, extendedStartSector);
         if (logicalIndex < 0 || logicalIndex >= chain.Count)
         {
             return false;
         }
 
         ChainNode node = chain[logicalIndex];
-        if (newAbsoluteStart <= node.EbrLba)
+        if (newStartSector <= node.EbrLba)
         {
             return false;
         }
 
-        ulong newRelative = newAbsoluteStart - node.EbrLba;
+        ulong newRelative = newStartSector - node.EbrLba;
         if (newRelative > uint.MaxValue)
         {
             return false;
         }
 
-        ulong newAbsoluteEnd = newAbsoluteStart + node.LogicalSectorCount;
+        ulong newEndSector = newStartSector + node.LogicalSectorCount;
         ulong upperBound = logicalIndex + 1 < chain.Count
             ? chain[logicalIndex + 1].EbrLba
-            : extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
-        if (newAbsoluteEnd > upperBound)
+            : extendedStartSector + ResolveExtendedCount(device, extendedStartSector);
+        if (newEndSector > upperBound)
         {
             return false;
         }
@@ -291,7 +292,7 @@ public static class Ebr
         return true;
     }
 
-    private static List<ChainNode> WalkChain(IBlockDevice device, ulong extendedStartLba)
+    private static List<ChainNode> WalkChain(IBlockDevice device, ulong extendedStartSector)
     {
         List<ChainNode> nodes = new();
         if (device == null)
@@ -306,13 +307,13 @@ public static class Ebr
         // that read throws (AHCI surfaces a fatal command abort), and a
         // stray 0x55AA sector inside the disk (e.g. a FAT VBR) would parse
         // as garbage logicals.
-        ulong envelopeEnd = extendedStartLba + ResolveExtendedCount(device, extendedStartLba);
+        ulong envelopeEnd = extendedStartSector + ResolveExtendedCount(device, extendedStartSector);
         if (envelopeEnd > device.BlockCount)
         {
             envelopeEnd = device.BlockCount;
         }
 
-        ulong currentEbrLba = extendedStartLba;
+        ulong currentEbrLba = extendedStartSector;
         int hops = 0;
 
         // ReadBlock fully overwrites the buffer each hop, so one
@@ -363,7 +364,7 @@ public static class Ebr
                 break;
             }
 
-            currentEbrLba = extendedStartLba + nextRelative;
+            currentEbrLba = extendedStartSector + nextRelative;
             hops++;
         }
 
@@ -395,7 +396,7 @@ public static class Ebr
         device.WriteBlock(ebrLba, 1, sector);
     }
 
-    private static ulong ResolveExtendedCount(IBlockDevice device, ulong extendedStartLba)
+    private static ulong ResolveExtendedCount(IBlockDevice device, ulong extendedStartSector)
     {
         // The MBR extended entry is on-disk metadata: clamp its claimed
         // count to the device end. When the lookup cannot confirm the
@@ -403,10 +404,10 @@ public static class Ebr
         // mutators grow a logical into whatever follows the extended
         // partition.
         if (Mbr.TryGetExtendedPartition(device, out ulong start, out ulong count)
-            && start == extendedStartLba
-            && extendedStartLba < device.BlockCount)
+            && start == extendedStartSector
+            && extendedStartSector < device.BlockCount)
         {
-            ulong maxCount = device.BlockCount - extendedStartLba;
+            ulong maxCount = device.BlockCount - extendedStartSector;
             return count > maxCount ? maxCount : count;
         }
         return 0;

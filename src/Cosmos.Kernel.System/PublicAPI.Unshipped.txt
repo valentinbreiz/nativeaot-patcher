@@ -647,11 +647,11 @@ static Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP() -> void
 static Cosmos.Kernel.System.Power.Halt() -> void
 static Cosmos.Kernel.System.Power.Reboot() -> void
 static Cosmos.Kernel.System.Power.Shutdown() -> void
-static Cosmos.Kernel.System.Storage.Ebr.MoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex, ulong newAbsoluteStart) -> bool
-static Cosmos.Kernel.System.Storage.Ebr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba) -> System.Collections.Generic.List<Cosmos.Kernel.System.Storage.MbrPartitionEntry!>!
-static Cosmos.Kernel.System.Storage.Ebr.RemoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex) -> bool
-static Cosmos.Kernel.System.Storage.Ebr.ResizeLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex, ulong newSectorCount) -> bool
-static Cosmos.Kernel.System.Storage.Ebr.TryAddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, ulong extendedSectorCount, byte systemId, ulong sectorCount, out ulong startSector) -> bool
+static Cosmos.Kernel.System.Storage.Ebr.MoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartSector, int logicalIndex, ulong newStartSector) -> bool
+static Cosmos.Kernel.System.Storage.Ebr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartSector) -> System.Collections.Generic.List<Cosmos.Kernel.System.Storage.MbrPartitionEntry!>!
+static Cosmos.Kernel.System.Storage.Ebr.RemoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartSector, int logicalIndex) -> bool
+static Cosmos.Kernel.System.Storage.Ebr.ResizeLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartSector, int logicalIndex, ulong newSectorCount) -> bool
+static Cosmos.Kernel.System.Storage.Ebr.TryAddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartSector, ulong extendedSectorCount, byte systemId, ulong sectorCount, out ulong startSector) -> bool
 static Cosmos.Kernel.System.Storage.Gpt.AddPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong startSector, ulong sectorCount, System.Guid partitionType) -> bool
 static Cosmos.Kernel.System.Storage.Gpt.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> void
 static Cosmos.Kernel.System.Storage.Gpt.IsGpt(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> bool

@@ -446,9 +446,9 @@ public static class PartitionManager
         return -1;
     }
 
-    private static bool TryFindLogical(IBlockDevice device, PartitionLocation location, out ulong extendedStartLba, out int logicalIndex)
+    private static bool TryFindLogical(IBlockDevice device, PartitionLocation location, out ulong extendedStartSector, out int logicalIndex)
     {
-        extendedStartLba = 0;
+        extendedStartSector = 0;
         logicalIndex = -1;
 
         if (!Mbr.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
@@ -465,7 +465,7 @@ public static class PartitionManager
         {
             if (logicals[i].StartSector == location.StartSector && logicals[i].SectorCount == location.SectorCount)
             {
-                extendedStartLba = extStart;
+                extendedStartSector = extStart;
                 logicalIndex = i;
                 return true;
             }
