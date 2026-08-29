@@ -1,4 +1,4 @@
-using Cosmos.Kernel.Core.IO;
+﻿using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Network.IPv4;
 
@@ -95,19 +95,19 @@ public class IPConfig
         {
             IPConfig ipConfig = entry.Config;
 
-            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
+            if ((ipConfig.Address.Id & ipConfig.SubnetMask.Id) ==
                 (destination.Id & ipConfig.SubnetMask.Id))
             {
-                return ipConfig.IPAddress;
+                return ipConfig.Address;
             }
             if (defaultGw == null && ipConfig.DefaultGateway.CompareTo(Address.Zero) != 0)
             {
-                defaultGw = ipConfig.IPAddress;
+                defaultGw = ipConfig.Address;
             }
 
             if (!IsLocalAddress(destination))
             {
-                return ipConfig.IPAddress;
+                return ipConfig.Address;
             }
         }
 
@@ -181,7 +181,7 @@ public class IPConfig
         {
             IPConfig ipConfig = s_configs[c].Config;
 
-            if ((ipConfig.IPAddress.Id & ipConfig.SubnetMask.Id) ==
+            if ((ipConfig.Address.Id & ipConfig.SubnetMask.Id) ==
                 (destIP.Id & ipConfig.SubnetMask.Id))
             {
                 return true;
@@ -222,20 +222,20 @@ public class IPConfig
     /// <see cref="Enable(Address, Address, Address)"/>; it never supplies the
     /// object itself, and the only caller is this class's own Enable.
     /// </summary>
-    /// <param name="address">The IP address.</param>
+    /// <param name="address">The IPv4 address to assign.</param>
     /// <param name="subnetMask">The subnet mask.</param>
     /// <param name="defaultGateway">The default gateway.</param>
     internal IPConfig(Address address, Address subnetMask, Address defaultGateway)
     {
-        IPAddress = address;
+        Address = address;
         SubnetMask = subnetMask;
         DefaultGateway = defaultGateway;
     }
 
     /// <summary>
-    /// The IP address.
+    /// The IPv4 address assigned to the device this configuration belongs to.
     /// </summary>
-    public Address IPAddress { get; }
+    public Address Address { get; }
 
     /// <summary>
     /// The subnet mask.

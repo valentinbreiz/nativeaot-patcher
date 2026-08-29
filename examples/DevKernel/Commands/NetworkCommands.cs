@@ -295,10 +295,10 @@ internal static class NetworkCommands
             return;
         }
 
-        session.AdoptLease(netConfig.IPAddress, netConfig.DefaultGateway);
+        session.AdoptLease(netConfig.Address, netConfig.DefaultGateway);
 
         Terminal.Success("DHCP configuration successful!");
-        Terminal.InfoLine("IP Address", netConfig.IPAddress.ToString());
+        Terminal.InfoLine("IP Address", netConfig.Address.ToString());
         Terminal.InfoLine("Subnet", netConfig.SubnetMask.ToString());
         Terminal.InfoLine("Gateway", netConfig.DefaultGateway.ToString());
         Console.WriteLine();

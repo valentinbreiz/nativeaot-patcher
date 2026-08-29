@@ -380,8 +380,8 @@ Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.USStandardLayout() -> vo
 Cosmos.Kernel.System.Mouse.MouseManager
 Cosmos.Kernel.System.Network.Config.DnsConfig
 Cosmos.Kernel.System.Network.Config.IPConfig
+Cosmos.Kernel.System.Network.Config.IPConfig.Address.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.Config.IPConfig.DefaultGateway.get -> Cosmos.Kernel.System.Network.IPv4.Address!
-Cosmos.Kernel.System.Network.Config.IPConfig.IPAddress.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.Config.IPConfig.SubnetMask.get -> Cosmos.Kernel.System.Network.IPv4.Address!
 Cosmos.Kernel.System.Network.IPv4.Address
 Cosmos.Kernel.System.Network.IPv4.Address.Address(byte first, byte second, byte third, byte fourth) -> void

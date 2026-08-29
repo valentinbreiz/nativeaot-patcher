@@ -72,7 +72,7 @@ public static class NetworkStack
     /// </remarks>
     internal static void ConfigIP(INetworkDevice device, IPConfig config)
     {
-        ConfigIP(device, config.IPAddress);
+        ConfigIP(device, config.Address);
         IPConfig.Set(device, config);
     }
 

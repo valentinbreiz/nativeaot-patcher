@@ -102,7 +102,7 @@ if (dhcpClient.SendDiscoverPacket() != -1)
     IPConfig? config = NetworkManager.Primary.IPConfig;
     if (config != null)
     {
-        Console.WriteLine("IP address: " + config.IPAddress.ToString());
+        Console.WriteLine("IP address: " + config.Address.ToString());
         Console.WriteLine("Subnet:     " + config.SubnetMask.ToString());
         Console.WriteLine("Gateway:    " + config.DefaultGateway.ToString());
     }
@@ -150,7 +150,7 @@ DHCP needs no handle: `SendDiscoverPacket` runs the exchange on every registered
 Each adapter carries the configuration in force on it, or `null` while it is unconfigured:
 
 ```csharp
-Console.WriteLine(NetworkManager.Primary.IPConfig?.IPAddress.ToString());
+Console.WriteLine(NetworkManager.Primary.IPConfig?.Address.ToString());
 Console.WriteLine(NetworkManager.GetAdapter(1).IPConfig?.SubnetMask.ToString());
 ```
 
@@ -310,7 +310,7 @@ if (config == null)
     return;
 }
 
-Address localIp = config.IPAddress;
+Address localIp = config.Address;
 Address gateway = config.DefaultGateway;
 
 IcmpClient icmp = new IcmpClient();

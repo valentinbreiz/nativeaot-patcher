@@ -715,7 +715,7 @@ if (device?.BlockSize is not > 0)
     return;
 }
 
-Address ip = config?.IPAddress ?? defaultAddress;
+Address ip = config?.Address ?? defaultAddress;
 
 // Collection expressions
 public IKeyboardDevice[] GetKeyboardDevices() => [new PS2Keyboard()];

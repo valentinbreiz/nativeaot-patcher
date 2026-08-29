@@ -178,7 +178,7 @@ public class Kernel : Sys.Kernel
             return;
         }
 
-        _localIP = netConfig.IPAddress;
+        _localIP = netConfig.Address;
         _gatewayIP = netConfig.DefaultGateway;
         _networkConfigured = true;
 
