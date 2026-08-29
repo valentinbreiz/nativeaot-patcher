@@ -39,7 +39,7 @@ flowchart LR;
 | **Cosmos.Kernel.Native.MultiArch** | Cross-platform native C code (ACPI, libc stubs). |
 | **Cosmos.Kernel.Plugs** | IL-level method replacements for BCL types (`Console`, `Thread`, `Environment`, etc.). |
 | **Cosmos.Kernel.Boot.Limine** | Limine bootloader protocol integration. |
-| **Cosmos.Kernel** | Base `Kernel` version info and shared kernel constants. |
+| **Cosmos.Kernel** | The aggregator every kernel references. Pulls in Boot.Limine, Core, HAL, HAL.Interfaces, Plugs and System, ships the `kmain` bootstrap C sources, and holds the library initializer that wires up the CPU exception handlers and the scheduler. No public types. |
 
 ## Build System Projects
 
