@@ -37,8 +37,7 @@ public static class StorageManager
     }
 
     private static IBlockDevice? s_primaryDevice;
-    private static IBlockDevice?[]? s_devices;
-    private static int s_deviceCount;
+    private static List<IBlockDevice>? s_devices;
     private static List<Partition>? s_partitions;
 
     /// <summary>
@@ -55,7 +54,13 @@ public static class StorageManager
     /// <summary>
     /// Gets the number of registered block devices.
     /// </summary>
-    public static int DeviceCount => s_deviceCount;
+    public static int DeviceCount => s_devices?.Count ?? 0;
+
+    /// <summary>
+    /// Every registered block device, in registration order. Empty before
+    /// initialization and when storage support is compiled out.
+    /// </summary>
+    public static IReadOnlyList<IBlockDevice> Devices => (IReadOnlyList<IBlockDevice>?)s_devices ?? Array.Empty<IBlockDevice>();
 
     /// <summary>
     /// Partitions discovered across every registered device. Each entry is
@@ -64,6 +69,32 @@ public static class StorageManager
     /// whether the host disk is GPT-, MBR-, or unpartitioned.
     /// </summary>
     public static IReadOnlyList<Partition> Partitions => (IReadOnlyList<Partition>?)s_partitions ?? Array.Empty<Partition>();
+
+    /// <summary>
+    /// The partitions discovered on one device, in on-disk order, so a kernel
+    /// can number them per disk the way a user does. A partition's position in
+    /// this list is its index on <paramref name="device"/>. Empty when the
+    /// device has no partition table or is not registered.
+    /// </summary>
+    /// <param name="device">The device to list the partitions of.</param>
+    public static IReadOnlyList<Partition> GetPartitions(IBlockDevice device)
+    {
+        if (s_partitions == null || device == null)
+        {
+            return Array.Empty<Partition>();
+        }
+
+        List<Partition> onDevice = new();
+        for (int i = 0; i < s_partitions.Count; i++)
+        {
+            if (ReferenceEquals(s_partitions[i].Host, device))
+            {
+                onDevice.Add(s_partitions[i]);
+            }
+        }
+
+        return onDevice;
+    }
 
     /// <summary>
     /// Initializes the storage manager. Called once during boot, before the
@@ -78,9 +109,8 @@ public static class StorageManager
             return;
         }
 
-        s_deviceCount = 0;
         s_partitions = new List<Partition>();
-        s_devices = new IBlockDevice[MaxDevices];
+        s_devices = new List<IBlockDevice>(MaxDevices);
     }
 
     /// <summary>
@@ -121,7 +151,7 @@ public static class StorageManager
     {
         ThrowIfDisabled();
 
-        if (device == null || s_devices == null || s_deviceCount >= s_devices.Length)
+        if (device == null || s_devices == null || s_devices.Count >= MaxDevices)
         {
             return;
         }
@@ -136,7 +166,7 @@ public static class StorageManager
         s_mutationLock.Acquire();
         try
         {
-            for (int i = 0; i < s_deviceCount; i++)
+            for (int i = 0; i < s_devices.Count; i++)
             {
                 if (ReferenceEquals(s_devices[i], device))
                 {
@@ -144,7 +174,7 @@ public static class StorageManager
                 }
             }
 
-            s_devices[s_deviceCount++] = device;
+            s_devices.Add(device);
 
             // First device becomes primary
             if (s_primaryDevice == null)
@@ -294,7 +324,7 @@ public static class StorageManager
     /// storage support is disabled.</returns>
     public static IBlockDevice? GetDevice(int index)
     {
-        if (s_devices == null || index < 0 || index >= s_deviceCount)
+        if (s_devices == null || index < 0 || index >= s_devices.Count)
         {
             return null;
         }

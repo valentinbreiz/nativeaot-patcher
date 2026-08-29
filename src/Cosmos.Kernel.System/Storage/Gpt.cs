@@ -423,14 +423,14 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Mark the <paramref name="partitionIndex"/>-th non-empty entry as
+    /// Mark the <paramref name="index"/>-th non-empty entry as
     /// deleted by zeroing the whole entry — UEFI expects unused entries
     /// fully zeroed, and a stale UTF-16 name would resurface when
     /// <see cref="AddPartition"/> reuses the slot without rewriting it.
     /// </summary>
-    public static bool RemovePartition(IBlockDevice device, int partitionIndex)
+    public static bool RemovePartition(IBlockDevice device, int index)
     {
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             entry.Clear();
             return true;
@@ -438,19 +438,19 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Rewrite the end LBA of <paramref name="partitionIndex"/> so the
+    /// Rewrite the end LBA of <paramref name="index"/> so the
     /// partition spans <paramref name="newSectorCount"/> sectors. Start LBA /
     /// type / partition GUID preserved. Table-level only — does not adjust
     /// the filesystem inside.
     /// </summary>
-    public static bool ResizePartition(IBlockDevice device, int partitionIndex, ulong newSectorCount)
+    public static bool ResizePartition(IBlockDevice device, int index, ulong newSectorCount)
     {
         if (newSectorCount == 0)
         {
             return false;
         }
 
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             ulong startLba = BitConverter.ToUInt64(entry.Slice(EntryFirstLbaOffset, UInt64FieldSize));
             // Same write-time rejection as AddPartition: never stamp a
@@ -465,13 +465,13 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Rewrite the start and end LBAs of <paramref name="partitionIndex"/> so
+    /// Rewrite the start and end LBAs of <paramref name="index"/> so
     /// the partition lives at <paramref name="newStartSector"/> with the same
     /// length. Table-level only — does not relocate data.
     /// </summary>
-    public static bool MovePartition(IBlockDevice device, int partitionIndex, ulong newStartSector)
+    public static bool MovePartition(IBlockDevice device, int index, ulong newStartSector)
     {
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             ulong startLba = BitConverter.ToUInt64(entry.Slice(EntryFirstLbaOffset, UInt64FieldSize));
             ulong endLba = BitConverter.ToUInt64(entry.Slice(EntryLastLbaOffset, UInt64FieldSize));
@@ -497,7 +497,7 @@ public static class Gpt
     private delegate bool EntryMutator(Span<byte> entry);
 
     /// <summary>
-    /// Locate the <paramref name="partitionIndex"/>-th non-empty entry in the
+    /// Locate the <paramref name="index"/>-th non-empty entry in the
     /// partition entry array, apply <paramref name="mutator"/> to it, and
     /// write the containing sector back. Returns false when the header is
     /// missing/corrupt, the index does not resolve to a used slot, or the
@@ -505,9 +505,9 @@ public static class Gpt
     /// as <see cref="Parse"/> — CRCs are 0, so every field is range-checked
     /// before it drives I/O.
     /// </summary>
-    private static bool MutateEntry(IBlockDevice device, int partitionIndex, EntryMutator mutator)
+    private static bool MutateEntry(IBlockDevice device, int index, EntryMutator mutator)
     {
-        if (partitionIndex < 0 || device.BlockCount < MinGptBlockCount)
+        if (index < 0 || device.BlockCount < MinGptBlockCount)
         {
             return false;
         }
@@ -560,7 +560,7 @@ public static class Gpt
                 }
 
                 // Skip entries with exactly Parse's validity criteria so
-                // partitionIndex stays aligned with Parse's output — one
+                // index stays aligned with Parse's output — one
                 // corrupt entry ahead of the target would otherwise shift
                 // every later index onto a different, healthy partition.
                 // This also guarantees mutators only see validated LBAs
@@ -575,7 +575,7 @@ public static class Gpt
                     continue;
                 }
 
-                if (seen == partitionIndex)
+                if (seen == index)
                 {
                     if (!mutator(sector.Slice(offset, (int)entrySize)))
                     {

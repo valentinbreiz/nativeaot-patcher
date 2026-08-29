@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Vfs;
+using Cosmos.Kernel.System.Storage;
 
 namespace Cosmos.Kernel.System.Vfs;
 
@@ -44,13 +45,15 @@ public static partial class VfsManager
         /// <param name="mountPoint">The absolute path the filesystem is mounted at.</param>
         /// <param name="filesystemType">The filesystem driver.</param>
         /// <param name="superblock">The mounted filesystem instance.</param>
-        public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)
+        /// <param name="partition">The partition mounted, when the mount named one.</param>
+        internal VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock, Partition? partition)
         {
             Name = name;
             Source = source;
             MountPoint = mountPoint;
             FilesystemType = filesystemType;
             Superblock = superblock;
+            Partition = partition;
         }
 
         /// <summary>Registered driver name (e.g. "fat").</summary>
@@ -63,10 +66,22 @@ public static partial class VfsManager
         public string MountPoint { get; }
 
         /// <summary>The filesystem driver that produced this mount.</summary>
-        public IVfsFilesystemType FilesystemType { get; }
+        internal IVfsFilesystemType FilesystemType { get; }
 
         /// <summary>The mounted filesystem instance.</summary>
         public IVfsSuperblock Superblock { get; }
+
+        /// <summary>
+        /// The partition this mount was given, or <see langword="null"/> when it
+        /// was mounted from a driver-specific source string instead.
+        /// </summary>
+        /// <remarks>
+        /// Prefer this over parsing <see cref="Source"/> back into an index: a
+        /// rescan renumbers <c>StorageManager.Partitions</c>, so the recorded
+        /// index can come to name a different partition, while this keeps
+        /// naming the same range on the same disk.
+        /// </remarks>
+        public Partition? Partition { get; }
     }
 
     private static readonly Dictionary<string, IVfsFilesystemType> s_registeredTypes = new(StringComparer.Ordinal);
@@ -98,6 +113,39 @@ public static partial class VfsManager
     /// <returns><c>true</c> on success, <c>false</c> if driver is missing or mount fails.</returns>
     public static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, [NotNullWhen(true)] out VfsMount? mount)
     {
+        return TryMount(name, source, flags, mountPoint, null, out mount);
+    }
+
+    /// <summary>
+    /// Mount a registered filesystem driver on <paramref name="partition"/>.
+    /// </summary>
+    /// <param name="name">Registered filesystem name.</param>
+    /// <param name="partition">The partition to mount, from <see cref="StorageManager.Partitions"/>.</param>
+    /// <param name="flags">Mount flags.</param>
+    /// <param name="mountPoint">Mount point (normalized to leading /, no trailing /).</param>
+    /// <param name="mount">Resulting mount data.</param>
+    /// <returns><c>true</c> on success, <c>false</c> if the driver is missing, the partition is not registered, or the mount fails.</returns>
+    /// <remarks>
+    /// The driver still receives the index as its source string, because
+    /// <see cref="IVfsFilesystemType"/> lives in the HAL and cannot name a
+    /// <see cref="Partition"/>. Resolving it here rather than at the call site
+    /// is what closes the window in which a rescan renumbers the list.
+    /// </remarks>
+    public static bool TryMount(string name, Partition partition, MountFlags flags, string mountPoint, [NotNullWhen(true)] out VfsMount? mount)
+    {
+        mount = null;
+
+        int index = IndexOfPartition(partition);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        return TryMount(name, index.ToString(), flags, mountPoint, partition, out mount);
+    }
+
+    private static bool TryMount(string name, ReadOnlySpan<char> source, MountFlags flags, string mountPoint, Partition? partition, [NotNullWhen(true)] out VfsMount? mount)
+    {
         mount = null;
 
         if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
@@ -111,10 +159,29 @@ public static partial class VfsManager
         }
 
         string normalizedMountPoint = NormalizeMountPoint(mountPoint);
-        mount = new VfsMount(name, source.ToString(), normalizedMountPoint, filesystemType, superblock);
+        mount = new VfsMount(name, source.ToString(), normalizedMountPoint, filesystemType, superblock, partition);
         s_mounts.Add(mount);
 
         return true;
+    }
+
+    /// <summary>
+    /// The position of <paramref name="partition"/> in
+    /// <see cref="StorageManager.Partitions"/>, or -1 when it is not
+    /// registered. That position is the source string the drivers parse.
+    /// </summary>
+    private static int IndexOfPartition(Partition partition)
+    {
+        IReadOnlyList<Partition> partitions = StorageManager.Partitions;
+        for (int i = 0; i < partitions.Count; i++)
+        {
+            if (ReferenceEquals(partitions[i], partition))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>
@@ -133,6 +200,20 @@ public static partial class VfsManager
             return false;
         }
         return filesystemType.TryFormat(source, options);
+    }
+
+    /// <summary>
+    /// Format <paramref name="partition"/> with a registered driver. Refused
+    /// while the partition is mounted.
+    /// </summary>
+    /// <param name="name">Registered filesystem name.</param>
+    /// <param name="partition">The partition to format, from <see cref="StorageManager.Partitions"/>.</param>
+    /// <param name="options">Driver-specific format options, or null for its defaults.</param>
+    /// <returns><c>true</c> on success, <c>false</c> if the driver is missing, the partition is not registered or mounted, or the format fails.</returns>
+    public static bool TryFormat(string name, Partition partition, IVfsFormatOptions? options)
+    {
+        int index = IndexOfPartition(partition);
+        return index >= 0 && TryFormat(name, index.ToString(), options);
     }
 
     /// <summary>
@@ -211,6 +292,27 @@ public static partial class VfsManager
 
         mount = null;
         return false;
+    }
+
+    /// <summary>
+    /// Read the filesystem-level statistics of the mount at
+    /// <paramref name="mountPoint"/>: total, free and available blocks, the
+    /// block size they are counted in, and the inode counts when the driver
+    /// tracks them. Multiply <see cref="VfsStatFs.Bavail"/> by
+    /// <see cref="VfsStatFs.BlockSize"/> for the free space a kernel can use.
+    /// </summary>
+    /// <param name="mountPoint">The mount point to query.</param>
+    /// <param name="stats">The statistics when the call succeeds.</param>
+    /// <returns><see langword="true"/> when the mount exists and its driver produced the statistics.</returns>
+    public static bool TryStatFs(string mountPoint, out VfsStatFs stats)
+    {
+        if (!TryGetMount(mountPoint, out VfsMount? mount))
+        {
+            stats = default;
+            return false;
+        }
+
+        return mount.Superblock.SuperOperations.StatFs(mount.Superblock, out stats);
     }
 
     /// <summary>
@@ -367,7 +469,7 @@ public static partial class VfsManager
     /// trailing /) covers <paramref name="path"/> on a path-segment boundary
     /// — "/mnt" covers "/mnt" and "/mnt/x" but not "/mntx".
     /// </summary>
-    public static bool MountCovers(string mountPoint, string path)
+    internal static bool MountCovers(string mountPoint, string path)
     {
         if (mountPoint == s_directorySeparatorString)
         {

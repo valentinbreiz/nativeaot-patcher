@@ -32,7 +32,7 @@ public interface IInodeOperations
     /// <param name="mode">Permission bits for the new inode.</param>
     /// <param name="inode">Created inode on success; null on failure.</param>
     /// <returns>true on success; false when the name already exists or allocation fails.</returns>
-    bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);
+    bool Create(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode);
 
     /// <summary>
     /// Create an empty subdirectory in a directory.
@@ -42,7 +42,7 @@ public interface IInodeOperations
     /// <param name="mode">Permission bits for the new inode.</param>
     /// <param name="inode">Created inode on success; null on failure.</param>
     /// <returns>true on success; false when the name already exists or allocation fails.</returns>
-    bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode);
+    bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode);
 
     /// <summary>
     /// Create a symbolic link pointing at <paramref name="target"/>.

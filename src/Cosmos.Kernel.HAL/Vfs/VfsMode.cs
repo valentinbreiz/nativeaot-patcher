@@ -23,7 +23,7 @@ namespace Cosmos.Kernel.HAL.Vfs;
 /// </para>
 /// </remarks>
 [Flags]
-public enum ModeEnum
+public enum VfsMode
 {
     /// <summary>Execute permission for others.</summary>
     OtherExecute = 1 << 0,

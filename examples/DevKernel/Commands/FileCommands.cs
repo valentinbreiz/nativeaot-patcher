@@ -29,10 +29,10 @@ internal static class FileCommands
     /// Not const: a const field typed as an enum from another assembly forces Mono.Cecil to
     /// resolve that assembly when the patcher rewrites this one, which it cannot do.
     /// </summary>
-    private static readonly ModeEnum s_newFileMode = ModeEnum.RegularFile | ModeEnum.OwnerRead | ModeEnum.OwnerWrite;
+    private static readonly VfsMode s_newFileMode = VfsMode.RegularFile | VfsMode.OwnerRead | VfsMode.OwnerWrite;
 
     /// <summary>Mode bits of a directory the shell creates: owner readable, writable and traversable.</summary>
-    private static readonly ModeEnum s_newDirectoryMode = ModeEnum.Directory | ModeEnum.OwnerRead | ModeEnum.OwnerWrite | ModeEnum.OwnerExecute;
+    private static readonly VfsMode s_newDirectoryMode = VfsMode.Directory | VfsMode.OwnerRead | VfsMode.OwnerWrite | VfsMode.OwnerExecute;
 
     /// <summary>Substitute drawn for a byte that would not render on the console.</summary>
     private const char UnprintableGlyph = '.';
@@ -203,7 +203,7 @@ internal static class FileCommands
     private static void PrintDirectoryEntry(IVfsInode entry)
     {
         VfsStat stat = default;
-        bool haveStat = entry.InodeOperations != null && entry.InodeOperations.GetAttr(entry, out stat);
+        bool haveStat = entry.InodeOperations.GetAttr(entry, out stat);
         bool isDirectory = haveStat && stat.IsDirectory;
 
         Console.Write("  ");
@@ -386,7 +386,7 @@ internal static class FileCommands
             }
 
             long written = file.Write(bytes);
-            file.Flush();
+            file.TryFlush();
             Terminal.Success("Wrote " + written + " bytes to " + fullPath);
         }
         finally
@@ -402,8 +402,8 @@ internal static class FileCommands
     private static bool Truncate(IVfsFileHandle file)
     {
         VfsStat zeroSize = default;
-        zeroSize.Mode = ModeEnum.RegularFile;
+        zeroSize.Mode = VfsMode.RegularFile;
         zeroSize.Size = TruncatedSize;
-        return file.Inode.InodeOperations.SetAttr(file.Inode, SetAttrFlags.Size, zeroSize);
+        return file.TrySetAttr(SetAttrFlags.Size, zeroSize);
     }
 }

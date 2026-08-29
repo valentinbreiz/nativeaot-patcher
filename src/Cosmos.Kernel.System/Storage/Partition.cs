@@ -38,7 +38,12 @@ public sealed class Partition : IBlockDevice
     /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
     /// <param name="sectorCount">Length of the partition in sectors.</param>
     /// <param name="index">Zero-based partition index on the host disk.</param>
-    public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)
+    /// <remarks>
+    /// Internal: the index is the scanner's own numbering, so the only caller
+    /// is <see cref="StorageManager"/> walking a partition table. A kernel that
+    /// builds a partition view by hand names it instead.
+    /// </remarks>
+    internal Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)
         : this(host, startSector, sectorCount, BlockDevice.BuildDeviceName(host.Name, "p", index))
     {
     }

@@ -328,7 +328,7 @@ internal static unsafe class FileDescriptorTable
             return PalError.EBADF;
         }
 
-        return file.Handle.Flush() ? PalError.SUCCESS : PalError.EIO;
+        return file.Handle.TryFlush() ? PalError.SUCCESS : PalError.EIO;
     }
 
     internal static PalError Truncate(int fd, long length)
@@ -851,13 +851,13 @@ internal static unsafe class FileDescriptorTable
         }
 
         VfsStat attributes = default;
-        attributes.Mode = PermissionBits(mode) | (current.Mode & ModeEnum.FileTypeMask);
+        attributes.Mode = PermissionBits(mode) | (current.Mode & VfsMode.FileTypeMask);
         return inode.InodeOperations.SetAttr(inode, SetAttrFlags.Mode, in attributes)
             ? PalError.SUCCESS
             : PalError.EPERM;
     }
 
-    private static ModeEnum PermissionBits(int mode) => (ModeEnum)mode & ModeEnum.PermissionMask;
+    private static VfsMode PermissionBits(int mode) => (VfsMode)mode & VfsMode.PermissionMask;
 
     private static void FillStatus(string fullPath, in VfsStat stat, out PalSys.FileStatus status)
     {

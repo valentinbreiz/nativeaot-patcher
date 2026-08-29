@@ -108,7 +108,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         return true;
     }
 
-    public bool Create(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode)
+    public bool Create(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode)
     {
         inode = null;
         if (dir is not FatInode parent || !parent.IsDirectory)
@@ -133,7 +133,7 @@ internal sealed class FatInodeOperations : IInodeOperations
         return true;
     }
 
-    public bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, ModeEnum mode, out IVfsInode? inode)
+    public bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode)
     {
         inode = null;
         if (dir is not FatInode parent || !parent.IsDirectory)

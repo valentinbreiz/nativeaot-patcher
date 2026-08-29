@@ -32,7 +32,7 @@ public interface IVfsDirectoryHandle : IVfsNodeHandle
     /// <param name="mode">The mode bits of the new file.</param>
     /// <param name="child">A handle on the created file.</param>
     /// <returns><see langword="true"/> when the file was created.</returns>
-    bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsNodeHandle? child);
+    bool TryCreateFile(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsNodeHandle? child);
 
     /// <summary>
     /// Creates a subdirectory in this directory.
@@ -41,7 +41,7 @@ public interface IVfsDirectoryHandle : IVfsNodeHandle
     /// <param name="mode">The mode bits of the new directory.</param>
     /// <param name="child">A handle on the created directory.</param>
     /// <returns><see langword="true"/> when the directory was created.</returns>
-    bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child);
+    bool TryCreateDirectory(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child);
 
     /// <summary>
     /// Creates a symbolic link in this directory.
@@ -123,7 +123,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateFile(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsNodeHandle? child)
+    public bool TryCreateFile(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
         if (!Inode.InodeOperations.Create(Inode, name, mode, out IVfsInode? created) || created == null)
         {
@@ -135,7 +135,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
         return child != null;
     }
 
-    public bool TryCreateDirectory(ReadOnlySpan<char> name, ModeEnum mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child)
+    public bool TryCreateDirectory(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child)
     {
         if (!Inode.InodeOperations.Mkdir(Inode, name, mode, out IVfsInode? created) || created == null)
         {

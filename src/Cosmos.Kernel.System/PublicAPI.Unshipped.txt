@@ -472,7 +472,6 @@ Cosmos.Kernel.System.Storage.Partition.ReadBlock(ulong blockNo, ulong blockCount
 Cosmos.Kernel.System.Storage.Partition.WriteBlock(ulong blockNo, ulong blockCount, System.ReadOnlySpan<byte> data) -> void
 Cosmos.Kernel.System.Storage.Partition.Host.get -> Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice!
 Cosmos.Kernel.System.Storage.Partition.Partition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! host, ulong startSector, ulong sectorCount, string! name) -> void
-Cosmos.Kernel.System.Storage.Partition.Partition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! host, ulong startSector, ulong sectorCount, uint index) -> void
 Cosmos.Kernel.System.Storage.Partition.StartSector.get -> ulong
 Cosmos.Kernel.System.Storage.PartitionManager
 Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation
@@ -484,8 +483,8 @@ Cosmos.Kernel.System.Storage.StorageManager
 Cosmos.Kernel.System.Timer.AlarmManager
 Cosmos.Kernel.System.Timer.TimerManager
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle
-Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan<char> name, Cosmos.Kernel.HAL.Vfs.ModeEnum mode, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle? child) -> bool
-Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan<char> name, Cosmos.Kernel.HAL.Vfs.ModeEnum mode, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle? child) -> bool
+Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan<char> name, Cosmos.Kernel.HAL.Vfs.VfsMode mode, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle? child) -> bool
+Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan<char> name, Cosmos.Kernel.HAL.Vfs.VfsMode mode, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle? child) -> bool
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan<char> name, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle? child) -> bool
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryReadDir(out System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.HAL.Vfs.IVfsInode!>! entries) -> bool
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan<char> name) -> bool
@@ -494,10 +493,11 @@ Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.Se
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan<char> name, System.ReadOnlySpan<char> target, out Cosmos.Kernel.System.Vfs.IVfsNodeHandle? child) -> bool
 Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan<char> name) -> bool
 Cosmos.Kernel.System.Vfs.IVfsFileHandle
-Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush() -> bool
 Cosmos.Kernel.System.Vfs.IVfsFileHandle.Position.get -> long
 Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span<byte> buffer) -> long
+Cosmos.Kernel.System.Vfs.IVfsFileHandle.TryFlush() -> bool
 Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySeek(long offset, Cosmos.Kernel.HAL.Vfs.SeekWhence whence) -> bool
+Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags flags, in Cosmos.Kernel.HAL.Vfs.VfsStat attributes) -> bool
 Cosmos.Kernel.System.Vfs.IVfsFileHandle.Write(System.ReadOnlySpan<byte> buffer) -> long
 Cosmos.Kernel.System.Vfs.IVfsNodeHandle
 Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Inode.get -> Cosmos.Kernel.HAL.Vfs.IVfsInode!
@@ -505,12 +505,11 @@ Cosmos.Kernel.System.Vfs.IVfsNodeHandle.Name.get -> string!
 Cosmos.Kernel.System.Vfs.IVfsNodeHandle.TryStat(out Cosmos.Kernel.HAL.Vfs.VfsStat stat) -> bool
 Cosmos.Kernel.System.Vfs.VfsManager
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount
-Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType.get -> Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint.get -> string!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Name.get -> string!
+Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Partition.get -> Cosmos.Kernel.System.Storage.Partition?
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source.get -> string!
 Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Superblock.get -> Cosmos.Kernel.HAL.Vfs.IVfsSuperblock!
-Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.VfsMount(string! name, string! source, string! mountPoint, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType! filesystemType, Cosmos.Kernel.HAL.Vfs.IVfsSuperblock! superblock) -> void
 abstract Cosmos.Kernel.System.Graphics.Canvas3D.ClearScene(System.Drawing.Color color, float depth = 1) -> void
 abstract Cosmos.Kernel.System.Graphics.Canvas3D.CreateTexture(Cosmos.Kernel.System.Graphics.Image! image) -> Cosmos.Kernel.System.Graphics.Texture!
 abstract Cosmos.Kernel.System.Graphics.Canvas3D.DrawMesh(Cosmos.Kernel.System.Graphics.Mesh! mesh, in System.Numerics.Matrix4x4 world) -> void
@@ -659,34 +658,36 @@ static Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP() -> void
 static Cosmos.Kernel.System.Power.Halt() -> void
 static Cosmos.Kernel.System.Power.Reboot() -> void
 static Cosmos.Kernel.System.Power.Shutdown() -> void
-static Cosmos.Kernel.System.Storage.Ebr.AddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, ulong extendedSectorCount, byte systemId, ulong sectorCount) -> ulong
 static Cosmos.Kernel.System.Storage.Ebr.MoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex, ulong newAbsoluteStart) -> bool
 static Cosmos.Kernel.System.Storage.Ebr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba) -> System.Collections.Generic.List<Cosmos.Kernel.System.Storage.MbrPartitionEntry!>!
 static Cosmos.Kernel.System.Storage.Ebr.RemoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex) -> bool
 static Cosmos.Kernel.System.Storage.Ebr.ResizeLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, int logicalIndex, ulong newSectorCount) -> bool
+static Cosmos.Kernel.System.Storage.Ebr.TryAddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong extendedStartLba, ulong extendedSectorCount, byte systemId, ulong sectorCount, out ulong startSector) -> bool
 static Cosmos.Kernel.System.Storage.Gpt.AddPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong startSector, ulong sectorCount, System.Guid partitionType) -> bool
 static Cosmos.Kernel.System.Storage.Gpt.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> void
 static Cosmos.Kernel.System.Storage.Gpt.IsGpt(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> bool
-static Cosmos.Kernel.System.Storage.Gpt.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int partitionIndex, ulong newStartSector) -> bool
+static Cosmos.Kernel.System.Storage.Gpt.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, ulong newStartSector) -> bool
 static Cosmos.Kernel.System.Storage.Gpt.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> System.Collections.Generic.List<Cosmos.Kernel.System.Storage.GptPartitionEntry!>!
-static Cosmos.Kernel.System.Storage.Gpt.RemovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int partitionIndex) -> bool
-static Cosmos.Kernel.System.Storage.Gpt.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int partitionIndex, ulong newSectorCount) -> bool
+static Cosmos.Kernel.System.Storage.Gpt.RemovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index) -> bool
+static Cosmos.Kernel.System.Storage.Gpt.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, ulong newSectorCount) -> bool
+static Cosmos.Kernel.System.Storage.Mbr.AddPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, byte systemId, ulong startSector, ulong sectorCount) -> bool
 static Cosmos.Kernel.System.Storage.Mbr.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> void
-static Cosmos.Kernel.System.Storage.Mbr.DeletePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index) -> void
 static Cosmos.Kernel.System.Storage.Mbr.IsMbr(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> bool
-static Cosmos.Kernel.System.Storage.Mbr.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, uint newStartSector) -> void
+static Cosmos.Kernel.System.Storage.Mbr.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, ulong newStartSector) -> bool
 static Cosmos.Kernel.System.Storage.Mbr.Parse(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> System.Collections.Generic.List<Cosmos.Kernel.System.Storage.MbrPartitionEntry!>!
-static Cosmos.Kernel.System.Storage.Mbr.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, uint newSectorCount) -> void
+static Cosmos.Kernel.System.Storage.Mbr.RemovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index) -> bool
+static Cosmos.Kernel.System.Storage.Mbr.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, ulong newSectorCount) -> bool
 static Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, out ulong startSector) -> bool
 static Cosmos.Kernel.System.Storage.Mbr.TryGetExtendedPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, out ulong startSector, out ulong sectorCount) -> bool
-static Cosmos.Kernel.System.Storage.Mbr.WritePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, int index, byte systemId, uint startSector, uint sectorCount) -> void
 static Cosmos.Kernel.System.Storage.PartitionManager.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, ulong startSector, ulong sectorCount, byte mbrSystemId, System.Guid gptType) -> bool
-static Cosmos.Kernel.System.Storage.PartitionManager.CreateLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, byte systemId, ulong sectorCount) -> ulong
 static Cosmos.Kernel.System.Storage.PartitionManager.Delete(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation location) -> bool
 static Cosmos.Kernel.System.Storage.PartitionManager.MoveWithData(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation location, ulong newStartSector) -> bool
 static Cosmos.Kernel.System.Storage.PartitionManager.Resize(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation location, ulong newSectorCount) -> bool
+static Cosmos.Kernel.System.Storage.PartitionManager.TryCreateLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device, byte systemId, ulong sectorCount, out ulong startSector) -> bool
 static Cosmos.Kernel.System.Storage.StorageManager.DeviceCount.get -> int
+static Cosmos.Kernel.System.Storage.StorageManager.Devices.get -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice!>!
 static Cosmos.Kernel.System.Storage.StorageManager.GetDevice(int index) -> Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice?
+static Cosmos.Kernel.System.Storage.StorageManager.GetPartitions(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice! device) -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.System.Storage.Partition!>!
 static Cosmos.Kernel.System.Storage.StorageManager.IsEnabled.get -> bool
 static Cosmos.Kernel.System.Storage.StorageManager.IsInitialized.get -> bool
 static Cosmos.Kernel.System.Storage.StorageManager.Partitions.get -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.System.Storage.Partition!>!
@@ -703,26 +704,22 @@ static Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action! callback,
 static Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action! callback, System.TimeSpan period) -> Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer?
 static Cosmos.Kernel.System.Timer.TimerManager.SetFrequency(uint frequency) -> void
 static Cosmos.Kernel.System.Timer.TimerManager.Wait(uint ms) -> void
-static Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory.get -> string!
-static Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries() -> string![]!
-static Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(string! fullPath) -> bool
-static Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(string? path) -> string?
-static Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(string! mountPoint, string! path) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.Mounts.get -> System.Collections.Generic.IReadOnlyList<Cosmos.Kernel.System.Vfs.VfsManager.VfsMount!>!
 static Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem(string! name, Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType! filesystemType) -> bool
-static Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(string! fullPath, out string! parentPath, out string! leaf) -> void
-static Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(string! fullPath, Cosmos.Kernel.HAL.Vfs.ModeEnum permissions) -> bool
-static Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(string! fullPath, Cosmos.Kernel.HAL.Vfs.ModeEnum permissions) -> bool
+static Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(string! fullPath, Cosmos.Kernel.HAL.Vfs.VfsMode permissions) -> bool
+static Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(string! fullPath, Cosmos.Kernel.HAL.Vfs.VfsMode permissions) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryDestroy(string! name, System.ReadOnlySpan<char> source) -> bool
+static Cosmos.Kernel.System.Vfs.VfsManager.TryFormat(string! name, Cosmos.Kernel.System.Storage.Partition! partition, Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions? options) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryFormat(string! name, System.ReadOnlySpan<char> source, Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions? options) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryGetMount(string! mountPoint, out Cosmos.Kernel.System.Vfs.VfsManager.VfsMount? mount) -> bool
+static Cosmos.Kernel.System.Vfs.VfsManager.TryMount(string! name, Cosmos.Kernel.System.Storage.Partition! partition, Cosmos.Kernel.HAL.Vfs.MountFlags flags, string! mountPoint, out Cosmos.Kernel.System.Vfs.VfsManager.VfsMount? mount) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryMount(string! name, System.ReadOnlySpan<char> source, Cosmos.Kernel.HAL.Vfs.MountFlags flags, string! mountPoint, out Cosmos.Kernel.System.Vfs.VfsManager.VfsMount? mount) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryOpenDirectory(string! path, out Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle? directory) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryOpenFile(string! path, out Cosmos.Kernel.System.Vfs.IVfsFileHandle? file) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryRemoveDirectory(string! fullPath) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryRename(string! oldFullPath, string! newFullPath) -> bool
-static Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(string! path) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryStat(string! fullPath, out Cosmos.Kernel.HAL.Vfs.VfsStat stat) -> bool
+static Cosmos.Kernel.System.Vfs.VfsManager.TryStatFs(string! mountPoint, out Cosmos.Kernel.HAL.Vfs.VfsStatFs stats) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnlink(string! fullPath) -> bool
 static Cosmos.Kernel.System.Vfs.VfsManager.TryUnmount(string! mountPoint) -> bool
 static readonly Cosmos.Kernel.System.Network.IPv4.Address.Broadcast -> Cosmos.Kernel.System.Network.IPv4.Address!

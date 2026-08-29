@@ -71,15 +71,28 @@ public static class Ebr
     /// Append a logical partition to the chain. The new EBR is placed right
     /// after the prior logical's data, and the new logical's data area
     /// follows the new EBR (one sector for the EBR, then <paramref name="sectorCount"/> sectors).
-    /// Returns the new logical's absolute start LBA, or 0 on failure.
     /// </summary>
-    public static ulong AddLogical(
+    /// <param name="device">The disk holding the extended container.</param>
+    /// <param name="extendedStartLba">Absolute LBA where the extended container begins.</param>
+    /// <param name="extendedSectorCount">Length of the extended container in sectors.</param>
+    /// <param name="systemId">Partition type byte to stamp on the new logical.</param>
+    /// <param name="sectorCount">Length of the new logical's data area in sectors.</param>
+    /// <param name="startSector">Absolute LBA the new logical's data begins at, when the call succeeds.</param>
+    /// <returns>
+    /// <see langword="false"/>, writing nothing, when the geometry is one this
+    /// file's own <see cref="Parse"/> would drop or there is no room left in
+    /// the container.
+    /// </returns>
+    public static bool TryAddLogical(
         IBlockDevice device,
         ulong extendedStartLba,
         ulong extendedSectorCount,
         byte systemId,
-        ulong sectorCount)
+        ulong sectorCount,
+        out ulong startSector)
     {
+        startSector = 0;
+
         // The on-disk field is 32-bit: a larger count would be silently
         // truncated by the (uint) cast below (2^32 stamps a zero-length
         // entry), so reject it up front as ResizeLogical does.
@@ -89,7 +102,7 @@ public static class Ebr
             || systemId == Mbr.SystemIdExtendedLba
             || systemId == Mbr.SystemIdLinuxExtended)
         {
-            return 0;
+            return false;
         }
 
         // The envelope is caller-supplied on-disk metadata (the MBR's
@@ -97,7 +110,7 @@ public static class Ebr
         // can never authorize stamping a logical past the disk.
         if (extendedStartLba >= device.BlockCount)
         {
-            return 0;
+            return false;
         }
         ulong extendedEnd = extendedSectorCount > device.BlockCount - extendedStartLba
             ? device.BlockCount
@@ -117,7 +130,7 @@ public static class Ebr
 
         if (newEbrLba + EbrSectorSpan + sectorCount > extendedEnd)
         {
-            return 0;
+            return false;
         }
 
         WriteEbrSector(device, newEbrLba, systemId, relativeStart: EbrSectorSpan, sectorCount: (uint)sectorCount, nextRelative: 0);
@@ -135,7 +148,8 @@ public static class Ebr
                 newNextRelative);
         }
 
-        return newEbrLba + EbrSectorSpan;
+        startSector = newEbrLba + EbrSectorSpan;
+        return true;
     }
 
     /// <summary>

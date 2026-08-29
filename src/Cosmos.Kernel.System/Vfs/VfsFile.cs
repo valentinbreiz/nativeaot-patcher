@@ -59,7 +59,16 @@ public interface IVfsFileHandle : IVfsNodeHandle
     /// Flushes buffered writes to the underlying device.
     /// </summary>
     /// <returns><see langword="true"/> when the driver flushed successfully.</returns>
-    bool Flush();
+    bool TryFlush();
+
+    /// <summary>
+    /// Updates the open file's metadata. Setting
+    /// <see cref="SetAttrFlags.Size"/> is how a file is truncated or extended.
+    /// </summary>
+    /// <param name="flags">Which fields of <paramref name="attributes"/> to apply.</param>
+    /// <param name="attributes">The new attribute values.</param>
+    /// <returns><see langword="true"/> when the driver applied the change.</returns>
+    bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes);
 }
 
 /// <summary>
@@ -124,10 +133,16 @@ internal sealed class VfsFileHandle : IVfsFileHandle
         return true;
     }
 
-    public bool Flush()
+    public bool TryFlush()
     {
         EnsureNotDisposed();
         return _openFile.Operations.Fsync(_openFile);
+    }
+
+    public bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)
+    {
+        EnsureNotDisposed();
+        return Inode.InodeOperations.SetAttr(Inode, flags, attributes);
     }
 
     public bool TryStat(out VfsStat stat)

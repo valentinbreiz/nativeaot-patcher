@@ -290,7 +290,7 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector count of the extended partition the EBR / PartitionManager lifecycle cells stamp.</summary>
     private const uint ExtPartSectorCount = 12000;
 
-    /// <summary>Gap between an EBR sector and its logical's first data sector: Ebr.AddLogical places the data in the very next sector.</summary>
+    /// <summary>Gap between an EBR sector and its logical's first data sector: Ebr.TryAddLogical places the data in the very next sector.</summary>
     private const uint EbrLogicalDataOffsetSectors = 1;
 
     /// <summary>Sector delta of the refused attempt to move the extended container.</summary>
@@ -614,10 +614,10 @@ public class Kernel : Sys.Kernel
 
         // The writer must reject bogus ranges up front (same rules as the
         // parser): start 0 aliases the MBR, past-end authorizes wild I/O.
-        Assert.True(MbrWritePartitionRejects(0, startSector: SelfAliasingStartLba, sectorCount: MbrBogusStartZeroSectorCount),
-            "WritePartition must reject startSector 0");
-        Assert.True(MbrWritePartitionRejects(1, startSector: (uint)(s_dev!.BlockCount - PastEndBacktrackSectors), sectorCount: MbrBogusPastEndSectorCount),
-            "WritePartition must reject past-end ranges");
+        Assert.True(MbrAddPartitionRejects(0, startSector: SelfAliasingStartLba, sectorCount: MbrBogusStartZeroSectorCount),
+            "AddPartition must reject startSector 0");
+        Assert.True(MbrAddPartitionRejects(1, startSector: (uint)(s_dev!.BlockCount - PastEndBacktrackSectors), sectorCount: MbrBogusPastEndSectorCount),
+            "AddPartition must reject past-end ranges");
 
         // The parser is the trust boundary for on-disk corruption, so craft
         // the same bogus entries raw (bypassing the writer's validation).
@@ -637,21 +637,12 @@ public class Kernel : Sys.Kernel
         Assert.Equal(0, parts.Count, "corrupt MBR entries must be rejected by Parse");
     }
 
-    // One try/catch per method on purpose: mirrors the shape of the other
-    // expected-throw cells (e.g. Partition_OutOfBounds_Throws). The arm64 EH
-    // dispatch failed to match the catch clause when this cell inlined two
-    // try/catch blocks alongside span locals, taking the whole boot down.
-    private static bool MbrWritePartitionRejects(int index, uint startSector, uint sectorCount)
+    // The writer reports refusal by return value now, so the try/catch this
+    // used to need is gone with it — and so is the arm64 EH dispatch failure
+    // that two inlined catch blocks alongside span locals once triggered.
+    private static bool MbrAddPartitionRejects(int index, ulong startSector, ulong sectorCount)
     {
-        try
-        {
-            Mbr.WritePartition(s_dev!, index, systemId: MbrLinuxSystemId, startSector: startSector, sectorCount: sectorCount);
-            return false;
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            return true;
-        }
+        return !Mbr.AddPartition(s_dev!, index, systemId: MbrLinuxSystemId, startSector: startSector, sectorCount: sectorCount);
     }
 
     // Same distrust for the GPT writer: AddPartition must reject entries its
@@ -1054,8 +1045,8 @@ public class Kernel : Sys.Kernel
         Assert.True(Mbr.IsMbr(s_dev));
 
         // Two primary entries at distinct LBA windows.
-        Mbr.WritePartition(s_dev, 0, systemId: MbrLinuxSystemId, startSector: MbrPartAStartSector, sectorCount: MbrPartASectorCount);
-        Mbr.WritePartition(s_dev, 1, systemId: MbrFat32SystemId, startSector: MbrPartBStartSector, sectorCount: MbrPartBSectorCount);
+        Assert.True(Mbr.AddPartition(s_dev, 0, systemId: MbrLinuxSystemId, startSector: MbrPartAStartSector, sectorCount: MbrPartASectorCount));
+        Assert.True(Mbr.AddPartition(s_dev, 1, systemId: MbrFat32SystemId, startSector: MbrPartBStartSector, sectorCount: MbrPartBSectorCount));
 
         List<MbrPartitionEntry> parts = Mbr.Parse(s_dev);
         Assert.Equal(2, parts.Count);
@@ -1159,7 +1150,7 @@ public class Kernel : Sys.Kernel
 
         // Prove the mount is usable end to end: file round-trip through the VFS.
         Assert.True(VfsManager.TryOpenDirectory(SuperfloppyMountPoint, out IVfsDirectoryHandle? root));
-        Assert.True(root!.TryCreateFile(SuperfloppyFileName, ModeEnum.RegularFile, out _));
+        Assert.True(root!.TryCreateFile(SuperfloppyFileName, VfsMode.RegularFile, out _));
 
         byte[] payload = new byte[SuperfloppyPayloadBytes];
         for (int i = 0; i < payload.Length; i++)
@@ -1170,7 +1161,7 @@ public class Kernel : Sys.Kernel
         {
             Assert.NotNull(writer);
             Assert.Equal<long>(payload.Length, writer!.Write(payload));
-            Assert.True(writer.Flush());
+            Assert.True(writer.TryFlush());
         }
         using (IVfsFileHandle? reader = OpenVfsFile(SuperfloppyFilePath))
         {
@@ -1276,11 +1267,11 @@ public class Kernel : Sys.Kernel
     {
         IBlockDevice host = s_dev!;
         ResetHostMbr(host);
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
-        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount));
+        Assert.True(Mbr.AddPartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount));
 
         const uint resizedSectorCount = 350;
-        Mbr.ResizePartition(host, 0, resizedSectorCount);
+        Assert.True(Mbr.ResizePartition(host, 0, resizedSectorCount));
 
         List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(2, parts.Count);
@@ -1296,10 +1287,10 @@ public class Kernel : Sys.Kernel
     {
         IBlockDevice host = s_dev!;
         ResetHostMbr(host);
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
-        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount));
+        Assert.True(Mbr.AddPartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount));
 
-        Mbr.DeletePartition(host, 1);
+        Assert.True(Mbr.RemovePartition(host, 1));
 
         List<MbrPartitionEntry> parts = Mbr.Parse(host);
         Assert.Equal(1, parts.Count);
@@ -1326,8 +1317,8 @@ public class Kernel : Sys.Kernel
         host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
 
         Mbr.Create(host);
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
-        Mbr.WritePartition(host, 1, MbrExtendedSystemId, (uint)extendedStart, extendedCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount));
+        Assert.True(Mbr.AddPartition(host, 1, MbrExtendedSystemId, (uint)extendedStart, extendedCount));
 
         WriteEbrSector(host, extendedStart, logicalRelStart, logicalSectorCount, hasNext: true, nextRelativeLba: nextRelativeLba);
         WriteEbrSector(host, extendedStart + nextRelativeLba, logicalRelStart, logicalSectorCount, hasNext: false, nextRelativeLba: 0);
@@ -1536,10 +1527,10 @@ public class Kernel : Sys.Kernel
         const uint countA = 100;
         const uint countB = 200;
 
-        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA, out ulong logical0Start);
         Assert.True(logical0Start != 0);
 
-        ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB, out ulong logical1Start);
         Assert.True(logical1Start != 0);
 
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1556,8 +1547,8 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint countA = 100;
         const uint countB = 200;
-        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA, out ulong logical0Start);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB, out _);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1572,8 +1563,8 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint countA = 100;
         const uint countB = 200;
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
-        ulong logical1Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA, out _);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB, out ulong logical1Start);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1589,9 +1580,9 @@ public class Kernel : Sys.Kernel
         const uint countA = 100;
         const uint countB = 200;
         const uint countC = 300;
-        ulong logical0Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA);
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB);
-        ulong logical2Start = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countA, out ulong logical0Start);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countB, out _);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, countC, out ulong logical2Start);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 1));
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1607,7 +1598,7 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _);
 
         Assert.True(Ebr.RemoveLogical(host, ExtPartStartSector, 0));
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1620,7 +1611,7 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
         const ulong resized = 250;
-        Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _);
 
         Assert.True(Ebr.ResizeLogical(host, ExtPartStartSector, 0, resized));
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -1634,7 +1625,7 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 50;
         const ulong moveDelta = 200;
-        ulong logicalStart = Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count);
+        Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out ulong logicalStart);
         // The first logical lands right after its EBR sector.
         Assert.Equal<ulong>(ExtPartStartSector + EbrLogicalDataOffsetSectors, logicalStart);
 
@@ -1658,7 +1649,7 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
-        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+        Assert.True(Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _));
 
         // Oversize the logical's sector count in place so its range runs
         // past the extended envelope and the device end.
@@ -1687,7 +1678,7 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 50;
-        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+        Assert.True(Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _));
 
         // Next pointer that stays on-disk but escapes the extended
         // envelope, landing on a crafted 0x55AA sector with a plausible
@@ -1721,7 +1712,7 @@ public class Kernel : Sys.Kernel
         Assert.Equal(1, EbrParseCountSafe(host), "walk must stop when the next pointer leaves the device");
     }
 
-    // Ebr.AddLogical must reject geometry its own parser would drop: the
+    // Ebr.TryAddLogical must reject geometry its own parser would drop: the
     // caller-supplied envelope is on-disk metadata (the MBR's extended
     // entry), so it cannot authorize I/O past the device end — and a
     // sector count that does not fit the 32-bit on-disk field would be
@@ -1733,17 +1724,17 @@ public class Kernel : Sys.Kernel
 
         // Oversized caller envelope + range past the device end: the room
         // check passes against the fake envelope, so an unclamped
-        // AddLogical stamps a logical extending past the disk.
+        // TryAddLogical stamps a logical extending past the disk.
         ulong fakeEnvelope = ulong.MaxValue - ExtPartStartSector;
-        Assert.Equal<ulong>(0,
-            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, host.BlockCount),
+        Assert.False(
+            Ebr.TryAddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, host.BlockCount, out _),
             "an envelope past the device end must not authorize a past-end logical");
 
-        Assert.Equal<ulong>(0,
-            Ebr.AddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, 1UL << MbrSectorCountFieldBits),
+        Assert.False(
+            Ebr.TryAddLogical(host, ExtPartStartSector, fakeEnvelope, MbrLinuxSystemId, 1UL << MbrSectorCountFieldBits, out _),
             "a sector count exceeding the 32-bit on-disk field must be rejected");
 
-        Assert.Equal(0, EbrParseCountSafe(host), "rejected AddLogical calls must leave no live entries");
+        Assert.Equal(0, EbrParseCountSafe(host), "rejected TryAddLogical calls must leave no live entries");
     }
 
     // ResolveExtendedCount hands ResizeLogical/MoveLogical their upper
@@ -1756,7 +1747,7 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
-        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+        Assert.True(Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _));
 
         // Corrupt the MBR extended entry's count (raw, bypassing the
         // writer's validation) so it runs past the device end.
@@ -1772,8 +1763,8 @@ public class Kernel : Sys.Kernel
         // Remove the extended entry entirely: with no confirmable envelope
         // the resize must be refused outright.
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
-        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
-        Mbr.DeletePartition(host, 0);
+        Assert.True(Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _));
+        Assert.True(Mbr.RemovePartition(host, 0));
         Assert.False(Ebr.ResizeLogical(host, ExtPartStartSector, 0, ExtPartSectorCount * 2),
             "a resize without a confirmable extended envelope must be refused");
     }
@@ -1821,11 +1812,11 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
-        Assert.True(Ebr.AddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count) != 0);
+        Assert.True(Ebr.TryAddLogical(host, ExtPartStartSector, ExtPartSectorCount, MbrLinuxSystemId, count, out _));
 
-        Assert.True(MbrResizeThrows(0, ExtPartSectorCount / 2),
+        Assert.True(MbrResizeRefused(0, ExtPartSectorCount / 2),
             "resizing the extended container must be refused");
-        Assert.True(MbrMoveThrows(0, ExtPartStartSector + ExtendedMoveProbeDeltaSectors),
+        Assert.True(MbrMoveRefused(0, ExtPartStartSector + ExtendedMoveProbeDeltaSectors),
             "moving the extended container must be refused");
         Assert.Equal(1, EbrParseCountSafe(host));
 
@@ -1838,7 +1829,7 @@ public class Kernel : Sys.Kernel
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntryStartLbaOffset, MbrLbaFieldBytes), Gpt.ProtectiveMbrStartLba);
         BitConverter.TryWriteBytes(m.Slice(MbrEntry1Offset + MbrEntrySectorCountOffset, MbrLbaFieldBytes), MbrProtectiveSectorCount);
         host.WriteBlock(MbrLba, 1, mbr);
-        Assert.True(MbrResizeThrows(1, ProtectiveResizeSectorCount),
+        Assert.True(MbrResizeRefused(1, ProtectiveResizeSectorCount),
             "resizing the GPT protective entry must be refused");
     }
 
@@ -1854,22 +1845,22 @@ public class Kernel : Sys.Kernel
         const uint countA = 1000;
         const uint startB = 8000;
         const uint countB = 1000;
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, startA, countA);
-        Mbr.WritePartition(host, 1, MbrLinuxSystemId, startB, countB);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, startA, countA));
+        Assert.True(Mbr.AddPartition(host, 1, MbrLinuxSystemId, startB, countB));
 
-        Assert.True(MbrResizeThrows(0, startB - startA + 1),
+        Assert.True(MbrResizeRefused(0, startB - startA + 1),
             "growing a primary into its neighbour must be refused");
-        Assert.True(MbrMoveThrows(1, startA + countA - 1),
+        Assert.True(MbrMoveRefused(1, startA + countA - 1),
             "moving a primary onto its neighbour must be refused");
 
         // Adjacency (half-open ranges) stays legal.
-        Mbr.ResizePartition(host, 0, startB - startA);
-        Mbr.MovePartition(host, 1, startB + LegalMoveDeltaSectors);
+        Assert.True(Mbr.ResizePartition(host, 0, startB - startA));
+        Assert.True(Mbr.MovePartition(host, 1, startB + LegalMoveDeltaSectors));
         Assert.Equal(2, Mbr.Parse(host).Count);
     }
 
     // Resize/Move are read-modify-write on the MBR sector; the sibling
-    // writers (WritePartition/DeletePartition) repair a corrupt signature
+    // writers (AddPartition/RemovePartition) repair a corrupt signature
     // on the way out, so these must too.
     private static void TestMbr_ResizeMoveRestampsSignature()
     {
@@ -1877,7 +1868,7 @@ public class Kernel : Sys.Kernel
         ResetHostMbr(host);
         const uint start = 4000;
         const uint count = 1000;
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, start, count);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, start, count));
 
         int sector = (int)host.BlockSize;
         byte[] mbr = new byte[sector];
@@ -1885,14 +1876,14 @@ public class Kernel : Sys.Kernel
         mbr[sector - MbrBootSigSizeBytes] = 0;
         mbr[sector - 1] = 0;
         host.WriteBlock(MbrLba, 1, mbr);
-        Mbr.ResizePartition(host, 0, count * 2);
+        Assert.True(Mbr.ResizePartition(host, 0, count * 2));
         Assert.True(Mbr.IsMbr(host), "ResizePartition must restamp the boot signature");
 
         host.ReadBlock(MbrLba, 1, mbr);
         mbr[sector - MbrBootSigSizeBytes] = 0;
         mbr[sector - 1] = 0;
         host.WriteBlock(MbrLba, 1, mbr);
-        Mbr.MovePartition(host, 0, start + LegalMoveDeltaSectors);
+        Assert.True(Mbr.MovePartition(host, 0, start + LegalMoveDeltaSectors));
         Assert.True(Mbr.IsMbr(host), "MovePartition must restamp the boot signature");
     }
 
@@ -2025,7 +2016,7 @@ public class Kernel : Sys.Kernel
 
     // The facade's bounds guards used wrapping ulong addition: a
     // destination near 2^64 wrapped the sum, slipped past the guard and
-    // reached raw sector I/O; Create at LBA 0 threw from Mbr.WritePartition
+    // reached raw sector I/O; Create at LBA 0 threw from Mbr.AddPartition
     // instead of returning the documented false.
     private static void TestPartitionManager_GuardsDoNotWrap()
     {
@@ -2065,8 +2056,8 @@ public class Kernel : Sys.Kernel
         Assert.Equal<ulong>(ResizeOverlapSectorCount, gptParts[0].SectorCount);
 
         ResetHostMbr(host);
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
-        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount));
+        Assert.True(Mbr.AddPartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount));
         Assert.True(
             PmResizeRefusedCleanly(
                 new PartitionManager.PartitionLocation(MbrPartAStartSector, MbrPartASectorCount),
@@ -2109,7 +2100,7 @@ public class Kernel : Sys.Kernel
         IBlockDevice host = s_dev!;
 
         ResetHostMbr(host);
-        Mbr.WritePartition(host, 0, MbrLinuxSystemId, (uint)ExtPartStartSector, (uint)TableMoveSectorCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrLinuxSystemId, ExtPartStartSector, TableMoveSectorCount));
         Assert.True(
             PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(ExtPartStartSector, TableMoveSectorCount), MbrLba),
             "a move onto the MBR sector must be refused");
@@ -2125,7 +2116,7 @@ public class Kernel : Sys.Kernel
         Assert.Equal(1, Gpt.Parse(host).Count);
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    // One try/catch per method on purpose (cf. MbrAddPartitionRejects).
     private static bool PmResizeRefusedCleanly(PartitionManager.PartitionLocation location, ulong newSectorCount)
     {
         try
@@ -2138,7 +2129,7 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects):
+    // One try/catch per method on purpose (cf. MbrAddPartitionRejects):
     // true = the facade refused cleanly (false return, no throw, no side
     // effects claimed).
     private static bool PmMoveRefusedCleanly(PartitionManager.PartitionLocation location, ulong newStart)
@@ -2153,7 +2144,7 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    // One try/catch per method on purpose (cf. MbrAddPartitionRejects).
     private static bool PmCreateRefusedCleanly(ulong start, ulong count)
     {
         try
@@ -2166,35 +2157,17 @@ public class Kernel : Sys.Kernel
         }
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
-    private static bool MbrResizeThrows(int index, uint newCount)
+    private static bool MbrResizeRefused(int index, ulong newCount)
     {
-        try
-        {
-            Mbr.ResizePartition(s_dev!, index, newCount);
-            return false;
-        }
-        catch (Exception)
-        {
-            return true;
-        }
+        return !Mbr.ResizePartition(s_dev!, index, newCount);
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
-    private static bool MbrMoveThrows(int index, uint newStart)
+    private static bool MbrMoveRefused(int index, ulong newStart)
     {
-        try
-        {
-            Mbr.MovePartition(s_dev!, index, newStart);
-            return false;
-        }
-        catch (Exception)
-        {
-            return true;
-        }
+        return !Mbr.MovePartition(s_dev!, index, newStart);
     }
 
-    // One try/catch per method on purpose (cf. MbrWritePartitionRejects):
+    // One try/catch per method on purpose (cf. MbrAddPartitionRejects):
     // -1 marks "Parse threw", which every caller asserts against. Exception
     // (not ArgumentOutOfRangeException) because a past-end read surfaces
     // driver-specific errors — AHCI raises "SATA Fatal error: Command
@@ -2218,10 +2191,10 @@ public class Kernel : Sys.Kernel
         const uint countA = 100;
         const uint countB = 200;
 
-        ulong logical0 = PartitionManager.CreateLogical(host, MbrLinuxSystemId, countA);
+        PartitionManager.TryCreateLogical(host, MbrLinuxSystemId, countA, out ulong logical0);
         Assert.True(logical0 != 0);
 
-        ulong logical1 = PartitionManager.CreateLogical(host, MbrFat32SystemId, countB);
+        PartitionManager.TryCreateLogical(host, MbrFat32SystemId, countB, out ulong logical1);
         Assert.True(logical1 != 0);
 
         List<MbrPartitionEntry> logicals = Ebr.Parse(host, ExtPartStartSector);
@@ -2236,7 +2209,7 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint count = 100;
         const ulong resized = 250;
-        ulong logicalStart = PartitionManager.CreateLogical(host, MbrLinuxSystemId, count);
+        PartitionManager.TryCreateLogical(host, MbrLinuxSystemId, count, out ulong logicalStart);
 
         Assert.True(PartitionManager.Resize(
             host,
@@ -2254,8 +2227,8 @@ public class Kernel : Sys.Kernel
         ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
         const uint countA = 100;
         const uint countB = 200;
-        ulong l0 = PartitionManager.CreateLogical(host, MbrLinuxSystemId, countA);
-        PartitionManager.CreateLogical(host, MbrLinuxSystemId, countB);
+        PartitionManager.TryCreateLogical(host, MbrLinuxSystemId, countA, out ulong l0);
+        PartitionManager.TryCreateLogical(host, MbrLinuxSystemId, countB, out _);
 
         Assert.True(PartitionManager.Delete(
             host,
@@ -2273,7 +2246,7 @@ public class Kernel : Sys.Kernel
         const uint logicalCount = 32;
         const ulong moveDelta = 500;
         const uint seedBase = 0xCAFE0000;
-        ulong logicalStart = PartitionManager.CreateLogical(host, MbrLinuxSystemId, logicalCount);
+        PartitionManager.TryCreateLogical(host, MbrLinuxSystemId, logicalCount, out ulong logicalStart);
         Assert.True(logicalStart != 0);
 
         Span<byte> patternSector = new byte[host.BlockSize];
@@ -2325,7 +2298,7 @@ public class Kernel : Sys.Kernel
         host.WriteBlock(Gpt.PrimaryHeaderLba, 1, wipe);
         host.WriteBlock(extStart, 1, wipe);
         Mbr.Create(host);
-        Mbr.WritePartition(host, 0, MbrExtendedSystemId, extStart, extCount);
+        Assert.True(Mbr.AddPartition(host, 0, MbrExtendedSystemId, extStart, extCount));
     }
 
     // Deterministic per-seed sector pattern for the move-with-data cells.

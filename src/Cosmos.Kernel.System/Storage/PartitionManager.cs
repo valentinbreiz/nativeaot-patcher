@@ -49,8 +49,8 @@ public static class PartitionManager
         byte mbrSystemId,
         Guid gptType)
     {
-        // Start 0 aliases the table sector on both formats; the MBR writer
-        // throws for it, but this facade documents a false return.
+        // Start 0 aliases the table sector on both formats, so both writers
+        // refuse it; check here too, so the reason is stated once at the top.
         if (sectorCount == 0 || startSector == 0)
         {
             return false;
@@ -83,35 +83,40 @@ public static class PartitionManager
         {
             return false;
         }
-        if (startSector > Mbr.LbaFieldMaxValue || sectorCount > Mbr.LbaFieldMaxValue)
-        {
-            return false;
-        }
 
-        Mbr.WritePartition(device, freeSlot, mbrSystemId, (uint)startSector, (uint)sectorCount);
-        return true;
+        // AddPartition owns the 32-bit on-disk field bound and reports it the
+        // same way this does, so the facade no longer pre-checks it.
+        return Mbr.AddPartition(device, freeSlot, mbrSystemId, startSector, sectorCount);
     }
 
     /// <summary>
-    /// Add a logical partition to the disk's extended partition. Returns the
-    /// new partition's absolute start LBA, or 0 on failure (no extended
-    /// partition, no room left, or the disk is GPT).
+    /// Add a logical partition to the disk's extended partition.
     /// </summary>
-    public static ulong CreateLogical(IBlockDevice device, byte systemId, ulong sectorCount)
+    /// <param name="device">The disk to add the logical partition to.</param>
+    /// <param name="systemId">Partition type byte to stamp on the new logical.</param>
+    /// <param name="sectorCount">Length of the new logical in sectors.</param>
+    /// <param name="startSector">Absolute LBA the new logical begins at, when the call succeeds.</param>
+    /// <returns>
+    /// <see langword="false"/> when the disk is GPT or unpartitioned, has no
+    /// extended container, or the container has no room left.
+    /// </returns>
+    public static bool TryCreateLogical(IBlockDevice device, byte systemId, ulong sectorCount, out ulong startSector)
     {
+        startSector = 0;
+
         if (Gpt.IsGpt(device))
         {
-            return 0;
+            return false;
         }
         if (!Mbr.IsMbr(device))
         {
-            return 0;
+            return false;
         }
         if (!Mbr.TryGetExtendedPartition(device, out ulong extStart, out ulong extCount))
         {
-            return 0;
+            return false;
         }
-        return Ebr.AddLogical(device, extStart, extCount, systemId, sectorCount);
+        return Ebr.TryAddLogical(device, extStart, extCount, systemId, sectorCount, out startSector);
     }
 
     /// <summary>Delete the partition occupying <paramref name="location"/>.</summary>
@@ -142,8 +147,7 @@ public static class PartitionManager
         {
             return false;
         }
-        Mbr.DeletePartition(device, slot);
-        return true;
+        return Mbr.RemovePartition(device, slot);
     }
 
     /// <summary>Resize the partition at <paramref name="location"/> to <paramref name="newSectorCount"/>. Table-only; does not adjust the filesystem inside.</summary>
@@ -195,12 +199,7 @@ public static class PartitionManager
         {
             return false;
         }
-        if (newSectorCount > Mbr.LbaFieldMaxValue)
-        {
-            return false;
-        }
-        Mbr.ResizePartition(device, slot, (uint)newSectorCount);
-        return true;
+        return Mbr.ResizePartition(device, slot, newSectorCount);
     }
 
     /// <summary>
@@ -296,8 +295,7 @@ public static class PartitionManager
 
         CopySectors(device, location.StartSector, newStartSector, location.SectorCount);
         device.Flush();
-        Mbr.MovePartition(device, slot, (uint)newStartSector);
-        return true;
+        return Mbr.MovePartition(device, slot, newStartSector);
     }
 
     /// <summary>

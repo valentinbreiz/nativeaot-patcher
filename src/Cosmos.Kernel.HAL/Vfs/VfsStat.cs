@@ -10,7 +10,7 @@ public struct VfsStat
     /// <summary>Inode number, unique within the filesystem instance (<c>st_ino</c>).</summary>
     public ulong Ino;
     /// <summary>File type and permission bits (<c>st_mode</c>).</summary>
-    public ModeEnum Mode;
+    public VfsMode Mode;
     /// <summary>Number of hard links to the inode (<c>st_nlink</c>).</summary>
     public uint NLink;
     /// <summary>Owner user id (<c>st_uid</c>).</summary>
@@ -35,17 +35,17 @@ public struct VfsStat
     /// <summary>True when <see cref="Mode"/> encodes a directory.</summary>
     /// <remarks>
     /// The file-type nibble is an enumerated field, not a bit set. Test it with
-    /// this helper, never with <c>Mode.HasFlag(ModeEnum.Directory)</c>, which is
-    /// also true for <see cref="ModeEnum.BlockDevice"/> and
-    /// <see cref="ModeEnum.Socket"/>.
+    /// this helper, never with <c>Mode.HasFlag(VfsMode.Directory)</c>, which is
+    /// also true for <see cref="VfsMode.BlockDevice"/> and
+    /// <see cref="VfsMode.Socket"/>.
     /// </remarks>
-    public readonly bool IsDirectory => (Mode & ModeEnum.FileTypeMask) == ModeEnum.Directory;
+    public readonly bool IsDirectory => (Mode & VfsMode.FileTypeMask) == VfsMode.Directory;
 
     /// <summary>True when <see cref="Mode"/> encodes a regular file.</summary>
     /// <remarks>See <see cref="IsDirectory"/> for why this is not a flag test.</remarks>
-    public readonly bool IsRegularFile => (Mode & ModeEnum.FileTypeMask) == ModeEnum.RegularFile;
+    public readonly bool IsRegularFile => (Mode & VfsMode.FileTypeMask) == VfsMode.RegularFile;
 
     /// <summary>True when <see cref="Mode"/> encodes a symbolic link.</summary>
     /// <remarks>See <see cref="IsDirectory"/> for why this is not a flag test.</remarks>
-    public readonly bool IsSymbolicLink => (Mode & ModeEnum.FileTypeMask) == ModeEnum.SymbolicLink;
+    public readonly bool IsSymbolicLink => (Mode & VfsMode.FileTypeMask) == VfsMode.SymbolicLink;
 }
