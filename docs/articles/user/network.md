@@ -300,7 +300,18 @@ A crafted echo request, correlated with its reply by the identifier and sequence
 
 ```csharp
 using Cosmos.Kernel.System.Network;
+using Cosmos.Kernel.System.Network.Config;
 using Cosmos.Kernel.System.Network.IPv4;
+
+IPConfig? config = NetworkManager.Primary.IPConfig;
+if (config == null)
+{
+    Console.WriteLine("The primary adapter has no IPv4 configuration.");
+    return;
+}
+
+Address localIp = config.IPAddress;
+Address gateway = config.DefaultGateway;
 
 IcmpClient icmp = new IcmpClient();
 icmp.Connect(gateway);

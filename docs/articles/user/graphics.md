@@ -28,10 +28,13 @@ Graphics support is behind a feature switch. Make sure your kernel's `.csproj` d
 These are the `using`s the snippets below rely on:
 
 ```csharp
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Numerics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
+using Cosmos.Kernel.System.Mouse;
 ```
 
 ## Getting a canvas
@@ -319,6 +322,46 @@ canvas3D.Camera = new Camera3D(new Vector3(0f, 2.6f, 4.6f), new Vector3(0f, 0.9f
 
 /* One quad per face, four vertices each: the faces share no vertices, so a
    corner does not blend three colors into an unreadable rotation. */
+const float H = 0.5f;
+ReadOnlySpan<Vector3> positions =
+[
+    new(H, -H, H), new(H, -H, -H), new(H, H, -H), new(H, H, H),         // +X
+    new(-H, -H, -H), new(-H, -H, H), new(-H, H, H), new(-H, H, -H),     // -X
+    new(-H, H, H), new(H, H, H), new(H, H, -H), new(-H, H, -H),         // +Y
+    new(-H, -H, -H), new(H, -H, -H), new(H, -H, H), new(-H, -H, H),     // -Y
+    new(-H, -H, H), new(H, -H, H), new(H, H, H), new(-H, H, H),         // +Z
+    new(H, -H, -H), new(-H, -H, -H), new(-H, H, -H), new(H, H, -H),     // -Z
+];
+
+ReadOnlySpan<Color> faceColors =
+[
+    Color.Crimson, Color.MediumSeaGreen, Color.Gold,
+    Color.DarkOrange, Color.DodgerBlue, Color.MediumOrchid,
+];
+
+Span<uint> colors = stackalloc uint[positions.Length];
+Span<ushort> indices = stackalloc ushort[faceColors.Length * 6];
+
+for (int face = 0; face < faceColors.Length; face++)
+{
+    uint argb = (uint)faceColors[face].ToArgb();
+    int first = face * 4;
+
+    for (int corner = 0; corner < 4; corner++)
+    {
+        colors[first + corner] = argb;
+    }
+
+    /* Two triangles per quad, sharing the 0-2 diagonal. */
+    int index = face * 6;
+    indices[index] = (ushort)first;
+    indices[index + 1] = (ushort)(first + 1);
+    indices[index + 2] = (ushort)(first + 2);
+    indices[index + 3] = (ushort)(first + 2);
+    indices[index + 4] = (ushort)(first + 3);
+    indices[index + 5] = (ushort)first;
+}
+
 Mesh cube = canvas3D.CreateMesh(positions, colors, indices);
 
 Quaternion orientation = Quaternion.Identity;
@@ -370,12 +413,12 @@ The full demo, cube mesh and direction arrow included, is [SpinningCubeDemo.cs](
 
 ## How it works
 
-`Canvas.GetFullScreen()` returns a `GopCanvas`, a canvas backed by the framebuffer that the [Limine](https://limine-bootloader.org/) bootloader requests from the firmware (UEFI GOP) before handing control to the kernel. This is why the same code works unmodified on x64 and ARM64: the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; `Display()` copies the whole back buffer into the mapped framebuffer in one go. The kernel console ([`KernelConsole`](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs)) renders `Console` output onto that same canvas with the default PSF font, calling `Display()` after every write.
+`Canvas.GetFullScreen()` returns the canvas for whichever display device the kernel found. Everywhere except a VMware SVGA II adapter that is the framebuffer the [Limine](https://limine-bootloader.org/) bootloader requests from the firmware (UEFI GOP) before handing control to the kernel; on that adapter it is the canvas driving the device, which is a `Canvas3D` when the adapter negotiates 3D (see [3D rendering](#3d-rendering)). This is why the same code works unmodified on x64 and ARM64: the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; `Display()` copies the whole back buffer into the mapped framebuffer in one go. The kernel console ([`KernelConsole`](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs)) renders `Console` output onto that same canvas with the default PSF font, calling `Display()` after every write.
 
 ```
 Canvas API (shapes, text, images)      (Cosmos.Kernel.System.Graphics)
         │
-GopCanvas ── shared with ── KernelConsole (Console output)
+Full-screen canvas ── shared with ── KernelConsole (Console output)
         │
 Back buffer ──── Display() ────▶ framebuffer mapped by Limine (UEFI GOP, x64 & ARM64)
 ```

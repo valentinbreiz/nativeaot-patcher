@@ -27,6 +27,9 @@ Keyboard support is behind a feature switch. Make sure your kernel's `.csproj` d
 These are the `using`s the snippets below rely on:
 
 ```csharp
+using System.Drawing;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 ```
