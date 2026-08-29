@@ -88,6 +88,32 @@ Four rules make that table usable.
 
 ---
 
+## Property or method
+
+A value the ring holds is a property. An operation is a method. The surface already splits that way, 34 property setters against three `Set` methods, so the rule is worth writing down mostly for the things that look like they should force the method form and do not.
+
+Work does not. `KernelConsole.Font`'s setter takes the console lock, reallocates the cell grid, resets the cursor and repaints the canvas, and it is a property. Validation does not either: `NetworkManager.Primary` throws `ArgumentException` for a handle naming no device, `TimerManager.Frequency` throws `ArgumentOutOfRangeException` for a tick the device cannot divide to, and both are properties. Nor does a feature-switch guard, which is why `MouseManager.Sensitivity` throws from its setter for the same reason `TimerManager.Wait` throws and stays a property.
+
+Three members earn the method form, each for something an assignment cannot express.
+
+| Member | Why it is not a property |
+|--------|--------------------------|
+| `MouseManager.SetPosition(x, y)` | Two coordinates that must land together, then clamp against each other |
+| `MouseManager.SetScreenSize(width, height)` | The same, and it re-clamps the pointer into the new bounds |
+| `KeyboardManager.SetKeyLayout(scanMap)` | The two halves cannot share a type. The read is honestly `ScanMapBase?`, null until a keyboard registers and null for good with the feature compiled out, while a null layout would leave the interrupt path with nothing to decode with. Both forms refuse null at run time; only a non-nullable parameter also diagnoses it at compile time |
+
+A get-only property does not oblige a `Set` twin, and the pairing of the two is the shape to look for. `TimerManager` had it: a property to read the tick and a method to change it, which reads as an oversight rather than a decision, and which hid that the write was never checked. The device rejects a frequency it cannot divide to, `ITimerDevice.SetFrequency` returned `void`, so `SetFrequency(5)` returned normally having done nothing. It is one property now, and the device says whether it took the value.
+
+The read side takes the same test. A property hands back state the ring holds; a method computes it (`TcpPacket.GetFlags` builds a string), hands out a live buffer (`Canvas.GetBuffer` returns the array the canvas is drawing into), or takes a parameter that is not the value (`NetworkManager.GetAdapter(index)`, `SchedulerInfo.GetRunQueueCount(cpuId)`, `TrueTypeFont.GetAscent(sizePx)`). An `out` parameter is not a third option. `MemoryInfo.GetGcStats` handed back two collector counters that way, among five properties, and splitting them costs nothing: they are two fields written at different moments with no lock across them, so the out-method never gave a caller a consistent pair either.
+
+Two rules on overload sets, both about the ring not making the obvious spelling the wrong one.
+
+**A `bool` that switches what a member produces is a second spelling, not an option.** `Log.WriteNumber(x, hex: true)` printed exactly what `Log.WriteHex(x)` prints, no call site anywhere passed it, and the parameter is gone. `WriteHex` and `WriteHexWithPrefix` are the ring's one answer for hex, split on the only distinction that is a real question.
+
+**Where a `params` overload is the convenient spelling of something a typed overload would do for free, the typed overload has to exist.** `Log` promises allocation-free writes for strings and numbers, and `Log.Write("text")` bound to `Write(params object?[])`, which allocates an array for its single argument; the plug layer paid that on every `Monitor` acquire and release, which is every `lock` in BCL code. A `Write(string?)` overload takes those call sites back without editing one of them, because overload resolution prefers it over the expanded params form. It has to keep the params overload's own answer for a null argument, or the cheaper binding would also be a quieter one.
+
+---
+
 ## The declared surface
 
 Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). That covers `Cosmos.Kernel.System`, `Cosmos.Kernel.Core`, `Cosmos.Kernel.HAL`, and `Cosmos.Kernel.HAL.Interfaces`.

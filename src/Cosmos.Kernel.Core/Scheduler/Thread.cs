@@ -4,7 +4,11 @@ using Cosmos.Kernel.Core.Memory.GarbageCollector;
 namespace Cosmos.Kernel.Core.Scheduler;
 
 /// <summary>
-/// Thread Control Block for scheduling.
+/// Thread Control Block for scheduling. A kernel that only wants to read
+/// thread state does not come here: <c>SchedulerInfo</c> on the ring hands
+/// out a <c>KernelThreadInfo</c> snapshot of the fields that survive an
+/// unlocked read, and reaching this type means acknowledging the seam's
+/// diagnostic first.
 /// </summary>
 [Experimental(Experimentals.SchedulerSeamDiagId)]
 public sealed unsafe class Thread : SchedulerExtensible
