@@ -114,7 +114,7 @@ internal class GopCanvas : Canvas
         return hz;
     }
 
-    public override void Disable()
+    internal override void Disable()
     {
         //_driver.DisableDisplay();
     }

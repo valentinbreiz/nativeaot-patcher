@@ -147,7 +147,6 @@ Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.SizePx.set -> void
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(System.IO.Stream! stream, int sizePx = 16) -> void
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(byte[]! fontData, int sizePx = 16) -> void
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(string! path, int sizePx = 16) -> void
-Cosmos.Kernel.System.Graphics.FullScreenCanvas
 Cosmos.Kernel.System.Graphics.Image
 Cosmos.Kernel.System.Graphics.Image.Depth.get -> Cosmos.Kernel.System.Graphics.ColorDepth
 Cosmos.Kernel.System.Graphics.Image.Depth.set -> void
@@ -606,19 +605,11 @@ static Cosmos.Kernel.System.Global.CurrentKernel.get -> Cosmos.Kernel.System.Ker
 static Cosmos.Kernel.System.Global.RegisterKernel(Cosmos.Kernel.System.Kernel! kernel) -> void
 static Cosmos.Kernel.System.Global.StartKernel() -> void
 static Cosmos.Kernel.System.Graphics.Canvas.AlphaBlend(System.Drawing.Color to, System.Drawing.Color from, byte alpha) -> System.Drawing.Color
+static Cosmos.Kernel.System.Graphics.Canvas.DisableFullScreen() -> void
 static Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen() -> Cosmos.Kernel.System.Graphics.Canvas!
 static Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode mode) -> Cosmos.Kernel.System.Graphics.Canvas!
 static Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.DefaultFont.get -> Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont!
 static Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont.LoadFont(byte[]! fontData) -> Cosmos.Kernel.System.Graphics.Fonts.PCScreenFont!
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.Disable() -> void
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetCurrentFullScreenCanvas() -> Cosmos.Kernel.System.Graphics.Canvas?
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas() -> Cosmos.Kernel.System.Graphics.Canvas!
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas(Cosmos.Kernel.System.Graphics.Mode mode) -> Cosmos.Kernel.System.Graphics.Canvas!
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas3D() -> Cosmos.Kernel.System.Graphics.Canvas3D!
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.GetFullScreenCanvas3D(Cosmos.Kernel.System.Graphics.Mode mode) -> Cosmos.Kernel.System.Graphics.Canvas3D!
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.IsInUse.get -> bool
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas(Cosmos.Kernel.System.Graphics.Mode mode, out Cosmos.Kernel.System.Graphics.Canvas? canvas) -> bool
-static Cosmos.Kernel.System.Graphics.FullScreenCanvas.TryGetFullScreenCanvas3D(Cosmos.Kernel.System.Graphics.Mode mode, out Cosmos.Kernel.System.Graphics.Canvas3D? canvas) -> bool
 static Cosmos.Kernel.System.Graphics.KernelConsole.Default.get -> Cosmos.Kernel.System.Graphics.KernelConsole?
 static Cosmos.Kernel.System.Graphics.KernelConsole.Initialize() -> bool
 static Cosmos.Kernel.System.Graphics.KernelConsole.IsInitialized.get -> bool
@@ -768,7 +759,6 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.Clear(int color) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.CopyPixels(int srcX, int srcY, int dstX, int dstY, int width, int height) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image! image, int x, int y, int maxWidth, int maxHeight, bool preventOffBoundPixels = true) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DefaultGraphicsMode.get -> Cosmos.Kernel.System.Graphics.Mode
-virtual Cosmos.Kernel.System.Graphics.Canvas.Disable() -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.Display() -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArc(System.Drawing.Color color, int xCenter, int yCenter, int xR, int yR, int startAngle = 0, int endAngle = 360) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawArray(System.Drawing.Color[]! colors, int x, int y, int width, int height) -> void

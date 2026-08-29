@@ -331,7 +331,7 @@ public class Kernel : Sys.Kernel
 
         canvas.Display();
 
-        canvas.Disable();
+        Canvas.DisableFullScreen();
 
         Console.WriteLine("Back in text mode");
         Console.WriteLine("Freed: " + MemoryInfo.Collect());

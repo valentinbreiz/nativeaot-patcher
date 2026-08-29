@@ -270,7 +270,7 @@ Color color = canvas.GetPointColor(69, 69);   // Color.Red
 - The video mode cannot be changed at runtime: the framebuffer resolution is whatever the bootloader negotiated at boot.
 - Supported image formats are BMP (uncompressed, 24 or 32 bpp) and PNG; there is no JPEG support.
 - No hardware acceleration: every primitive is drawn pixel by pixel by the CPU.
-- `FullScreenCanvas.Disable()` exists but there is no VGA text mode to fall back to on UEFI machines.
+- `Canvas.DisableFullScreen()` exists but there is no VGA text mode to fall back to on UEFI machines.
 
 ## How it works
 

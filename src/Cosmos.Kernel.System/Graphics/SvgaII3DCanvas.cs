@@ -118,7 +118,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     public override IReadOnlyList<Mode> AvailableModes { get; } = SvgaIIRender.CreateAvailableModes();
 
     /// <inheritdoc />
-    public override void Disable()
+    internal override void Disable()
     {
         Driver.Disable();
     }

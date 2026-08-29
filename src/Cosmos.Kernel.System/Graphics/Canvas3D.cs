@@ -15,11 +15,11 @@ namespace Cosmos.Kernel.System.Graphics;
 /// </summary>
 /// <remarks>
 /// Instances are obtained from
-/// <see cref="FullScreenCanvas.TryGetFullScreenCanvas3D"/> (or by testing a
-/// <see cref="Canvas"/> with <c>is Canvas3D</c>); the canvas only reports the
-/// type when the display device actually supports 3D rendering. Depth
-/// testing is enabled with a depth range of 0.1 to 1000 world units from the
-/// camera; faces are not culled.
+/// <see cref="Canvas.GetFullScreen()"/> and tested with <c>is Canvas3D</c>;
+/// the canvas only reports the type when the display device actually supports
+/// 3D rendering, which today means the VMware SVGA II adapter and nothing
+/// else. Depth testing is enabled with a depth range of 0.1 to 1000 world
+/// units from the camera; faces are not culled.
 /// </remarks>
 public abstract class Canvas3D : Canvas
 {
@@ -33,7 +33,7 @@ public abstract class Canvas3D : Canvas
     /// <summary>
     /// Initializes a new instance of the <see cref="Canvas3D"/> class with a
     /// mode. Used by the drivers in this assembly; a 3D canvas is obtained
-    /// from <see cref="FullScreenCanvas"/>, not derived from.
+    /// from <see cref="Canvas.GetFullScreen()"/>, not derived from.
     /// </summary>
     /// <param name="mode">The graphics mode of the canvas.</param>
     private protected Canvas3D(Mode mode)

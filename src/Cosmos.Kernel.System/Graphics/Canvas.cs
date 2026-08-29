@@ -117,19 +117,51 @@ public unsafe class Canvas
     }
 
     /// <summary>
-    /// Gets the hardware-backed full-screen canvas using the default graphics mode.
+    /// Gets the hardware-backed full-screen canvas using the default graphics
+    /// mode. The first call builds it against the detected display device;
+    /// later calls hand back the same canvas without resetting the mode, so
+    /// <see cref="Mode"/> always reports the real screen size.
+    /// <para>
+    /// The display device decides the canvas's type. Only the VMware SVGA II
+    /// adapter negotiates 3D, so a kernel that wants to render 3D tests the
+    /// canvas with <c>is <see cref="Canvas3D"/></c>; on the UEFI framebuffer
+    /// every documented setup uses, it never is.
+    /// </para>
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Graphics support is compiled out with CosmosEnableGraphics=false. Test
+    /// <see cref="KernelFeatures.Graphics"/> first to avoid it.
+    /// </exception>
     public static Canvas GetFullScreen()
     {
-        return FullScreenCanvas.GetFullScreenCanvas();
+        return FullScreenCanvas.Get();
     }
 
     /// <summary>
-    /// Gets the hardware-backed full-screen canvas using the specified mode.
+    /// Gets the hardware-backed full-screen canvas, switching the display to
+    /// <paramref name="mode"/>. The UEFI framebuffer cannot change mode after
+    /// boot, so on the GOP path the request is ignored and the canvas keeps
+    /// reporting the resolution the bootloader set.
     /// </summary>
+    /// <param name="mode">
+    /// The display mode to switch to; must be one of the canvas's
+    /// <see cref="AvailableModes"/>.
+    /// </param>
+    /// <exception cref="InvalidOperationException">Graphics support is compiled out with CosmosEnableGraphics=false.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The display device does not support <paramref name="mode"/>.</exception>
     public static Canvas GetFullScreen(Mode mode)
     {
-        return FullScreenCanvas.GetFullScreenCanvas(mode);
+        return FullScreenCanvas.Get(mode);
+    }
+
+    /// <summary>
+    /// Returns the display device to text mode and gives the screen back.
+    /// There is no VGA text mode to fall back to on UEFI machines, where this
+    /// is a no-op.
+    /// </summary>
+    public static void DisableFullScreen()
+    {
+        FullScreenCanvas.Disable();
     }
 
     /// <summary>
@@ -179,9 +211,11 @@ public unsafe class Canvas
     }
 
     /// <summary>
-    /// Disables the canvas.
+    /// Turns the display device off. The device half of
+    /// <see cref="DisableFullScreen"/>, which is what a kernel calls: a
+    /// virtual canvas has no device to turn off at all.
     /// </summary>
-    public virtual void Disable()
+    internal virtual void Disable()
     {
     }
 

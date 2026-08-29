@@ -477,11 +477,11 @@ public static unsafe class Canvas3DTests
     /// </summary>
     public static void TestCanvas3DDiscovery()
     {
-        bool has3D = FullScreenCanvas.TryGetFullScreenCanvas3D(new Mode(640, 480, ColorDepth.ColorDepth32), out Canvas3D? canvas3D);
+        // The ring's documented 3D discovery idiom: acquire, then test the type.
+        Canvas canvas = Canvas.GetFullScreen(new Mode(640, 480, ColorDepth.ColorDepth32));
 
-        Assert.False(has3D, "no CI display device negotiates 3D");
-        Assert.Null(canvas3D, "no canvas is returned when 3D is unavailable");
-        Assert.True(FullScreenCanvas.GetCurrentFullScreenCanvas() is not Canvas3D, "the 2D canvas does not report Canvas3D");
+        Assert.True(canvas is not Canvas3D, "no CI display device negotiates 3D");
+        Assert.True(FullScreenCanvas.Current is not Canvas3D, "the cached canvas does not report Canvas3D either");
     }
 
     /// <summary>
