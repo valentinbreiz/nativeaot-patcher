@@ -287,13 +287,19 @@ The wait side follows the park protocol, with two twists. Callers without park c
 
 Deferred work has two tiers, split by execution context. The rule is in the API docs of both: interrupt context must not block, thread context may.
 
-| | [`TimerManager.Schedule`](../../../src/Cosmos.Kernel.System/Timer/TimerManager.cs) | [`AlarmSystem`](../../../src/Cosmos.Kernel.Core/Scheduler/AlarmSystem.cs) |
+| | [`TimerManager`](../../../src/Cosmos.Kernel.System/Timer/TimerManager.cs) | [`AlarmManager`](../../../src/Cosmos.Kernel.System/Timer/AlarmManager.cs) |
 |---|---|---|
 | Callback runs in | interrupt context (the timer tick) | a dedicated kernel thread |
 | May block, take a Mutex | no | yes |
 | Resolution | the timer device's tick | the scheduler tick |
-| Backed by | `SoftwareTimer` registry on the timer device | a deadline-sorted list, a `Mutex`, a `ConditionVariable` |
-| One-shot / recurring | both | both (recurring minimum 1 ms) |
+| Backed by | `SoftwareTimer` registry on the timer device | [`AlarmSystem`](../../../src/Cosmos.Kernel.Core/Scheduler/AlarmSystem.cs): a deadline-sorted list, a `Mutex`, a `ConditionVariable` |
+| Scheduled with | `Schedule(Action, TimeSpan)`, `ScheduleRecurring(Action, TimeSpan)` | the same two signatures |
+| Handle | a `SoftwareTimer`, null when no timer device is registered | a `ulong` id, 0 when the scheduler is not running |
+| Cancelled with | `Cancel(SoftwareTimer?)` | `Cancel(ulong)` |
+| Cancel returns | true only when the timer was still pending | true only when the alarm was still pending |
+| One-shot / recurring | both (recurring period must be positive) | both (recurring minimum 1 ms) |
+
+The two managers take the same arguments in the same order and report cancellation the same way, so the only thing the call site chooses is the execution context, which is what the manager name says. The handle types differ because an alarm is owned by `AlarmSystem`, which is internal to `Cosmos.Kernel.Core`, while a software timer is a public handle the device registry hands back.
 
 The first tier is hardware-near: `TimerDevice` keeps a registry of `SoftwareTimer` countdowns and drives them from its tick interrupt (`HandleTick`), invoking due callbacks right there in interrupt context. On x64 the PIT provides this tick, separate from the LAPIC scheduler tick; on ARM64 the single Generic Timer interrupt drives both, software timers first.
 
