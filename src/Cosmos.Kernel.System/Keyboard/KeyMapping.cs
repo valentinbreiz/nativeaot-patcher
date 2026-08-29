@@ -168,8 +168,10 @@ namespace Cosmos.Kernel.System.Keyboard
         {
         }
 
-        /// <inheritdoc cref="KeyMapping(byte, char, char, char, char, char, char, char, char, char, char, ConsoleKeyEx, ConsoleKeyEx)"/>
-        /// <param name="scanCode">The scan code the physical key sends.</param>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KeyMapping"/> class.
+        /// </summary>
+        /// <param name="scanCode">The physical scan code of the key.</param>
         /// <param name="n">The character to use for all of the text character fields.</param>
         /// <param name="key">The virtual key that the physical key-press maps to.</param>
         public KeyMapping(byte scanCode, char n, ConsoleKeyEx key)

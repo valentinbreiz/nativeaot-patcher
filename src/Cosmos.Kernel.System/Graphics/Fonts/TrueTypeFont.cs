@@ -61,9 +61,6 @@ public class TrueTypeFont : Font
     public bool HasGlyph(char c) => _font.HasGlyph(c);
 
     /// <inheritdoc cref="GetLineMetrics(int, out int, out int, out int)"/>
-    /// <param name="ascent">The scaled ascent in pixels.</param>
-    /// <param name="descent">The scaled descent in pixels (negative).</param>
-    /// <param name="lineGap">The scaled gap between lines in pixels.</param>
     public void GetLineMetrics(out int ascent, out int descent, out int lineGap)
         => GetLineMetrics(SizePx, out ascent, out descent, out lineGap);
 
