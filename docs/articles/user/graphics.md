@@ -266,9 +266,24 @@ Color color = canvas.GetPointColor(69, 69);   // Color.Red
 
 ## 3D rendering
 
-3D is reachable on one display device only: the VMware SVGA II adapter, and only when it negotiates SVGA3D during FIFO initialization. Every other path, the UEFI framebuffer that `make run` and `make test` use on both architectures included, hands back a plain `Canvas`. QEMU's `vmware-svga` exposes no 3D capability either, so in practice this means real VMware Workstation or ESXi.
+3D is reachable on one display device only: the VMware SVGA II adapter, and only when it negotiates SVGA3D during FIFO initialization. Every other path, the UEFI framebuffer `cosmos run` boots on both architectures included, hands back a plain `Canvas`. QEMU's `vmware-svga` exposes no 3D capability either, so in practice this means real VMware Workstation or ESXi.
 
-That is why there is no `GetFullScreen3D`. A kernel acquires the canvas the usual way and tests what it got:
+The virtual machine also has to present the adapter in its pre guest-backed form. Once it advertises `SVGA_CAP_GBOBJECTS`, 3D capabilities move to a register interface the driver does not speak, the 3D version in the FIFO stays 0 and the canvas comes back 2D. Lowering the hardware compatibility level of the machine is what keeps the adapter on the older model. This pair works on VMware Workstation 25:
+
+```
+virtualHW.version = "10"
+mks.enable3D = "TRUE"
+```
+
+The version where an adapter starts advertising guest-backed objects belongs to the VMware build, so check the outcome rather than trusting a number. The kernel prints it on the serial port at boot:
+
+```
+[SVGAII] SVGA3D: fifocaps 0x77F hw 0x20001 rev 0x20001 caps0 0xBA enabled
+```
+
+`disabled` there means `Canvas.GetFullScreen()` will hand back a plain `Canvas`; lower the compatibility level until the line reads `enabled`.
+
+Because the capability is only known at runtime, there is no `GetFullScreen3D`. A kernel acquires the canvas the usual way and tests what it got:
 
 ```csharp
 Canvas canvas = Canvas.GetFullScreen();
@@ -287,6 +302,58 @@ if (canvas is Canvas3D canvas3D)
 `Canvas3D` is a `Canvas`, so every 2D call still works on it and `Display()` presents the frame either way. Meshes come from `CreateMesh` and textures from `CreateTexture(Image)`; `DrawMesh(mesh, world)` places one with a transform. `IsAccelerated` reports whether the drawing is going through the device rather than the CPU.
 
 A kernel cannot implement `Canvas3D` itself. Its constructor is `private protected` and both implementations are internal, so the abstract members on it are call targets, not an extension contract.
+
+### A cube the mouse rolls
+
+The DevKernel `cube` command builds a whole scene from those calls: a mesh with one color per face, the ground grid, and a flat triangle that points where the mouse pushes. The pointer drives the roll, so the further it sits from the center of the screen, the faster the cube rolls that way.
+
+```csharp
+Canvas3D canvas3D = (Canvas3D)Canvas.GetFullScreen();
+MouseManager.SetScreenSize(canvas3D.Width, canvas3D.Height);
+canvas3D.Camera = new Camera3D(new Vector3(0f, 2.6f, 4.6f), new Vector3(0f, 0.9f, 0f));
+
+/* One quad per face, four vertices each: the faces share no vertices, so a
+   corner does not blend three colors into an unreadable rotation. */
+Mesh cube = canvas3D.CreateMesh(positions, colors, indices);
+
+Quaternion orientation = Quaternion.Identity;
+long previous = Stopwatch.GetTimestamp();
+
+while (true)
+{
+    long now = Stopwatch.GetTimestamp();
+    float elapsed = (float)(now - previous) / Stopwatch.Frequency;
+    previous = now;
+
+    /* Where the mouse points, read as a push on the ground plane: 0 at the
+       center of the screen, 1 at the edges. */
+    Vector3 drive = new(
+        (MouseManager.X - canvas3D.Width * 0.5f) / (canvas3D.Width * 0.5f),
+        0f,
+        (MouseManager.Y - canvas3D.Height * 0.5f) / (canvas3D.Height * 0.5f));
+
+    /* A cube rolling that way turns about the axis perpendicular to both the
+       ground normal and the push, on top of a slow idle spin about Y. */
+    Vector3 spin = (Vector3.Cross(Vector3.UnitY, drive) * 3.5f) + (Vector3.UnitY * 0.6f);
+    orientation = Quaternion.Normalize(Quaternion.Concatenate(
+        orientation,
+        Quaternion.CreateFromAxisAngle(Vector3.Normalize(spin), spin.Length() * elapsed)));
+
+    canvas3D.ClearScene(Color.FromArgb(0x10, 0x14, 0x20));
+    canvas3D.DrawGrid(12, 0.5f, Color.FromArgb(0x30, 0x3A, 0x50));
+    canvas3D.DrawMesh(
+        cube,
+        Matrix4x4.CreateFromQuaternion(orientation) * Matrix4x4.CreateTranslation(0f, 1f, 0f));
+    canvas3D.Display();
+
+    Thread.Sleep(16);
+}
+```
+
+<!-- video: the cube spinning above the grid, then rolling right, left, toward the camera and away as the mouse is pushed to each edge of the screen, the arrow on the ground showing the push direction -->
+<video src="images/graphics-3d-cube.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video>
+
+The full demo, cube mesh and direction arrow included, is [SpinningCubeDemo.cs](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/examples/DevKernel/Graphics/SpinningCubeDemo.cs).
 
 ## Current limitations
 
