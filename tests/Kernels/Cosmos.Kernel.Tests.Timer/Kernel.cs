@@ -24,8 +24,8 @@ public class Kernel : Sys.Kernel
         Serial.WriteString("[Timer Tests] Starting test suite\n");
 
 #if ARCH_X64
-        // x64: Stopwatch (2) + PIT (3) + TimerManager (6) + LAPIC (3) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 25
-        TR.Start("Timer Tests", expectedTests: 25);
+        // x64: Stopwatch (2) + PIT (3) + TimerManager (7) + LAPIC (3) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 26
+        TR.Start("Timer Tests", expectedTests: 26);
 
         // PIT Tests (using Stopwatch for verification)
         TR.Run("PIT_Initialized", TestPITInitialized);
@@ -39,8 +39,8 @@ public class Kernel : Sys.Kernel
 
 #else
         // ARM64: No PIT or LAPIC, just basic timer manager tests
-        // Stopwatch (2) + TimerManager (6) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 19
-        TR.Start("Timer Tests", expectedTests: 19);
+        // Stopwatch (2) + TimerManager (7) + DateTime (4) + AlarmManager (3) + BCL Timer (4) = 20
+        TR.Start("Timer Tests", expectedTests: 20);
 #endif
 
         // Stopwatch/TSC Tests - must run first to verify timing source
@@ -54,6 +54,7 @@ public class Kernel : Sys.Kernel
         TR.Run("TimerManager_Schedule_Recurring", TestScheduleRecurring);
         TR.Run("TimerManager_Schedule_Cancel", TestScheduleCancel);
         TR.Run("TimerManager_Schedule_RejectsNonPositivePeriod", TestScheduleRejectsNonPositivePeriod);
+        TR.Run("TimerManager_Callback_CancelsOtherTimers", TestCallbackCancelsOtherTimers);
 
         // Alarm Tests
         TR.Run("Alarm_Schedule_Fires", TestAlarmFires);
@@ -305,6 +306,39 @@ public class Kernel : Sys.Kernel
         SoftwareTimer? timer = TimerManager.Schedule(static () => { }, TimeSpan.Zero);
         Assert.True(timer != null, "Schedule: a zero delay should still be scheduled");
         TimerManager.Cancel(timer);
+    }
+
+    private static volatile int s_reentrantFireCount;
+    private static SoftwareTimer? s_reentrantFirst;
+    private static SoftwareTimer? s_reentrantSecond;
+
+    private static void TestCallbackCancelsOtherTimers()
+    {
+        // Cancelling from inside a timer callback mutates the registry the
+        // device is walking. The two victims are registered first, so they sit
+        // below the canceller in the registry and removing them shifts every
+        // index the walk has not reached yet.
+        s_reentrantFireCount = 0;
+        s_reentrantFirst = TimerManager.Schedule(static () => s_reentrantFireCount += 100, TimeSpan.FromSeconds(10));
+        s_reentrantSecond = TimerManager.Schedule(static () => s_reentrantFireCount += 100, TimeSpan.FromSeconds(10));
+
+        SoftwareTimer? canceller = TimerManager.Schedule(
+            static () =>
+            {
+                TimerManager.Cancel(s_reentrantFirst);
+                TimerManager.Cancel(s_reentrantSecond);
+                s_reentrantFireCount++;
+            },
+            TimeSpan.FromMilliseconds(50));
+
+        Assert.True(canceller != null, "Reentrancy: the cancelling timer should be scheduled");
+
+        TimerManager.Wait(300);
+
+        Assert.True(s_reentrantFireCount == 1, "Reentrancy: only the cancelling timer should have fired");
+        Assert.True(!TimerManager.Cancel(s_reentrantFirst), "Reentrancy: the first victim should be gone");
+        Assert.True(!TimerManager.Cancel(s_reentrantSecond), "Reentrancy: the second victim should be gone");
+        Assert.True(!canceller!.IsActive, "Reentrancy: the one-shot canceller should be inactive");
     }
 
     // ==================== Alarm Tests ====================

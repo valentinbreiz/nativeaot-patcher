@@ -17,6 +17,15 @@ internal abstract class TimerDevice : Device, ITimerDevice
     private readonly List<SoftwareTimer> _timers = new();
 
     /// <summary>
+    /// Timers found due by the current <see cref="HandleTick"/>, so their
+    /// callbacks run after the registry walk rather than inside it. Kept at
+    /// least as long as the registry by <see cref="RegisterTimer"/>, because
+    /// one tick can find every registered timer due and the tick path must not
+    /// allocate.
+    /// </summary>
+    private SoftwareTimer?[] _dueTimers = new SoftwareTimer?[4];
+
+    /// <summary>
     /// Event handler for timer tick events.
     /// </summary>
     public TimerTickHandler? OnTick { get; set; }
@@ -51,6 +60,11 @@ internal abstract class TimerDevice : Device, ITimerDevice
 
         using (InternalCpu.DisableInterruptsScope())
         {
+            if (_dueTimers.Length <= _timers.Count)
+            {
+                _dueTimers = new SoftwareTimer?[(_timers.Count + 1) * 2];
+            }
+
             timer.SetActive(true);
             _timers.Add(timer);
         }
@@ -96,7 +110,13 @@ internal abstract class TimerDevice : Device, ITimerDevice
     /// <param name="elapsedNs">Nanoseconds elapsed since the previous tick.</param>
     protected void HandleTick(ulong elapsedNs)
     {
-        for (int i = _timers.Count - 1; i >= 0; i--)
+        // Collect first, invoke second. A callback may call RegisterTimer or
+        // UnregisterTimer, and both mutate _timers: re-indexing a list a
+        // callback has shrunk ticks one timer twice, and walks off the end
+        // outright once a callback cancels two.
+        int dueCount = 0;
+
+        for (int i = _timers.Count - 1; i >= 0 && dueCount < _dueTimers.Length; i--)
         {
             SoftwareTimer timer = _timers[i];
 
@@ -109,6 +129,22 @@ internal abstract class TimerDevice : Device, ITimerDevice
             {
                 timer.SetActive(false);
                 _timers.RemoveAt(i);
+            }
+
+            _dueTimers[dueCount++] = timer;
+        }
+
+        for (int i = 0; i < dueCount; i++)
+        {
+            SoftwareTimer? timer = _dueTimers[i];
+            _dueTimers[i] = null;
+
+            // A recurring timer that an earlier callback in this batch
+            // cancelled must not fire. A one-shot is already off the registry
+            // and committed to this firing.
+            if (timer == null || (timer.Recurring && !timer.IsActive))
+            {
+                continue;
             }
 
             timer.Invoke();

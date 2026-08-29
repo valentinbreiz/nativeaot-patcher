@@ -5,7 +5,8 @@ namespace Cosmos.Kernel.HAL.Interfaces.Devices;
 /// <summary>
 /// A software timer that invokes a callback after a delay, driven by the
 /// periodic tick of the timer device it is registered with. Callbacks run
-/// in interrupt context and must not block.
+/// in interrupt context: they must not block, and an exception escaping one
+/// halts the kernel, because the interrupt dispatch has no handler above it.
 /// </summary>
 /// <remarks>
 /// A kernel obtains one from TimerManager.Schedule or ScheduleRecurring and

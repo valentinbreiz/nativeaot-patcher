@@ -58,9 +58,10 @@ public static class TimerManager
 
     /// <summary>
     /// Schedules a callback to run once after the specified delay. The callback
-    /// runs in interrupt context and must not block; use
-    /// <see cref="AlarmManager.Schedule"/> for callbacks that need thread
-    /// context.
+    /// runs in interrupt context, so it must not block, and it must not let an
+    /// exception escape: nothing above the interrupt dispatch catches one and
+    /// the kernel halts. Use <see cref="AlarmManager.Schedule"/> for callbacks
+    /// that need thread context.
     /// </summary>
     /// <param name="callback">Method to invoke when the delay expires.</param>
     /// <param name="delay">
@@ -76,9 +77,9 @@ public static class TimerManager
 
     /// <summary>
     /// Schedules a callback to run repeatedly with the specified period. The
-    /// callback runs in interrupt context and must not block; use
-    /// <see cref="AlarmManager.ScheduleRecurring"/> for callbacks that need
-    /// thread context.
+    /// callback runs in interrupt context under the same rules as
+    /// <see cref="Schedule"/>; use <see cref="AlarmManager.ScheduleRecurring"/>
+    /// for callbacks that need thread context.
     /// </summary>
     /// <param name="callback">Method to invoke each period.</param>
     /// <param name="period">
