@@ -297,7 +297,7 @@ public class Bitmap : Image
         //Set the bitmap to have the correct values
         Width = (int)imageWidth;
         Height = (int)imageHeight;
-        Depth = (ColorDepth)pixelSize;
+        ColorDepth = (ColorDepth)pixelSize;
 
         RawData = new int[Width * Height];
 
@@ -406,13 +406,13 @@ public class Bitmap : Image
     public void Save(Stream stream)
     {
         //Calculate padding
-        int padding = 4 - ((int)Width * (int)Depth % 32 / 8);
+        int padding = 4 - ((int)Width * (int)ColorDepth % 32 / 8);
         if (padding == 4)
         {
             padding = 0;
         }
 
-        byte[] file = new byte[54 /*header*/ + (Width * Height * (uint)Depth / 8) + padding * Height];
+        byte[] file = new byte[54 /*header*/ + (Width * Height * (uint)ColorDepth / 8) + padding * Height];
         // Writes all bytes at the end into the stream, rather than a few every time
 
         int position = 0;
@@ -422,7 +422,7 @@ public class Bitmap : Image
         position += 2;
 
         // Write apporiximate file size
-        data = BitConverter.GetBytes(54 /*header*/ + (Width * Height * (uint)Depth / 8) /*assume that it is full bytes */);
+        data = BitConverter.GetBytes(54 /*header*/ + (Width * Height * (uint)ColorDepth / 8) /*assume that it is full bytes */);
         Array.Copy(data, 0, file, position, 4);
         position += 4;
 
@@ -458,7 +458,7 @@ public class Bitmap : Image
         position += 2;
 
         // Bits per pixel
-        data = BitConverter.GetBytes((int)Depth);
+        data = BitConverter.GetBytes((int)ColorDepth);
         Array.Copy(data, 0, file, position, 2);
         position += 2;
 
@@ -468,7 +468,7 @@ public class Bitmap : Image
         position += 4;
 
         // Size of image data in bytes
-        data = BitConverter.GetBytes(Width * Height * (uint)Depth / 8);
+        data = BitConverter.GetBytes(Width * Height * (uint)ColorDepth / 8);
         Array.Copy(data, 0, file, position, 4);
         position += 4;
 
@@ -495,10 +495,10 @@ public class Bitmap : Image
 
         // Copy image data
         position = (int)offset;
-        int byteNum = (int)Depth / 8;
+        int byteNum = (int)ColorDepth / 8;
         byte[] imageData = new byte[(Width * Height * byteNum) + padding * Height];
         int imageDataPoint = 0;
-        int cOffset = 4 - ((int)Depth / 8);
+        int cOffset = 4 - ((int)ColorDepth / 8);
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)

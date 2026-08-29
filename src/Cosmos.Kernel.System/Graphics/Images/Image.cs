@@ -27,21 +27,21 @@ public abstract class Image
     public int Height { get; protected set; }
 
     /// <summary>
-    /// The color depth of each pixel of the image - i.e, the amount
-    /// of bits per each pixel.
+    /// The color depth of each pixel of the image, i.e. the amount of bits
+    /// per each pixel.
     /// </summary>
-    public ColorDepth Depth { get; protected set; }
+    public ColorDepth ColorDepth { get; protected set; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Image"/> class.
     /// </summary>
     /// <param name="width">The width of the image.</param>
     /// <param name="height">The height of the image.</param>
-    /// <param name="color">The color depth of each pixel.</param>
-    protected Image(int width, int height, ColorDepth color)
+    /// <param name="colorDepth">The color depth of each pixel.</param>
+    protected Image(int width, int height, ColorDepth colorDepth)
     {
         Width = width;
         Height = height;
-        Depth = color;
+        ColorDepth = colorDepth;
     }
 }

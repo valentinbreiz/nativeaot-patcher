@@ -149,11 +149,11 @@ Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(System.IO.Stream! 
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(byte[]! fontData, int sizePx = 16) -> void
 Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(string! path, int sizePx = 16) -> void
 Cosmos.Kernel.System.Graphics.Image
-Cosmos.Kernel.System.Graphics.Image.Depth.get -> Cosmos.Kernel.System.Graphics.ColorDepth
-Cosmos.Kernel.System.Graphics.Image.Depth.set -> void
+Cosmos.Kernel.System.Graphics.Image.ColorDepth.get -> Cosmos.Kernel.System.Graphics.ColorDepth
+Cosmos.Kernel.System.Graphics.Image.ColorDepth.set -> void
 Cosmos.Kernel.System.Graphics.Image.Height.get -> int
 Cosmos.Kernel.System.Graphics.Image.Height.set -> void
-Cosmos.Kernel.System.Graphics.Image.Image(int width, int height, Cosmos.Kernel.System.Graphics.ColorDepth color) -> void
+Cosmos.Kernel.System.Graphics.Image.Image(int width, int height, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
 Cosmos.Kernel.System.Graphics.Image.RawData.get -> int[]!
 Cosmos.Kernel.System.Graphics.Image.RawData.set -> void
 Cosmos.Kernel.System.Graphics.Image.Width.get -> int
