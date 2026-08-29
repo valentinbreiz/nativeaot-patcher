@@ -3,12 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace Cosmos.Kernel.System.Graphics;
 
-/*
-    * This struct represents a video mode in term of its number of columns, rows and color_depth
-    */
-
 /// <summary>
-/// Represents a video mode, definining its width (rows), height (columns) and color depth.
+/// Represents a video mode: the width and height of the display in pixels, and
+/// the number of bits each pixel takes.
 /// </summary>
 public readonly struct Mode
 {
@@ -74,7 +71,6 @@ public readonly struct Mode
     /// <param name="other">The mode to compare with.</param>
     public int CompareTo(Mode other)
     {
-        // color_depth has no effect on the orderiring
         if (Width < other.Width && Height < other.Height)
         {
             return -1;
