@@ -1,4 +1,4 @@
-//#define COSMOSDEBUG
+﻿//#define COSMOSDEBUG
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -820,18 +820,6 @@ public unsafe class Canvas
         var firstPoint = points[0];
         var lastPoint = points[^1];
         DrawLine(color, firstPoint.X, firstPoint.Y, lastPoint.X, lastPoint.Y);
-    }
-
-    /// <summary>
-    /// Draws a square.
-    /// </summary>
-    /// <param name="color">The color to draw with.</param>
-    /// <param name="x">The X coordinate.</param>
-    /// <param name="y">The Y coordinate.</param>
-    /// <param name="size">The size of the square.</param>
-    public virtual void DrawSquare(Color color, int x, int y, int size)
-    {
-        DrawRectangle(color, x, y, size, size);
     }
 
     /// <summary>

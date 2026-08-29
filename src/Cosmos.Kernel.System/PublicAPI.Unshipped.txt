@@ -741,7 +741,6 @@ virtual Cosmos.Kernel.System.Graphics.Canvas.DrawPoint(int color, int x, int y) 
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawPoint(uint color, int x, int y) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawPolygon(System.Drawing.Color color, params System.Drawing.Point[]! points) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawRectangle(System.Drawing.Color color, int x, int y, int width, int height) -> void
-virtual Cosmos.Kernel.System.Graphics.Canvas.DrawSquare(System.Drawing.Color color, int x, int y, int size) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawString(string! str, Cosmos.Kernel.System.Graphics.Fonts.Font! font, System.Drawing.Color color, int x, int y) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawString(string! str, Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont! font, int sizePx, System.Drawing.Color color, int x, int y) -> void
 virtual Cosmos.Kernel.System.Graphics.Canvas.DrawTriangle(System.Drawing.Color color, int v1x, int v1y, int v2x, int v2y, int v3x, int v3y) -> void
