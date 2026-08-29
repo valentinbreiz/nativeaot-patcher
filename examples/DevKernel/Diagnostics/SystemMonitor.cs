@@ -38,7 +38,7 @@ internal static class SystemMonitor
 
         if (KernelFeatures.Mouse)
         {
-            MouseManager.SetScreenSize((int)canvas.Mode.Width, (int)canvas.Mode.Height);
+            MouseManager.SetScreenSize(canvas.Mode.Width, canvas.Mode.Height);
         }
 
         int x = OverlayLayout.TextMarginPx;

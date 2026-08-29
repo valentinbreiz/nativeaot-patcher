@@ -13,14 +13,14 @@ namespace Cosmos.Kernel.System.Graphics;
 public readonly struct Mode
 {
     /// <summary>
-    /// The width, or rows, of the display mode.
+    /// The width of the display mode, in pixels.
     /// </summary>
-    public uint Width { get; }
+    public int Width { get; }
 
     /// <summary>
-    /// The height, or columns, of the display mode.
+    /// The height of the display mode, in pixels.
     /// </summary>
-    public uint Height { get; }
+    public int Height { get; }
 
     /// <summary>
     /// The color depth of the display mode, i.e. the amount of bits per a single pixel.
@@ -30,13 +30,13 @@ public readonly struct Mode
     /// <summary>
     /// Initializes a new instance of the <see cref="Mode"/> struct.
     /// </summary>
-    /// <param name="columns">The number of columns.</param>
-    /// <param name="rows">The number of rows.</param>
+    /// <param name="width">The width in pixels.</param>
+    /// <param name="height">The height in pixels.</param>
     /// <param name="colorDepth">The color depth, i.e. the amount of bits per a single pixel.</param>
-    public Mode(uint columns, uint rows, ColorDepth colorDepth)
+    public Mode(int width, int height, ColorDepth colorDepth)
     {
-        Width = columns;
-        Height = rows;
+        Width = width;
+        Height = height;
         ColorDepth = colorDepth;
     }
 

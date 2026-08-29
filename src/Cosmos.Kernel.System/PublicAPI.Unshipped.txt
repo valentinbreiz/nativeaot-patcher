@@ -78,9 +78,9 @@ Cosmos.Kernel.System.Filesystems.Fat.FatType.Unknown = 0 -> Cosmos.Kernel.System
 Cosmos.Kernel.System.Global
 Cosmos.Kernel.System.Graphics.Bitmap
 Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(byte[]! imageData, Cosmos.Kernel.System.Graphics.ColorOrder colorOrder = Cosmos.Kernel.System.Graphics.ColorOrder.BGR) -> void
+Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(int width, int height, byte[]! pixelData, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
+Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(int width, int height, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
 Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(string! path, Cosmos.Kernel.System.Graphics.ColorOrder colorOrder = Cosmos.Kernel.System.Graphics.ColorOrder.BGR) -> void
-Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(uint width, uint height, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
-Cosmos.Kernel.System.Graphics.Bitmap.Bitmap(uint width, uint height, byte[]! pixelData, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
 Cosmos.Kernel.System.Graphics.Bitmap.Save(System.IO.Stream! stream) -> void
 Cosmos.Kernel.System.Graphics.Bitmap.Save(string! path) -> void
 Cosmos.Kernel.System.Graphics.Camera3D
@@ -151,12 +151,12 @@ Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.TrueTypeFont(string! path, int 
 Cosmos.Kernel.System.Graphics.Image
 Cosmos.Kernel.System.Graphics.Image.Depth.get -> Cosmos.Kernel.System.Graphics.ColorDepth
 Cosmos.Kernel.System.Graphics.Image.Depth.set -> void
-Cosmos.Kernel.System.Graphics.Image.Height.get -> uint
+Cosmos.Kernel.System.Graphics.Image.Height.get -> int
 Cosmos.Kernel.System.Graphics.Image.Height.set -> void
-Cosmos.Kernel.System.Graphics.Image.Image(uint width, uint height, Cosmos.Kernel.System.Graphics.ColorDepth color) -> void
+Cosmos.Kernel.System.Graphics.Image.Image(int width, int height, Cosmos.Kernel.System.Graphics.ColorDepth color) -> void
 Cosmos.Kernel.System.Graphics.Image.RawData.get -> int[]!
 Cosmos.Kernel.System.Graphics.Image.RawData.set -> void
-Cosmos.Kernel.System.Graphics.Image.Width.get -> uint
+Cosmos.Kernel.System.Graphics.Image.Width.get -> int
 Cosmos.Kernel.System.Graphics.Image.Width.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole
 Cosmos.Kernel.System.Graphics.KernelConsole.BackgroundColor.get -> uint
@@ -201,10 +201,10 @@ Cosmos.Kernel.System.Graphics.Mode
 Cosmos.Kernel.System.Graphics.Mode.ColorDepth.get -> Cosmos.Kernel.System.Graphics.ColorDepth
 Cosmos.Kernel.System.Graphics.Mode.CompareTo(Cosmos.Kernel.System.Graphics.Mode other) -> int
 Cosmos.Kernel.System.Graphics.Mode.Equals(Cosmos.Kernel.System.Graphics.Mode other) -> bool
-Cosmos.Kernel.System.Graphics.Mode.Height.get -> uint
+Cosmos.Kernel.System.Graphics.Mode.Height.get -> int
 Cosmos.Kernel.System.Graphics.Mode.Mode() -> void
-Cosmos.Kernel.System.Graphics.Mode.Mode(uint columns, uint rows, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
-Cosmos.Kernel.System.Graphics.Mode.Width.get -> uint
+Cosmos.Kernel.System.Graphics.Mode.Mode(int width, int height, Cosmos.Kernel.System.Graphics.ColorDepth colorDepth) -> void
+Cosmos.Kernel.System.Graphics.Mode.Width.get -> int
 Cosmos.Kernel.System.Graphics.Png
 Cosmos.Kernel.System.Graphics.Png.Png(System.IO.Stream! stream) -> void
 Cosmos.Kernel.System.Graphics.Png.Png(byte[]! imageData) -> void

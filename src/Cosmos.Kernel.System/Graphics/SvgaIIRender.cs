@@ -59,11 +59,11 @@ internal static class SvgaIIRender
     /// </summary>
     public static void ApplyMode(Canvas canvas, SvgaIIDriver driver, Mode mode)
     {
-        driver.SetMode(mode.Width, mode.Height, (uint)mode.ColorDepth);
+        driver.SetMode((uint)mode.Width, (uint)mode.Height, (uint)mode.ColorDepth);
 
         canvas._bytesPerPixel = (int)mode.ColorDepth / 8;
         canvas._stride = canvas._bytesPerPixel;
-        canvas._pitch = (int)mode.Width * canvas._bytesPerPixel;
+        canvas._pitch = mode.Width * canvas._bytesPerPixel;
     }
 
     /// <summary>
@@ -200,7 +200,7 @@ internal static class SvgaIIRender
             driver.GetVRAM(canvas.GetPointOffset(x, y + row), all, width * row, width);
         }
 
-        Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32)
+        Bitmap bitmap = new Bitmap(width, height, ColorDepth.ColorDepth32)
         {
             RawData = all,
         };
@@ -213,8 +213,8 @@ internal static class SvgaIIRender
     /// </summary>
     public static void DrawImage(Canvas canvas, SvgaIIDriver driver, Image image, int x, int y, bool preventOffBoundPixels)
     {
-        int width = (int)image.Width;
-        int height = (int)image.Height;
+        int width = image.Width;
+        int height = image.Height;
         int[] data = image.RawData;
 
         if (preventOffBoundPixels)

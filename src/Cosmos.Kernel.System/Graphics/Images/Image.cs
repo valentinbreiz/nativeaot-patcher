@@ -19,12 +19,12 @@ public abstract class Image
     /// <summary>
     /// The width of the image.
     /// </summary>
-    public uint Width { get; protected set; }
+    public int Width { get; protected set; }
 
     /// <summary>
     /// The height of the image.
     /// </summary>
-    public uint Height { get; protected set; }
+    public int Height { get; protected set; }
 
     /// <summary>
     /// The color depth of each pixel of the image - i.e, the amount
@@ -38,7 +38,7 @@ public abstract class Image
     /// <param name="width">The width of the image.</param>
     /// <param name="height">The height of the image.</param>
     /// <param name="color">The color depth of each pixel.</param>
-    protected Image(uint width, uint height, ColorDepth color)
+    protected Image(int width, int height, ColorDepth color)
     {
         Width = width;
         Height = height;

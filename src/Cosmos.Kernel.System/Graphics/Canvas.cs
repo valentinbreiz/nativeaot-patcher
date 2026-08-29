@@ -56,9 +56,9 @@ public unsafe class Canvas
             _mode = value;
             _bytesPerPixel = (int)value.ColorDepth / 8;
             _stride = (int)value.ColorDepth / 8;
-            _pitch = (int)value.Width * _bytesPerPixel;
+            _pitch = value.Width * _bytesPerPixel;
 
-            int length = (int)value.Width * (int)value.Height;
+            int length = value.Width * value.Height;
             if (_buffer != null && _buffer.Length != length)
             {
                 _buffer = new int[length];
@@ -69,12 +69,12 @@ public unsafe class Canvas
     /// <summary>
     /// The width of this canvas in pixels.
     /// </summary>
-    public int Width => (int)Mode.Width;
+    public int Width => Mode.Width;
 
     /// <summary>
     /// The height of this canvas in pixels.
     /// </summary>
-    public int Height => (int)Mode.Height;
+    public int Height => Mode.Height;
 
     /// <summary>
     /// Screen refresh rate in Hz as reported by EDID. Defaults to 60 if unavailable.
@@ -113,7 +113,7 @@ public unsafe class Canvas
         _mode = mode;
         _bytesPerPixel = (int)mode.ColorDepth / 8;
         _stride = (int)mode.ColorDepth / 8;
-        _pitch = (int)mode.Width * _bytesPerPixel;
+        _pitch = mode.Width * _bytesPerPixel;
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public unsafe class Canvas
     /// <param name="colorDepth">The color depth (default 32-bit).</param>
     public Canvas(int width, int height, ColorDepth colorDepth = ColorDepth.ColorDepth32)
     {
-        _mode = new Mode((uint)width, (uint)height, colorDepth);
+        _mode = new Mode(width, height, colorDepth);
         _bytesPerPixel = (int)colorDepth / 8;
         _stride = (int)colorDepth / 8;
         _pitch = width * _bytesPerPixel;
@@ -877,8 +877,8 @@ public unsafe class Canvas
             yStart = 0;
         }
 
-        width = Math.Min(width, (int)Mode.Width - xStart);
-        height = Math.Min(height, (int)Mode.Height - yStart);
+        width = Math.Min(width, Mode.Width - xStart);
+        height = Math.Min(height, Mode.Height - yStart);
 
         if (width <= 0 || height <= 0)
         {
@@ -920,13 +920,8 @@ public unsafe class Canvas
         Color color;
         if (preventOffBoundPixels)
         {
-            // Width/Height, not Mode.Width/Mode.Height: those are uint, so the
-            // subtraction runs in long and the cast back to uint turns a
-            // negative remainder into a huge one. An image placed past the
-            // right or bottom edge then clipped to its own full size, and this
-            // parameter stopped preventing anything.
-            int maxWidth = Math.Min((int)image.Width, Width - x);
-            int maxHeight = Math.Min((int)image.Height, Height - y);
+            int maxWidth = Math.Min(image.Width, Width - x);
+            int maxHeight = Math.Min(image.Height, Height - y);
             for (int xi = 0; xi < maxWidth; xi++)
             {
                 for (int yi = 0; yi < maxHeight; yi++)
@@ -959,7 +954,7 @@ public unsafe class Canvas
     /// <returns>A new <see cref="Bitmap"/> containing the copied region.</returns>
     public virtual Bitmap GetImage(int x, int y, int width, int height)
     {
-        Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32);
+        Bitmap bitmap = new Bitmap(width, height, ColorDepth.ColorDepth32);
 
         for (int posy = 0; posy < height; posy++)
         {
@@ -981,8 +976,8 @@ public unsafe class Canvas
     static int[] ScaleImage(Image image, int newWidth, int newHeight)
     {
         int[] pixels = image.RawData;
-        int w1 = (int)image.Width;
-        int h1 = (int)image.Height;
+        int w1 = image.Width;
+        int h1 = image.Height;
         int[] temp = new int[newWidth * newHeight];
         int xRatio = (int)((w1 << 16) / newWidth) + 1;
         int yRatio = (int)((h1 << 16) / newHeight) + 1;
@@ -1015,8 +1010,8 @@ public unsafe class Canvas
         int[] pixels = ScaleImage(image, w, h);
         if (preventOffBoundPixels)
         {
-            var maxWidth = Math.Min(w, (int)Mode.Width - x);
-            var maxHeight = Math.Min(h, (int)Mode.Height - y);
+            var maxWidth = Math.Min(w, Mode.Width - x);
+            var maxHeight = Math.Min(h, Mode.Height - y);
             for (int xi = 0; xi < maxWidth; xi++)
             {
                 for (int yi = 0; yi < maxHeight; yi++)
@@ -1051,8 +1046,8 @@ public unsafe class Canvas
     public virtual void CroppedDrawImage(Image image, int x, int y, int maxWidth, int maxHeight, bool preventOffBoundPixels = true)
     {
         Color color;
-        int width = Math.Min((int)image.Width, maxWidth);
-        int height = Math.Min((int)image.Height, maxHeight);
+        int width = Math.Min(image.Width, maxWidth);
+        int height = Math.Min(image.Height, maxHeight);
         int[] pixels = image.RawData;
 
         for (int xi = 0; xi < width; xi++)
@@ -1077,9 +1072,8 @@ public unsafe class Canvas
         Color color;
         if (preventOffBoundPixels)
         {
-            // Width/Height rather than Mode.Width/Mode.Height, as in DrawImage.
-            int maxWidth = Math.Min((int)image.Width, Width - x);
-            int maxHeight = Math.Min((int)image.Height, Height - y);
+            int maxWidth = Math.Min(image.Width, Width - x);
+            int maxHeight = Math.Min(image.Height, Height - y);
             for (int xi = 0; xi < maxWidth; xi++)
             {
                 for (int yi = 0; yi < maxHeight; yi++)
@@ -1288,10 +1282,10 @@ public unsafe class Canvas
         // in case of vertical lines, no need to perform complex operations
         if (x1 == x2)
         {
-            x1 = Math.Min((int)Mode.Width - 1, Math.Max(0, x1));
+            x1 = Math.Min(Mode.Width - 1, Math.Max(0, x1));
             x2 = x1;
-            y1 = Math.Min((int)Mode.Height - 1, Math.Max(0, y1));
-            y2 = Math.Min((int)Mode.Height - 1, Math.Max(0, y2));
+            y1 = Math.Min(Mode.Height - 1, Math.Max(0, y1));
+            y2 = Math.Min(Mode.Height - 1, Math.Max(0, y2));
 
             return;
         }

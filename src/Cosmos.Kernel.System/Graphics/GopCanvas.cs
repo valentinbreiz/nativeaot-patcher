@@ -46,7 +46,7 @@ internal class GopCanvas : Canvas
             _driver = new GopDriver((uint*)fb->Address, (uint)fb->Width, (uint)fb->Height, (uint)fb->Pitch);
 
             // Update mode to match actual framebuffer resolution
-            this._mode = new Mode((uint)fb->Width, (uint)fb->Height, mode.ColorDepth);
+            this._mode = new Mode((int)fb->Width, (int)fb->Height, mode.ColorDepth);
 
             _refreshRate = ParseEdidRefreshRate(fb);
         }
@@ -136,7 +136,7 @@ internal class GopCanvas : Canvas
             // firmware can hand us (e.g. 1280x800).
             if (_driver != null)
             {
-                _mode = new Mode(_driver.Width, _driver.Height, value.ColorDepth);
+                _mode = new Mode((int)_driver.Width, (int)_driver.Height, value.ColorDepth);
             }
             else
             {
@@ -396,13 +396,13 @@ internal class GopCanvas : Canvas
             // Clamp to screen bounds
             if (aX < 0) { aWidth += aX; aX = 0; }
             if (aY < 0) { aHeight += aY; aY = 0; }
-            if (aX >= (int)Mode.Width || aY >= (int)Mode.Height)
+            if (aX >= Mode.Width || aY >= Mode.Height)
             {
                 return;
             }
 
-            aWidth = Math.Min(aWidth, (int)Mode.Width - aX);
-            aHeight = Math.Min(aHeight, (int)Mode.Height - aY);
+            aWidth = Math.Min(aWidth, Mode.Width - aX);
+            aHeight = Math.Min(aHeight, Mode.Height - aY);
 
             if (aWidth <= 0 || aHeight <= 0)
             {
@@ -462,8 +462,8 @@ internal class GopCanvas : Canvas
     {
         ThrowIfDriverNotInitialized();
 
-        var width = (int)image.Width;
-        var height = (int)image.Height;
+        var width = image.Width;
+        var height = image.Height;
         var data = image.RawData;
 
         if (preventOffBoundPixels)
@@ -516,8 +516,8 @@ internal class GopCanvas : Canvas
 
         if (preventOffBoundPixels)
         {
-            var maxWidth = Math.Min(xWidth, (int)Mode.Width - aX);
-            var maxHeight = Math.Min(xHeight, (int)Mode.Height - aY);
+            var maxWidth = Math.Min(xWidth, Mode.Width - aX);
+            var maxHeight = Math.Min(xHeight, Mode.Height - aY);
 
             var startX = Math.Max(0, aX);
             var startY = Math.Max(0, aY);
@@ -596,12 +596,12 @@ internal class GopCanvas : Canvas
     {
         ThrowIfDriverNotInitialized();
 
-        Bitmap bitmap = new((uint)width, (uint)height, ColorDepth.ColorDepth32);
+        Bitmap bitmap = new(width, height, ColorDepth.ColorDepth32);
 
         int startX = Math.Max(0, x);
         int startY = Math.Max(0, y);
-        int endX = Math.Min(x + width, (int)Mode.Width);
-        int endY = Math.Min(y + height, (int)Mode.Height);
+        int endX = Math.Min(x + width, Mode.Width);
+        int endY = Math.Min(y + height, Mode.Height);
 
         int offsetX = Math.Max(0, -x);
         int offsetY = Math.Max(0, -y);

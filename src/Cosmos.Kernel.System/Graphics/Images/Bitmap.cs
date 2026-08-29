@@ -18,7 +18,7 @@ public class Bitmap : Image
     /// <param name="height">The height of the image.</param>
     /// <param name="colorDepth">The color depth.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when either the width or height is lower than 0.</exception>
-    public Bitmap(uint width, uint height, ColorDepth colorDepth) : base(width, height, colorDepth)
+    public Bitmap(int width, int height, ColorDepth colorDepth) : base(width, height, colorDepth)
     {
         if (width < 0)
         {
@@ -46,7 +46,7 @@ public class Bitmap : Image
     /// <exception cref="ArgumentException">Thrown on fatal error.</exception>
     /// <exception cref="ArgumentNullException">Thrown on memory error.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error.</exception>
-    public Bitmap(uint width, uint height, byte[] pixelData, ColorDepth colorDepth) : base(width, height, colorDepth)
+    public Bitmap(int width, int height, byte[] pixelData, ColorDepth colorDepth) : base(width, height, colorDepth)
     {
         RawData = new int[width * height];
         if (colorDepth != ColorDepth.ColorDepth32 && colorDepth != ColorDepth.ColorDepth24)
@@ -295,8 +295,8 @@ public class Bitmap : Image
         #endregion BMP Header
 
         //Set the bitmap to have the correct values
-        Width = imageWidth;
-        Height = imageHeight;
+        Width = (int)imageWidth;
+        Height = (int)imageHeight;
         Depth = (ColorDepth)pixelSize;
 
         RawData = new int[Width * Height];

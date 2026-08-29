@@ -155,8 +155,8 @@ internal sealed class SvgaII3DCanvas : Canvas3D
     {
         ArgumentNullException.ThrowIfNull(image);
 
-        SVGA3dSurfaceImageId surface = _driver3D.DefineSurfaceFromImage(image.RawData, image.Width, image.Height);
-        return new Texture(this, (int)image.Width, (int)image.Height, surface);
+        SVGA3dSurfaceImageId surface = _driver3D.DefineSurfaceFromImage(image.RawData, (uint)image.Width, (uint)image.Height);
+        return new Texture(this, image.Width, image.Height, surface);
     }
 
     /// <summary>
@@ -531,7 +531,7 @@ internal sealed class SvgaII3DCanvas : Canvas3D
             Array.Copy(pixels, data, data.Length);
         }
 
-        Bitmap bitmap = new Bitmap((uint)width, (uint)height, ColorDepth.ColorDepth32)
+        Bitmap bitmap = new Bitmap(width, height, ColorDepth.ColorDepth32)
         {
             RawData = data,
         };

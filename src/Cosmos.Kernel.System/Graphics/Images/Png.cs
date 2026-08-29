@@ -47,8 +47,8 @@ public class Png : Image
         int width = png.Width;
         int height = png.Height;
 
-        Width = (uint)width;
-        Height = (uint)height;
+        Width = width;
+        Height = height;
         Depth = ColorDepth.ColorDepth32;
         RawData = new int[width * height];
 

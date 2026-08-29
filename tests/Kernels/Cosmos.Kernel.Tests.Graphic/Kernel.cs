@@ -230,8 +230,8 @@ public class Kernel : Sys.Kernel
 
         /* A Black Lines larger than the canvas */
         color = Color.Black;
-        canvas.DrawLine(color, -20, 100, (int)canvas.Mode.Width + 20, 100);
-        canvas.DrawLine(color, -20, -20, (int)canvas.Mode.Width + 20, (int)canvas.Mode.Height + 20);
+        canvas.DrawLine(color, -20, 100, canvas.Mode.Width + 20, 100);
+        canvas.DrawLine(color, -20, -20, canvas.Mode.Width + 20, canvas.Mode.Height + 20);
 
         /* An IndianRed vertical line */
         color = Color.IndianRed;

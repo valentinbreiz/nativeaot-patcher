@@ -203,8 +203,8 @@ More usefully, `Bitmap` can load an uncompressed 24-bit or 32-bit **BMP file** t
 Bitmap logo = new Bitmap(@"/mnt/logo.bmp");
 
 canvas.DrawImage(logo,
-    (canvas.Width - (int)logo.Width) / 2,
-    (canvas.Height - (int)logo.Height) / 2);
+    (canvas.Width - logo.Width) / 2,
+    (canvas.Height - logo.Height) / 2);
 
 canvas.Display();
 ```
@@ -219,8 +219,8 @@ canvas.Display();
 Png logo = new Png("/mnt/logo.png");
 
 /* Draw it scaled to half size, centered: transparent pixels blend with the background */
-int width = (int)logo.Width / 2;
-int height = (int)logo.Height / 2;
+int width = logo.Width / 2;
+int height = logo.Height / 2;
 canvas.DrawImage(logo, (canvas.Width - width) / 2, (canvas.Height - height) / 2, width, height);
 
 canvas.Display();
