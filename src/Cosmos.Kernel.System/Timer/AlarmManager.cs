@@ -10,6 +10,14 @@ namespace Cosmos.Kernel.System.Timer;
 /// primitives, unlike the interrupt-context callbacks of
 /// <see cref="TimerManager.Schedule"/>. Requires the scheduler; resolution is
 /// bounded by the scheduler tick.
+/// <para>
+/// The scheduling calls themselves also run in thread context only. Every
+/// member here takes the alarm list's mutex and parks if it is held, so
+/// calling one from an interrupt handler, a <see cref="TimerManager"/>
+/// callback included, parks inside the handler and hangs. The
+/// <see cref="TimerManager"/> members mask interrupts instead of parking and
+/// have no such restriction.
+/// </para>
 /// </summary>
 public static class AlarmManager
 {
@@ -27,8 +35,9 @@ public static class AlarmManager
 
     /// <summary>
     /// Schedules a callback to run repeatedly with the specified period, in
-    /// thread context. The period restarts when the callback returns, so it
-    /// must be longer than the callback takes to run.
+    /// thread context. The period restarts when the callback fires, not when
+    /// it returns, so a callback that runs longer than the period leaves the
+    /// next firing already due.
     /// </summary>
     /// <param name="callback">Method to invoke each period.</param>
     /// <param name="period">Period between firings; must be positive. Resolution is bounded by the scheduler tick.</param>

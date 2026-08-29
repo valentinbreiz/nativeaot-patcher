@@ -119,7 +119,7 @@ internal static class AlarmSystem
         InsertSortedLocked(new Alarm
         {
             Id = id,
-            Due = (ulong)Stopwatch.GetTimestamp() + delayTicks,
+            Due = DeadlineFrom((ulong)Stopwatch.GetTimestamp(), delayTicks),
             PeriodTicks = recurring ? delayTicks : 0,
             Delegate = alarm
         });
@@ -168,7 +168,7 @@ internal static class AlarmSystem
                 {
                     // Re-arm from now rather than from Due so a late wake-up
                     // doesn't cause a catch-up burst.
-                    InsertSortedLocked(alarm with { Due = now + alarm.PeriodTicks });
+                    InsertSortedLocked(alarm with { Due = DeadlineFrom(now, alarm.PeriodTicks) });
                 }
 
                 // Fire outside the lock: the callback may block or call Add/Remove.
@@ -214,6 +214,18 @@ internal static class AlarmSystem
         }
 
         s_alarms.Insert(index, alarm);
+    }
+
+    /// <summary>
+    /// Adds a delay to a timestamp without wrapping. Saturating the delay is
+    /// not enough on its own: a saturated delay added to the current timestamp
+    /// wraps to just before it, which makes a never-alarm due immediately and
+    /// turns a recurring one into a hot loop that re-arms into the past on
+    /// every pass.
+    /// </summary>
+    private static ulong DeadlineFrom(ulong now, ulong delayTicks)
+    {
+        return delayTicks > ulong.MaxValue - now ? ulong.MaxValue : now + delayTicks;
     }
 
     /// <summary>

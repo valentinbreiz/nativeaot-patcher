@@ -297,9 +297,10 @@ Deferred work has two tiers, split by execution context. The rule is in the API 
 | Handle | a `SoftwareTimer`, null when no timer device is registered | a `ulong` id, 0 when the scheduler is not running |
 | Cancelled with | `Cancel(SoftwareTimer?)` | `Cancel(ulong)` |
 | Cancel returns | true only when the timer was still pending | true only when the alarm was still pending |
+| Callable from | any context, the tick path included: the members mask interrupts | thread context only: every member takes the alarm list's mutex and parks if it is held |
 | One-shot / recurring | both (recurring period must be positive) | both (recurring period must be positive) |
 
-The two managers take the same arguments in the same order and report cancellation the same way, so the only thing the call site chooses is the execution context, which is what the manager name says. The handle types differ because an alarm is owned by `AlarmSystem`, which is internal to `Cosmos.Kernel.Core`, while a software timer is a public handle the device registry hands back.
+The two managers take the same arguments in the same order and report cancellation the same way, so the only thing the call site chooses is the context the *callback* runs in, which is what the manager name says. What does not converge is the context each manager may be called *from*: scheduling or cancelling an alarm parks on a mutex, so doing it from a `TimerManager` callback parks inside the timer interrupt and hangs. The handle types differ too, because an alarm is owned by `AlarmSystem`, which is internal to `Cosmos.Kernel.Core`, while a software timer is a public handle the device registry hands back.
 
 The first tier is hardware-near: `TimerDevice` keeps a registry of `SoftwareTimer` countdowns and drives them from its tick interrupt (`HandleTick`), invoking due callbacks right there in interrupt context. On x64 the PIT provides this tick, separate from the LAPIC scheduler tick; on ARM64 the single Generic Timer interrupt drives both, software timers first.
 
