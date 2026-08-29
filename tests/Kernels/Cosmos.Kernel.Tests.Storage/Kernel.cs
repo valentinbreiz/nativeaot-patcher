@@ -296,6 +296,21 @@ public class Kernel : Sys.Kernel
     /// <summary>Sector delta of the refused attempt to move the extended container.</summary>
     private const uint ExtendedMoveProbeDeltaSectors = 64;
 
+    /// <summary>Length of each of the two adjacent GPT partitions the resize-overlap cell stamps.</summary>
+    private const ulong ResizeOverlapSectorCount = 4096;
+
+    /// <summary>Free sectors left between the extended container and the destination of the refused container move.</summary>
+    private const uint ContainerMoveGapSectors = 100;
+
+    /// <summary>Fill seed of the witness sector that proves a refused move copied nothing.</summary>
+    private const uint ContainerMoveWitnessSeed = 0xB0A70000;
+
+    /// <summary>Length of the partition the refused table-sector move cells relocate.</summary>
+    private const ulong TableMoveSectorCount = 64;
+
+    /// <summary>A destination inside the GPT entry array (below Gpt.FirstUsableLba), which no partition may occupy.</summary>
+    private const ulong GptReservedDestinationLba = 2;
+
     /// <summary>Sectors wiped ahead of the superfloppy format: the MBR sector (LBA 0) and the primary GPT header (LBA 1), the two signatures the partition scanner probes.</summary>
     private const ulong SuperfloppyWipeHeadSectors = 2;
 
@@ -474,6 +489,9 @@ public class Kernel : Sys.Kernel
         TR.RunIf(dev, "PartitionManager_MoveFailure_IsNonDestructive", TestPartitionManager_MoveFailureIsNonDestructive, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_RejectsOccupiedRanges", TestPartitionManager_RejectsOccupiedRanges, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_GuardsDoNotWrap",  TestPartitionManager_GuardsDoNotWrap, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Resize_RefusesOverlap", TestPartitionManager_ResizeRefusesOverlap, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Move_RefusesExtendedContainer", TestPartitionManager_MoveRefusesExtendedContainer, SkipNoHost);
+        TR.RunIf(dev, "PartitionManager_Move_RefusesTableSectors", TestPartitionManager_MoveRefusesTableSectors, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_CreateLogical",    TestPartitionManager_CreateLogical,  SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Resize_OnLogical", TestPartitionManager_ResizeOnLogical, SkipNoHost);
         TR.RunIf(dev, "PartitionManager_Delete_OnLogical", TestPartitionManager_DeleteOnLogical, SkipNoHost);
@@ -2022,6 +2040,102 @@ public class Kernel : Sys.Kernel
         // Last on purpose: pre-fix this issued a wild write near 2^64.
         Assert.True(PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(start, count), ulong.MaxValue - 1),
             "a move destination near 2^64 must be refused, not wrapped past the guard");
+    }
+
+    // Resize must apply the free-space invariant Create already applies. The
+    // low-level writers only validate device bounds, and each format broke
+    // differently without this: Gpt.ResizePartition checks only the device
+    // end, so growing over a neighbour stamped two entries aliasing the same
+    // sectors and returned true; Mbr.ResizePartition threw out of a
+    // bool-returning method. Only Ebr.ResizeLogical bounded itself.
+    private static void TestPartitionManager_ResizeRefusesOverlap()
+    {
+        IBlockDevice host = s_dev!;
+
+        ResetHostGpt(host);
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, ResizeOverlapSectorCount, Gpt.BasicDataPartitionType));
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba + ResizeOverlapSectorCount, ResizeOverlapSectorCount, Gpt.BasicDataPartitionType));
+        Assert.True(
+            PmResizeRefusedCleanly(
+                new PartitionManager.PartitionLocation(GptAlignedStartLba, ResizeOverlapSectorCount),
+                ResizeOverlapSectorCount * 2),
+            "growing a GPT partition into its neighbour must be refused");
+        List<GptPartitionEntry> gptParts = Gpt.Parse(host);
+        Assert.Equal(2, gptParts.Count);
+        Assert.Equal<ulong>(ResizeOverlapSectorCount, gptParts[0].SectorCount);
+
+        ResetHostMbr(host);
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, MbrPartAStartSector, MbrPartASectorCount);
+        Mbr.WritePartition(host, 1, MbrFat32SystemId, MbrPartBStartSector, MbrPartBSectorCount);
+        Assert.True(
+            PmResizeRefusedCleanly(
+                new PartitionManager.PartitionLocation(MbrPartAStartSector, MbrPartASectorCount),
+                MbrPartBStartSector + MbrPartBSectorCount - MbrPartAStartSector),
+            "growing an MBR primary into its neighbour must be refused, not thrown");
+        List<MbrPartitionEntry> mbrParts = Mbr.Parse(host);
+        Assert.Equal(2, mbrParts.Count);
+        Assert.Equal<ulong>(MbrPartASectorCount, mbrParts[0].SectorCount);
+    }
+
+    // MoveWithData resolves the table entry and its constraints before
+    // copying, so a false return is side-effect free. The extended container
+    // is matched by the raw-table slot lookup but refused by the writer, so
+    // asking afterwards copied the sectors first and then threw.
+    private static void TestPartitionManager_MoveRefusesExtendedContainer()
+    {
+        IBlockDevice host = s_dev!;
+        ResetHostExtendedMbr(host, ExtPartStartSector, ExtPartSectorCount);
+
+        ulong destination = ExtPartStartSector + ExtPartSectorCount + ContainerMoveGapSectors;
+        Span<byte> witness = new byte[host.BlockSize];
+        FillPattern(witness, ContainerMoveWitnessSeed);
+        host.WriteBlock(destination, 1, witness);
+
+        Assert.True(
+            PmMoveRefusedCleanly(
+                new PartitionManager.PartitionLocation(ExtPartStartSector, ExtPartSectorCount),
+                destination),
+            "moving the extended container must be refused, not thrown");
+
+        // The witness survives only if nothing was copied over it.
+        AssertMovedPattern(host, destination, 1, ContainerMoveWitnessSeed);
+    }
+
+    // Both writers refuse a destination inside the table's own metadata, but
+    // they run after CopySectors: the copy overwrote the table the writer was
+    // about to re-read, and the call reported false having destroyed it.
+    private static void TestPartitionManager_MoveRefusesTableSectors()
+    {
+        IBlockDevice host = s_dev!;
+
+        ResetHostMbr(host);
+        Mbr.WritePartition(host, 0, MbrLinuxSystemId, (uint)ExtPartStartSector, (uint)TableMoveSectorCount);
+        Assert.True(
+            PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(ExtPartStartSector, TableMoveSectorCount), MbrLba),
+            "a move onto the MBR sector must be refused");
+        Assert.True(Mbr.IsMbr(host), "a refused move must leave the partition table intact");
+        Assert.Equal(1, Mbr.Parse(host).Count);
+
+        ResetHostGpt(host);
+        Assert.True(Gpt.AddPartition(host, GptAlignedStartLba, TableMoveSectorCount, Gpt.BasicDataPartitionType));
+        Assert.True(
+            PmMoveRefusedCleanly(new PartitionManager.PartitionLocation(GptAlignedStartLba, TableMoveSectorCount), GptReservedDestinationLba),
+            "a move into the GPT entry array must be refused");
+        Assert.True(Gpt.IsGpt(host), "a refused move must leave the GPT intact");
+        Assert.Equal(1, Gpt.Parse(host).Count);
+    }
+
+    // One try/catch per method on purpose (cf. MbrWritePartitionRejects).
+    private static bool PmResizeRefusedCleanly(PartitionManager.PartitionLocation location, ulong newSectorCount)
+    {
+        try
+        {
+            return !PartitionManager.Resize(s_dev!, location, newSectorCount);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     // One try/catch per method on purpose (cf. MbrWritePartitionRejects):

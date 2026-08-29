@@ -48,8 +48,19 @@ public sealed class Partition : IBlockDevice
     /// <param name="startSector">Absolute LBA on the host where the partition begins.</param>
     /// <param name="sectorCount">Length of the partition in sectors.</param>
     /// <param name="name">Display name for the partition.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The partition would extend past the end of <paramref name="host"/>.</exception>
     public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)
     {
+        // Overflow-safe, and the only containment in the stack: CheckBounds
+        // measures a request against BlockCount, which is whatever was passed
+        // here, so an oversized view turns in-bounds-looking calls into host
+        // I/O off the end of the disk. Neither Sata nor NvmeNamespace
+        // range-checks the LBA it is handed.
+        if (startSector > host.BlockCount || sectorCount > host.BlockCount - startSector)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sectorCount), "Partition extends beyond the end of its host device.");
+        }
+
         _host = host;
         _name = name;
         StartSector = startSector;

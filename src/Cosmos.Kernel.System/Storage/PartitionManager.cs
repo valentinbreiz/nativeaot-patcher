@@ -159,6 +159,16 @@ public static class PartitionManager
         {
             return false;
         }
+        // The low-level writers only validate device bounds, so the facade owns
+        // the free-space invariant here exactly as Create does. Without it a
+        // grown range walks into its neighbour: Gpt.ResizePartition checks only
+        // the device end, so the GPT path stamped two entries aliasing the same
+        // sectors and still returned true, while Mbr.ResizePartition threw out
+        // of this bool-returning method. Only Ebr.ResizeLogical bounded itself.
+        if (RangeIntersectsExistingPartition(device, location.StartSector, newSectorCount, location))
+        {
+            return false;
+        }
 
         if (Gpt.IsGpt(device))
         {
@@ -180,8 +190,8 @@ public static class PartitionManager
             return Ebr.ResizeLogical(device, extStart, logicalIndex, newSectorCount);
         }
 
-        int slot = FindMbrSlot(device, location);
-        if (slot < 0)
+        int slot = FindMbrSlot(device, location, out byte systemId);
+        if (slot < 0 || !Mbr.IsMutableSystemId(systemId))
         {
             return false;
         }
@@ -219,6 +229,17 @@ public static class PartitionManager
         if (newStartSector == location.StartSector)
         {
             return true;
+        }
+        // Both writers refuse a destination inside the table's own metadata
+        // (Mbr.MovePartition rejects LBA 0, Gpt.MovePartition rejects anything
+        // below the first usable LBA), but they run after the copy. Applying
+        // the same rule here is what keeps a refused move side-effect free:
+        // otherwise CopySectors overwrites the very table the writer is about
+        // to re-read, and the call reports false having destroyed it.
+        ulong firstPlaceableLba = Gpt.IsGpt(device) ? Gpt.FirstUsableLba : Mbr.MbrSectorLba + 1;
+        if (newStartSector < firstPlaceableLba)
+        {
+            return false;
         }
         // The destination must be free space (the source itself may
         // overlap it; CopySectors is direction-aware). With this checked
@@ -258,8 +279,13 @@ public static class PartitionManager
             return Ebr.MoveLogical(device, extStart, logicalIndex, newStartSector);
         }
 
-        int slot = FindMbrSlot(device, location);
-        if (slot < 0)
+        // The mutability test belongs with the other pre-copy checks: this
+        // walks the raw table, so it matches the extended container and the
+        // GPT protective entry, which Mbr.MovePartition then refuses. Asking
+        // afterwards meant the sectors were already copied and the refusal
+        // arrived as an exception out of a bool-returning method.
+        int slot = FindMbrSlot(device, location, out byte systemId);
+        if (slot < 0 || !Mbr.IsMutableSystemId(systemId))
         {
             return false;
         }
@@ -267,6 +293,7 @@ public static class PartitionManager
         {
             return false;
         }
+
         CopySectors(device, location.StartSector, newStartSector, location.SectorCount);
         device.Flush();
         Mbr.MovePartition(device, slot, (uint)newStartSector);
@@ -387,13 +414,26 @@ public static class PartitionManager
 
     private static int FindMbrSlot(IBlockDevice device, PartitionLocation location)
     {
+        return FindMbrSlot(device, location, out _);
+    }
+
+    /// <summary>
+    /// As <see cref="FindMbrSlot(IBlockDevice, PartitionLocation)"/>, also
+    /// reporting the slot's system ID. This walks the raw table rather than
+    /// <see cref="Mbr.Parse"/>, so it matches extended and protective entries
+    /// too; callers that go on to mutate the slot must test
+    /// <see cref="Mbr.IsMutableSystemId"/> before they act.
+    /// </summary>
+    private static int FindMbrSlot(IBlockDevice device, PartitionLocation location, out byte systemId)
+    {
+        systemId = Mbr.SystemIdEmpty;
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(Mbr.MbrSectorLba, 1, mbr);
         for (int i = 0; i < Mbr.MaxPartitions; i++)
         {
             int offset = Mbr.PartitionTableOffset + i * Mbr.PartitionEntrySize;
-            byte systemId = mbr[offset + Mbr.EntrySystemIdOffset];
-            if (systemId == Mbr.SystemIdEmpty)
+            byte slotSystemId = mbr[offset + Mbr.EntrySystemIdOffset];
+            if (slotSystemId == Mbr.SystemIdEmpty)
             {
                 continue;
             }
@@ -401,6 +441,7 @@ public static class PartitionManager
             ulong count = BitConverter.ToUInt32(mbr.Slice(offset + Mbr.EntrySectorCountOffset, Mbr.LbaFieldSizeBytes));
             if (start == location.StartSector && count == location.SectorCount)
             {
+                systemId = slotSystemId;
                 return i;
             }
         }

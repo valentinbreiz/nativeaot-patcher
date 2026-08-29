@@ -196,6 +196,14 @@ public static class Mbr
         Span<byte> mbr = new byte[device.BlockSize];
         device.ReadBlock(MbrSectorLba, 1, mbr);
 
+        // ResizePartition and MovePartition both refuse a range that walks into
+        // another primary; a fresh entry must too, or the two alias the same
+        // sectors and a write through one corrupts the other.
+        if (OverlapsOtherPrimary(mbr, index, startSector, sectorCount))
+        {
+            throw new ArgumentOutOfRangeException(nameof(startSector), "MBR partition range would overlap another primary entry.");
+        }
+
         int offset = PartitionTableOffset + index * PartitionEntrySize;
         mbr.Slice(offset, PartitionEntrySize).Clear();
         mbr[offset + EntrySystemIdOffset] = systemId;
@@ -339,6 +347,18 @@ public static class Mbr
     /// off by a table-level resize/move (use the <see cref="Ebr"/> APIs
     /// for logical-volume management); the 0xEE protective entry guards
     /// the GPT structures.
+    /// </summary>
+    internal static bool IsMutableSystemId(byte systemId)
+    {
+        return systemId != SystemIdEmpty
+            && systemId != SystemIdExtendedChs
+            && systemId != SystemIdExtendedLba
+            && systemId != SystemIdLinuxExtended
+            && systemId != SystemIdGptProtective;
+    }
+
+    /// <summary>
+    /// Throwing form of <see cref="IsMutableSystemId"/>, naming the operation.
     /// </summary>
     private static void ThrowIfSlotNotMutable(byte systemId, string operation)
     {
