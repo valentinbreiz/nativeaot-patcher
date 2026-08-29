@@ -920,8 +920,13 @@ public unsafe class Canvas
         Color color;
         if (preventOffBoundPixels)
         {
-            var maxWidth = Math.Min(image.Width, (uint)(Mode.Width - x));
-            var maxHeight = Math.Min(image.Height, (uint)(Mode.Height - y));
+            // Width/Height, not Mode.Width/Mode.Height: those are uint, so the
+            // subtraction runs in long and the cast back to uint turns a
+            // negative remainder into a huge one. An image placed past the
+            // right or bottom edge then clipped to its own full size, and this
+            // parameter stopped preventing anything.
+            int maxWidth = Math.Min((int)image.Width, Width - x);
+            int maxHeight = Math.Min((int)image.Height, Height - y);
             for (int xi = 0; xi < maxWidth; xi++)
             {
                 for (int yi = 0; yi < maxHeight; yi++)
@@ -1072,8 +1077,9 @@ public unsafe class Canvas
         Color color;
         if (preventOffBoundPixels)
         {
-            var maxWidth = Math.Min(image.Width, (uint)(Mode.Width - x));
-            var maxHeight = Math.Min(image.Height, (uint)(Mode.Height - y));
+            // Width/Height rather than Mode.Width/Mode.Height, as in DrawImage.
+            int maxWidth = Math.Min((int)image.Width, Width - x);
+            int maxHeight = Math.Min((int)image.Height, Height - y);
             for (int xi = 0; xi < maxWidth; xi++)
             {
                 for (int yi = 0; yi < maxHeight; yi++)
