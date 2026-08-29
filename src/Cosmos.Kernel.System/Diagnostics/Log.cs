@@ -20,14 +20,17 @@ public static class Log
     public static void WriteString(string text) => Serial.WriteString(text);
 
     /// <summary>
-    /// Writes a string to the log without appending a line terminator, the
-    /// same as <see cref="WriteString"/>. This overload exists so that
-    /// <c>Log.Write("text")</c> keeps the allocation-free promise made at the
-    /// top of this class: without it the call binds to the
-    /// params overload below, which allocates an array for the one argument.
+    /// Writes a string to the log without appending a line terminator. This
+    /// overload exists so that <c>Log.Write("text")</c> keeps the
+    /// allocation-free promise made at the top of this class: without it the
+    /// call binds to the params overload below, which allocates an array for
+    /// its one argument. It takes the same nullable parameter and writes the
+    /// same <c>null</c> for one, so binding here rather than there changes
+    /// what a call allocates and nothing else. Use
+    /// <see cref="WriteString"/> where the argument cannot be null.
     /// </summary>
-    /// <param name="text">Text to write.</param>
-    public static void Write(string text) => Serial.WriteString(text);
+    /// <param name="text">Text to write, or null to write <c>null</c>.</param>
+    public static void Write(string? text) => Serial.WriteString(text ?? "null");
 
     /// <summary>
     /// Writes an unsigned 64-bit number in decimal. Use

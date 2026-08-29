@@ -534,7 +534,7 @@ override Cosmos.Kernel.System.Network.IPv4.EndPoint.ToString() -> string!
 override Cosmos.Kernel.System.Network.NetworkAdapter.Equals(object? obj) -> bool
 override Cosmos.Kernel.System.Network.NetworkAdapter.GetHashCode() -> int
 static Cosmos.Kernel.System.Diagnostics.Log.Write(params object?[]! args) -> void
-static Cosmos.Kernel.System.Diagnostics.Log.Write(string! text) -> void
+static Cosmos.Kernel.System.Diagnostics.Log.Write(string? text) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteBytes(System.ReadOnlySpan<byte> bytes) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(uint number) -> void
 static Cosmos.Kernel.System.Diagnostics.Log.WriteHex(ulong number) -> void

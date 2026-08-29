@@ -304,16 +304,19 @@ public static class KeyboardManager
     /// method rather than a settable property beside
     /// <see cref="GetKeyLayout"/> because the two halves cannot share a type:
     /// the read is honestly nullable, while a null layout would leave the
-    /// interrupt path with nothing to decode with. A parameter refuses that
-    /// at compile time; a nullable property would only refuse it at runtime.
+    /// interrupt path with nothing to decode with. Both forms refuse null at
+    /// run time; only a non-nullable parameter also diagnoses it at compile
+    /// time, which a nullable property cannot.
     /// </summary>
     /// <param name="scanMap">The layout to use.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="scanMap"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Keyboard support is disabled.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="scanMap"/> is null.</exception>
     public static void SetKeyLayout(ScanMapBase scanMap)
     {
-        ArgumentNullException.ThrowIfNull(scanMap);
+        // The switch first, so a compiled-out keyboard names the switch to set
+        // rather than reporting whatever else is wrong with the call.
         ThrowIfDisabled();
+        ArgumentNullException.ThrowIfNull(scanMap);
 
         s_scanMap = scanMap;
     }
