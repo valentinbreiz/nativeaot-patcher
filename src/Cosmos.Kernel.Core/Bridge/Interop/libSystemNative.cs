@@ -125,12 +125,12 @@ internal static unsafe partial class libSystemNative
             // Create scheduler thread with SchedulerThreadFlags.Managed set.
             // SchedulerManager.InvokeCurrentThreadStart evaluates it to
             // call the managed startup or not.
-            Scheduler.SchedulerThread thread = new Scheduler.SchedulerThread
+            SchedulerThread thread = new SchedulerThread
             {
                 Id = SchedulerManager.AllocateThreadId(),
                 CpuId = 0,
-                State = Scheduler.SchedulerThreadState.Created,
-                Flags = Scheduler.SchedulerThreadFlags.Managed
+                State = SchedulerThreadState.Created,
+                Flags = SchedulerThreadFlags.Managed
             };
 
             nuint entryPoint = (nuint)(delegate* unmanaged<IntPtr, void>)&ThreadNative.EntryPointStub;
