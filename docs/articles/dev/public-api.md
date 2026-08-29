@@ -36,7 +36,7 @@ The enforcement test is mechanical: `examples/DevKernel` must compile with no `I
 | `Cosmos.Kernel.HAL.Interfaces` | `IBlockDevice`, `MACAddress` and `SoftwareTimer` as a read-only handle, tracked; the boot, graphics, input, timer and network contracts internal |
 | `Cosmos.Kernel.HAL` | VFS contracts only, tracked; drivers, PCI, ports internal |
 | `Cosmos.Kernel.Core` | The scheduler seam (`[Experimental]`) and nothing else, tracked |
-| Arch assemblies, Native, Plugs, Debug, Boot.Limine | Internal, `InternalsVisibleTo` for first-party |
+| Arch assemblies, Native, Plugs, Debug, Boot.Limine, `Cosmos.Kernel` | Internal, `InternalsVisibleTo` for first-party |
 
 The last row is policy rather than tracked enforcement: those assemblies are untracked, and their remaining public types shrink as they are touched.
 
@@ -121,6 +121,10 @@ Two rules on overload sets, both about the ring not making the obvious spelling 
 ## The declared surface
 
 Projects opt in with `<CosmosTrackPublicApi>true</CosmosTrackPublicApi>` in their `.csproj` (wired in `Directory.Build.props`). That covers `Cosmos.Kernel.System`, `Cosmos.Kernel.Core`, `Cosmos.Kernel.HAL`, and `Cosmos.Kernel.HAL.Interfaces`.
+
+The API site publishes those same four projects and no others: `docs/docfx.json` lists them, and an assembly that is not tracked is not published. The two lists drifted apart once already, which put `Cosmos.Kernel.Boot.Limine`'s 28 public types and `Cosmos.Kernel.Debug`'s one on the site under a policy that calls both internal, alongside two entries that emitted nothing only because they happen to declare no public type at all.
+
+The rule points one way. An untracked assembly with public types left in it is not a reason to publish it; it is the backlog the last row of the policy table describes.
 
 An opted-in project references [Microsoft.CodeAnalysis.PublicApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md), which requires every `public` symbol to appear in one of two files next to the `.csproj`:
 
