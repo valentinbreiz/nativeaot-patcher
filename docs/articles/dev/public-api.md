@@ -44,7 +44,7 @@ Experimental seams carry diagnostic IDs:
 
 | ID | Seam |
 |----|------|
-| `COSMOS0001` | The scheduler policy seam: `IScheduler`, `SchedulerManager`, `Thread`, `PerCpuState`, `SchedulerExtensible`, `InterruptMaskScope`, `ThreadState`, `ThreadFlags` ([Scheduler - Writing a Scheduler](scheduler-plugging.md)) |
+| `COSMOS0001` | The scheduler policy seam: `IScheduler`, `SchedulerManager`, `SchedulerThread`, `PerCpuState`, `SchedulerExtensible`, `InterruptMaskScope`, `SchedulerThreadState`, `SchedulerThreadFlags` ([Scheduler - Writing a Scheduler](scheduler-plugging.md)) |
 | `COSMOS0002` | The packet seam: the protocol packet types (`EthernetPacket`, ARP, `IPPacket`, ICMP, `UdpPacket`, DHCP, DNS, `TcpPacket`), `NetworkStack.Send`/`HandlePacket`, and the client members that take or return packets ([Network - Crafting packets](../user/network.md#crafting-packets)) |
 
 ---
@@ -115,6 +115,34 @@ Two rules on overload sets, both about the ring not making the obvious spelling 
 **A `bool` that switches what a member produces is a second spelling, not an option.** `Log.WriteNumber(x, hex: true)` printed exactly what `Log.WriteHex(x)` prints, no call site anywhere passed it, and the parameter is gone. `WriteHex` and `WriteHexWithPrefix` are the ring's one answer for hex, split on the only distinction that is a real question.
 
 **Where a `params` overload is the convenient spelling of something a typed overload would do for free, the typed overload has to exist.** `Log` promises allocation-free writes for strings and numbers, and `Log.Write("text")` bound to `Write(params object?[])`, which allocates an array for its single argument; the plug layer paid that on every `Monitor` acquire and release, which is every `lock` in BCL code. A `Write(string?)` overload takes those call sites back without editing one of them, because overload resolution prefers it over the expanded params form. It has to keep the params overload's own answer for a null argument, or the cheaper binding would also be a quieter one.
+
+---
+
+## Naming
+
+Two rules carry weight; the rest of this section records what they decided and what they deliberately left alone.
+
+**A ring or seam type must be nameable without a using-alias.** `ImplicitUsings` is on repo-wide, so `System`, `System.Collections.Generic`, `System.IO`, `System.Linq`, `System.Net.Http`, `System.Threading` and `System.Threading.Tasks` are in scope in every kernel file whether or not the author asked for them. A public Cosmos type whose simple name matches one of theirs is not a naming preference, it is a compile error in the reader's file. The scheduler seam shipped two: `Thread` and `ThreadState`. The sample under [Attaching state](scheduler-plugging.md#attaching-state) is three lines of hook signatures, and compiled against the ring it produced three `CS0104: 'Thread' is an ambiguous reference between 'Cosmos.Kernel.Core.Scheduler.Thread' and 'System.Threading.Thread'`. The tree had already voted with its hands: eleven first-party files carried twelve alias lines, eight writing `using SchedThread =`, two `using SchedulerThread =` and one `using SchedThreadState =`, and the in-tree example policy that [the plugging guide](scheduler-plugging.md#round-robin) points at as "exactly as a user policy would" needed `using Thread =` on its third line to compile. They are `SchedulerThread` and `SchedulerThreadState` now, with `ThreadFlags` following them so the family stays one family, and all twelve aliases are deleted rather than rewritten.
+
+The name the obvious fix reaches for was the wrong one. `KernelThread` collides with nothing the compiler can see, and that is the problem: the ring already ships `KernelThreadInfo` and `KernelThreadState` in `Cosmos.Kernel.System.Diagnostics` as the projection of the seam type, so `KernelThread.State` would return `Core.Scheduler.ThreadState` while `KernelThreadInfo.State` returned `Diagnostics.KernelThreadState`, and a reader pairing the two would be wrong with nothing to tell them so. A silent confusion is worse than the loud one it replaces. `SchedulerThread` matches its namespace, matches what nine files chose unprompted, and leaves the `KernelThread*` pair unambiguously the ring's half.
+
+The other three colliding simple names on the seam are `Monitor`, `Mutex` and `SpinLock`. All three are internal, so they cost a first-party alias and nothing on the ring.
+
+**A member does not repeat its declaring type.** `Image.Depth` was the graphics namespace's fourth spelling of one concept, beside `Mode.ColorDepth`, `Canvas`'s `colorDepth` parameter and `Image`'s own constructor parameter `color`, which named a depth in a namespace where `color` otherwise means a `System.Drawing.Color`. Both are `ColorDepth` now. Three members keep a repetition because it earns its place:
+
+| Member | Why the repetition stays |
+|--------|--------------------------|
+| `Canvas3D.DrawLine3D` | `Canvas3D` inherits `Canvas.DrawLine(Color, int, int, int, int)`, so both are callable on one object. The suffix says which coordinate space the call is in; dropping it leaves two same-named line operations separated only by argument types |
+| `ColorDepth.ColorDepth4` .. `ColorDepth32` | The repetition only shows in qualified position, where it is unambiguous. `Bpp4`..`Bpp32` would drop the word "depth", abbreviate against the .NET guidelines, and collide in the reader's head with the `bytesPerPixel` in six files and the `BitsPerPixel` in three. Gen2 spells them the same way |
+| `PCScreenFont.DefaultFont` | `PCScreenFont.Default` is taken by the nested constant holder, and the word is a contract rather than a spelling: `Sdk.props` emits `Cosmos.Kernel.System.Graphics.Fonts.DefaultFont` as a runtime host configuration option keyed to the `CosmosDefaultFont` property, and the embedded resource is `DefaultFont.psf` |
+
+**One value gets one word.** Storage says `Sector`: `StartSector`, `SectorCount`, `newStartSector` across `Gpt`, `Mbr`, `Partition` and `PartitionManager`. `Ebr` said `Lba`, and section 07 sharpened it into a single signature carrying both, `TryAddLogical(device, extendedStartLba, extendedSectorCount, systemId, sectorCount, out startSector)`, whose own `<param>` for the out described it as "Absolute LBA". The parameters are `extendedStartSector` and `newStartSector` now. FAT and GPT keep `Lba` where it names a field the on-disk format names that way (`FatStartLba`, `PrimaryHeaderLba`): the rule is one word per value, not one word per assembly.
+
+**A member does not take the BCL's name for a different type.** `IPConfig.IPAddress` returned a `Cosmos.Kernel.System.Network.IPv4.Address` in a file where `System.Net.IPAddress` is in scope and used, and [Network](../user/network.md) showed both meanings fifteen lines apart. It is `IPConfig.Address` now, matching `EndPoint.Address` and reading as one triple beside `SubnetMask` and `DefaultGateway`.
+
+**`Initialize`, not `Init`.** 63 members across the four assemblies spelled it in full, and one member on the tracked surface abbreviated it. `ScanMapBase.InitKeys` is a protected abstract with seven overrides, implemented by any kernel writing its own keyboard layout, so it is `InitializeKeys`; the abbreviation survives on six internal helpers in `Cosmos.Kernel.Core` that the ring does not govern. An abstract member cannot be bridged with `[Obsolete]`, which makes the rename free while `Shipped` is empty and unfixable afterwards.
+
+Two things this section looked at and left alone. `Manager` means the ring's entry point for a subsystem, not that the type holds the subsystem's state: `AlarmManager` forwards to an implementation internal to `Cosmos.Kernel.Core` and is defended above on exactly that ground, so `PartitionManager` being stateless beside `Gpt`, `Mbr` and `Ebr` is the suffix working, not failing. And three ring types are nested in the type that produces them, `KeyEvent.KeyEventType`, `PartitionManager.PartitionLocation` and `VfsManager.VfsMount`; rule 1 governs whether a type is public, not where it is declared, and a name that is meaningless apart from its producer is where nesting belongs.
 
 ---
 
