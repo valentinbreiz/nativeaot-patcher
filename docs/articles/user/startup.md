@@ -100,6 +100,12 @@ Power.Shutdown();  // power off; does not return
 
 To end the main loop without ending the machine, call `Stop()` on your kernel. `Run()` stops being called, `AfterRun()` runs once, and the CPU halts.
 
+Static code that has no `this` to call it on reaches the running instance through `Global.CurrentKernel`, which the generated entry point sets before your kernel starts:
+
+```csharp
+Global.CurrentKernel?.Stop();
+```
+
 ## A minimal kernel
 
 ```csharp
