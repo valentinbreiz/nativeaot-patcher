@@ -145,16 +145,6 @@ public class DnsPacket : UdpPacket
     private static byte s_transactionCounter = 1;
 
     /// <summary>
-    /// Handles DNS packets.
-    /// </summary>
-    internal static void DNSHandler(byte[] packetData)
-    {
-        var dnsPacket = new DnsPacket(packetData);
-        var receiver = (DnsClient?)UdpClient.GetClient(dnsPacket.DestinationPort);
-        receiver?.ReceiveData(dnsPacket);
-    }
-
-    /// <summary>
     /// Parses a DNS packet from a received frame. The buffer is aliased without copying, so later
     /// changes to <paramref name="rawData"/> are visible through the packet.
     /// </summary>

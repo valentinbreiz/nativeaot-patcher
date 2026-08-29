@@ -2,7 +2,6 @@
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.HAL.Devices.Network;
 using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
-using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
 
 namespace Cosmos.Kernel.System.Network.IPv4.UDP;
 
@@ -48,17 +47,14 @@ public class UdpPacket : IPPacket
         {
             DhcpPacket.DHCPHandler(packetData);
         }
-        else if (udpPacket.SourcePort == 53 || udpPacket.DestinationPort == 53) // DNS
-        {
-            DnsPacket.DNSHandler(packetData);
-            // Also route to UdpClient (DnsClient) if listening on the destination port
-            var client = UdpClient.GetClient(udpPacket.DestinationPort);
-            client?.ReceiveData(udpPacket);
-        }
         else
         {
-            // Route to UdpClient if available
-            var client = UdpClient.GetClient(udpPacket.DestinationPort);
+            // Route to UdpClient if available. DNS used to be routed here a
+            // second time as well, which enqueued every reply twice into the
+            // one client bound to port 53: the client dequeued one and the
+            // stale copy then satisfied the next query's wait, so every second
+            // lookup on a DnsClient failed its own query-name check.
+            UdpClient? client = UdpClient.GetClient(udpPacket.DestinationPort);
             client?.ReceiveData(udpPacket);
         }
 

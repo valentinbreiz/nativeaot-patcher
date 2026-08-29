@@ -165,11 +165,14 @@ public static class NetworkManager
     /// </summary>
     /// <param name="data">The packet data.</param>
     /// <param name="length">The packet length.</param>
-    /// <returns>True if the packet was sent successfully.</returns>
+    /// <returns>True if the packet was sent successfully, false when there is
+    /// no primary device or network support is compiled out.</returns>
     public static bool Send(byte[] data, int length)
     {
-        ThrowIfDisabled();
-        return PrimaryDevice?.Send(data, length) ?? false;
+        // No ThrowIfDisabled: this bool already means "it did not happen", so
+        // the middle row of the compiled-out table applies and a switched-off
+        // build answers false like any other unsendable state.
+        return IsEnabled && (PrimaryDevice?.Send(data, length) ?? false);
     }
 
     /// <summary>

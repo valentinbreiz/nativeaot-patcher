@@ -51,7 +51,7 @@ public class Kernel : Sys.Kernel
         Log.WriteString("[Network Tests] Starting test suite\n");
 
         // x64 has E1000E network driver
-        TR.Start("Network Tests", expectedTests: 17);
+        TR.Start("Network Tests", expectedTests: 18);
 
         // Network initialization tests
         TR.Run("Network_DeviceDetected", TestNetworkDeviceDetected);
@@ -81,6 +81,7 @@ public class Kernel : Sys.Kernel
         TR.Run("DNS_ResolveValentinBzh", TestDNSResolveTestSite);
         TR.Run("DNS_ResolveCnameChain", TestDNSResolveCnameChain);
         TR.Run("DNS_ResolveMultipleARecords", TestDNSResolveMultipleARecords);
+        TR.Run("DNS_TwoQueriesOneClient", TestDNSTwoQueriesOneClient);
 
         Log.WriteString("[Network Tests] All tests completed\n");
         TR.Finish();
@@ -1085,6 +1086,55 @@ public class Kernel : Sys.Kernel
             // Don't fail the test on timeout - network may not be available in test environment
             Assert.True(true, "DNS query sent (timeout may occur in isolated test environment)");
         }
+
+        dnsClient.Close();
+    }
+
+    /// <summary>
+    /// Two queries in a row on ONE DnsClient must both resolve. Regression for
+    /// the duplicated DNS delivery: UDPHandler routed a reply to the client
+    /// twice, so the first Receive left a stale copy queued and the next query
+    /// dequeued that instead of its own answer, failing the query-name check.
+    /// </summary>
+    private static void TestDNSTwoQueriesOneClient()
+    {
+        if (!NetworkManager.Ready)
+        {
+            Assert.True(false, "Network device not ready");
+            return;
+        }
+
+        if (!_networkConfigured)
+        {
+            TestDHCPConfiguration();
+        }
+
+        var dnsServer = new Address(1, 1, 1, 1);
+        DnsConfig.Add(dnsServer);
+
+        var dnsClient = new DnsClient();
+        dnsClient.Connect(dnsServer);
+
+        dnsClient.SendAsk("valentin.bzh");
+        Address? first = dnsClient.Receive(5000);
+
+        if (first == null)
+        {
+            // The environment has no working DNS: the second query proves
+            // nothing, so do not fail on it.
+            Log.WriteString("[Test] First query timed out, skipping the repeat check\n");
+            Assert.True(true, "First DNS query timed out (no DNS in this environment)");
+            dnsClient.Close();
+            return;
+        }
+
+        Log.WriteString("[Test] First query resolved, repeating on the same client\n");
+
+        dnsClient.SendAsk("github.com");
+        Address? second = dnsClient.Receive(5000);
+
+        Assert.True(second != null, "a second query on the same DnsClient must resolve");
+        Assert.True(second == null || second.Id != 0, "the second answer should not be 0.0.0.0");
 
         dnsClient.Close();
     }
