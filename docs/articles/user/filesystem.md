@@ -48,6 +48,7 @@ using System.IO;
 using Cosmos.Kernel.System.Storage;
 using Cosmos.Kernel.System.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
+using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.HAL.Vfs;
 ```
 
@@ -132,6 +133,80 @@ if (!VfsManager.RegisterFilesystem("ramfat", fat)
     return;
 }
 ```
+
+## Partition a disk
+
+Formatting needs a partition to format. `StorageManager.Partitions` lists the ones already on the disks the kernel found at boot; when there are none, or you want a different layout, `Gpt`, `Mbr` and `PartitionManager` write the partition table itself. They all take an `IBlockDevice`, which `StorageManager.PrimaryDevice` hands you.
+
+Start by asking what scheme the disk already carries:
+
+```csharp
+IBlockDevice? disk = StorageManager.PrimaryDevice;
+if (disk == null)
+{
+    Console.WriteLine("No disk");
+    return;
+}
+
+if (Gpt.IsGpt(disk))
+{
+    Console.WriteLine("GPT, " + Gpt.Parse(disk).Count + " partition(s)");
+}
+else if (Mbr.IsMbr(disk))
+{
+    Console.WriteLine("MBR, " + Mbr.Parse(disk).Count + " partition(s)");
+}
+else
+{
+    Console.WriteLine("No partition table");
+}
+```
+
+`Gpt.Create` and `Mbr.Create` lay down an empty table of that scheme, **destroying whatever was there**. `PartitionManager.Create` then adds a partition, working on whichever scheme the disk carries so you do not have to branch:
+
+```csharp
+Gpt.Create(disk);
+
+/* 64 MiB at LBA 2048, on a 512-byte-sector disk. The MBR system id and the
+   GPT type GUID are both given; only the one matching the disk's scheme is
+   used. */
+if (!PartitionManager.Create(disk, startSector: 2048, sectorCount: 131072,
+                             mbrSystemId: 0x0C, gptType: Gpt.BasicDataPartitionType))
+{
+    Console.WriteLine("Create failed");
+    return;
+}
+
+StorageManager.RescanPartitions(disk);
+```
+
+`RescanPartitions` is what makes the new partition show up in `StorageManager.Partitions`. Until you call it the list still describes the old table.
+
+Existing partitions are addressed by a `PartitionLocation`, which is the start sector and length rather than an index, so a partition does not change identity when the table is renumbered:
+
+```csharp
+PartitionManager.PartitionLocation where = new(startSector: 2048, sectorCount: 131072);
+
+PartitionManager.Resize(disk, where, newSectorCount: 262144);
+PartitionManager.MoveWithData(disk, where, newStartSector: 4096);
+PartitionManager.Delete(disk, where);
+```
+
+`MoveWithData` copies the contents to the new location before rewriting the entry; `Resize` and `Delete` only touch the table, so shrinking a partition below its filesystem's size loses data.
+
+**Every partition index is positional.** Deleting one renumbers the entries after it, and `StorageManager.Partitions` renumbers with them, so re-read the list after any change rather than holding an index across one.
+
+MBR's four primary slots are extended with a chain of logical partitions. `PartitionManager.TryCreateLogical` adds one inside the extended partition, and `Mbr.TryGetExtendedPartition` finds it:
+
+```csharp
+if (Mbr.TryGetExtendedPartition(disk, out ulong extendedStart, out ulong extendedCount)
+    && PartitionManager.TryCreateLogical(disk, systemId: 0x0C, sectorCount: 65536, out ulong logicalStart))
+{
+    Console.WriteLine("logical partition at LBA " + logicalStart);
+}
+```
+
+`Gpt`, `Mbr` and `Ebr` are the lower layer, one type per scheme, for when you need to write entries the manager does not expose.
 
 ## Format a disk
 

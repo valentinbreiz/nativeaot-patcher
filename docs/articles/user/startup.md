@@ -82,6 +82,24 @@ public static class CosmosEntryPoint
 6. Calls `AfterRun()` once.
 7. Halts the CPU. There is no operating system to return to: a kernel never exits.
 
+## Stopping the machine
+
+Step 7 above is where a kernel ends up on its own. `Power` is how you get there deliberately, and the three members differ in how far they go:
+
+```csharp
+using Cosmos.Kernel.System;
+
+Power.Halt();      // park this CPU until an interrupt wakes it
+Power.Reboot();    // restart the machine; does not return
+Power.Shutdown();  // power off; does not return
+```
+
+`Halt()` is the one that returns. It parks the CPU rather than spinning, so it is what an idle loop should call instead of `while (true) { }`, which burns a core and, on a single-CPU kernel, keeps the scheduler from making progress.
+
+`Reboot()` and `Shutdown()` do not return on success. Both route through the platform's power operations, and where the firmware offers none they fall back to parking the CPU forever rather than continuing, which is why the compiler treats them as never returning.
+
+To end the main loop without ending the machine, call `Stop()` on your kernel. `Run()` stops being called, `AfterRun()` runs once, and the CPU halts.
+
 ## A minimal kernel
 
 ```csharp
