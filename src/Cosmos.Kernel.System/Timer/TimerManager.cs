@@ -70,9 +70,10 @@ public static class TimerManager
     /// </summary>
     /// <exception cref="InvalidOperationException">Timer support is disabled.</exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The timer device cannot run at this frequency. The x64 PIT divides
-    /// 1193180 Hz by a 16-bit value, so it accepts 19 Hz to 1193180 Hz; the
-    /// ARM64 generic timer accepts anything but zero.
+    /// The timer device cannot run at this frequency. Each device divides a
+    /// fixed counter, so each accepts from that counter divided by its widest
+    /// divisor up to the counter itself: 19 Hz to 1193180 Hz on the x64 PIT,
+    /// and 1 Hz up to CNTFRQ_EL0 on the ARM64 generic timer.
     /// </exception>
     public static uint Frequency
     {

@@ -104,7 +104,12 @@ internal class GenericTimer : TimerDevice
     /// <inheritdoc/>
     public override bool SetFrequency(uint frequency)
     {
-        if (frequency == 0)
+        // Above the counter frequency the period rounds down to fewer than one
+        // tick, and SetPeriod would store a zero comparator: the tick handler
+        // re-arms with SetTval(0), so the timer fires again on every eret and
+        // the CPU never leaves the handler. Past 1 GHz the period itself
+        // truncates to zero and the Frequency getter divides by it.
+        if (frequency == 0 || frequency > _timerFrequency)
         {
             return false;
         }

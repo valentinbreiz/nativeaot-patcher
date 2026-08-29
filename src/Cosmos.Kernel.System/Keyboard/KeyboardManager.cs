@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.Core;
+using Cosmos.Kernel.Core.CPU;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 
@@ -114,10 +115,19 @@ public static class KeyboardManager
 
     /// <summary>
     /// Enqueues the given key-press event to the internal keyboard buffer.
+    /// Runs in interrupt context on the IRQ path and in thread context from
+    /// <see cref="PollKeyboards"/>, against readers that are always in thread
+    /// context, so every touch of the queue masks interrupts for its
+    /// duration. <see cref="Queue{T}"/> is not reentrant: an enqueue that
+    /// grows the queue reallocates the backing array and rehomes its head
+    /// while a reader may be indexing the old one.
     /// </summary>
     private static void Enqueue(KeyEvent keyEvent)
     {
-        s_queuedKeys?.Enqueue(keyEvent);
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            s_queuedKeys?.Enqueue(keyEvent);
+        }
     }
 
     /// <summary>
@@ -201,7 +211,10 @@ public static class KeyboardManager
             throw new InvalidOperationException("KeyboardManager not initialized!");
         }
 
-        return s_queuedKeys.Peek();
+        using (InternalCpu.DisableInterruptsScope())
+        {
+            return s_queuedKeys.Peek();
+        }
     }
 
     /// <summary>
@@ -228,14 +241,16 @@ public static class KeyboardManager
     /// here that does not throw for an empty queue.</returns>
     public static bool TryReadKey([NotNullWhen(true)] out KeyEvent? key)
     {
-        // TryDequeue rather than Count-then-Dequeue: the producer is the
-        // keyboard interrupt, so a queue that was non-empty at the test can be
-        // empty at the take, and Dequeue on an empty queue throws out of a
-        // member whose bool is supposed to carry that answer.
-        if (s_queuedKeys != null && s_queuedKeys.TryDequeue(out KeyEvent? pending))
+        // One call rather than Count-then-Dequeue, so an empty queue is the
+        // bool this member returns rather than a throw out of it. The mask is
+        // what makes the read safe against the interrupt that fills the queue.
+        using (InternalCpu.DisableInterruptsScope())
         {
-            key = pending;
-            return true;
+            if (s_queuedKeys != null && s_queuedKeys.TryDequeue(out KeyEvent? pending))
+            {
+                key = pending;
+                return true;
+            }
         }
 
         key = default;
@@ -262,9 +277,14 @@ public static class KeyboardManager
 
         while (true)
         {
-            if (s_queuedKeys.TryDequeue(out KeyEvent? key))
+            // The mask covers the take and nothing else: polling allocates and
+            // the halt below waits for the very interrupt this scope masks.
+            using (InternalCpu.DisableInterruptsScope())
             {
-                return key;
+                if (s_queuedKeys.TryDequeue(out KeyEvent? key))
+                {
+                    return key;
+                }
             }
 
             // Poll all keyboards for events (in case interrupts aren't working)
