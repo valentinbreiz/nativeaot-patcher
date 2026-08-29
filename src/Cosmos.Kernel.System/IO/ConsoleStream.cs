@@ -27,10 +27,7 @@ internal sealed class ConsoleStream : Stream
 
         var value = Console.OutputEncoding.GetString(buffer);
         KernelConsole.Default.Write(value);
-        if (KernelConsole.Default.IsAvailable)
-        {
-            KernelConsole.Default.Canvas.Display();
-        }
+        KernelConsole.Default.Canvas.Display();
     }
     public override int Read(Span<byte> buffer)
     {
@@ -153,10 +150,7 @@ internal sealed class ConsoleStream : Stream
             {
                 case ConsoleKeyEx.Enter:
                     KernelConsole.Default.WriteLine();
-                    if (KernelConsole.Default.IsAvailable)
-                    {
-                        KernelConsole.Default.Canvas.Display();
-                    }
+                    KernelConsole.Default.Canvas.Display();
                     return true;
 
                 case ConsoleKeyEx.Backspace:
@@ -193,10 +187,7 @@ internal sealed class ConsoleStream : Stream
                             KernelConsole.Default.Write(' ');
                             KernelConsole.Default.MoveCursorLeft();
                         }
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -221,10 +212,7 @@ internal sealed class ConsoleStream : Stream
                         // Restore cursor position
                         KernelConsole.Default.SetCursorPosition(savedX, savedY);
 
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -233,10 +221,7 @@ internal sealed class ConsoleStream : Stream
                     {
                         cursorPos--;
                         KernelConsole.Default.MoveCursorLeft();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -245,10 +230,7 @@ internal sealed class ConsoleStream : Stream
                     {
                         cursorPos++;
                         KernelConsole.Default.MoveCursorRight();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -258,10 +240,7 @@ internal sealed class ConsoleStream : Stream
                     {
                         cursorPos--;
                         KernelConsole.Default.MoveCursorLeft();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -271,10 +250,7 @@ internal sealed class ConsoleStream : Stream
                     {
                         cursorPos++;
                         KernelConsole.Default.MoveCursorRight();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -307,10 +283,7 @@ internal sealed class ConsoleStream : Stream
                             cursorPos++;
                             KernelConsole.Default.Write(keyEvent.KeyChar);
                         }
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
             }

@@ -141,14 +141,6 @@ public class KernelConsole
     }
 
     /// <summary>
-    /// Gets whether this console is available (has a valid canvas).
-    /// </summary>
-    /// <remarks>
-    /// Always true since canvas is initialized in constructor.
-    /// </remarks>
-    public bool IsAvailable => true;
-
-    /// <summary>
     /// Gets or sets the font used in this console.
     /// </summary>
     public Font Font
@@ -455,7 +447,7 @@ public class KernelConsole
     /// </summary>
     private void DrawCursor()
     {
-        if (!IsAvailable || !_cursorVisible || _cursorDrawn)
+        if (!_cursorVisible || _cursorDrawn)
         {
             return;
         }
@@ -473,7 +465,7 @@ public class KernelConsole
     /// </summary>
     private void EraseCursor()
     {
-        if (!IsAvailable || !_cursorDrawn)
+        if (!_cursorDrawn)
         {
             return;
         }
@@ -499,7 +491,7 @@ public class KernelConsole
     /// </summary>
     private void DrawCharAt(int col, int row)
     {
-        if (!IsAvailable || _cells == null)
+        if (_cells == null)
         {
             return;
         }
@@ -532,7 +524,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -592,7 +584,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -670,7 +662,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -698,7 +690,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -726,7 +718,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -754,7 +746,7 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable || _cells == null)
+            if (_cells == null)
             {
                 return;
             }
@@ -786,11 +778,6 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable)
-            {
-                return;
-            }
-
             _lock.Acquire();
             try
             {
@@ -930,11 +917,6 @@ public class KernelConsole
     {
         using (InternalCpu.DisableInterruptsScope())
         {
-            if (!IsAvailable)
-            {
-                return;
-            }
-
             _lock.Acquire();
             try
             {

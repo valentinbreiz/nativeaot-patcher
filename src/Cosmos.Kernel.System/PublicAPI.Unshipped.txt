@@ -177,7 +177,6 @@ Cosmos.Kernel.System.Graphics.KernelConsole.Font.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.ForegroundColor.get -> uint
 Cosmos.Kernel.System.Graphics.KernelConsole.ForegroundColor.set -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.GetCharAt(int col, int row) -> char
-Cosmos.Kernel.System.Graphics.KernelConsole.IsAvailable.get -> bool
 Cosmos.Kernel.System.Graphics.KernelConsole.KernelConsole(Cosmos.Kernel.System.Graphics.Canvas! canvas, Cosmos.Kernel.System.Graphics.Fonts.Font? font = null) -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorDown() -> void
 Cosmos.Kernel.System.Graphics.KernelConsole.MoveCursorLeft() -> void

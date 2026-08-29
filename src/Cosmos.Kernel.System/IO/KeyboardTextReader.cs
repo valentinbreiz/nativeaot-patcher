@@ -76,10 +76,7 @@ internal sealed class KeyboardTextReader : TextReader
                             KernelConsole.Default.Write(' ');
                             KernelConsole.Default.MoveCursorLeft();
                         }
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -104,10 +101,7 @@ internal sealed class KeyboardTextReader : TextReader
                         // Restore cursor position
                         KernelConsole.Default.SetCursorPosition(savedX, savedY);
 
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -116,10 +110,7 @@ internal sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos--;
                         KernelConsole.Default.MoveCursorLeft();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -128,10 +119,7 @@ internal sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos++;
                         KernelConsole.Default.MoveCursorRight();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -141,10 +129,7 @@ internal sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos--;
                         KernelConsole.Default.MoveCursorLeft();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -154,10 +139,7 @@ internal sealed class KeyboardTextReader : TextReader
                     {
                         cursorPos++;
                         KernelConsole.Default.MoveCursorRight();
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
 
@@ -190,10 +172,7 @@ internal sealed class KeyboardTextReader : TextReader
                             cursorPos++;
                             KernelConsole.Default.Write(keyEvent.KeyChar);
                         }
-                        if (KernelConsole.Default.IsAvailable)
-                        {
-                            KernelConsole.Default.Canvas.Display();
-                        }
+                        KernelConsole.Default.Canvas.Display();
                     }
                     break;
             }

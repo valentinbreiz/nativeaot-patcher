@@ -31,10 +31,7 @@ public class ConsolePlug
     {
         KernelConsole.ThrowIfKernelConsoleNotInitialized();
 
-        if (KernelConsole.Default.IsAvailable)
-        {
-            KernelConsole.Default.Canvas.Display();
-        }
+        KernelConsole.Default.Canvas.Display();
     }
 
     [PlugMember]
