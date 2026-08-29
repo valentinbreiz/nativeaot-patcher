@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
-using Cosmos.Kernel.Core.IO;
-using Cosmos.Kernel.Core.Memory.Heap;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using Cosmos.TestRunner.Framework;
@@ -36,8 +35,8 @@ public class Kernel : Sys.Kernel
 
     protected override void BeforeRun()
     {
-        Serial.WriteString("[Graphic Tests] Starting test suite\n");
-        TR.Start("Graphic Tests", expectedTests: 15);
+        Log.WriteString("[Graphic Tests] Starting test suite\n");
+        TR.Start("Graphic Tests", expectedTests: 23);
 
         TR.Run("PCScreenFont_ChangeFont", TestPCScreenFont);
         TR.Run("Bitmap_Basic", TestBitmaps);
@@ -59,8 +58,24 @@ public class Kernel : Sys.Kernel
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyContext_Fifo", Svga3DTests.TestDestroyContext, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroySurface_Fifo", Svga3DTests.TestDestroySurface, Svga3DTests.SkipNoDevice);
         TR.RunIf(Svga3DTests.Ready, "Svga3D_DestroyShader_Fifo", Svga3DTests.TestDestroyShader, Svga3DTests.SkipNoDevice);
+        TR.RunIf(Svga3DTests.Ready, "Svga3D_SurfaceDmaReadback_Fifo", Svga3DTests.TestSurfaceDmaReadback, Svga3DTests.SkipNoDevice);
 
-        Serial.WriteString("[Graphic Tests] All tests completed\n");
+        // ==================== Canvas3D public API ====================
+        // Camera defaults and mesh layout are host-independent. The FIFO
+        // tests drive the demo cube through the public Canvas3D API with the
+        // device disabled (same technique as above). Discovery runs last:
+        // it constructs the real canvas, which enables the SVGA device on
+        // the vmware-svga profile, and every FIFO test needs it disabled.
+        Canvas3DTests.Discover();
+        TR.Run("Camera3D_Defaults", Canvas3DTests.TestCamera3DDefaults);
+        TR.Run("Canvas3D_MeshLayout", Canvas3DTests.TestMeshLayout);
+        TR.RunIf(Canvas3DTests.DevicePresent, "Canvas3D_SceneSetup_Fifo", Canvas3DTests.TestSceneSetupFifo, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_MeshValidation", Canvas3DTests.TestMeshValidation, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_DrawCube_Fifo", Canvas3DTests.TestDrawCubeFifo, Canvas3DTests.SkipNoDevice);
+        TR.RunIf(Canvas3DTests.Ready, "Canvas3D_CameraCaching_Fifo", Canvas3DTests.TestCameraCachingFifo, Canvas3DTests.SkipNoDevice);
+        TR.Run("Canvas3D_Discovery", Canvas3DTests.TestCanvas3DDiscovery);
+
+        Log.WriteString("[Graphic Tests] All tests completed\n");
         TR.Finish();
     }
 
@@ -90,7 +105,7 @@ public class Kernel : Sys.Kernel
         Assert.True(bitmap.Width == 10 && bitmap.Height == 10, "Bitmap width and height set correctly");
         Assert.True(bitmap.RawData.Length == 100, "Bitmap data size makes sense");
         MemoryStream savedBitmap = new MemoryStream();
-        letter.Save(savedBitmap, ImageFormat.BMP);
+        letter.Save(savedBitmap);
         var bitmapData = savedBitmap.ToArray();
         Assert.Equal(bitmapData, letterData, "Saving a bitmap creates the same data as used to create it");
         Bitmap letter2 = new Bitmap(bitmapData);
@@ -199,7 +214,7 @@ public class Kernel : Sys.Kernel
         /* First test with the DefaultMode */
         Canvas canvas = KernelConsole.Default.Canvas;
 
-        Serial.Write("Testing Canvas with mode " + canvas.Mode + "\n");
+        Log.Write("Testing Canvas with mode " + canvas.Mode + "\n");
         canvas.Clear(Color.Blue);
 
         /* A red Point */
@@ -215,8 +230,8 @@ public class Kernel : Sys.Kernel
 
         /* A Black Lines larger than the canvas */
         color = Color.Black;
-        canvas.DrawLine(color, -20, 100, (int)canvas.Mode.Width + 20, 100);
-        canvas.DrawLine(color, -20, -20, (int)canvas.Mode.Width + 20, (int)canvas.Mode.Height + 20);
+        canvas.DrawLine(color, -20, 100, canvas.Mode.Width + 20, 100);
+        canvas.DrawLine(color, -20, -20, canvas.Mode.Width + 20, canvas.Mode.Height + 20);
 
         /* An IndianRed vertical line */
         color = Color.IndianRed;
@@ -234,7 +249,7 @@ public class Kernel : Sys.Kernel
         canvas.DrawCircle(color, 69, 69, 10);
 
         color = Color.CadetBlue;
-        canvas.DrawArc(45, 45, 35, 35, color, 90, 270);
+        canvas.DrawArc(color, 45, 45, 35, 35, 90, 270);
 
         color = Color.DimGray;
         canvas.DrawEllipse(color, 100, 69, 10, 50);
@@ -316,12 +331,12 @@ public class Kernel : Sys.Kernel
 
         canvas.Display();
 
-        canvas.Disable();
+        Canvas.DisableFullScreen();
 
         Console.WriteLine("Back in text mode");
-        Console.WriteLine("Freed: " + Heap.Collect());
+        Console.WriteLine("Freed: " + MemoryInfo.Collect());
 
-        Serial.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
+        Log.Write("Test of Canvas with mode " + canvas.Mode + " executed successfully");
     }
 
     private static void TestVirtualCanvas()
@@ -350,6 +365,27 @@ public class Kernel : Sys.Kernel
         vCanvas.DrawFilledRectangle(Color.Yellow, 50, 20, 40, 30);
         Assert.Equal(vCanvas.GetPointColor(70, 35).ToArgb(), Color.Yellow.ToArgb(), "Virtual canvas DrawFilledRectangle works");
 
+        // A width x height shape covers exactly width x height pixels. The far
+        // column and row used to be left unpainted, because the axis-aligned
+        // DrawLine dropped its end point, and a 1-pixel shape drew nothing.
+        Assert.Equal(vCanvas.GetPointColor(89, 49).ToArgb(), Color.Yellow.ToArgb(), "DrawFilledRectangle covers its far corner");
+        Assert.Equal(vCanvas.GetPointColor(90, 49).ToArgb(), Color.DarkBlue.ToArgb(), "DrawFilledRectangle stops at its far corner");
+
+        vCanvas.DrawFilledRectangle(Color.Cyan, 5, 5, 1, 1);
+        Assert.Equal(vCanvas.GetPointColor(5, 5).ToArgb(), Color.Cyan.ToArgb(), "A one-pixel DrawFilledRectangle paints one pixel");
+
+        // The outline covers the same area the fill does, so its far edges land
+        // on the last covered pixel rather than one past it.
+        vCanvas.DrawRectangle(Color.Orange, 120, 20, 40, 30);
+        Assert.Equal(vCanvas.GetPointColor(159, 20).ToArgb(), Color.Orange.ToArgb(), "DrawRectangle paints its top-right corner");
+        Assert.Equal(vCanvas.GetPointColor(159, 49).ToArgb(), Color.Orange.ToArgb(), "DrawRectangle paints its bottom-right corner");
+        Assert.Equal(vCanvas.GetPointColor(160, 49).ToArgb(), Color.DarkBlue.ToArgb(), "DrawRectangle stops at its far corner");
+
+        // Both endpoints of a line are painted, on the diagonal path too.
+        vCanvas.DrawLine(Color.White, 10, 60, 20, 70);
+        Assert.Equal(vCanvas.GetPointColor(10, 60).ToArgb(), Color.White.ToArgb(), "A diagonal line paints its start point");
+        Assert.Equal(vCanvas.GetPointColor(20, 70).ToArgb(), Color.White.ToArgb(), "A diagonal line paints its end point");
+
         // GetBuffer should return the backing array
         int[]? buffer = vCanvas.GetBuffer();
         Assert.NotNull(buffer, "Virtual canvas GetBuffer returns non-null");
@@ -373,8 +409,21 @@ public class Kernel : Sys.Kernel
         vCanvas.DrawCanvas(vCanvas2, 10, 10);
         Assert.Equal(vCanvas.GetPointColor(20, 20).ToArgb(), Color.Magenta.ToArgb(), "Canvas-to-canvas DrawCanvas works");
 
+        // The clipping contract holds on the hardware canvas and on every
+        // shape, not just on DrawPoint of a virtual canvas. All of these used
+        // to throw ArgumentOutOfRangeException or write past the canvas.
+        screen.DrawPoint(Color.White, -1, -1);
+        screen.DrawPoint(Color.White, screen.Width, screen.Height);
+        screen.DrawCircle(Color.White, 2, 2, 6);
+        screen.DrawCircle(Color.White, screen.Width - 2, screen.Height - 2, 6);
+        screen.DrawEllipse(Color.White, 2, 2, 20, 20);
+        screen.DrawFilledRectangle(Color.White, -50, -50, 100, 100);
+        screen.DrawArray(new Color[screen.Width * 4], 0, 0, screen.Width, 4);
+        Assert.True(true, "No drawing primitive throws for out-of-bounds coordinates");
+
+        screen.Clear(Color.Black);
         screen.Display();
 
-        Serial.Write("Virtual canvas tests executed successfully\n");
+        Log.Write("Virtual canvas tests executed successfully\n");
     }
 }

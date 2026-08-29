@@ -18,7 +18,7 @@ public class USDvorakLayout : ScanMapBase
     /// <summary>
     /// Init key list.
     /// </summary>
-    protected override void InitKeys()
+    protected override void InitializeKeys()
     {
         Keys = new List<KeyMapping>();
 

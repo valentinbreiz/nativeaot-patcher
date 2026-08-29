@@ -1,6 +1,6 @@
 using System.Text;
 using Cosmos.Build.API.Attributes;
-using Cosmos.Kernel.Core;
+using Cosmos.Kernel.System;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.IO;
 using Cosmos.Kernel.System.Keyboard;
@@ -16,7 +16,7 @@ public class ConsolePlug
 
     private static void ThrowIfKeyboardDisabled()
     {
-        if (!CosmosFeatures.KeyboardEnabled)
+        if (!KernelFeatures.Keyboard)
         {
             throw new InvalidOperationException("Console input requires keyboard support. Set CosmosEnableKeyboard=true in your csproj to enable it.");
         }
@@ -31,10 +31,7 @@ public class ConsolePlug
     {
         KernelConsole.ThrowIfKernelConsoleNotInitialized();
 
-        if (KernelConsole.Default.IsAvailable)
-        {
-            KernelConsole.Default.Canvas.Display();
-        }
+        KernelConsole.Default.Canvas.Display();
     }
 
     [PlugMember]

@@ -13,77 +13,77 @@ namespace Cosmos.Kernel.System.Keyboard
         /// <summary>
         /// The physical scan-code that the mapping refers to.
         /// </summary>
-        public byte ScanCode;
+        public byte ScanCode { get; set; }
 
         /// <summary>
         /// The text character value of the key with no modifiers active.
         /// </summary>
-        public char Value;
+        public char Value { get; set; }
 
         /// <summary>
         /// The text character value of the key with the Control
         /// (Ctrl) key modifier being active.
         /// </summary>
-        public char Control;
+        public char Control { get; set; }
 
         /// <summary>
         /// The text character value of the key with the Shift
         /// key modifier being active.
         /// </summary>
-        public char Shift;
+        public char Shift { get; set; }
 
         /// <summary>
         /// The text character value of the key with the Num Lock
         /// key modifier being active.
         /// </summary>
-        public char NumLock;
+        public char NumLock { get; set; }
 
         /// <summary>
         /// The text character value of the key with the Caps Lock
         /// key modifier being active.
         /// </summary>
-        public char CapsLock;
+        public char CapsLock { get; set; }
 
         /// <summary>
         /// The text character value of the key with both the Caps Lock
         /// and Num Lock key modifiers being active.
         /// </summary>
-        public char ShiftCapsLock;
+        public char ShiftCapsLock { get; set; }
 
         /// <summary>
         /// The text character value of the key with both the Shift
         /// and Num Lock key modifiers being active.
         /// </summary>
-        public char ShiftNumLock;
+        public char ShiftNumLock { get; set; }
 
         /// <summary>
         /// The text character value of the key with both the Control
         /// and Alt key modifiers being active.
         /// </summary>
-        public char ControlAlt;
+        public char ControlAlt { get; set; }
 
         /// <summary>
         /// The text character value of the key with both the Control
         /// and Shift key modifiers being active.
         /// </summary>
-        public char ControlShift;
+        public char ControlShift { get; set; }
 
         /// <summary>
         /// The text character value of the key with both the Control,
         /// Alt, and Shift key modifiers being active.
         /// </summary>
-        public char ControlAltShift;
+        public char ControlAltShift { get; set; }
 
         /// <summary>
         /// The virtual key that the physical key-press maps to.
         /// </summary>
-        public ConsoleKeyEx Key;
+        public ConsoleKeyEx Key { get; set; }
 
         /// <summary>
         /// The virtual key that the physical key-press maps to when
         /// the Num Lock modifier is active.
         /// </summary>
-        public ConsoleKeyEx NumLockKey;
+        public ConsoleKeyEx NumLockKey { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KeyMapping"/> class.
@@ -138,8 +138,8 @@ namespace Cosmos.Kernel.System.Keyboard
         }
 
         /// <inheritdoc cref="KeyMapping(byte, char, char, char, char, char, char, char, char, char, char, ConsoleKeyEx, ConsoleKeyEx)"/>
-        public KeyMapping(byte scanCode, char normal, char shift, char numLock, char capsLock, char shiftCapsLock, char shiftNumLock, char ctrlAlt, char ctrlAltShift, ConsoleKeyEx aKey)
-            : this(scanCode, normal, shift, numLock, capsLock, shiftCapsLock, shiftNumLock, ctrlAlt, ctrlAltShift, '\0', '\0', aKey)
+        public KeyMapping(byte scanCode, char normal, char shift, char numLock, char capsLock, char shiftCapsLock, char shiftNumLock, char ctrlAlt, char ctrlAltShift, ConsoleKeyEx key)
+            : this(scanCode, normal, shift, numLock, capsLock, shiftCapsLock, shiftNumLock, ctrlAlt, ctrlAltShift, '\0', '\0', key)
         {
         }
 
@@ -168,8 +168,12 @@ namespace Cosmos.Kernel.System.Keyboard
         {
         }
 
-        /// <inheritdoc cref="KeyMapping(byte, char, char, char, char, char, char, char, char, char, char, ConsoleKeyEx, ConsoleKeyEx)"/>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KeyMapping"/> class.
+        /// </summary>
+        /// <param name="scanCode">The physical scan code of the key.</param>
         /// <param name="n">The character to use for all of the text character fields.</param>
+        /// <param name="key">The virtual key that the physical key-press maps to.</param>
         public KeyMapping(byte scanCode, char n, ConsoleKeyEx key)
             : this(scanCode, n, n, n, n, n, n, key)
         {

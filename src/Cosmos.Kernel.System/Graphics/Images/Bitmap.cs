@@ -18,7 +18,7 @@ public class Bitmap : Image
     /// <param name="height">The height of the image.</param>
     /// <param name="colorDepth">The color depth.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when either the width or height is lower than 0.</exception>
-    public Bitmap(uint width, uint height, ColorDepth colorDepth) : base(width, height, colorDepth)
+    public Bitmap(int width, int height, ColorDepth colorDepth) : base(width, height, colorDepth)
     {
         if (width < 0)
         {
@@ -46,7 +46,7 @@ public class Bitmap : Image
     /// <exception cref="ArgumentException">Thrown on fatal error.</exception>
     /// <exception cref="ArgumentNullException">Thrown on memory error.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown on fatal error.</exception>
-    public Bitmap(uint width, uint height, byte[] pixelData, ColorDepth colorDepth) : base(width, height, colorDepth)
+    public Bitmap(int width, int height, byte[] pixelData, ColorDepth colorDepth) : base(width, height, colorDepth)
     {
         RawData = new int[width * height];
         if (colorDepth != ColorDepth.ColorDepth32 && colorDepth != ColorDepth.ColorDepth24)
@@ -107,14 +107,6 @@ public class Bitmap : Image
     /// <exception cref="FileNotFoundException">Thrown if the file cannot be found.</exception>
     /// <exception cref="DirectoryNotFoundException">Thrown if the specified path is invalid.</exception>
     /// <exception cref="PathTooLongException">Thrown if the specified path is exceed the system-defined max length.</exception>
-    public Bitmap(string path) : this(path, ColorOrder.BGR)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Bitmap"/> class, with a specified path to a BMP file.
-    /// </summary>
-    /// <param name="path">Path to file.</param>
     /// <param name="colorOrder">Order of colors in each pixel.</param>
     /// <exception cref="ArgumentException">
     /// <list type="bullet">
@@ -175,14 +167,6 @@ public class Bitmap : Image
     /// </list>
     /// </exception>
     /// <exception cref="NotImplementedException">Thrown if pixelsize is other then 32 / 24 or the file compressed.</exception>
-    public Bitmap(byte[] imageData) : this(imageData, ColorOrder.BGR) //Call the image constructor with wrong values
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Bitmap"/> class, with the specified image data byte array.
-    /// </summary>
-    /// <param name="imageData">byte array.</param>
     /// <param name="colorOrder">Order of colors in each pixel.</param>
     /// <exception cref="ArgumentNullException">Thrown if imageData is null / memory error.</exception>
     /// <exception cref="ArgumentException">Thrown on memory error.</exception>
@@ -311,9 +295,9 @@ public class Bitmap : Image
         #endregion BMP Header
 
         //Set the bitmap to have the correct values
-        Width = imageWidth;
-        Height = imageHeight;
-        Depth = (ColorDepth)pixelSize;
+        Width = (int)imageWidth;
+        Height = (int)imageHeight;
+        ColorDepth = (ColorDepth)pixelSize;
 
         RawData = new int[Width * Height];
 
@@ -402,14 +386,13 @@ public class Bitmap : Image
     public void Save(string path)
     {
         using FileStream fs = File.Open(path, FileMode.Create);
-        Save(fs, ImageFormat.BMP);
+        Save(fs);
     }
 
     /// <summary>
     /// Saves the image to the given stream.
     /// </summary>
     /// <param name="stream">The target stream.</param>
-    /// <param name="imageFormat">The format to save the image with.</param>
     /// <exception cref="ArgumentNullException">Thrown on memory error.</exception>
     /// <exception cref="RankException">Thrown on fatal error.</exception>
     /// <exception cref="ArrayTypeMismatchException">Thrown on fatal error.</exception>
@@ -420,16 +403,16 @@ public class Bitmap : Image
     /// <exception cref="IOException">Thrown on IO error.</exception>
     /// <exception cref="NotSupportedException">Thrown if the stream does not support writing.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the stream is closed.</exception>
-    public void Save(Stream stream, ImageFormat imageFormat = ImageFormat.BMP)
+    public void Save(Stream stream)
     {
         //Calculate padding
-        int padding = 4 - ((int)Width * (int)Depth % 32 / 8);
+        int padding = 4 - ((int)Width * (int)ColorDepth % 32 / 8);
         if (padding == 4)
         {
             padding = 0;
         }
 
-        byte[] file = new byte[54 /*header*/ + (Width * Height * (uint)Depth / 8) + padding * Height];
+        byte[] file = new byte[54 /*header*/ + (Width * Height * (uint)ColorDepth / 8) + padding * Height];
         // Writes all bytes at the end into the stream, rather than a few every time
 
         int position = 0;
@@ -439,7 +422,7 @@ public class Bitmap : Image
         position += 2;
 
         // Write apporiximate file size
-        data = BitConverter.GetBytes(54 /*header*/ + (Width * Height * (uint)Depth / 8) /*assume that it is full bytes */);
+        data = BitConverter.GetBytes(54 /*header*/ + (Width * Height * (uint)ColorDepth / 8) /*assume that it is full bytes */);
         Array.Copy(data, 0, file, position, 4);
         position += 4;
 
@@ -475,7 +458,7 @@ public class Bitmap : Image
         position += 2;
 
         // Bits per pixel
-        data = BitConverter.GetBytes((int)Depth);
+        data = BitConverter.GetBytes((int)ColorDepth);
         Array.Copy(data, 0, file, position, 2);
         position += 2;
 
@@ -485,7 +468,7 @@ public class Bitmap : Image
         position += 4;
 
         // Size of image data in bytes
-        data = BitConverter.GetBytes(Width * Height * (uint)Depth / 8);
+        data = BitConverter.GetBytes(Width * Height * (uint)ColorDepth / 8);
         Array.Copy(data, 0, file, position, 4);
         position += 4;
 
@@ -512,10 +495,10 @@ public class Bitmap : Image
 
         // Copy image data
         position = (int)offset;
-        int byteNum = (int)Depth / 8;
+        int byteNum = (int)ColorDepth / 8;
         byte[] imageData = new byte[(Width * Height * byteNum) + padding * Height];
         int imageDataPoint = 0;
-        int cOffset = 4 - ((int)Depth / 8);
+        int cOffset = 4 - ((int)ColorDepth / 8);
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)

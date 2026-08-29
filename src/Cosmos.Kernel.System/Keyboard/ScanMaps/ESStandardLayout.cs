@@ -15,7 +15,8 @@ public class ESStandardLayout : ScanMapBase
     {
     }
 
-    protected override void InitKeys()
+    /// <inheritdoc />
+    protected override void InitializeKeys()
     {
         Keys = new List<KeyMapping>(105);
 

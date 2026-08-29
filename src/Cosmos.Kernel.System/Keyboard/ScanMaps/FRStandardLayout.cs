@@ -8,7 +8,8 @@ namespace Cosmos.Kernel.System.Keyboard.ScanMaps;
 /// </summary>
 public class FRStandardLayout : ScanMapBase
 {
-    protected override void InitKeys()
+    /// <inheritdoc />
+    protected override void InitializeKeys()
     {
         Keys = new List<KeyMapping>();
 

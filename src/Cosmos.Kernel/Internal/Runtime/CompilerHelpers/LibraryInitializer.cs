@@ -13,7 +13,7 @@ namespace Internal.Runtime.CompilerHelpers
     /// <summary>
     /// This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed.
     /// </summary>
-    public class LibraryInitializer
+    internal class LibraryInitializer
     {
         /// <summary>
         /// Miscellaneous initialization of core kernel services that depend on HAL, such as interrupts, exception handlers, and scheduler. This method is called by the runtime before any managed code is executed.
@@ -47,7 +47,11 @@ namespace Internal.Runtime.CompilerHelpers
             if (SchedulerManager.IsEnabled)
             {
                 Serial.WriteString("[KERNEL]   - Starting scheduler timer...\n");
-                initializer.StartSchedulerTimer(10);  // 10ms quantum
+                // Arm the timer at the reference quantum rather than a literal:
+                // Stride's fallback preemption test compares one tick's elapsed
+                // time against DefaultQuantumNs, so the two have to agree.
+                initializer.StartSchedulerTimer(
+                    (uint)(SchedulerManager.DefaultQuantumNs / SchedulerManager.NanosecondsPerMillisecond));
             }
         }
 
@@ -76,12 +80,12 @@ namespace Internal.Runtime.CompilerHelpers
             // When the shell is preempted, its context is saved to this thread
             for (uint cpu = 0; cpu < cpuCount; cpu++)
             {
-                var idleThread = new Cosmos.Kernel.Core.Scheduler.Thread
+                var idleThread = new Cosmos.Kernel.Core.Scheduler.SchedulerThread
                 {
                     Id = SchedulerManager.AllocateThreadId(),
                     CpuId = cpu,
-                    State = Cosmos.Kernel.Core.Scheduler.ThreadState.Running,  // Already running (it's the current code!)
-                    Flags = ThreadFlags.Pinned | ThreadFlags.IdleThread
+                    State = Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.Running,  // Already running (it's the current code!)
+                    Flags = SchedulerThreadFlags.Pinned | SchedulerThreadFlags.IdleThread
                 };
 
                 // DON'T initialize a separate stack - the idle thread IS the current execution
@@ -102,7 +106,7 @@ namespace Internal.Runtime.CompilerHelpers
             }
 
             // Enable scheduler (timer will start invoking it)
-            SchedulerManager.Enabled = true;
+            SchedulerManager.IsRunning = true;
             Serial.WriteString("[SCHED] Scheduler enabled\n");
 
         }

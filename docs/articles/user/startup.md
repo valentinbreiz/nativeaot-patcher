@@ -74,13 +74,37 @@ public static class CosmosEntryPoint
 
 `Cosmos.Kernel.System.Kernel` is the abstract base class of every user kernel. Its `Start()` drives the whole lifecycle:
 
-1. Calls `OnBoot()`, whose default implementation runs `Global.Init()`: this initializes the graphical `KernelConsole`, which is what makes `Console.WriteLine` work.
+1. Calls `OnBoot()`, whose default implementation initializes the graphical `KernelConsole`, which is what makes `Console.WriteLine` work.
 2. Enables hardware interrupts (everything before this point ran with interrupts off).
 3. Turns off the early-boot text renderer: up to here, the boot log you see on screen is the serial log mirrored by a minimal framebuffer writer; from now on the screen belongs to `Console` and the [Canvas](graphics.md).
 4. Calls `BeforeRun()` once.
 5. Calls `Run()` in a loop until `Stop()` is called.
 6. Calls `AfterRun()` once.
 7. Halts the CPU. There is no operating system to return to: a kernel never exits.
+
+## Stopping the machine
+
+Step 7 above is where a kernel ends up on its own. `Power` is how you get there deliberately, and the three members differ in how far they go:
+
+```csharp
+using Cosmos.Kernel.System;
+
+Power.Halt();      // park this CPU until an interrupt wakes it
+Power.Reboot();    // restart the machine; does not return
+Power.Shutdown();  // power off; does not return
+```
+
+`Halt()` is the one that returns. It parks the CPU rather than spinning, so it is what an idle loop should call instead of `while (true) { }`, which burns a core and, on a single-CPU kernel, keeps the scheduler from making progress.
+
+`Reboot()` and `Shutdown()` do not return on success. Both route through the platform's power operations, and where the firmware offers none they fall back to parking the CPU forever rather than continuing, which is why the compiler treats them as never returning.
+
+To end the main loop without ending the machine, call `Stop()` on your kernel. `Run()` stops being called, `AfterRun()` runs once, and the CPU halts.
+
+Static code that has no `this` to call it on reaches the running instance through `Global.CurrentKernel`, which the generated entry point sets before your kernel starts:
+
+```csharp
+Global.CurrentKernel?.Stop();
+```
 
 ## A minimal kernel
 
@@ -121,11 +145,13 @@ An uncaught exception inside `Run()` propagates out of the loop, so wrap the bod
 ```csharp
 protected override void OnBoot()
 {
-    base.OnBoot();   // keep Global.Init() → KernelConsole; drop this line to boot headless
+    base.OnBoot();   // keep the KernelConsole setup; drop this line to boot headless
 
     // your early initialization here
 }
 ```
+
+A headless kernel that later wants `Console` output calls `KernelConsole.Initialize()` itself: it is the only route on the ring, `Console.WriteLine` does not bring the console up on its own. The call is idempotent, so it is safe whether or not `base.OnBoot()` already ran, and it returns `false` when graphics are compiled out.
 
 For total control you can override `Start()` itself and take over the lifecycle: the default implementation in [`Cosmos.Kernel.System/Kernel.cs`](https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Kernel.cs) is small and a good starting point to copy from.
 
@@ -142,7 +168,7 @@ foreach (string arg in Environment.GetCommandLineArgs())
 
 ## Watching a boot
 
-Every phase above logs to the serial port (COM1), which `make run` and `cosmos run` connect to your terminal, the first thing to read when a kernel does not come up:
+Every phase above logs to the serial port (COM1), which `cosmos run` connects to your terminal, the first thing to read when a kernel does not come up:
 
 ```
 ========================================

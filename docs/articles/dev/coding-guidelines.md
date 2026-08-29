@@ -20,6 +20,7 @@ This document establishes the coding style and architecture patterns for Cosmos 
 - [14. AOT Constraints](#14-aot-constraints)
 - [15. Documentation](#15-documentation)
 - [16. Testing](#16-testing)
+- [17. Public API Surface](#17-public-api-surface)
 
 ---
 
@@ -202,34 +203,36 @@ Use `static class` for stateless kernel utilities that have no per-instance stat
 
 ### Managers
 
-Use a `static class` with an `Initialize()` method and an `IsInitialized` property. Managers coordinate subsystem state without requiring an instance:
+Use a `static class`. Managers coordinate subsystem state without requiring an instance. Boot-path setup is an `internal static void Initialize()` called from `LibraryInitializer`, never from a kernel:
 
 ```csharp
 // Simple manager: no underlying instance to expose
 public static class TimerManager
 {
-    private static ITimerDevice? _timer;
-    private static bool _initialized;
+    private static ITimerDevice? s_timer;
 
-    public static bool IsInitialized => _initialized;
+    public static bool IsInitialized => s_timer != null;
 
-    public static void Initialize() { ... }
-    public static void Wait(int ms) { ... }
+    internal static void RegisterTimer(ITimerDevice timer) { ... }
+    public static void Wait(uint ms) { ... }
 }
 
 // Manager wrapping a pluggable implementation: expose via Current
 public static class SchedulerManager
 {
-    private static IScheduler? _currentScheduler;
+    private static IScheduler? s_currentScheduler;
 
-    public static IScheduler Current => _currentScheduler
-        ?? throw new InvalidOperationException("Scheduler not initialized");
+    public static IScheduler? Current => s_currentScheduler;
 
-    public static void Initialize(IScheduler scheduler) { ... }
+    internal static void Initialize(uint cpuCount) { ... }
 }
 ```
 
 Only add a `Current` property when the manager wraps a pluggable implementation (eg. `IScheduler` for multiple scheduling algorithms). Most managers don't need one.
+
+Do not carry a separate `_initialized` flag next to the state it stands for. Derive `IsInitialized` from that state, and have `Initialize` guard re-entry on the same field, assigning it last so no reader sees `IsInitialized` go true before the state behind it exists.
+
+When a manager sits behind a feature switch, its members follow the rule in [Public API Tracking](public-api.md#behaviour-when-a-feature-is-compiled-out): reads answer honestly with the feature off, actions throw and name the switch.
 
 ### Structs for Low-Level Data
 
@@ -304,7 +307,7 @@ public class Kernel : Cosmos.Kernel.System.Kernel
 ```
 
 **Rules:**
-- Override `OnBoot()` only to customize boot (default calls `Global.Init()`).
+- Override `OnBoot()` only to customize boot (the default brings up `KernelConsole`).
 - Override `BeforeRun()` for one-time setup after the system is ready.
 - `Run()` is the main loop body, keep it focused.
 - Call `Stop()` to exit the main loop cleanly.
@@ -320,8 +323,8 @@ public class Kernel : Cosmos.Kernel.System.Kernel
 All hardware interaction goes through interfaces. Implementations are registered at boot:
 
 ```csharp
-// Interface (Cosmos.Kernel.HAL.Interfaces)
-public interface ICpuOps
+// Interface (Cosmos.Kernel.Core, internal: no kernel registers or obtains one)
+internal interface ICpuOps
 {
     void Halt();
     void DisableInterrupts();
@@ -338,10 +341,10 @@ public class X64CpuOps : ICpuOps
 
 ### Platform Initializer Pattern
 
-Each architecture provides a factory that creates all platform-specific components:
+Each architecture provides a factory that creates all platform-specific components. The factory, the contract and everything it returns are internal to the HAL: a kernel never installs one.
 
 ```csharp
-public class X64PlatformInitializer : IPlatformInitializer
+internal class X64PlatformInitializer : IPlatformInitializer
 {
     public string PlatformName => "x86-64";
     public PlatformArchitecture Architecture => PlatformArchitecture.X64;
@@ -377,7 +380,7 @@ public class X64PlatformInitializer : IPlatformInitializer
 ### HAL Registration
 
 ```csharp
-// At boot (in Global.Init or OnBoot):
+// At boot (from the library initializer, or from OnBoot):
 PlatformHAL.Initialize(new X64PlatformInitializer());
 ```
 
@@ -385,7 +388,7 @@ PlatformHAL.Initialize(new X64PlatformInitializer());
 
 ## 7. Plug System
 
-Plugs replace BCL methods at the IL level. The patcher rewires calls at build time. For full documentation on plug attributes (`[Plug]`, `[PlugMember]`, `[Expose]`, `[FieldAccess]`) and the plug template, see [Plugs](plugs.md).
+Plugs replace BCL methods at the IL level. The patcher rewires calls at build time. For full documentation on plug attributes (`[Plug]`, `[PlugMember]`, `[PlatformSpecific]`) and the plug template, see [Plugs](plugs.md).
 
 ### When to Use Plugs vs. Other Approaches
 
@@ -559,7 +562,7 @@ Exceptions work, but use them judiciously:
 
 ```csharp
 // Good: validate at API boundaries
-public static void ConfigIP(INetworkDevice device, Address ip)
+public static void RescanPartitions(IBlockDevice device)
 {
     ArgumentNullException.ThrowIfNull(device);
     // ...
@@ -583,7 +586,8 @@ private static void ThrowIfKeyboardDisabled()
 | Hardware failure, corrupted state | `Panic.Halt()` |
 | GC/allocator internal error | `Panic.Halt()` |
 | Invalid API usage | `throw` appropriate exception |
-| Missing feature at runtime | `throw InvalidOperationException` |
+| Missing feature at runtime, in a member that acts on it | `throw InvalidOperationException` naming the switch |
+| Missing feature at runtime, in a member that answers a question | Return `0`/`null`/`false`/empty |
 | User-facing error in kernel shell | `try/catch` + print error message |
 
 ---
@@ -659,7 +663,7 @@ Every constructor must leave all non-nullable members initialized. Delete unused
 
 ```csharp
 // Bad: leaves RawData null and forces nullable noise on every user of the class
-internal ICMPPacket()
+internal IcmpPacket()
 {
 }
 ```
@@ -705,13 +709,13 @@ switch (args[i])
 }
 
 // Null-conditional and coalescing
-INetworkDevice? device = NetworkManager.PrimaryDevice;
-if (device?.Ready != true)
+IBlockDevice? device = StorageManager.PrimaryDevice;
+if (device?.BlockSize is not > 0)
 {
     return;
 }
 
-Address ip = config?.IPAddress ?? defaultAddress;
+Address ip = config?.Address ?? defaultAddress;
 
 // Collection expressions
 public IKeyboardDevice[] GetKeyboardDevices() => [new PS2Keyboard()];
@@ -858,5 +862,30 @@ contextAddr = (contextAddr + 0xF) & ~(nuint)0xF;
 For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see [Testing](testing.md).
 
 **Code coverage:** Add the `run-coverage` label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.
+
+---
+
+## 17. Public API Surface
+
+Three rules decide what is `public` (the full policy and its mechanisms live in [Public API Tracking](public-api.md)):
+
+1. **One supported ring.** `Cosmos.Kernel.System` is the API kernels program against, plus the contract types its signatures expose (the `HAL.Interfaces` device interfaces, the `HAL.Vfs` contracts, Core's platform interfaces). Only that surface is tracked, documented, and covered by deprecation cycles.
+2. **Chosen experimental seams.** An extension point outside the ring is opened deliberately and marked `[Experimental("COSMOSxxxx")]`: usable now, no compatibility promise, promoted by removing the attribute. Never open a seam by just making something public.
+3. **Everything else is `internal`.** Visibility is not the extension mechanism. First-party assemblies and white-box test kernels use `InternalsVisibleTo`; external code uses `[UnsafeAccessor]` ([Accessing internals](accessing-internals.md)) at its own risk.
+
+Practical rules that follow:
+
+```csharp
+// Good: new user-facing capability lands as a Cosmos.Kernel.System facade
+public static class MemoryInfo { public static ulong FreePages => PageAllocator.FreePageCount; }
+
+// Bad: making the Core type public so a kernel can reach it
+public static class PageAllocator { ... }
+```
+
+- **New types default to `internal`.** Making a symbol `public` in a tracked project is a reviewed decision: the build fails (`RS0016`) until `make api` records it in `PublicAPI.Unshipped.txt`, and the txt diff belongs in the same commit.
+- **The enforcement test is DevKernel.** `examples/DevKernel` compiles with no `InternalsVisibleTo` grant; anything it needs must come from the supported ring.
+- **Tracked surface must be documented.** Enabling `CosmosTrackPublicApi` turns missing XML docs (`CS1591`) into build errors for the project's public symbols.
+- **A white-box test kernel gets an `InternalsVisibleTo` grant**, with a comment in the granting `.csproj` saying what it observes; it never forces a symbol public.
 
 ---

@@ -1,12 +1,10 @@
 using System;
 using System.Drawing;
 using System.Threading;
-using Cosmos.Kernel.Core.Memory;
+using Cosmos.Kernel.System.Diagnostics;
 using Cosmos.Kernel.System.Graphics;
 using Cosmos.Kernel.System.Graphics.Fonts;
 using DevKernel.Graphics;
-using KernelGc = Cosmos.Kernel.Core.Memory.GarbageCollector.GarbageCollector;
-using KernelHeap = Cosmos.Kernel.Core.Memory.Heap.Heap;
 
 namespace DevKernel.Diagnostics;
 
@@ -71,7 +69,7 @@ internal static class GcMonitor
             canvas.DrawString($"Size values are in bytes, ESC to exit;", font, Color.Cyan, x, rowY);
             rowY += lineHeight;
 
-            canvas.DrawString($"RamSize         : {PageAllocator.RamSize,ValueAlignment}", font, Color.White, x, rowY);
+            canvas.DrawString($"RamSize         : {MemoryInfo.RamSizeBytes,ValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
             canvas.DrawString($"HeapSize        : {info.HeapSizeBytes,ValueAlignment}", font, Color.White, x, rowY);
             rowY += lineHeight;
@@ -98,10 +96,9 @@ internal static class GcMonitor
             canvas.DrawString($"Frag size delta : {fragAfter - fragBefore,ValueAlignment}", font, Color.Yellow, x, rowY);
             rowY += lineHeight;
 
-            int pct = KernelGc.GetLastGCPercentTimeInGC();
-            KernelGc.GetStats(out int totalCollections, out int totalObjectsFreed);
+            int pct = MemoryInfo.GcTimePercent;
             canvas.DrawString(
-                $"Last GC % time in GC: {pct,PercentAlignment}%, Collections: {totalCollections,CountAlignment}, Objects Freed: {totalObjectsFreed,CountAlignment}",
+                $"Last GC % time in GC: {pct,PercentAlignment}%, Collections: {MemoryInfo.TotalCollections,CountAlignment}, Objects Freed: {MemoryInfo.TotalObjectsFreed,CountAlignment}",
                 font,
                 Color.Green,
                 x,
@@ -109,7 +106,7 @@ internal static class GcMonitor
 
             if (frames % CollectFrameInterval == 0)
             {
-                KernelHeap.Collect();
+                MemoryInfo.Collect();
                 info = GC.GetGCMemoryInfo();
                 sizeBefore = info.GenerationInfo[Gen0Index].SizeBeforeBytes;
                 sizeAfter = info.GenerationInfo[Gen0Index].SizeAfterBytes;

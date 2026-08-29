@@ -1,4 +1,4 @@
-// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
+﻿// This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 // Ported from Cosmos.System2/Keyboard/ScanMapBase.cs
 
 namespace Cosmos.Kernel.System.Keyboard;
@@ -14,16 +14,18 @@ public abstract class ScanMapBase
     protected List<KeyMapping> Keys = null!;
 
     /// <summary>
-    /// Initializes the key list.
+    /// Fills <see cref="Keys"/> with this layout's mappings. Called once by
+    /// the base constructor, so a layout is usable the moment it is
+    /// constructed.
     /// </summary>
-    protected abstract void InitKeys();
+    protected abstract void InitializeKeys();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScanMapBase"/> class.
     /// </summary>
     protected ScanMapBase()
     {
-        InitKeys();
+        InitializeKeys();
     }
 
     /// <summary>
@@ -37,7 +39,7 @@ public abstract class ScanMapBase
     /// <param name="capsLock">Whether caps-lock is active.</param>
     /// <param name="scrollLock">Whether scroll-lock is active.</param>
     /// <returns>The translated <see cref="KeyEvent"/>.</returns>
-    public KeyEvent? ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock)
+    internal KeyEvent? ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock)
     {
         var keyEvent = new KeyEvent();
         bool found = false;
@@ -125,7 +127,7 @@ public abstract class ScanMapBase
     /// </summary>
     /// <param name="scanCode">The physical keyboard scan-code.</param>
     /// <param name="key">The virtual mapping key.</param>
-    public bool ScanCodeMatchesKey(byte scanCode, ConsoleKeyEx key)
+    internal bool ScanCodeMatchesKey(byte scanCode, ConsoleKeyEx key)
     {
         for (int i = 0; i < Keys.Count; i++)
         {

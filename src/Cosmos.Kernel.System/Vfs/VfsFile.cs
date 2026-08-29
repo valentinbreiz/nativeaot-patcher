@@ -5,31 +5,84 @@ using Cosmos.Kernel.HAL.Vfs;
 namespace Cosmos.Kernel.System.Vfs;
 
 /// <summary>
-/// Common surface for VFS nodes (files or directories).
+/// Common surface for VFS nodes (files or directories). Every handle owns
+/// driver state and must be released, so the base interface is disposable and
+/// both handle kinds work in <c>using</c> blocks.
 /// </summary>
-public interface IVfsNodeHandle
+public interface IVfsNodeHandle : IDisposable
 {
+    /// <summary>The name of the node inside its parent directory.</summary>
     string Name { get; }
 
+    /// <summary>The underlying HAL VFS inode.</summary>
     IVfsInode Inode { get; }
 
+    /// <summary>
+    /// Reads the node's metadata (size, timestamps, mode).
+    /// </summary>
+    /// <param name="stat">The node's metadata when the call succeeds.</param>
+    /// <returns><see langword="true"/> when the driver produced the metadata;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TryStat(out VfsStat stat);
 }
 
 /// <summary>
-/// Managed handle for an open file with position and byte I/O.
+/// Managed handle for an open file with position and byte I/O. Disposal is
+/// the one state the two halves of this interface report differently: every
+/// <c>Try</c> member answers <see langword="false"/> for a disposed handle,
+/// because that is what its bool already means, while
+/// <see cref="Read(Span{byte})"/> and <see cref="Write(ReadOnlySpan{byte})"/>
+/// throw, having no count that means "the handle is gone" rather than "no
+/// bytes moved".
 /// </summary>
-public interface IVfsFileHandle : IVfsNodeHandle, IDisposable
+public interface IVfsFileHandle : IVfsNodeHandle
 {
+    /// <summary>The current byte offset of the file cursor.</summary>
     long Position { get; }
 
+    /// <summary>
+    /// Reads bytes at the current position, advancing it by the amount read.
+    /// </summary>
+    /// <param name="buffer">The destination buffer.</param>
+    /// <returns>The number of bytes read; 0 at end of file, and also when the
+    /// driver cannot resolve the file's storage.</returns>
+    /// <exception cref="ObjectDisposedException">The handle has been disposed.</exception>
     long Read(Span<byte> buffer);
 
+    /// <summary>
+    /// Writes bytes at the current position, advancing it by the amount written.
+    /// </summary>
+    /// <param name="buffer">The bytes to write.</param>
+    /// <returns>The number of bytes written, which is short of
+    /// <paramref name="buffer"/> when the volume runs out of room.</returns>
+    /// <exception cref="ObjectDisposedException">The handle has been disposed.</exception>
     long Write(ReadOnlySpan<byte> buffer);
 
+    /// <summary>
+    /// Moves the file cursor.
+    /// </summary>
+    /// <param name="offset">The offset relative to <paramref name="whence"/>.</param>
+    /// <param name="whence">The origin the offset is applied from.</param>
+    /// <returns><see langword="true"/> when the resulting position is valid;
+    /// <see langword="false"/> for a disposed handle.</returns>
     bool TrySeek(long offset, SeekWhence whence);
 
-    bool Flush();
+    /// <summary>
+    /// Flushes buffered writes to the underlying device.
+    /// </summary>
+    /// <returns><see langword="true"/> when the driver flushed successfully;
+    /// <see langword="false"/> for a disposed handle.</returns>
+    bool TryFlush();
+
+    /// <summary>
+    /// Updates the open file's metadata. Setting
+    /// <see cref="SetAttrFlags.Size"/> is how a file is truncated or extended.
+    /// </summary>
+    /// <param name="flags">Which fields of <paramref name="attributes"/> to apply.</param>
+    /// <param name="attributes">The new attribute values.</param>
+    /// <returns><see langword="true"/> when the driver applied the change;
+    /// <see langword="false"/> for a disposed handle.</returns>
+    bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes);
 }
 
 /// <summary>
@@ -84,7 +137,11 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public bool TrySeek(long offset, SeekWhence whence)
     {
-        EnsureNotDisposed();
+        if (_disposed)
+        {
+            return false;
+        }
+
         if (!_openFile.Operations.Seek(_openFile, offset, whence, out long newPosition))
         {
             return false;
@@ -94,14 +151,24 @@ internal sealed class VfsFileHandle : IVfsFileHandle
         return true;
     }
 
-    public bool Flush()
+    public bool TryFlush()
     {
-        EnsureNotDisposed();
-        return _openFile.Operations.Fsync(_openFile);
+        return !_disposed && _openFile.Operations.Fsync(_openFile);
+    }
+
+    public bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)
+    {
+        return !_disposed && Inode.InodeOperations.SetAttr(Inode, flags, attributes);
     }
 
     public bool TryStat(out VfsStat stat)
     {
+        if (_disposed)
+        {
+            stat = default;
+            return false;
+        }
+
         return Inode.InodeOperations.GetAttr(Inode, out stat);
     }
 

@@ -1,10 +1,16 @@
 namespace Cosmos.Kernel.HAL.Devices.Network;
 
+/// <summary>
+/// A 48-bit Ethernet MAC address.
+/// </summary>
 public class MACAddress : IComparable
 {
     private static MACAddress? s_broadcast;
     private static MACAddress? s_none;
 
+    /// <summary>
+    /// The broadcast address (FF:FF:FF:FF:FF:FF).
+    /// </summary>
     public static MACAddress Broadcast
     {
         get
@@ -17,6 +23,9 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// The all-zero address (00:00:00:00:00:00), used when no address is assigned.
+    /// </summary>
     public static MACAddress None
     {
         get
@@ -29,8 +38,17 @@ public class MACAddress : IComparable
         }
     }
 
-    public readonly byte[] bytes = new byte[6];
+    /// <summary>
+    /// The six address bytes, most significant first. Internal because the
+    /// array is mutable: handing it out would let a caller rewrite an
+    /// address in place and desynchronize the maps keyed on it.
+    /// </summary>
+    internal readonly byte[] _bytes = new byte[6];
 
+    /// <summary>
+    /// Create a MAC address from a 6-byte array.
+    /// </summary>
+    /// <param name="address">The six address bytes, most significant first.</param>
     public MACAddress(byte[] address)
     {
         if (address == null || address.Length != 6)
@@ -38,12 +56,12 @@ public class MACAddress : IComparable
             throw new ArgumentException("MACAddress is null or has wrong length", nameof(address));
         }
 
-        bytes[0] = address[0];
-        bytes[1] = address[1];
-        bytes[2] = address[2];
-        bytes[3] = address[3];
-        bytes[4] = address[4];
-        bytes[5] = address[5];
+        _bytes[0] = address[0];
+        _bytes[1] = address[1];
+        _bytes[2] = address[2];
+        _bytes[3] = address[3];
+        _bytes[4] = address[4];
+        _bytes[5] = address[5];
 
     }
 
@@ -59,104 +77,97 @@ public class MACAddress : IComparable
             throw new ArgumentException("buffer does not contain enough data starting at offset", nameof(buffer));
         }
 
-        bytes[0] = buffer[offset];
-        bytes[1] = buffer[offset + 1];
-        bytes[2] = buffer[offset + 2];
-        bytes[3] = buffer[offset + 3];
-        bytes[4] = buffer[offset + 4];
-        bytes[5] = buffer[offset + 5];
+        _bytes[0] = buffer[offset];
+        _bytes[1] = buffer[offset + 1];
+        _bytes[2] = buffer[offset + 2];
+        _bytes[3] = buffer[offset + 3];
+        _bytes[4] = buffer[offset + 4];
+        _bytes[5] = buffer[offset + 5];
     }
 
+    /// <summary>
+    /// Create a copy of an existing MAC address.
+    /// </summary>
+    /// <param name="m">MAC address to copy.</param>
     public MACAddress(MACAddress m)
-        : this(m.bytes)
+        : this(m._bytes)
     {
     }
 
 
-    public bool IsValid()
-    {
-        return bytes.Length == 6;
-    }
-
+    /// <summary>
+    /// Compare this address to another MAC address, byte by byte from the
+    /// most significant byte.
+    /// </summary>
+    /// <param name="obj">MAC address to compare against, or null.</param>
+    /// <returns>Negative, zero, or positive following the ordering of the first differing byte. Null orders before any address.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="obj"/> is neither null nor a <see cref="MACAddress"/>.</exception>
     public int CompareTo(object? obj)
     {
-        if (obj is MACAddress)
+        if (obj is null)
         {
-            MACAddress other = (MACAddress)obj;
-            int i = 0;
-            i = bytes[0].CompareTo(other.bytes[0]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = bytes[1].CompareTo(other.bytes[1]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = bytes[2].CompareTo(other.bytes[2]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = bytes[3].CompareTo(other.bytes[3]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = bytes[4].CompareTo(other.bytes[4]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            i = bytes[5].CompareTo(other.bytes[5]);
-            if (i != 0)
-            {
-                return i;
-            }
-
-            return 0;
+            return 1;
         }
-        else
+
+        if (obj is not MACAddress other)
         {
-            throw new ArgumentException("obj is not a MACAddress", "obj");
+            throw new ArgumentException("obj is not a MACAddress", nameof(obj));
         }
+
+        for (int i = 0; i < 6; i++)
+        {
+            int order = _bytes[i].CompareTo(other._bytes[i]);
+            if (order != 0)
+            {
+                return order;
+            }
+        }
+
+        return 0;
     }
 
+    /// <summary>
+    /// Check whether another object is a MAC address holding the same six bytes.
+    /// </summary>
+    /// <param name="obj">Object to compare against.</param>
+    /// <returns>True when <paramref name="obj"/> is a <see cref="MACAddress"/> with the same six bytes, false for anything else including null.</returns>
     public override bool Equals(object? obj)
     {
-        if (obj is MACAddress)
+        if (obj is not MACAddress other)
         {
-            MACAddress other = (MACAddress)obj;
+            return false;
+        }
 
-            return bytes[0] == other.bytes[0] &&
-                bytes[1] == other.bytes[1] &&
-                bytes[2] == other.bytes[2] &&
-                bytes[3] == other.bytes[3] &&
-                bytes[4] == other.bytes[4] &&
-                bytes[5] == other.bytes[5];
-        }
-        else
+        for (int i = 0; i < 6; i++)
         {
-            throw new ArgumentException("obj is not a MACAddress", "obj");
+            if (_bytes[i] != other._bytes[i])
+            {
+                return false;
+            }
         }
+
+        return true;
     }
 
+    /// <summary>
+    /// Get a hash code derived from the six address bytes, consistent with
+    /// <see cref="Equals(object?)"/>.
+    /// </summary>
+    /// <returns>Hash code for this address.</returns>
     public override int GetHashCode()
     {
-        return (GetType().AssemblyQualifiedName + "|" + ToString()).GetHashCode();
+        return (int)To32BitNumber();
     }
 
-    public ulong ToNumber()
+    /// <summary>
+    /// Combine the address bytes into a single unsigned number,
+    /// most significant byte first.
+    /// </summary>
+    /// <returns>The address as a number.</returns>
+    private ulong ToNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (ulong)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        return ((ulong)_bytes[0] << 40) | ((ulong)_bytes[1] << 32) | ((ulong)_bytes[2] << 24) |
+            ((ulong)_bytes[3] << 16) | ((ulong)_bytes[4] << 8) | _bytes[5];
     }
 
     private static void PutByte(char[] aChars, int aIndex, byte aByte)
@@ -166,18 +177,23 @@ public class MACAddress : IComparable
         aChars[aIndex + 1] = xChars[aByte & 0xF];
     }
 
-    public uint To32BitNumber()
+    /// <summary>
+    /// Fold all six address bytes into a 32-bit unsigned number. Used as the
+    /// <see cref="Hash"/> value; it is a hash, not a truncation, so it does
+    /// not round-trip back to an address.
+    /// </summary>
+    /// <returns>The folded address.</returns>
+    private uint To32BitNumber()
     {
-        // TODO check shifting of bytes byte[0] and byte[1]
-        return (uint)((bytes[0] << 40) | (bytes[1] << 32) | (bytes[2] << 24) | (bytes[3] << 16) |
-            (bytes[4] << 8) | (bytes[5] << 0));
+        ulong value = ToNumber();
+        return (uint)value ^ (uint)(value >> 32);
     }
 
     private uint _hash;
     /// <summary>
     /// Hash value for this mac. Used to uniquely identify each mac
     /// </summary>
-    public uint Hash
+    internal uint Hash
     {
         get
         {
@@ -190,21 +206,26 @@ public class MACAddress : IComparable
         }
     }
 
+    /// <summary>
+    /// Format the address as six colon-separated hex byte pairs
+    /// (e.g. "52:54:00:12:34:56").
+    /// </summary>
+    /// <returns>The address in colon-separated hex notation.</returns>
     public override string ToString()
     {
         // mac address consists of 6 2chars pairs, delimited by :
         char[] xChars = new char[17];
-        PutByte(xChars, 0, bytes[0]);
+        PutByte(xChars, 0, _bytes[0]);
         xChars[2] = ':';
-        PutByte(xChars, 3, bytes[1]);
+        PutByte(xChars, 3, _bytes[1]);
         xChars[5] = ':';
-        PutByte(xChars, 6, bytes[2]);
+        PutByte(xChars, 6, _bytes[2]);
         xChars[8] = ':';
-        PutByte(xChars, 9, bytes[3]);
+        PutByte(xChars, 9, _bytes[3]);
         xChars[11] = ':';
-        PutByte(xChars, 12, bytes[4]);
+        PutByte(xChars, 12, _bytes[4]);
         xChars[14] = ':';
-        PutByte(xChars, 15, bytes[5]);
+        PutByte(xChars, 15, _bytes[5]);
         return new string(xChars);
     }
 }

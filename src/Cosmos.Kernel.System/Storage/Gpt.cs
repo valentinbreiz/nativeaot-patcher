@@ -166,31 +166,6 @@ public static class Gpt
     public static readonly Guid BasicDataPartitionType = new(
         0xEBD0A0A2, 0xB9E5, 0x4433, 0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7);
 
-    /// <summary>Single parsed partition. Sector positions are absolute on the host disk.</summary>
-    public sealed class PartitionEntry
-    {
-        /// <summary>Partition type GUID (see <see cref="Gpt.BasicDataPartitionType"/>).</summary>
-        public Guid PartitionType { get; }
-
-        /// <summary>Unique partition GUID.</summary>
-        public Guid PartitionGuid { get; }
-
-        /// <summary>First absolute LBA of the partition on the host disk.</summary>
-        public ulong StartSector { get; }
-
-        /// <summary>Length of the partition in sectors.</summary>
-        public ulong SectorCount { get; }
-
-        /// <summary>Creates a GPT partition entry.</summary>
-        public PartitionEntry(Guid partitionType, Guid partitionGuid, ulong startSector, ulong sectorCount)
-        {
-            PartitionType = partitionType;
-            PartitionGuid = partitionGuid;
-            StartSector = startSector;
-            SectorCount = sectorCount;
-        }
-    }
-
     /// <summary>True if the GPT header at LBA 1 starts with the EFI PART signature.</summary>
     public static bool IsGpt(IBlockDevice device)
     {
@@ -211,9 +186,9 @@ public static class Gpt
     /// Walk the GPT partition entry array. Empty slots (zero PartitionType
     /// GUID) are skipped.
     /// </summary>
-    public static List<PartitionEntry> Parse(IBlockDevice device)
+    public static List<GptPartitionEntry> Parse(IBlockDevice device)
     {
-        List<PartitionEntry> partitions = new();
+        List<GptPartitionEntry> partitions = new();
         if (device.BlockCount < MinGptBlockCount)
         {
             return partitions;
@@ -285,7 +260,7 @@ public static class Gpt
                 }
                 ulong count = endLba + 1 - startLba;
 
-                partitions.Add(new PartitionEntry(partType, partGuid, startLba, count));
+                partitions.Add(new GptPartitionEntry(partType, partGuid, startLba, count));
             }
         }
 
@@ -448,14 +423,14 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Mark the <paramref name="partitionIndex"/>-th non-empty entry as
+    /// Mark the <paramref name="index"/>-th non-empty entry as
     /// deleted by zeroing the whole entry — UEFI expects unused entries
     /// fully zeroed, and a stale UTF-16 name would resurface when
     /// <see cref="AddPartition"/> reuses the slot without rewriting it.
     /// </summary>
-    public static bool RemovePartition(IBlockDevice device, int partitionIndex)
+    public static bool RemovePartition(IBlockDevice device, int index)
     {
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             entry.Clear();
             return true;
@@ -463,19 +438,19 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Rewrite the end LBA of <paramref name="partitionIndex"/> so the
+    /// Rewrite the end LBA of <paramref name="index"/> so the
     /// partition spans <paramref name="newSectorCount"/> sectors. Start LBA /
     /// type / partition GUID preserved. Table-level only — does not adjust
     /// the filesystem inside.
     /// </summary>
-    public static bool ResizePartition(IBlockDevice device, int partitionIndex, ulong newSectorCount)
+    public static bool ResizePartition(IBlockDevice device, int index, ulong newSectorCount)
     {
         if (newSectorCount == 0)
         {
             return false;
         }
 
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             ulong startLba = BitConverter.ToUInt64(entry.Slice(EntryFirstLbaOffset, UInt64FieldSize));
             // Same write-time rejection as AddPartition: never stamp a
@@ -490,13 +465,13 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Rewrite the start and end LBAs of <paramref name="partitionIndex"/> so
+    /// Rewrite the start and end LBAs of <paramref name="index"/> so
     /// the partition lives at <paramref name="newStartSector"/> with the same
     /// length. Table-level only — does not relocate data.
     /// </summary>
-    public static bool MovePartition(IBlockDevice device, int partitionIndex, ulong newStartSector)
+    public static bool MovePartition(IBlockDevice device, int index, ulong newStartSector)
     {
-        return MutateEntry(device, partitionIndex, (Span<byte> entry) =>
+        return MutateEntry(device, index, (Span<byte> entry) =>
         {
             ulong startLba = BitConverter.ToUInt64(entry.Slice(EntryFirstLbaOffset, UInt64FieldSize));
             ulong endLba = BitConverter.ToUInt64(entry.Slice(EntryLastLbaOffset, UInt64FieldSize));
@@ -516,13 +491,15 @@ public static class Gpt
     }
 
     /// <summary>
-    /// Applies <paramref name="mutator"/> to the entry's 0..55 byte region;
-    /// returns false (nothing written) to abort the mutation.
+    /// Rewrites one partition entry in place. Receives the entry's 0..55 byte
+    /// region and returns false, having written nothing, to abort the mutation.
     /// </summary>
+    /// <param name="entry">The entry's 0..55 byte region.</param>
+    /// <returns>true when <paramref name="entry"/> was rewritten and should be committed.</returns>
     private delegate bool EntryMutator(Span<byte> entry);
 
     /// <summary>
-    /// Locate the <paramref name="partitionIndex"/>-th non-empty entry in the
+    /// Locate the <paramref name="index"/>-th non-empty entry in the
     /// partition entry array, apply <paramref name="mutator"/> to it, and
     /// write the containing sector back. Returns false when the header is
     /// missing/corrupt, the index does not resolve to a used slot, or the
@@ -530,9 +507,9 @@ public static class Gpt
     /// as <see cref="Parse"/> — CRCs are 0, so every field is range-checked
     /// before it drives I/O.
     /// </summary>
-    private static bool MutateEntry(IBlockDevice device, int partitionIndex, EntryMutator mutator)
+    private static bool MutateEntry(IBlockDevice device, int index, EntryMutator mutator)
     {
-        if (partitionIndex < 0 || device.BlockCount < MinGptBlockCount)
+        if (index < 0 || device.BlockCount < MinGptBlockCount)
         {
             return false;
         }
@@ -585,7 +562,7 @@ public static class Gpt
                 }
 
                 // Skip entries with exactly Parse's validity criteria so
-                // partitionIndex stays aligned with Parse's output — one
+                // index stays aligned with Parse's output — one
                 // corrupt entry ahead of the target would otherwise shift
                 // every later index onto a different, healthy partition.
                 // This also guarantees mutators only see validated LBAs
@@ -600,7 +577,7 @@ public static class Gpt
                     continue;
                 }
 
-                if (seen == partitionIndex)
+                if (seen == index)
                 {
                     if (!mutator(sector.Slice(offset, (int)entrySize)))
                     {
@@ -647,5 +624,30 @@ public static class Gpt
             }
         }
         return true;
+    }
+}
+
+/// <summary>Single parsed partition. Sector positions are absolute on the host disk.</summary>
+public sealed class GptPartitionEntry
+{
+    /// <summary>Partition type GUID (see <see cref="Gpt.BasicDataPartitionType"/>).</summary>
+    public Guid PartitionType { get; }
+
+    /// <summary>Unique partition GUID.</summary>
+    public Guid PartitionGuid { get; }
+
+    /// <summary>First absolute LBA of the partition on the host disk.</summary>
+    public ulong StartSector { get; }
+
+    /// <summary>Length of the partition in sectors.</summary>
+    public ulong SectorCount { get; }
+
+    /// <summary>Creates a GPT partition entry.</summary>
+    public GptPartitionEntry(Guid partitionType, Guid partitionGuid, ulong startSector, ulong sectorCount)
+    {
+        PartitionType = partitionType;
+        PartitionGuid = partitionGuid;
+        StartSector = startSector;
+        SectorCount = sectorCount;
     }
 }

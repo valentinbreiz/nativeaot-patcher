@@ -14,42 +14,34 @@ public abstract class Image
     /// values of the raster image.
     /// </summary>
     /// <remarks>Must be initialized in supertype.</remarks>
-    public int[] RawData = null!;
+    public int[] RawData { get; set; } = null!;
 
     /// <summary>
     /// The width of the image.
     /// </summary>
-    public uint Width { get; protected set; }
+    public int Width { get; protected set; }
 
     /// <summary>
     /// The height of the image.
     /// </summary>
-    public uint Height { get; protected set; }
+    public int Height { get; protected set; }
 
     /// <summary>
-    /// The color depth of each pixel of the image - i.e, the amount
-    /// of bits per each pixel.
+    /// The color depth of each pixel of the image, i.e. the amount of bits
+    /// per each pixel.
     /// </summary>
-    public ColorDepth Depth { get; protected set; }
+    public ColorDepth ColorDepth { get; protected set; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Image"/> class.
     /// </summary>
     /// <param name="width">The width of the image.</param>
     /// <param name="height">The height of the image.</param>
-    /// <param name="color">The color depth of each pixel.</param>
-    protected Image(uint width, uint height, ColorDepth color)
+    /// <param name="colorDepth">The color depth of each pixel.</param>
+    protected Image(int width, int height, ColorDepth colorDepth)
     {
         Width = width;
         Height = height;
-        Depth = color;
+        ColorDepth = colorDepth;
     }
-}
-
-/// <summary>
-/// Supported image formats.
-/// </summary>
-public enum ImageFormat
-{
-    BMP
 }

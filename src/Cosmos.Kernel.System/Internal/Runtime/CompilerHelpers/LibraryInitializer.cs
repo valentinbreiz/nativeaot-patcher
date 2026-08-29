@@ -16,7 +16,7 @@ namespace Internal.Runtime.CompilerHelpers
     /// <summary>
     /// This class is responsible for initializing the library and its dependencies. It is called by the runtime before any managed code is executed.
     /// </summary>
-    public class LibraryInitializer
+    internal class LibraryInitializer
     {
         /// <summary>
         /// Initialize all enabled services provided by Cosmos.Kernel.System, such as TimerManager, KeyboardManager, and NetworkManager. This method is called by the runtime before any managed code is executed.
@@ -30,9 +30,7 @@ namespace Internal.Runtime.CompilerHelpers
                 if (CosmosFeatures.TimerEnabled)
                 {
                     Serial.WriteString("[KERNEL]   - Initializing timer manager...\n");
-                    TimerManager.Initialize();
-                    var timer = initializer.CreateTimer();
-                    TimerManager.RegisterTimer(timer);
+                    TimerManager.RegisterTimer(initializer.CreateTimer());
                 }
 
                 using (InternalCpu.DisableInterruptsScope())

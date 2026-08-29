@@ -1,5 +1,5 @@
 using Cosmos.Build.API.Attributes;
-using Cosmos.Kernel.Core;
+using Cosmos.Kernel.System;
 #if ARCH_X64
 using Cosmos.Kernel.HAL.X64.Devices.Clock;
 #elif ARCH_ARM64
@@ -22,7 +22,7 @@ public static partial class DateTimePlug
     /// </summary>
     private static long GetCurrentTicks()
     {
-        if (CosmosFeatures.TimerEnabled)
+        if (KernelFeatures.Timer)
         {
             if (RTC.Instance == null)
             {

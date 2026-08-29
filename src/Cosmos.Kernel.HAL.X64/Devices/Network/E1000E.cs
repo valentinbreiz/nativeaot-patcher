@@ -16,7 +16,7 @@ namespace Cosmos.Kernel.HAL.X64.Devices.Network;
 /// Intel 82574 (E1000E) Gigabit Ethernet Controller Driver.
 /// Supports MSI-X interrupts.
 /// </summary>
-public class E1000E : PciDevice, INetworkDevice
+internal class E1000E : PciDevice, INetworkDevice
 {
     // E1000E Register Offsets
     private const uint REG_CTRL = 0x0000;        // Device Control
