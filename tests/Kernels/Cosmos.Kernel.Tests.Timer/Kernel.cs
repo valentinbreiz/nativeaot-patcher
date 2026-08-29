@@ -53,7 +53,7 @@ public class Kernel : Sys.Kernel
         TR.Run("TimerManager_Schedule_OneShot", TestScheduleOneShot);
         TR.Run("TimerManager_Schedule_Recurring", TestScheduleRecurring);
         TR.Run("TimerManager_Schedule_Cancel", TestScheduleCancel);
-        TR.Run("TimerManager_Schedule_RejectsNonPositivePeriod", TestScheduleRejectsNonPositivePeriod);
+        TR.Run("Deferred_RejectNonPositivePeriod", TestRejectNonPositivePeriod);
         TR.Run("TimerManager_Callback_CancelsOtherTimers", TestCallbackCancelsOtherTimers);
 
         // Alarm Tests
@@ -290,22 +290,34 @@ public class Kernel : Sys.Kernel
         Assert.True(timer != null && !timer.IsActive, "Cancel: cancelled timer should be inactive");
     }
 
-    private static void TestScheduleRejectsNonPositivePeriod()
+    private static void TestRejectNonPositivePeriod()
     {
-        // A zero or negative period would reload to 0 and fire on every device
-        // tick, so it is refused the way AlarmManager refuses a sub-millisecond
-        // one.
+        // A zero or negative period reloads to 0 and fires on every tick, so
+        // both managers refuse it and both accept a zero one-shot delay, which
+        // simply fires on the next tick.
         Assert.True(
             TimerManager.ScheduleRecurring(static () => { }, TimeSpan.Zero) == null,
             "ScheduleRecurring: a zero period should be refused");
         Assert.True(
             TimerManager.ScheduleRecurring(static () => { }, TimeSpan.FromMilliseconds(-50)) == null,
             "ScheduleRecurring: a negative period should be refused");
+        Assert.True(
+            AlarmManager.ScheduleRecurring(static () => { }, TimeSpan.Zero) == 0,
+            "Alarm ScheduleRecurring: a zero period should be refused");
+        Assert.True(
+            AlarmManager.ScheduleRecurring(static () => { }, TimeSpan.FromMilliseconds(-50)) == 0,
+            "Alarm ScheduleRecurring: a negative period should be refused");
 
-        // A one-shot delay has no such floor: it fires on the next tick.
         SoftwareTimer? timer = TimerManager.Schedule(static () => { }, TimeSpan.Zero);
         Assert.True(timer != null, "Schedule: a zero delay should still be scheduled");
         TimerManager.Cancel(timer);
+
+        // Sub-millisecond periods used to round to zero and be refused; the
+        // conversion is exact now, so the alarm is accepted and simply fires no
+        // faster than the scheduler tick.
+        ulong id = AlarmManager.ScheduleRecurring(static () => { }, TimeSpan.FromTicks(5000));
+        Assert.True(id != 0, "Alarm ScheduleRecurring: a sub-millisecond period should be accepted");
+        Assert.True(AlarmManager.Cancel(id), "Alarm ScheduleRecurring: the sub-millisecond alarm should be cancellable");
     }
 
     private static volatile int s_reentrantFireCount;

@@ -60,7 +60,7 @@ internal static class AlarmSystem
     /// Schedules a recurring alarm. The period restarts when the callback
     /// fires, so it must be longer than the callback's execution time.
     /// </summary>
-    /// <param name="period">Period between firings; at least 1 ms.</param>
+    /// <param name="period">Period between firings; must be positive.</param>
     /// <param name="alarm">Method to invoke each period.</param>
     /// <returns>The alarm ID, or 0 if the alarm could not be scheduled.</returns>
     public static ulong AddRecurring(TimeSpan period, Action alarm)
@@ -107,7 +107,7 @@ internal static class AlarmSystem
         ulong delayTicks = ToStopwatchTicks(delay);
         if (recurring && delayTicks == 0)
         {
-            Serial.WriteString("[AlarmSystem] ERROR: recurring alarm period must be at least 1 ms\n");
+            Serial.WriteString("[AlarmSystem] ERROR: recurring alarm period must be positive\n");
             return 0;
         }
 
@@ -216,6 +216,11 @@ internal static class AlarmSystem
         s_alarms.Insert(index, alarm);
     }
 
+    /// <summary>
+    /// Converts a duration to Stopwatch timestamp ticks. A non-positive
+    /// duration becomes 0, and a duration too large to express saturates
+    /// rather than wrapping, so a far-future alarm never lands in the past.
+    /// </summary>
     private static ulong ToStopwatchTicks(TimeSpan delay)
     {
         if (delay <= TimeSpan.Zero)
@@ -223,7 +228,25 @@ internal static class AlarmSystem
             return 0;
         }
 
-        return (ulong)delay.TotalMilliseconds * ((ulong)Stopwatch.Frequency / 1000);
+        ulong frequency = (ulong)Stopwatch.Frequency;
+        if (frequency == 0)
+        {
+            return 0;
+        }
+
+        // Split the multiply instead of scaling the frequency down to
+        // ticks-per-millisecond first: that divide floors to 0 below 1 kHz,
+        // and rounding the delay to whole milliseconds throws away everything
+        // the TimeSpan holds below one.
+        ulong whole = (ulong)delay.Ticks / (ulong)TimeSpan.TicksPerSecond;
+        ulong fraction = (ulong)delay.Ticks % (ulong)TimeSpan.TicksPerSecond;
+
+        if (whole >= ulong.MaxValue / frequency)
+        {
+            return ulong.MaxValue;
+        }
+
+        return (whole * frequency) + (fraction * frequency / (ulong)TimeSpan.TicksPerSecond);
     }
 
     private static uint TicksToWaitMs(ulong ticks)

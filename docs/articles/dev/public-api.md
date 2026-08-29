@@ -52,10 +52,10 @@ Every feature switch (`CosmosEnableStorage`, `CosmosEnableMouse` and the rest) c
 | Kind of member | Behaviour with the feature off |
 |----------------|--------------------------------|
 | A read that can express "nothing here" | Returns the honest answer: `0`, `null`, `false`, an empty list, an invalid handle |
-| A `Try` method | Returns `false` |
+| A `Try` method, or any member whose `bool` already means "it did not happen" | Returns `false` |
 | Anything else | Throws `InvalidOperationException` naming the switch to set |
 
-The reads answer so a kernel can branch on them, and `KernelFeatures` answers the compile-time question directly. The actions throw because the alternative is a silent no-op, which reads as a bug in the kernel rather than a switch left off in its `.csproj`.
+The reads answer so a kernel can branch on them, and `KernelFeatures` answers the compile-time question directly. The actions throw because the alternative is a silent no-op, which reads as a bug in the kernel rather than a switch left off in its `.csproj`. The middle row is keyed on shape rather than on the `Try` prefix: `TimerManager.Cancel` and `AlarmManager.Cancel` already return `false` for a callback that was not pending, a compiled-out subsystem is one more way it was not pending, and a cleanup path should not have to check the switch before it can run.
 
 Two members cannot follow the read half and say so in their XML docs: `KeyboardManager.Peek` and `ReadKey` return a non-nullable `KeyEvent`, so they have no value for "no key", and `ReadKey` would otherwise block on an interrupt no keyboard will raise.
 
