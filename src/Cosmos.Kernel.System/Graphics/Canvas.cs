@@ -155,7 +155,9 @@ public unsafe class Canvas
     }
 
     /// <summary>
-    /// Returns the display device to text mode and gives the screen back.
+    /// Returns the display device to text mode and gives the screen back, so a
+    /// later <see cref="GetFullScreen()"/> builds a fresh canvas against a
+    /// re-enabled device. Any canvas already acquired is dead after this call.
     /// There is no VGA text mode to fall back to on UEFI machines, where this
     /// is a no-op.
     /// </summary>

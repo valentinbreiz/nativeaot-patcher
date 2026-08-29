@@ -19,12 +19,15 @@ internal static class FullScreenCanvas
 
     /// <summary>
     /// The canvas currently driving the screen, or <see langword="null"/> when
-    /// nothing has acquired it yet.
+    /// nothing has acquired it yet or the last one was disabled.
     /// </summary>
     internal static Canvas? Current => s_videoDriver;
 
     /// <summary>
-    /// Returns the display device to text mode.
+    /// Returns the display device to text mode and drops the cached canvas, so
+    /// a later acquisition builds a fresh one against a re-enabled device.
+    /// Keeping the disabled canvas cached would hand it straight back from the
+    /// next acquisition with the device still off.
     /// </summary>
     internal static void Disable()
     {
@@ -34,6 +37,7 @@ internal static class FullScreenCanvas
         }
 
         s_videoDriver.Disable();
+        s_videoDriver = null;
     }
 
     /// <summary>
