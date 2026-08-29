@@ -1,5 +1,6 @@
 // This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 
 namespace Cosmos.Kernel.System.Filesystems.Fat;
@@ -234,7 +235,7 @@ public sealed class FatBootSector
     /// <param name="bpb">The raw boot sector, at least 512 bytes.</param>
     /// <param name="bootSector">The parsed boot sector, or <see langword="null"/> when parsing fails.</param>
     /// <returns><see langword="true"/> when the sector carries a valid, spec-legal BPB.</returns>
-    public static bool TryParse(ReadOnlySpan<byte> bpb, out FatBootSector? bootSector)
+    public static bool TryParse(ReadOnlySpan<byte> bpb, [NotNullWhen(true)] out FatBootSector? bootSector)
     {
         bootSector = null;
 

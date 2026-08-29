@@ -223,9 +223,13 @@ public static class KeyboardManager
     /// </summary>
     public static bool TryReadKey([NotNullWhen(true)] out KeyEvent? key)
     {
-        if (s_queuedKeys != null && s_queuedKeys.Count > 0)
+        // TryDequeue rather than Count-then-Dequeue: the producer is the
+        // keyboard interrupt, so a queue that was non-empty at the test can be
+        // empty at the take, and Dequeue on an empty queue throws out of a
+        // member whose bool is supposed to carry that answer.
+        if (s_queuedKeys != null && s_queuedKeys.TryDequeue(out KeyEvent? pending))
         {
-            key = s_queuedKeys.Dequeue();
+            key = pending;
             return true;
         }
 
@@ -245,16 +249,19 @@ public static class KeyboardManager
             throw new InvalidOperationException("KeyboardManager not initialized!");
         }
 
-        while (s_queuedKeys.Count == 0)
+        while (true)
         {
+            if (s_queuedKeys.TryDequeue(out KeyEvent? key))
+            {
+                return key;
+            }
+
             // Poll all keyboards for events (in case interrupts aren't working)
             PollKeyboards();
 
             // Halt CPU until interrupt (key press)
             HAL.PlatformHAL.CpuOps?.Halt();
         }
-
-        return s_queuedKeys.Dequeue();
     }
 
     /// <summary>

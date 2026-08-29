@@ -99,7 +99,26 @@ public static partial class VfsManager
     /// <returns><c>true</c> when registration succeeds; <c>false</c> if name is invalid, driver is null, or already registered.</returns>
     public static bool RegisterFilesystem(string name, IVfsFilesystemType filesystemType)
     {
-        return !string.IsNullOrWhiteSpace(name) && s_registeredTypes.TryAdd(name, filesystemType);
+        return !string.IsNullOrWhiteSpace(name)
+            && filesystemType is not null
+            && s_registeredTypes.TryAdd(name, filesystemType);
+    }
+
+    /// <summary>
+    /// Resolves a registered driver by name. Guards the key the way
+    /// <see cref="RegisterFilesystem"/> does, because the backing dictionary
+    /// throws on a null key and no member here may throw for a name that
+    /// simply names no driver.
+    /// </summary>
+    private static bool TryGetFilesystem(string name, [NotNullWhen(true)] out IVfsFilesystemType? filesystemType)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            filesystemType = null;
+            return false;
+        }
+
+        return s_registeredTypes.TryGetValue(name, out filesystemType);
     }
 
     /// <summary>
@@ -148,7 +167,7 @@ public static partial class VfsManager
     {
         mount = null;
 
-        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        if (!TryGetFilesystem(name, out IVfsFilesystemType? filesystemType))
         {
             return false;
         }
@@ -191,7 +210,7 @@ public static partial class VfsManager
     /// </summary>
     public static bool TryFormat(string name, ReadOnlySpan<char> source, IVfsFormatOptions? options)
     {
-        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        if (!TryGetFilesystem(name, out IVfsFilesystemType? filesystemType))
         {
             return false;
         }
@@ -222,7 +241,7 @@ public static partial class VfsManager
     /// </summary>
     public static bool TryDestroy(string name, ReadOnlySpan<char> source)
     {
-        if (!s_registeredTypes.TryGetValue(name, out IVfsFilesystemType? filesystemType))
+        if (!TryGetFilesystem(name, out IVfsFilesystemType? filesystemType))
         {
             return false;
         }
@@ -451,7 +470,7 @@ public static partial class VfsManager
             }
 
             IInodeOperations operations = current.InodeOperations;
-            if (!operations.Lookup(current, segment, out IVfsInode? child) || child == null)
+            if (!operations.Lookup(current, segment, out IVfsInode? child))
             {
                 return false;
             }

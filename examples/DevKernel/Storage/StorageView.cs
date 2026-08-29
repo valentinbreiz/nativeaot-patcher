@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Cosmos.Kernel.HAL.Interfaces.Devices;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.System.Storage;
@@ -105,7 +106,7 @@ internal static class StorageView
             return "unreadable";
         }
 
-        if (FatBootSector.TryParse(boot, out FatBootSector? bootSector) && bootSector != null)
+        if (FatBootSector.TryParse(boot, out FatBootSector? bootSector))
         {
             return bootSector.Type switch
             {
@@ -124,7 +125,7 @@ internal static class StorageView
     /// partition itself. The ring numbers partitions per device, which is the
     /// numbering the listings print.
     /// </summary>
-    public static bool TryResolvePartition(int diskNumber, int partitionNumber, out Partition? partition)
+    public static bool TryResolvePartition(int diskNumber, int partitionNumber, [NotNullWhen(true)] out Partition? partition)
     {
         partition = null;
 

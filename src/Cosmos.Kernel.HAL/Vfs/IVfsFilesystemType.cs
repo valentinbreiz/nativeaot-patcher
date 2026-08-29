@@ -28,7 +28,7 @@ public interface IVfsFilesystemType
     /// live mount, since rewriting the volume underneath a superblock's
     /// cached geometry corrupts it.
     /// </summary>
-    bool TryFormat(ReadOnlySpan<char> source, [NotNullWhen(true)] IVfsFormatOptions? options);
+    bool TryFormat(ReadOnlySpan<char> source, IVfsFormatOptions? options);
 
     /// <summary>
     /// Wipe the filesystem signature on the backing store so it no longer

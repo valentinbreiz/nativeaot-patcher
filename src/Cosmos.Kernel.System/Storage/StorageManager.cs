@@ -294,7 +294,7 @@ public static class StorageManager
             Span<byte> boot = new byte[(int)device.BlockSize];
             device.ReadBlock(FatBootSector.BootSectorLba, 1, boot);
             if (FatBootSector.TryParse(boot, out FatBootSector? volume)
-                && volume!.BytesPerSector == device.BlockSize
+                && volume.BytesPerSector == device.BlockSize
                 && volume.TotalSectorCount <= device.BlockCount)
             {
                 Serial.WriteString("[StorageManager] Unpartitioned filesystem volume detected on ");

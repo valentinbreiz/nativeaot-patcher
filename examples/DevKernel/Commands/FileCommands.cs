@@ -123,7 +123,7 @@ internal static class FileCommands
 
         if (target != VfsPath.Root)
         {
-            if (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir) || dir == null)
+            if (!VfsManager.TryOpenDirectory(target, out IVfsDirectoryHandle? dir))
             {
                 Terminal.Error(VfsManager.TryStat(target, out _)
                     ? "Not a directory: " + target
@@ -154,7 +154,7 @@ internal static class FileCommands
             return;
         }
 
-        if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? dir) || dir == null)
+        if (!VfsManager.TryOpenDirectory(fullPath, out IVfsDirectoryHandle? dir))
         {
             Terminal.Error("Cannot open directory: " + fullPath);
             return;
@@ -236,7 +236,7 @@ internal static class FileCommands
         }
 
         string fullPath = context.Resolve(path);
-        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
+        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file))
         {
             Terminal.Error("File not found: " + fullPath);
             return;
@@ -283,7 +283,7 @@ internal static class FileCommands
         }
 
         string fullPath = context.Resolve(path);
-        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf) || parentDir == null)
+        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf))
         {
             return;
         }
@@ -305,7 +305,7 @@ internal static class FileCommands
         }
 
         string fullPath = context.Resolve(path);
-        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf) || parentDir == null)
+        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf))
         {
             return;
         }
@@ -327,7 +327,7 @@ internal static class FileCommands
         }
 
         string fullPath = context.Resolve(path);
-        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf) || parentDir == null)
+        if (!VfsGuards.TryOpenParent(fullPath, out IVfsDirectoryHandle? parentDir, out string leaf))
         {
             return;
         }
@@ -356,15 +356,13 @@ internal static class FileCommands
 
         string fullPath = context.Resolve(path);
 
-        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file) || file == null)
+        if (!VfsManager.TryOpenFile(fullPath, out IVfsFileHandle? file))
         {
             (string parent, string leaf) = VfsPath.Split(fullPath);
             if (string.IsNullOrEmpty(leaf)
                 || !VfsManager.TryOpenDirectory(parent, out IVfsDirectoryHandle? parentDir)
-                || parentDir == null
                 || !parentDir.TryCreateFile(leaf, s_newFileMode, out _)
-                || !VfsManager.TryOpenFile(fullPath, out file)
-                || file == null)
+                || !VfsManager.TryOpenFile(fullPath, out file))
             {
                 Terminal.Error("Cannot open or create: " + fullPath);
                 return;

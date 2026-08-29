@@ -67,6 +67,7 @@ internal static class Panic
         HaltCpu();
     }
 
+    [DoesNotReturn]
     private static void HaltCpu()
     {
         // Infinite loop with halt to save power

@@ -325,7 +325,7 @@ internal static class PartitionCommands
 
     private static void DeletePartitionEntry(int diskNumber, int partitionNumber)
     {
-        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? partition) || partition == null)
+        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? partition))
         {
             Terminal.Error("Invalid disk/partition. Use 'lspart' to list.");
             return;

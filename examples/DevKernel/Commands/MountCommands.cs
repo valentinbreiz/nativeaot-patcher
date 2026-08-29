@@ -94,7 +94,7 @@ internal static class MountCommands
 
     private static void FormatPartition(int diskNumber, int partitionNumber, string fsType)
     {
-        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? target) || target == null)
+        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? target))
         {
             Terminal.Error("Invalid disk/partition. Use 'lspart' to list.");
             return;
@@ -132,7 +132,7 @@ internal static class MountCommands
 
     private static void MountPartition(int diskNumber, int partitionNumber, string mountPoint)
     {
-        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? target) || target == null)
+        if (!StorageView.TryResolvePartition(diskNumber, partitionNumber, out Partition? target))
         {
             Terminal.Error("Invalid disk/partition. Use 'lspart' to list.");
             return;

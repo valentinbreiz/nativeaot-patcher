@@ -241,11 +241,6 @@ public static partial class VfsManager
     /// </summary>
     public static bool TryRename(string oldFullPath, string newFullPath)
     {
-        if (string.Equals(oldFullPath, newFullPath, StringComparison.Ordinal))
-        {
-            return true;
-        }
-
         if (IsMountPoint(oldFullPath) || IsMountPoint(newFullPath))
         {
             return false;
@@ -254,6 +249,14 @@ public static partial class VfsManager
         if (!TryStat(oldFullPath, out VfsStat oldStat))
         {
             return false;
+        }
+
+        // Renaming a path onto itself is a no-op, but only once the source is
+        // known to exist: taking the shortcut first reported success for a
+        // path that resolves to nothing, where rename(2) reports ENOENT.
+        if (string.Equals(oldFullPath, newFullPath, StringComparison.Ordinal))
+        {
+            return true;
         }
 
         bool oldIsDirectory = oldStat.IsDirectory;

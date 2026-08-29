@@ -56,7 +56,7 @@ public sealed class FatFilesystemType : IVfsFilesystemType
         Span<byte> bpb = new byte[device.BlockSize];
         device.ReadBlock(FatBootSector.BootSectorLba, BootSectorBlockCount, bpb);
 
-        if (!FatBootSector.TryParse(bpb, out FatBootSector? boot) || boot == null)
+        if (!FatBootSector.TryParse(bpb, out FatBootSector? boot))
         {
             return false;
         }

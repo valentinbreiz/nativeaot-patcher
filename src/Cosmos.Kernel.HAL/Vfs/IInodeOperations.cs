@@ -1,5 +1,7 @@
 // This code is licensed under the BSD 3-Clause license (see LICENSE for details)
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cosmos.Kernel.HAL.Vfs;
 
 /// <summary>
@@ -14,7 +16,7 @@ public interface IInodeOperations
     /// <param name="name">Child name, a single path component.</param>
     /// <param name="child">Resolved child inode, or null when not found.</param>
     /// <returns>true when the name exists in <paramref name="dir"/>.</returns>
-    bool Lookup(IVfsInode dir, ReadOnlySpan<char> name, out IVfsInode? child);
+    bool Lookup(IVfsInode dir, ReadOnlySpan<char> name, [NotNullWhen(true)] out IVfsInode? child);
 
     /// <summary>
     /// List the directory's children. <paramref name="entries"/> is
@@ -32,7 +34,7 @@ public interface IInodeOperations
     /// <param name="mode">Permission bits for the new inode.</param>
     /// <param name="inode">Created inode on success; null on failure.</param>
     /// <returns>true on success; false when the name already exists or allocation fails.</returns>
-    bool Create(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode);
+    bool Create(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsInode? inode);
 
     /// <summary>
     /// Create an empty subdirectory in a directory.
@@ -42,7 +44,7 @@ public interface IInodeOperations
     /// <param name="mode">Permission bits for the new inode.</param>
     /// <param name="inode">Created inode on success; null on failure.</param>
     /// <returns>true on success; false when the name already exists or allocation fails.</returns>
-    bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, out IVfsInode? inode);
+    bool Mkdir(IVfsInode dir, ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsInode? inode);
 
     /// <summary>
     /// Create a symbolic link pointing at <paramref name="target"/>.
@@ -56,7 +58,7 @@ public interface IInodeOperations
         IVfsInode dir,
         ReadOnlySpan<char> name,
         ReadOnlySpan<char> target,
-        out IVfsInode? inode);
+        [NotNullWhen(true)] out IVfsInode? inode);
 
     /// <summary>
     /// Remove the directory entry for a non-directory child and free its storage.

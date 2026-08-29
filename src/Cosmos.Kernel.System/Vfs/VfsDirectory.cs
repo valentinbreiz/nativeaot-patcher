@@ -113,7 +113,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TryLookup(ReadOnlySpan<char> name, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
-        if (!Inode.InodeOperations.Lookup(Inode, name, out IVfsInode? result) || result == null)
+        if (!Inode.InodeOperations.Lookup(Inode, name, out IVfsInode? result))
         {
             child = null;
             return false;
@@ -125,7 +125,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TryCreateFile(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
-        if (!Inode.InodeOperations.Create(Inode, name, mode, out IVfsInode? created) || created == null)
+        if (!Inode.InodeOperations.Create(Inode, name, mode, out IVfsInode? created))
         {
             child = null;
             return false;
@@ -137,7 +137,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
 
     public bool TryCreateDirectory(ReadOnlySpan<char> name, VfsMode mode, [NotNullWhen(true)] out IVfsDirectoryHandle? child)
     {
-        if (!Inode.InodeOperations.Mkdir(Inode, name, mode, out IVfsInode? created) || created == null)
+        if (!Inode.InodeOperations.Mkdir(Inode, name, mode, out IVfsInode? created))
         {
             child = null;
             return false;
@@ -150,7 +150,7 @@ internal sealed class VfsDirectoryHandle : IVfsDirectoryHandle
     public bool TrySymlink(ReadOnlySpan<char> name, ReadOnlySpan<char> target, [NotNullWhen(true)] out IVfsNodeHandle? child)
     {
 
-        if (!Inode.InodeOperations.Symlink(Inode, name, target, out IVfsInode? created) || created == null)
+        if (!Inode.InodeOperations.Symlink(Inode, name, target, out IVfsInode? created))
         {
             child = null;
             return false;

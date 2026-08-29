@@ -123,7 +123,11 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public bool TrySeek(long offset, SeekWhence whence)
     {
-        EnsureNotDisposed();
+        if (_disposed)
+        {
+            return false;
+        }
+
         if (!_openFile.Operations.Seek(_openFile, offset, whence, out long newPosition))
         {
             return false;
@@ -135,18 +139,22 @@ internal sealed class VfsFileHandle : IVfsFileHandle
 
     public bool TryFlush()
     {
-        EnsureNotDisposed();
-        return _openFile.Operations.Fsync(_openFile);
+        return !_disposed && _openFile.Operations.Fsync(_openFile);
     }
 
     public bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)
     {
-        EnsureNotDisposed();
-        return Inode.InodeOperations.SetAttr(Inode, flags, attributes);
+        return !_disposed && Inode.InodeOperations.SetAttr(Inode, flags, attributes);
     }
 
     public bool TryStat(out VfsStat stat)
     {
+        if (_disposed)
+        {
+            stat = default;
+            return false;
+        }
+
         return Inode.InodeOperations.GetAttr(Inode, out stat);
     }
 
