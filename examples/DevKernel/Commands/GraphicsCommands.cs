@@ -40,6 +40,13 @@ internal static class GraphicsCommands
                 Usage = "startx",
                 Description = "Full-screen memory/GC/FPS monitor (runs until reset)",
                 Execute = static (context, args) => SystemMonitor.Run(),
+            },
+            new ShellCommand
+            {
+                Name = "cube",
+                Usage = "cube",
+                Description = "Spinning 3D cube rolled by the mouse (VMware SVGA II only, Esc to exit)",
+                Execute = static (context, args) => SpinningCubeDemo.Run(),
             });
     }
 }
