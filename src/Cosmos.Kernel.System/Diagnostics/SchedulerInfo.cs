@@ -4,7 +4,7 @@ using Cosmos.Kernel.Core.Scheduler;
 namespace Cosmos.Kernel.System.Diagnostics;
 
 /// <summary>
-/// Read-only view of the kernel scheduler: feature and lifecycle state,
+/// Diagnostic view of the kernel scheduler: feature and lifecycle state,
 /// per-CPU thread tables, and the global thread registry, plus a request
 /// to terminate a thread by ID. All reads are allocation-free and safe to
 /// poll from a monitor loop; snapshots of threads that are being

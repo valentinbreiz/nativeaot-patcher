@@ -5,7 +5,7 @@ using KernelHeap = Cosmos.Kernel.Core.Memory.Heap.Heap;
 namespace Cosmos.Kernel.System.Diagnostics;
 
 /// <summary>
-/// Read-only view of the kernel's physical-memory and garbage-collector
+/// Diagnostic view of the kernel's physical-memory and garbage-collector
 /// statistics, plus a forced collection. Every figure is a property, and
 /// each is a plain field read with no allocation, so they are safe to poll
 /// from a monitor loop at display refresh rate. The two collector counters
