@@ -33,7 +33,7 @@ public class EndPoint : IComparable
     /// <param name="port">The port.</param>
     public EndPoint(uint addr, ushort port)
     {
-        Address = new Address(addr);
+        Address = new Address4(addr);
         Port = port;
     }
 

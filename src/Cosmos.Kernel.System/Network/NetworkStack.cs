@@ -14,7 +14,7 @@ public static class NetworkStack
     /// <summary>
     /// Maps IP (Internet Protocol) addresses to network devices.
     /// </summary>
-    internal static Dictionary<uint, INetworkDevice> AddressMap { get; private set; } = new();
+    internal static Dictionary<Address, INetworkDevice> AddressMap { get; private set; } = new();
 
     /// <summary>
     /// Maps MAC addresses to network devices.
@@ -27,7 +27,7 @@ public static class NetworkStack
     public static void Initialize()
     {
         // TODO is it required to call initialize at all?
-        AddressMap = new Dictionary<uint, INetworkDevice>();
+        AddressMap = new Dictionary<Address, INetworkDevice>();
         MACMap = new Dictionary<uint, INetworkDevice>();
     }
 
@@ -61,7 +61,7 @@ public static class NetworkStack
         }
 
         // Add new config
-        AddressMap!.Add(ipAddress.Id, device);
+        AddressMap!.Add(ipAddress, device);
         MACMap.Add(mac.Hash, device);
 
         // Register packet handler

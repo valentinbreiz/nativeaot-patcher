@@ -12,7 +12,7 @@ internal static class ARPCache
     /// <summary>
     /// The cache map.
     /// </summary>
-    public static Dictionary<uint, MACAddress>? Cache;
+    public static Dictionary<Address, MACAddress>? Cache;
 
     /// <summary>
     /// Ensures the cache map exists.
@@ -20,7 +20,7 @@ internal static class ARPCache
     [MemberNotNull(nameof(Cache))]
     private static void EnsureCacheExists()
     {
-        Cache ??= new Dictionary<uint, MACAddress>();
+        Cache ??= new Dictionary<Address, MACAddress>();
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ internal static class ARPCache
     internal static bool Contains(Address ipAddress)
     {
         EnsureCacheExists();
-        return Cache.ContainsKey(ipAddress.Id);
+        return Cache.ContainsKey(ipAddress);
     }
 
     /// <summary>
@@ -44,19 +44,18 @@ internal static class ARPCache
     internal static void Update(Address ipAddress, MACAddress macAddress)
     {
         EnsureCacheExists();
-        uint ipHash = ipAddress.Id;
-        if (ipHash == 0)
+        if (Equals(ipAddress, Address4.Zero))
         {
             return;
         }
 
-        if (Cache.ContainsKey(ipHash) == false)
+        if (Cache.ContainsKey(ipAddress) == false)
         {
-            Cache.Add(ipHash, macAddress);
+            Cache.Add(ipAddress, macAddress);
         }
         else
         {
-            Cache[ipHash] = macAddress;
+            Cache[ipAddress] = macAddress;
         }
     }
 
@@ -69,7 +68,7 @@ internal static class ARPCache
     {
         EnsureCacheExists();
 
-        if (!Cache.TryGetValue(ipAddress.Id, out MACAddress? resolve))
+        if (!Cache.TryGetValue(ipAddress, out MACAddress? resolve))
         {
             return null;
         }
