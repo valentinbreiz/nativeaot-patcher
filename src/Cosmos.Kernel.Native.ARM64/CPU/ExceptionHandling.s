@@ -133,16 +133,17 @@ RhpThrowEx:
     strb    w2, [x1, #OFFSETOF__ExInfo__m_kind]            // kind = Throw
     
     // Preserve ExInfo*.
-    mov     x20, x1
+    
+    stp x0, x1, [sp, #-16]!
+    bl      __Cosmos_GetThreadExInfo
+    mov x2, x0
+    ldp x0, x1, [sp], #16
 
     // Link ExInfo into the global exception chain
-    bl      __Cosmos_GetThreadExInfo
-    ldr     x3, [x0]                        // x3 = current head
-    str     x3, [x20, #OFFSETOF__ExInfo__m_pPrevExInfo]     // ExInfo->m_pPrevExInfo = head
-    str     x20, [x0]                                        // head = pExInfo
 
-    // Restore ExInfo*
-    mov     x1, x20
+    ldr     x3, [x2]                        // x2 = current head
+    str     x3, [x1, #OFFSETOF__ExInfo__m_pPrevExInfo]     // ExInfo->m_pPrevExInfo = head
+    str     x1, [x2]    
 
     // Set the exception context pointer
     add     x3, sp, #STACKSIZEOF_ExInfo                    // x3 = PAL_LIMITED_CONTEXT*
@@ -363,8 +364,14 @@ RhpCallFilterFunclet:
 .balign 4
 RhpRethrow:
     // Get current exception from ExInfo chain
+    stp x0, x1, [sp, #-32]!
+    str x30, [sp, #16]
     bl      __Cosmos_GetThreadExInfo
-    ldr     x0, [x0]
+    mov x2, x0
+    ldr x30, [sp, #16]
+    ldp x0, x1, [sp], #32
+
+    ldr     x0, [x2]
     cbz     x0, .halt
 
     // Get exception object from ExInfo
