@@ -1,16 +1,11 @@
 // Exception Handling Assembly Stubs for ARM64 (AAPCS64)
 // Implements the low-level exception dispatching for NativeAOT
 
-.section .data
-
-// Global exception info stack head (single-threaded kernel, no TLS needed)
-.global __cosmos_exinfo_stack_head
-__cosmos_exinfo_stack_head: .quad 0
-
 .section .text
 
 // External managed functions
 .extern RhThrowEx                    // C# exception dispatcher
+.extern __Cosmos_GetThreadExInfo
 
 //=============================================================================
 // Structure offsets
@@ -136,13 +131,19 @@ RhpThrowEx:
     str     w2, [x1, #OFFSETOF__ExInfo__m_idxCurClause]    // idxCurClause = -1
     mov     w2, #ExKind_Throw
     strb    w2, [x1, #OFFSETOF__ExInfo__m_kind]            // kind = Throw
+    
+    // Preserve ExInfo*.
+    
+    stp x0, x1, [sp, #-16]!
+    bl      __Cosmos_GetThreadExInfo
+    mov x2, x0
+    ldp x0, x1, [sp], #16
 
     // Link ExInfo into the global exception chain
-    adrp    x2, __cosmos_exinfo_stack_head
-    add     x2, x2, :lo12:__cosmos_exinfo_stack_head
-    ldr     x3, [x2]                                        // x3 = current head
-    str     x3, [x1, #OFFSETOF__ExInfo__m_pPrevExInfo]     // pExInfo->m_pPrevExInfo = head
-    str     x1, [x2]                                        // head = pExInfo
+
+    ldr     x3, [x2]                        // x2 = current head
+    str     x3, [x1, #OFFSETOF__ExInfo__m_pPrevExInfo]     // ExInfo->m_pPrevExInfo = head
+    str     x1, [x2]    
 
     // Set the exception context pointer
     add     x3, sp, #STACKSIZEOF_ExInfo                    // x3 = PAL_LIMITED_CONTEXT*
@@ -242,8 +243,8 @@ RhpCallCatchFunclet:
     ldr     x11, [x2, #OFFSETOF__REGDISPLAY__SP]   // x11 = handler frame's FP
 
     // Pop ExInfo entries that are below the resume SP
-    adrp    x8, __cosmos_exinfo_stack_head
-    add     x8, x8, :lo12:__cosmos_exinfo_stack_head
+    bl      __Cosmos_GetThreadExInfo
+    mov     x8, x0
 
 .pop_exinfo_loop:
     ldr     x10, [x8]                   // current ExInfo
@@ -363,9 +364,14 @@ RhpCallFilterFunclet:
 .balign 4
 RhpRethrow:
     // Get current exception from ExInfo chain
-    adrp    x0, __cosmos_exinfo_stack_head
-    add     x0, x0, :lo12:__cosmos_exinfo_stack_head
-    ldr     x0, [x0]
+    stp x0, x1, [sp, #-32]!
+    str x30, [sp, #16]
+    bl      __Cosmos_GetThreadExInfo
+    mov x2, x0
+    ldr x30, [sp, #16]
+    ldp x0, x1, [sp], #32
+
+    ldr     x0, [x2]
     cbz     x0, .halt
 
     // Get exception object from ExInfo
