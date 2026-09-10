@@ -53,7 +53,12 @@ public unsafe struct ThreadContext
     /// <param name="codeSegment">Unused on ARM64, kept for API compatibility.</param>
     /// <param name="arg">Optional argument passed in X0.</param>
     /// <param name="stackTop">Top of the usable stack for SP.</param>
-    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackTop = 0)
+    /// <param name="ring">
+    /// Privilege level: 0 = kernel (EL1h), 3 = user (EL0t). The new-thread
+    /// exit path uses eret, which restores PSTATE from SPSR_EL1: EL0t drops
+    /// to user mode, EL1h stays in kernel mode. No asm discrimination needed.
+    /// </param>
+    public void Initialize(nuint entryPoint, ushort codeSegment, nuint arg = 0, nuint stackTop = 0, byte ring = 0)
     {
         // Clear NEON registers
         fixed (byte* neon = Neon)
@@ -77,9 +82,13 @@ public unsafe struct ThreadContext
         // Set up entry point
         Elr = entryPoint;
 
-        // SPSR: EL1h mode with interrupts enabled
-        // Bits: D=0 (debug), A=0 (SError), I=0 (IRQ), F=0 (FIQ), M[4:0]=0b00101 (EL1h)
-        Spsr = 0x3C5;
+        // SPSR: select EL0t (user) for ring-3 threads, EL1h (kernel) otherwise.
+        // Bits common to both: D=0 (debug), A=0 (SError), I=0 (IRQ enabled),
+        // F=0 (FIQ enabled) - the thread enters with interrupts unmasked so
+        // the scheduler's preemptive timer can preempt it.
+        //   EL1h: M[4:0] = 0b00101  -> 0x3C5
+        //   EL0t: M[4:0] = 0b00000  -> 0x340
+        Spsr = ring == 3 ? 0x340UL : 0x3C5UL;
 
         // Clear exception info
         Interrupt = 0;

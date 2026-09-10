@@ -87,7 +87,7 @@ public static unsafe partial class GarbageCollector
             // everything up to Bump, so the trailing reset never fires and the segment
             // can never be returned to the page allocator. Dereferencing it (the old
             // behavior for non-null values) faulted on non-canonical addresses (#382 GP).
-            if (mt == null || (ulong)mt < AddressSpace.KernelSpaceStart || IsInGCHeap((nint)mt))
+            if (mt == null || (ulong)mt < AddressSpaceConst.KernelSpaceStart || IsInGCHeap((nint)mt))
             {
                 if (freeRunStart == null)
                 {
@@ -185,7 +185,7 @@ public static unsafe partial class GarbageCollector
     private static void SanitizeReservedHeaderSlot(byte* slot)
     {
         *(uint*)slot = 0;
-        if (*(ulong*)slot >= AddressSpace.KernelSpaceStart)
+        if (*(ulong*)slot >= AddressSpaceConst.KernelSpaceStart)
         {
             *(ulong*)slot = 0;
         }

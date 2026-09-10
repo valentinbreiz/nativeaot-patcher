@@ -7,6 +7,7 @@ using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Power;
 using Cosmos.Kernel.Core.X64;
 using Cosmos.Kernel.Core.X64.Cpu;
+using Cosmos.Kernel.Core.X64.Bridge;
 using Cosmos.Kernel.Core.X64.IO;
 using Cosmos.Kernel.Core.X64.Power;
 using Cosmos.Kernel.HAL.Devices.Network;
@@ -217,5 +218,22 @@ public class X64PlatformInitializer : IPlatformInitializer
         // Start LAPIC timer for preemptive scheduling
         Serial.WriteString("[X64HAL] Starting LAPIC timer for scheduling...\n");
         LocalApic.StartPeriodicTimer(quantumMs);
+    }
+
+    /// <inheritdoc />
+    public void InitializeSysCalls()
+    {
+        if (!CosmosFeatures.SysCallsEnabled)
+        {
+            return;
+        }
+
+        // Arm the x64 SYSCALL fast path: STAR/LSTAR/FMASK MSRs, the
+        // per-CPU KERNEL_GS_BASE block, and the dedicated syscall kernel
+        // stack (see src/Cosmos.Kernel.Native.X64/CPU/SysCalls.s). Must run
+        // after SysCallDispatcher.Initialize so the handler table exists
+        // before any SYSCALL can trap.
+        Serial.WriteString("[X64HAL] Arming SYSCALL trap...\n");
+        SysCallNativeImport.InitSysCall();
     }
 }

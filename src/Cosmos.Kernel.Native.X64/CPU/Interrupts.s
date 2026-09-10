@@ -326,6 +326,28 @@ _native_set_context_switch_new_thread:
     mov [rip + _context_switch_is_new_thread], rdi
     ret
 
+// void _native_set_context_switch_cr3(uint64_t cr3)
+// Sets the target CR3 for the pending context switch (0 = no change).
+// rdi = new CR3 value
+.global _native_set_context_switch_cr3
+_native_set_context_switch_cr3:
+    mov [rip + _context_switch_target_cr3], rdi
+    ret
+
+// uint64_t _native_get_context_switch_cr3()
+// Returns the pending context switch CR3 value.
+.global _native_get_context_switch_cr3
+_native_get_context_switch_cr3:
+    mov rax, [rip + _context_switch_target_cr3]
+    ret
+
+// void _native_x64_set_kernel_cr3(uint64_t cr3)
+// Records the kernel page-table root for use by interrupt stubs.
+.global _native_x64_set_kernel_cr3
+_native_x64_set_kernel_cr3:
+    mov [rip + _kernel_cr3], rdi
+    ret
+
 .bss
 // Per-CPU context switch target RSP (0 = no switch, non-zero = switch to this RSP)
 // For SMP, this would be per-CPU, but for now single-CPU
@@ -336,6 +358,21 @@ _context_switch_target_rsp: .zero 8
 // NEW threads need RSP loaded from context, RESUMED threads use iretq
 .global _context_switch_is_new_thread
 _context_switch_is_new_thread: .zero 8
+
+// Target CR3 for the pending context switch (0 = no change).
+.global _context_switch_target_cr3
+_context_switch_target_cr3: .zero 8
+
+// Kernel page-table root. Stubs switch to this on interrupt entry so the
+// entire kernel address space (including identity-mapped MMIO) is visible.
+.global _kernel_cr3
+_kernel_cr3: .zero 8
+
+// Original CR3 saved by the interrupt stub before switching to _kernel_cr3.
+// Single-CPU / non-nested assumption; restored on iretq unless a context
+// switch loads a new CR3.
+.global _irq_saved_cr3
+_irq_saved_cr3: .zero 8
 
 // Temporary storage for is_new_thread flag during restore
 // Used to avoid destroying RAX when checking if this is a new thread
@@ -630,6 +667,21 @@ irq\n\()_stub:
     // movaps in managed code then raised #GP, recursing to a triple fault.)
     pop qword ptr [rip + _irq_last_error_code]
     .endif
+
+    // === SWITCH TO KERNEL ADDRESS SPACE ===
+    // Process page tables only guarantee the shared higher-half is mapped.
+    // Kernel code frequently touches identity-mapped MMIO (LAPIC, I/O APIC,
+    // PCI ECAM, etc.) that lives outside the higher-half, so enter every
+    // interrupt with the kernel CR3 loaded. The original CR3 is restored on
+    // iretq unless a context switch deliberately loads a different one.
+    mov rax, cr3
+    mov [rip + _irq_saved_cr3], rax
+    mov rax, [rip + _kernel_cr3]
+    test rax, rax
+    jz .Lskip_kernel_cr3_\n
+    mov cr3, rax
+.Lskip_kernel_cr3_\n:
+
     // === SAVE CONTEXT ===
     // CPU pushes: RIP, CS, RFLAGS (and RSP, SS if privilege change)
     // Stack at entry: [RSP] = RIP, [RSP+8] = CS, [RSP+16] = RFLAGS
@@ -754,13 +806,31 @@ irq\n\()_stub:
     test rax, rax
     jz .Lrestore\n
 
-    // Switch to new context - clear flags and switch stack
+    // Switch to new context - clear flags
     xor rcx, rcx
     mov [rip + _context_switch_target_rsp], rcx
 
     // Save the is_new_thread flag before clearing (we need it after restore)
     mov rdx, [rip + _context_switch_is_new_thread]
     mov [rip + _context_switch_is_new_thread], rcx
+
+    // Switch page-table root BEFORE switching stack. The target stack may be
+    // at a user VA that is only valid in the target address space, while the
+    // current IRQ stack lives in the shared kernel higher-half and remains
+    // mapped across the CR3 change.
+    mov r11, [rip + _context_switch_target_cr3]
+    test r11, r11
+    jz .Lskip_cr3_\n
+    mov rcx, cr3
+    cmp rcx, r11
+    je .Lskip_cr3_\n
+    mov cr3, r11
+    // Context switch is loading a new CR3; do not restore the old one.
+    mov qword ptr [rip + _irq_saved_cr3], 0
+
+.Lskip_cr3_\n:
+    xor rcx, rcx
+    mov [rip + _context_switch_target_cr3], rcx
 
     // Switch stack
     mov rsp, rax
@@ -776,6 +846,15 @@ irq\n\()_stub:
 
 .Lrestore\n:
     // === RESTORE CONTEXT (single path for all cases) ===
+    // If the stub switched to the kernel CR3 on entry and no context switch
+    // loaded a new CR3, restore the original process page-table root.
+    mov rax, [rip + _irq_saved_cr3]
+    test rax, rax
+    jz .Lskip_restore_cr3_\n
+    mov cr3, rax
+    mov qword ptr [rip + _irq_saved_cr3], 0
+.Lskip_restore_cr3_\n:
+
     // First, read TempRcx BEFORE restoring GPRs (so we don't destroy RAX)
     // TempRcx is at: XMM(256) + GPRs(120) + interrupt(8) + cpuflags(8) + cr2(8) = offset 400
     mov rax, [rsp + 256 + 120 + 24]  // Read TempRcx (is_new_thread flag)
@@ -830,13 +909,29 @@ irq\n\()_stub:
     iretq
 
 .Lnew_thread\n:
-    // NEW thread - need to set up RSP from context and jump
+    // NEW thread - set up RSP/CS/CPL from the saved CPU frame and jump.
     // Stack: RIP, CS, RFLAGS, RSP, SS
+    //
+    // Ring-3 threads carry CS with RPL=3 (0x1B); iretq to a lower CPL pops
+    // RIP/RFLAGS/RSP/SS and drops CPL automatically - it's the only way to
+    // return to ring 3. Ring-0 threads (CS RPL=0) keep the manual RSP load
+    // + jmp: iretq to the same CPL doesn't pop RSP/SS, so the frame layout
+    // differs and the manual path avoids a 5th pop. Discriminate on the CS
+    // low bits set by ThreadContext.Initialize.
+    mov rax, [rsp + 8]            // CS from the frame (still on stack)
+    test al, 3
+    jnz .Lnew_thread_iretq\n
+
     pop r11          // RIP -> r11
     add rsp, 8       // skip CS
     popfq            // restore RFLAGS (enables interrupts)
     pop rsp          // load thread's stack pointer
     jmp r11          // jump to entry point
+
+.Lnew_thread_iretq\n:
+    // Ring-3 new thread: the saved frame has RIP, CS(=0x1B), RFLAGS,
+    // RSP(user), SS(=0x23). iretq restores all five and drops CPL to 3.
+    iretq
 .endm
 
 // Generate IRQ stubs

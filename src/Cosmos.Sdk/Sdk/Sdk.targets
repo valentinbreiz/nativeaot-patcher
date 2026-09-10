@@ -20,6 +20,8 @@
     <CosmosEnableStorage   Condition="'$(CosmosEnablePCI)' == 'false'">false</CosmosEnableStorage>
     <!-- Storage off → no block device for filesystems to mount on -->
     <CosmosEnableFat       Condition="'$(CosmosEnableStorage)' == 'false'">false</CosmosEnableFat>
+    <!-- UserLand off → nowhere for the syscall trap stub to come from -->
+    <CosmosEnableSysCalls Condition="'$(CosmosEnableUserLand)' == 'false'">false</CosmosEnableSysCalls>
   </PropertyGroup>
 
   <!-- Disable standard ILLink - Cosmos uses custom NativeAOT compilation via Cosmos.Build.Ilc -->

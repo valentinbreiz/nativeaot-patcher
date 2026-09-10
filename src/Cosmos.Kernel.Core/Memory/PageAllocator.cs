@@ -19,7 +19,7 @@ public static unsafe class PageAllocator
     public const ulong PageSize = 4096;
 
     /// <summary>Default Limine Higher Half Direct Map (HHDM) offset used when no HHDM response is available (virt = phys + offset). Public so drivers translating HHDM aliases for DMA share the same base.</summary>
-    public const ulong DefaultHhdmOffset = AddressSpace.KernelSpaceStart;
+    public const ulong DefaultHhdmOffset = AddressSpaceConst.KernelSpaceStart;
 
     /// <summary>Bytes per kilobyte; applied once for KB and twice for MB conversions in diagnostics.</summary>
     private const ulong BytesPerKilobyte = 1024;
@@ -85,7 +85,7 @@ public static unsafe class PageAllocator
     /// <returns>Physical address</returns>
     public static ulong VirtualToPhysical(ulong virtualAddress)
     {
-        if (virtualAddress >= AddressSpace.KernelImageWindow)
+        if (virtualAddress >= AddressSpaceConst.KernelImageWindow)
         {
             Serial.WriteString("[PageAllocator] ERROR: VirtualToPhysical(0x");
             Serial.WriteHex(virtualAddress);

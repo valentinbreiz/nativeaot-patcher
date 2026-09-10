@@ -2,6 +2,7 @@
 // Used to add Device MMIO entries to Limine's HHDM page tables.
 
 .global _native_arm64_read_ttbr1_el1
+.global _native_arm64_write_ttbr1_el1
 .global _native_arm64_read_mair_el1
 .global _native_arm64_tlbi_vale1
 .global _native_arm64_tlbi_all
@@ -23,6 +24,16 @@ spare_l2_table:
 .balign 4
 _native_arm64_read_ttbr1_el1:
     mrs     x0, ttbr1_el1
+    ret
+
+// void _native_arm64_write_ttbr1_el1(ulong value)
+// Writes a new page-table root to TTBR1_EL1 and synchronizes the MMU.
+// Caller is responsible for TLB invalidation if required.
+.balign 4
+_native_arm64_write_ttbr1_el1:
+    msr     ttbr1_el1, x0
+    dsb     sy
+    isb
     ret
 
 // ulong _native_arm64_read_mair_el1(void)

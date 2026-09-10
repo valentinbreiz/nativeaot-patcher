@@ -174,7 +174,7 @@ public static class Panic
     }
 
     private static bool IsPlausibleStackAddress(ulong address) =>
-        address >= AddressSpace.KernelSpaceStart && (address & 7) == 0;
+        address >= AddressSpaceConst.KernelSpaceStart && (address & 7) == 0;
 
     private static void HaltCpu()
     {

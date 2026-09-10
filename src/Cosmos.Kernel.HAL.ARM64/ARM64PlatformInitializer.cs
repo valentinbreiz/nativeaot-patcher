@@ -191,4 +191,20 @@ public class ARM64PlatformInitializer : IPlatformInitializer
         Serial.WriteString("[ARM64HAL] Starting Generic Timer for scheduling...\n");
         _timer?.Start();
     }
+
+    /// <inheritdoc />
+    public void InitializeSysCalls()
+    {
+        if (!CosmosFeatures.SysCallsEnabled)
+        {
+            return;
+        }
+
+        // The SVC route lives in the exception vector table that
+        // InitializeHardware installed via _native_arm64_init_exception_vectors
+        // (see src/Cosmos.Kernel.Native.ARM64/CPU/Interrupts.s and SysCalls.s).
+        // Nothing to arm here beyond that - the SYNC vector slot discriminates
+        // EC=0x15 and branches to __syscall_common. No-op for ABI symmetry with
+        // X64PlatformInitializer.InitializeSysCalls.
+    }
 }

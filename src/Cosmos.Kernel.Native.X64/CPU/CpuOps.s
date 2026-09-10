@@ -7,6 +7,7 @@
 .global _native_cpu_save_irq_and_disable
 .global _native_cpu_restore_irq
 .global _native_cpu_read_cr3
+.global _native_cpu_write_cr3
 .global _native_cpu_invlpg
 .global RhCpuIdEx
 
@@ -52,6 +53,12 @@ _native_cpu_rdtsc:
 // Returns: CR3 in RAX.
 _native_cpu_read_cr3:
     mov     rax, cr3
+    ret
+
+// Write CR3 (page-table root physical address).
+// Argument: new CR3 in RDI.
+_native_cpu_write_cr3:
+    mov     cr3, rdi
     ret
 
 // Invalidate the TLB entry covering the virtual address in RDI.

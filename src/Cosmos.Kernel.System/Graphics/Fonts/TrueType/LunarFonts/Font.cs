@@ -296,11 +296,11 @@ namespace LunarLabs.Fonts
                     r = m - 1;
                 else
                     if (needle > straw)
-                        l = m + 1;
-                    else
-                    {
-                        return ReadS16((uint)(this._kern + 22 + (m * 6)));
-                    }
+                    l = m + 1;
+                else
+                {
+                    return ReadS16((uint)(this._kern + 22 + (m * 6)));
+                }
             }
 
             return 0;
@@ -511,12 +511,12 @@ namespace LunarLabs.Fonts
                             high = mid - 1;
                         else
                             if (unicodeCodepoint > end_char)
-                                low = mid + 1;
-                            else
-                            {
-                                uint start_glyph = ReadU32((uint)(_indexMap + 16 + mid * 12 + 8));
-                                return (ushort)(start_glyph + unicodeCodepoint - start_char);
-                            }
+                            low = mid + 1;
+                        else
+                        {
+                            uint start_glyph = ReadU32((uint)(_indexMap + 16 + mid * 12 + 8));
+                            return (ushort)(start_glyph + unicodeCodepoint - start_char);
+                        }
                     }
 
                     return 0; // not found
@@ -783,126 +783,126 @@ namespace LunarLabs.Fonts
             }
             else
                 if (numberOfContours == -1)
+            {
+                // Compound shapes.
+                bool more = true;
+                var comp2 = (uint)(g + 10);
+
+                var mtx = new float[6];
+
+                while (more)
                 {
-                    // Compound shapes.
-                    bool more = true;
-                    var comp2 = (uint)(g + 10);
+                    mtx[0] = 1;
+                    mtx[1] = 0;
+                    mtx[2] = 0;
+                    mtx[3] = 1;
+                    mtx[4] = 0;
+                    mtx[5] = 0;
 
-                    var mtx = new float[6];
+                    byte flags = (byte)ReadS16(comp2);
+                    comp2 += 2;
+                    short gidx = ReadS16(comp2);
+                    comp2 += 2;
 
-                    while (more)
+                    if ((flags & 2) != 0)// XY values
                     {
-                        mtx[0] = 1;
-                        mtx[1] = 0;
-                        mtx[2] = 0;
-                        mtx[3] = 1;
-                        mtx[4] = 0;
-                        mtx[5] = 0;
-
-                        byte flags = (byte)ReadS16(comp2);
-                        comp2 += 2;
-                        short gidx = ReadS16(comp2);
-                        comp2 += 2;
-
-                        if ((flags & 2) != 0)// XY values
+                        if ((flags & 1) != 0)// shorts
                         {
-                            if ((flags & 1) != 0)// shorts
-                            {
-                                mtx[4] = ReadS16(comp2);
-                                comp2 += 2;
-                                mtx[5] = ReadS16(comp2);
-                                comp2 += 2;
-                            }
-                            else
-                            {
-                                mtx[4] = Read8(comp2);
-                                comp2++;
-                                mtx[5] = Read8(comp2);
-                                comp2++;
-                            }
-                        }
-                        else
-                        {
-                            // TODO handle matching point
-                            throw new NotImplementedException("matching point");
-                        }
-
-                        if ((flags & (1 << 3)) != 0) // WE_HAVE_A_SCALE
-                        {
-                            mtx[0] = ReadS16(comp2) / 16384.0f;
-                            mtx[1] = 0;
-                            mtx[2] = 0;
-                            mtx[3] = ReadS16(comp2) / 16384.0f;
+                            mtx[4] = ReadS16(comp2);
+                            comp2 += 2;
+                            mtx[5] = ReadS16(comp2);
                             comp2 += 2;
                         }
                         else
-                            if ((flags & (1 << 6)) != 0)// WE_HAVE_AN_X_AND_YSCALE
-                            {
-                                mtx[0] = ReadS16(comp2) / 16384.0f;
-                                comp2 += 2;
-                                mtx[1] = 0;
-                                mtx[2] = 0;
-                                mtx[3] = ReadS16(comp2) / 16384.0f;
-                                comp2 += 2;
-                            }
-                            else
-                                if ((flags & (1 << 7)) != 0) // WE_HAVE_A_TWO_BY_TWO
-                                {
-                                    mtx[0] = ReadS16(comp2) / 16384.0f;
-                                    comp2 += 2;
-                                    mtx[1] = ReadS16(comp2) / 16384.0f;
-                                    comp2 += 2;
-                                    mtx[2] = ReadS16(comp2) / 16384.0f;
-                                    comp2 += 2;
-                                    mtx[3] = ReadS16(comp2) / 16384.0f;
-                                    comp2 += 2;
-                                }
-
-                        // Find transformation scales.
-                        var ms = (float)Math.Sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]);
-                        var ns = (float)Math.Sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]);
-
-                        // Get indexed glyph.
-                        var comp_verts = GetGlyphShape(gidx);
-                        if (comp_verts?.Count > 0)
                         {
-                            // Transform vertices.
-                            for (int i = 0; i < comp_verts.Count; i++)
-
-                            {
-                                var vert = comp_verts[i];
-
-                                var xx = vert.x;
-                                var yy = vert.y;
-
-                                vert.x = (short)(Math.Round(ms * (mtx[0] * xx + mtx[2] * yy + mtx[4])));
-                                vert.y = (short)(Math.Round(ns * (mtx[1] * xx + mtx[3] * yy + mtx[5])));
-
-                                xx = vert.cx;
-                                yy = vert.cy;
-
-                                vert.cx = (short)(Math.Round(ms * (mtx[0] * xx + mtx[2] * yy + mtx[4])));
-                                vert.cy = (short)(Math.Round(ns * (mtx[1] * xx + mtx[3] * yy + mtx[5])));
-
-                                // Append vertices.
-                                result.Add(vert);
-                            }
+                            mtx[4] = Read8(comp2);
+                            comp2++;
+                            mtx[5] = Read8(comp2);
+                            comp2++;
                         }
-
-                        // More components ?
-                        more = (flags & (1 << 5)) != 0;
-                    }
-                }
-                else
-                    if (numberOfContours < 0)
-                    {
-                        // TODO other compound variations?
-                        throw new NotImplementedException("compound variation");
                     }
                     else
                     {
-                        // numberOfCounters == 0, do nothing
+                        // TODO handle matching point
+                        throw new NotImplementedException("matching point");
                     }
+
+                    if ((flags & (1 << 3)) != 0) // WE_HAVE_A_SCALE
+                    {
+                        mtx[0] = ReadS16(comp2) / 16384.0f;
+                        mtx[1] = 0;
+                        mtx[2] = 0;
+                        mtx[3] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                    }
+                    else
+                        if ((flags & (1 << 6)) != 0)// WE_HAVE_AN_X_AND_YSCALE
+                    {
+                        mtx[0] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                        mtx[1] = 0;
+                        mtx[2] = 0;
+                        mtx[3] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                    }
+                    else
+                            if ((flags & (1 << 7)) != 0) // WE_HAVE_A_TWO_BY_TWO
+                    {
+                        mtx[0] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                        mtx[1] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                        mtx[2] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                        mtx[3] = ReadS16(comp2) / 16384.0f;
+                        comp2 += 2;
+                    }
+
+                    // Find transformation scales.
+                    var ms = (float)Math.Sqrt(mtx[0] * mtx[0] + mtx[1] * mtx[1]);
+                    var ns = (float)Math.Sqrt(mtx[2] * mtx[2] + mtx[3] * mtx[3]);
+
+                    // Get indexed glyph.
+                    var comp_verts = GetGlyphShape(gidx);
+                    if (comp_verts?.Count > 0)
+                    {
+                        // Transform vertices.
+                        for (int i = 0; i < comp_verts.Count; i++)
+
+                        {
+                            var vert = comp_verts[i];
+
+                            var xx = vert.x;
+                            var yy = vert.y;
+
+                            vert.x = (short)(Math.Round(ms * (mtx[0] * xx + mtx[2] * yy + mtx[4])));
+                            vert.y = (short)(Math.Round(ns * (mtx[1] * xx + mtx[3] * yy + mtx[5])));
+
+                            xx = vert.cx;
+                            yy = vert.cy;
+
+                            vert.cx = (short)(Math.Round(ms * (mtx[0] * xx + mtx[2] * yy + mtx[4])));
+                            vert.cy = (short)(Math.Round(ns * (mtx[1] * xx + mtx[3] * yy + mtx[5])));
+
+                            // Append vertices.
+                            result.Add(vert);
+                        }
+                    }
+
+                    // More components ?
+                    more = (flags & (1 << 5)) != 0;
+                }
+            }
+            else
+                    if (numberOfContours < 0)
+            {
+                // TODO other compound variations?
+                throw new NotImplementedException("compound variation");
+            }
+            else
+            {
+                // numberOfCounters == 0, do nothing
+            }
 
             return result;
         }
@@ -1260,23 +1260,23 @@ namespace LunarLabs.Fonts
                                 active = z;
                             else
                                 if (z.x < active.x) // insert at front
+                            {
+                                z.next = active;
+                                active = z;
+                            }
+                            else
+                            {
+                                // find thing to insert AFTER
+                                var p = active;
+                                while (p.next != null && p.next.x < z.x)
                                 {
-                                    z.next = active;
-                                    active = z;
+                                    p = p.next;
                                 }
-                                else
-                                {
-                                    // find thing to insert AFTER
-                                    var p = active;
-                                    while (p.next != null && p.next.x < z.x)
-                                    {
-                                        p = p.next;
-                                    }
 
-                                    // at this point, p->next->x is NOT < z->x
-                                    z.next = p.next;
-                                    p.next = z;
-                                }
+                                // at this point, p->next->x is NOT < z->x
+                                z.next = p.next;
+                                p.next = z;
+                            }
                         }
 
                         eIndex++;

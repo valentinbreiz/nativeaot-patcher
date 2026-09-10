@@ -6,6 +6,7 @@
     <projectFile>src/Cosmos.Patcher/Cosmos.Patcher.csproj</projectFile>
     <projectFile>src/Cosmos.Tools/Cosmos.Tools.csproj</projectFile>
     <projectFile>tests/ConsoleApp1/ConsoleApp1.csproj</projectFile>
+    <projectFile>tests/Kernels/Cosmos.Kernel.Tests.Process/Cosmos.Kernel.Tests.Process.csproj</projectFile>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
@@ -17,10 +18,15 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="" />
-    <option name="SHOW_DIALOG" value="$MSBuildEnableWorkloadResolver$" />
+    <list default="true" id="f8cd28f8-8db5-4f5c-b0cb-c82b7fbea921" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.nativeaot-patcher/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/global.json" beforeDir="false" afterPath="$PROJECT_DIR$/global.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/PageFaultHandler.cs" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/PageFaultHandler.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Gdt.s" beforeDir="false" afterPath="$PROJECT_DIR$/src/Cosmos.Kernel.Native.X64/CPU/Gdt.s" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
-    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="$MSBuildEnableWorkloadResolver$" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DpaMonitoringSettings">
@@ -32,33 +38,43 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="zarlo/analyzer/0" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/42b5d014cd2255c6e1b2cf314c549b7229dc9638eb9ca4bbe508158bef38d51/PropertyDefinition.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/de4732c7b872321ec35770c85de139e4cf216f578e4fa12a706b29ebcda8e/MethodDefinition.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/.ai/mcp/mcp.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4ac38e449eb749c4a6c4081231b3deb2db3000/ae/0680b67e/Span`1.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/examples/DevKernel/NuGet.Config" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/global.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Bridge/Import/GdtNative.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Cpu/Gdt.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core.X64/Memory/X64VirtualMemoryMapper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Extensions/ByteArray.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/AddressSpace.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/AddressType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/IVirtualMemoryMapper.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/PageTable.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Memory/VAS/VirtualMemoryMapper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Runtime/Casting.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/Process.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.Core/Scheduler/ProcessSignals.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Cpu/Enums/EFlagsEnum.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/DebugInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/PlatformHAL.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Kernel.HAL/Vfs/ModeEnum.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Commands/BuildCommand.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/Cosmos.Tools/Program.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/tests/Kernels/Cosmos.Kernel.Tests.Process/Kernel.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/tests/profiles.json" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
-  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="$MSBuildEnableWorkloadResolver$" />
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="false" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0436458132400221" />
@@ -132,28 +148,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "refactor/patcher",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;zarlo/userland/0&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CidrAttachToUnstartedProcessDialog.programPattern">
       <recent name="C:\Program Files\dotnet\sdk\9.0.308\MSBuild.dll" />
@@ -206,6 +222,12 @@
       <workItem from="1777937585773" duration="2828000" />
       <workItem from="1780157711350" duration="1878000" />
       <workItem from="1784650578782" duration="8785000" />
+      <workItem from="1784806990460" duration="2945000" />
+      <workItem from="1784879455346" duration="4417000" />
+      <workItem from="1784964741878" duration="8721000" />
+      <workItem from="1785264013875" duration="11561000" />
+      <workItem from="1785361140253" duration="489000" />
+      <workItem from="1785365678315" duration="7154000" />
     </task>
     <task id="LOCAL-00001" summary="work">
       <option name="closed" value="true" />
@@ -303,14 +325,54 @@
       <option name="project" value="LOCAL" />
       <updated>1784663168405</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="pull in main">
+      <option name="closed" value="true" />
+      <created>1784802511025</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1784802511025</updated>
+    </task>
+    <task id="LOCAL-00014" summary="pull in main">
+      <option name="closed" value="true" />
+      <created>1784802526733</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1784802526733</updated>
+    </task>
+    <task id="LOCAL-00015" summary="remove dupe lai">
+      <option name="closed" value="true" />
+      <created>1784879572653</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1784879572653</updated>
+    </task>
+    <task id="LOCAL-00016" summary="allow IDE0270">
+      <option name="closed" value="true" />
+      <created>1784880384293</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1784880384293</updated>
+    </task>
+    <task id="LOCAL-00017" summary="fix build issues">
+      <option name="closed" value="true" />
+      <created>1784881224485</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1784881224485</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="UnityCheckinConfiguration" checkUnsavedScenes="$MSBuildEnableWorkloadResolver$" />
-  <component name="UnityProjectConfiguration" hasMinimizedUI="$MSBuildEnableWorkloadResolver$" />
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="false" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
@@ -335,6 +397,11 @@
     <MESSAGE value="upd: fix Cosmos.Tools" />
     <MESSAGE value="upd: fix Cosmos.Build.Common.targets" />
     <MESSAGE value="upd: patcher structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="upd: patcher structure" />
+    <MESSAGE value="pull in main" />
+    <MESSAGE value="remove dupe lai" />
+    <MESSAGE value="allow IDE0270" />
+    <MESSAGE value="fix build issues" />
+    <MESSAGE value="work on system calls" />
+    <option name="LAST_COMMIT_MESSAGE" value="work on system calls" />
   </component>
 </project>
