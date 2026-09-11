@@ -1,8 +1,10 @@
 using System;
+using System.Drawing;
 using Cosmos.Kernel.Boot.Limine;
 using Cosmos.Kernel.Core.IO;
 using Cosmos.Kernel.Core.Memory;
 using Cosmos.Kernel.HAL.Pci;
+using Cosmos.Kernel.HAL.Pci.Enums;
 
 namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
@@ -26,6 +28,7 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// FIFO memory block.
     /// </summary>
     private MemoryBlock _fifoMemory = null!;
+    private MemoryBlock _mmioRegs = null!;
 
     /// <summary>
     /// The bound PCI device.
@@ -53,6 +56,10 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     private uint _depth;
 
+    private uint _fifonext;
+    private uint _fifoReservedBytes;
+    private bool _isSvga3;
+
     /// <summary>
     /// Capabilities.
     /// </summary>
@@ -77,35 +84,78 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     public uint HW3DVer { get; private set; }
 
+    public uint FbPhys { get; private set; }
+
     public SvgaIIDriver(PciDevice device)
     {
         _device = device;
         _device.EnableMemory(true);
-        _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
 
-        WriteRegister(Register.ID, (uint)ID.V2);
-        if (ReadRegister(Register.ID) != (uint)ID.V2)
+        _isSvga3 = device.DeviceId == (ushort)DeviceId.SvgaiiAdapter + 1;
+
+        if (_isSvga3)
         {
-            throw new Exception("VMware SVGA II device did not accept the version 2 protocol");
+            ulong hhdmOffsetEarly = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
+            _mmioRegs = new MemoryBlock(
+                hhdmOffsetEarly + _device.BaseAddressBar[0].BaseAddress,
+                (uint)PciDevice.GetBarSize(_device,0));
+            _basePort = 0;
+        }
+        else
+        {
+            _basePort = (ushort)_device.BaseAddressBar[0].BaseAddress;
         }
 
-        // FrameBufferStart is the physical VRAM BAR; Limine base revision >= 1
-        // has no lower-half identity map, so CPU access goes through the HHDM.
+        WriteRegister(Register.ID, (uint)ID.V3);
+        if (ReadRegister(Register.ID) != (uint)ID.V3)
+        {
+            Serial.WriteString("[SVGAIII] did not accept protocol version 3, falling back to 2\n");
+
+            WriteRegister(Register.ID, (uint)ID.V2);
+            if (ReadRegister(Register.ID) != (uint)ID.V2)
+            {
+                throw new Exception("VMware SVGAII device did not accept the version 2 protocol, svga version is too old to continue");
+            }
+        }
+
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
-        uint fbPhys = ReadRegister(Register.FrameBufferStart);
-        VideoMemory = new MemoryBlock(hhdmOffset + fbPhys, ReadRegister(Register.VRamSize));
+
+        if (_isSvga3)
+        {
+            FbPhys = _device.BaseAddressBar[2].BaseAddress;
+            VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, (uint)PciDevice.GetBarSize(_device,2));
+        }
+        else
+        {
+            FbPhys = _device.BaseAddressBar[1].BaseAddress;
+            VideoMemory = new MemoryBlock(hhdmOffset + FbPhys, ReadRegister(Register.VRamSize));
+        }
+
         Capabilities = ReadRegister(Register.Capabilities);
 
-        Serial.WriteString("[SVGAII] Init: ports 0x");
-        Serial.WriteHex(_basePort);
+        Serial.WriteString(_isSvga3 ? "[SVGAIII] Init: mmio 0x" : "[SVGAII] Init: ports 0x");
+        Serial.WriteHex(_isSvga3 ? (ulong)_device.BaseAddressBar[0].BaseAddress : _basePort);
         Serial.WriteString(", fb 0x");
-        Serial.WriteHex(fbPhys);
+        Serial.WriteHex(FbPhys);
         Serial.WriteString(", caps 0x");
         Serial.WriteHex(Capabilities);
         Serial.WriteString("\n");
 
-        InitializeFIFO();
+        if (_isSvga3)
+        {
+            WriteRegister(Register.Enable, (uint)(RegisterEnableFlags.Enable | RegisterEnableFlags.Hide));
+            WriteRegister(Register.ConfigDone, 1);
+
+            Is3DEnabled = (Capabilities & (uint)Capability.Cap3D) != 0;
+        }
+        else
+        {
+            InitializeFIFO();
+        }
     }
+
+    const uint HWVERSION_WS65_B1 = (2u << 16) | (1u & 0xFFu);
+    const uint HWVERSION_WS8_B1 = (2u << 16) | (2u & 0xFFu);
 
     /// <summary>
     /// Initialize FIFO.
@@ -115,47 +165,71 @@ public unsafe class SvgaIIDriver : GraphicDevice
         // MemStart is the physical FIFO BAR — same HHDM story as the VRAM BAR.
         ulong hhdmOffset = Limine.HHDM.Response != null ? Limine.HHDM.Response->Offset : 0;
         _fifoMemory = new MemoryBlock(hhdmOffset + ReadRegister(Register.MemStart), ReadRegister(Register.MemSize));
-        _fifoMemory[(uint)FIFO.Min] = (uint)Register.FifoNumRegisters * sizeof(uint);
+
+        // Modern SVGA drivers check if an extended FIFO layout is supported by the device
+        // and resize the register block index boundaries dynamically.
+        uint minRegisters = (uint)Register.FifoNumRegisters;
+        
+        if ((Capabilities & (uint)Capability.ExtendedFifo) != 0)
+        {
+            // Read the device's preferred number of extended FIFO registers if available
+            uint numRegs = ReadRegister(Register.MemRegs);
+            if (numRegs > minRegisters)
+            {
+                minRegisters = numRegs;
+            }
+        }
+
+        _fifoMemory[(uint)FIFO.Min] = minRegisters * sizeof(uint);
         _fifoMemory[(uint)FIFO.Max] = _fifoMemory.Size;
         _fifoMemory[(uint)FIFO.NextCmd] = _fifoMemory[(uint)FIFO.Min];
         _fifoMemory[(uint)FIFO.Stop] = _fifoMemory[(uint)FIFO.Min];
 
-        // SVGA3D negotiation lives here (not in the 3D layer) because SetMode
-        // re-runs InitializeFIFO, which resets the FIFO registers the
-        // negotiation writes to.
-        if (((Capabilities & 0x00008000) != 0) &&
-            ((Capabilities & (uint)Capability.Cap3D) != 0) &&
-            (_fifoMemory[(uint)FIFO.Min] > ((uint)Register3D.SVGA_FIFO_3D_HWVERSION << 2)))
+        // Modern vs Legacy 3D negotiation path
+        Is3DEnabled = false;
+        HW3DVer = 0;
+
+        bool hasExtendedFifo = (Capabilities & (uint)Capability.ExtendedFifo) != 0;
+        bool hasCap3D = (Capabilities & (uint)Capability.Cap3D) != 0;
+
+        if (hasExtendedFifo && hasCap3D)
         {
-            WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, ((2u) << 16) | (1u & 0xFFu));
-
-            Is3DEnabled = true;
-
-            if ((Capabilities & (1 << 8)) != 0)
+            // Ensure the FIFO minimum boundary leaves enough space for the 3D HW version register
+            uint hwVersionOffset = (uint)Register3D.SVGA_FIFO_3D_HWVERSION << 2;
+            
+            if (_fifoMemory[(uint)FIFO.Min] > hwVersionOffset)
             {
-                HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
+                // Try negotiating modern hardware version first (WS8 / WS65 profiles)
+                WriteFifo3D(Register3D.SVGA_FIFO_GUEST_3D_HWVERSION, HWVERSION_WS8_B1);
 
-                if (HW3DVer < (((2u) << 16) | (0u & 0xFFu)))
+                // Check if the device exposes revised 3D capabilities
+                if ((Capabilities & (uint)Capability.GuestBackedObjects) != 0) // SVGA_CAP_GBOBJECTS / modern capabilities flag check
                 {
-                    Is3DEnabled = false;
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION_REVISED);
+                }
+                else
+                {
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION);
+                }
+
+                // Fallback validation check against minimum threshold
+                if (HW3DVer >= HWVERSION_WS65_B1)
+                {
+                    Is3DEnabled = true;
+                }
+                else
+                {
+                    // Fallback attempt with older workstation profile version if revised version rejected
+                    WriteFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION, HWVERSION_WS65_B1);
+                    HW3DVer = ReadFifo3D(Register3D.SVGA_FIFO_3D_HWVERSION);
+                    
+                    Is3DEnabled = (HW3DVer >= HWVERSION_WS65_B1);
                 }
             }
-            else
-            {
-                Is3DEnabled = false;
-            }
-        }
-        else
-        {
-            Is3DEnabled = false;
         }
 
-        // No Register.Enable write here: the constructor runs InitializeFIFO
-        // before any mode is set, and enabling the device with Width/Height
-        // still unprogrammed wedges QEMU's display-refresh loop (main thread
-        // at 100% holding the BQL — guest, monitor and gdbstub all freeze).
-        // SetMode enables the device once the mode registers are valid.
         WriteRegister(Register.ConfigDone, 1);
+        WriteRegister(Register.Enable, 1);
     }
 
     /// <summary>
@@ -274,52 +348,70 @@ public unsafe class SvgaIIDriver : GraphicDevice
     /// </summary>
     public void* ReserveFIFO(uint bytes)
     {
-        uint next = GetFIFO(FIFO.NextCmd);
-        uint stop = GetFIFO(FIFO.Stop);
         uint min = GetFIFO(FIFO.Min);
         uint max = GetFIFO(FIFO.Max);
+        
+        // Ensure bytes is aligned if your architecture/device requires it (e.g., 4-byte alignment)
+        bytes = (bytes + 3u) & ~3u;
 
-        uint space;
-        if (next >= stop)
-        {
-            space = (max - next) + (stop - min);
-        }
-        else
-        {
-            space = stop - next;
-        }
+        uint next, stop, space;
 
-        // Wait if not enough contiguous space
-        while (space < bytes)
+        while (true)
         {
-            WaitForFifo(); // give the SVGA device time to consume FIFO
             next = GetFIFO(FIFO.NextCmd);
             stop = GetFIFO(FIFO.Stop);
+
+            // Calculate contiguous space available from 'next' to the end of the buffer ('max')
             if (next >= stop)
             {
-                space = (max - next) + (stop - min);
+                space = (max - next);
+                // If it doesn't fit contiguously at the end, can it wrap around?
+                if (space < bytes)
+                {
+                    // Check total space including the wrap-around part (min to stop)
+                    uint totalSpace = (max - next) + (stop - min);
+                    if (totalSpace >= bytes)
+                    {
+                        for (uint p = next; p < max; p += 4)
+                        {
+                            _fifoMemory[p] = 0;
+                        }
+                        next = min;
+                        break;
+                    }
+                }
+                else
+                {
+                    // Fits contiguously without wrapping
+                    break;
+                }
             }
             else
             {
                 space = stop - next;
+                if (space >= bytes)
+                {
+                    break;
+                }
             }
-        }
 
-        // Make sure contiguous region fits before end of buffer
-        if (next + bytes > max)
-        {
-            // wrap to beginning of buffer
-            SetFIFO(FIFO.NextCmd, min);
-            next = min;
+            WaitForFifo();
         }
 
         void* ptr = (void*)(_fifoMemory.Base + next);
-
-        // Advance NEXT_CMD
-        uint newNext = next + bytes;
-        SetFIFO(FIFO.NextCmd, (newNext == max ? min : newNext));
-
+        _fifonext = next + bytes; // Store locally until commit
+        _fifoReservedBytes = bytes; // Track for potential NOP padding if needed
+        
         return ptr;
+    }
+
+    public void CommitFIFOCommand()
+    {
+        uint min = GetFIFO(FIFO.Min);
+        uint max = GetFIFO(FIFO.Max);
+
+        SetFIFO(FIFO.NextCmd, _fifonext);
+        WaitForFifo();
     }
 
     /// <summary>
@@ -607,5 +699,21 @@ public unsafe class SvgaIIDriver : GraphicDevice
         WriteRegister(Register.CursorX, x);
         WriteRegister(Register.CursorY, y);
         WriteRegister(Register.CursorOn, (uint)(visible ? 1 : 0));
+    }
+
+    public uint QueryCapDev(uint cap)
+    {
+        WriteRegister(Register.DevCap, cap);
+        return ReadRegister(Register.DevCap);
+    }
+    public uint QueryCap(uint cap)
+    {
+        WriteRegister(Register.Capabilities, cap);
+        return ReadRegister(Register.Capabilities);
+    }
+    public uint QueryCap3D(uint cap)
+    {
+        WriteRegister(Register.Capabilities3D, cap);
+        return ReadRegister(Register.Capabilities3D);
     }
 }

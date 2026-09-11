@@ -7,6 +7,7 @@ public enum Register : ushort
     Enable3D = 0x20,
     Guest3DScratchSize = 0x21,
     Capabilities3D = 0x22,
+    DevCap = 52,
     ID = 0,
     Enable = 1,
     Width = 2,

@@ -4,6 +4,9 @@ namespace Cosmos.Kernel.HAL.Devices.Graphic.SVGAII;
 
 public enum SVGA3dRenderTargetType : uint
 {
-    Color = 2,
+    Color2 = 4,
+    Color1 = 3,
+    Color0 = 2,
     Depth = 0,
+    stencil = 1
 }
