@@ -87,12 +87,13 @@
         <article data-uid="">
 <h1 id="testing">Testing</h1>
 
-<p>NativeAOT-Patcher has two complementary testing layers: <strong>unit tests</strong> that validate the build-time toolchain (patcher, scanner, analyzer) and <strong>kernel integration tests</strong> that run compiled kernel images inside QEMU and report results over a binary UART protocol.</p>
+<p>NativeAOT-Patcher has two complementary testing layers: <strong>unit tests</strong> that run in the host process, for the build-time toolchain (patcher, scanner, analyzer) and for kernel library logic that needs no hardware, and <strong>kernel integration tests</strong> that run compiled kernel images inside QEMU and report results over a binary UART protocol.</p>
 <hr>
 <h2 id="unit-tests">Unit Tests</h2>
-<p>Unit tests live in <code>tests/Cosmos.Tests.*</code> projects and are run with the standard .NET test runner. They do not require QEMU or any special infrastructure.</p>
+<p>Unit tests live in the <code>tests/Cosmos.Tests.*</code> projects (xunit) and in <code>src/tests/Cosmos.Kernel.Tests.System</code> (NUnit), and are run with the standard .NET test runner. They do not require QEMU or any special infrastructure.</p>
 <h3 id="running-unit-tests">Running Unit Tests</h3>
-<pre><code class="lang-bash">dotnet test
+<pre><code class="lang-bash">dotnet test tests/Cosmos.Tests.Patcher            # one toolchain project
+dotnet test src/tests/Cosmos.Kernel.Tests.System   # the kernel library tests
 </code></pre>
 <h3 id="test-projects">Test Projects</h3>
 <ul>
@@ -129,6 +130,28 @@
 <li><code>PatchType_ShouldReplaceAllMethodsCorrectly</code></li>
 <li><code>PatchType_ShouldPlugAssembly</code></li>
 <li><code>AddMethod_BehaviorBeforeAndAfterPlug</code></li>
+</ul>
+</li>
+<li><strong>Cosmos.Kernel.Tests.System</strong>: Exercises <code>Cosmos.Kernel.System</code> logic that needs no hardware, in the host process (<code>Tcp</code> receive buffer, <code>Address</code> identity and formatting). One nested fixture per member under test, holding an <code>InternalsVisibleTo</code> grant from the library.
+<ul>
+<li><code>AppendToData.WhenBothData_AndOtherAreEmpty_DataIsEmpty</code></li>
+<li><code>AppendToData.WhenDataIsNotEmpty_AndOtherIsEmpty_DataDoesNotChange</code></li>
+<li><code>AppendToData.WhenDataIsNotEmpty_AndOtherIsNotEmpty_OtherIsAppendedToData</code></li>
+<li><code>AdvanceDataOffset.WhenAdvancingByZero_NoChangesAreMade</code></li>
+<li><code>AdvanceDataOffset.WhenAdvancingByOneAndLengthIsTwo_OnlyLastElementRemains</code></li>
+<li><code>AdvanceDataOffset.WhenAdvancingByTwoAndLengthIsTwo_DataLengthIsZero</code></li>
+<li><code>Constructors.GivenPackedValue_SplitsItMostSignificantOctetFirst</code></li>
+<li><code>Constructors.GivenBufferAndOffset_ReadsFourBytesFromTheOffset</code></li>
+<li><code>Constructors.GivenSpanOfWrongLength_Throws</code></li>
+<li><code>Id.GivenOctets_PacksThemMostSignificantFirst</code></li>
+<li><code>Equality.GivenTheSameOctets_TwoInstancesAreEqualAndHashAlike</code></li>
+<li><code>Equality.GivenDifferentOctets_TwoInstancesAreNotEqual</code></li>
+<li><code>Equality.GivenNull_IsNotEqual</code></li>
+<li><code>CompareTo.GivenTwoAddresses_OrdersByPackedValue</code></li>
+<li><code>CompareTo.GivenNull_OrdersAfterIt</code></li>
+<li><code>Formatting.GivenAddress_WritesDottedDecimal</code></li>
+<li><code>IsBroadcastAddress.GivenAllOnes_IsTrue</code></li>
+<li><code>IsBroadcastAddress.GivenAnyOtherAddress_IsFalse</code></li>
 </ul>
 </li>
 <li><strong>Cosmos.Tests.NativeWrapper</strong>: Contains runtime assets; no unit tests.</li>
@@ -467,6 +490,7 @@ ALL TESTS PASSED
         ├── Kernel.cs
         └── Bootloader/limine.conf
 </code></pre>
+<p><code>src/tests/Cosmos.Kernel.Tests.System/</code> holds the host-side tests of <code>Cosmos.Kernel.System</code>. It sits under <code>src/</code> because it takes a project reference on the library and an <code>InternalsVisibleTo</code> grant from it.</p>
 <hr>
 <h2 id="writing-a-test-kernel">Writing a Test Kernel</h2>
 <h3 id="minimal-example">Minimal Example</h3>

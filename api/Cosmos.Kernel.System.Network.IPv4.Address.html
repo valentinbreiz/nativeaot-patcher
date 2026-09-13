@@ -102,7 +102,7 @@ Class Address
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class Address : IComparable&lt;Address&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class Address : IComparable&lt;Address&gt;, IEquatable&lt;Address&gt;</code></pre>
   </div>
 
 
@@ -120,6 +120,7 @@ Class Address
     <dt>Implements</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a>&gt;</div>
     </dd>
   </dl>
 
@@ -464,6 +465,45 @@ only when they are equal, which is what makes it usable as a map key.</p>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address_Equals_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address.Equals*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address_Equals_Cosmos_Kernel_System_Network_IPv4_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address.Equals(Cosmos.Kernel.System.Network.IPv4.Address)">
+  Equals(Address?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether <code class="paramref">other</code> holds the same four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(Address? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dd><p>The address to compare with, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> for the same four bytes; <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> otherwise and for <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
   </dl>
 
 

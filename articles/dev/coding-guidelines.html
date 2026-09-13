@@ -338,6 +338,23 @@ public enum ThreadFlags
     IsKernel = 1 &lt;&lt; 1
 }
 </code></pre>
+<h3 id="types-compared-by-value">Types Compared by Value</h3>
+<p>A type whose identity is its content (<code>Address</code>, <code>MACAddress</code>, <code>Mode</code>) is <code>sealed</code>, keeps its state in get-only members set by the constructor, and implements <code>IEquatable&lt;T&gt;</code> beside <code>Equals(object?)</code> and <code>GetHashCode()</code>. The three agree: two instances that are <code>Equals</code> hash alike, and <code>GetHashCode</code> never throws. Ordering, where it exists, is <code>IComparable&lt;T&gt;</code>, never the non-generic <code>IComparable</code>. A caller who needs the bytes gets a <code>ReadOnlySpan&lt;byte&gt;</code>; the backing array is never handed out, because a caller who can write it changes the identity behind every dictionary keyed on the value.</p>
+<pre><code class="lang-csharp">public sealed class Address : IComparable&lt;Address&gt;, IEquatable&lt;Address&gt;
+{
+    public ImmutableArray&lt;byte&gt; Parts { get; }
+
+    public Address(ReadOnlySpan&lt;byte&gt; buffer) { ... }
+
+    public ReadOnlySpan&lt;byte&gt; ToSpan() =&gt; Parts.AsSpan();
+    public bool Equals(Address? other) =&gt; other is not null &amp;&amp; Parts.SequenceEqual(other.Parts);
+    public override bool Equals(object? obj) =&gt; Equals(obj as Address);
+    public override int GetHashCode() =&gt; HashCode.Combine(Id);
+    public int CompareTo(Address? other) =&gt; other is null ? 1 : Id.CompareTo(other.Id);
+}
+</code></pre>
+<h3 id="registered-instances">Registered Instances</h3>
+<p>When the subsystem must see every live instance (<code>Tcp.Connections</code>), the constructor is private and a static factory creates and registers the instance (<code>Tcp.CreateConnection</code>). The registry stays private, and removal disposes the instance so what it rented goes back to its pool.</p>
 <hr>
 <h2 id="5-kernel-lifecycle">5. Kernel Lifecycle</h2>
 <h3 id="user-kernel-pattern">User Kernel Pattern</h3>
@@ -581,6 +598,34 @@ List&lt;int&gt; list = new();  // uses RhAllocateNewArray under the hood
 <li>Use <code>nint</code>/<code>nuint</code> for pointer arithmetic, not <code>int</code>/<code>uint</code>.</li>
 <li>Use <code>stackalloc</code> for small, short-lived buffers instead of heap allocation.</li>
 </ul>
+<h3 id="buffers">Buffers</h3>
+<table>
+<thead>
+<tr>
+<th>Buffer</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Small, fixed size, scoped to one call</td>
+<td><code>stackalloc</code></td>
+</tr>
+<tr>
+<td>Variable size, held across calls (a receive buffer)</td>
+<td><code>ArrayPool&lt;T&gt;.Shared.Rent</code>, returned from <code>Dispose()</code></td>
+</tr>
+<tr>
+<td>Read-only input</td>
+<td>A <code>ReadOnlySpan&lt;T&gt;</code> parameter, not <code>byte[]</code></td>
+</tr>
+<tr>
+<td>Copying</td>
+<td><code>source.CopyTo(destination)</code> on spans, not <code>Buffer.BlockCopy</code></td>
+</tr>
+</tbody>
+</table>
+<p>A rented array is at least as long as requested, not exactly as long, so the owner tracks the length and offset it uses and exposes the live part as a <code>ReadOnlySpan&lt;T&gt;</code>, never the array. <code>Tcp</code> is the model: <code>_data</code>, <code>_dataOffset</code> and <code>_dataLength</code> behind <code>Data =&gt; _data.AsSpan().Slice(_dataOffset, _dataLength)</code>, with <code>AppendToData</code> writing in place while the rented array has room and <code>Dispose</code> returning it.</p>
 <h3 id="critical-sections">Critical Sections</h3>
 <pre><code class="lang-csharp">// Preferred: scoped interrupt disable
 using (InternalCpu.DisableInterruptsScope())
@@ -619,6 +664,16 @@ private static void ThrowIfKeyboardDisabled()
 // Bad: exceptions in interrupt handlers, GC, or scheduler hot paths
 // These paths cannot allocate (exception objects are heap-allocated)
 </code></pre>
+<h3 id="argument-checks">Argument Checks</h3>
+<p>When the check is one comparison, the throw helper replaces the hand-written <code>if</code> and <code>throw</code>. The parameter named is the one the value derives from, so a caller reading the exception finds the argument to fix:</p>
+<pre><code class="lang-csharp">ArgumentNullException.ThrowIfNull(device);
+ArgumentOutOfRangeException.ThrowIfNegative(width);
+ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, MaxPartitions);
+ArgumentOutOfRangeException.ThrowIfNotEqual(buffer.Length, 4, nameof(buffer));
+ArgumentOutOfRangeException.ThrowIfGreaterThan(blockCount, (ulong)data.Length / sector, nameof(blockCount));
+ObjectDisposedException.ThrowIf(_disposed, this);
+</code></pre>
+<p>A range is two helpers, one per bound (<code>ThrowIfLessThan</code> then <code>ThrowIfGreaterThan</code>), not one hand-written <code>||</code>. A condition no helper expresses (<code>sectorCount &gt; host.BlockCount - startSector</code>) keeps the explicit <code>throw</code>, and so does a check that must log before it throws. The parameter name is always <code>nameof(x)</code>, never a string literal, and never the message: <code>new ArgumentOutOfRangeException(&quot;Invalid offset or size&quot;)</code> names a parameter called <code>Invalid offset or size</code>.</p>
 <h3 id="when-to-panic-vs-throw">When to Panic vs. Throw</h3>
 <table>
 <thead>
@@ -654,6 +709,7 @@ private static void ThrowIfKeyboardDisabled()
 </tr>
 </tbody>
 </table>
+<p>The type thrown is one a caller can catch by name: <code>InvalidOperationException</code>, <code>ArgumentException</code> and its subclasses, <code>NotSupportedException</code>. A bare <code>throw new Exception(...)</code> is not written (CA2201). Which channel a ring member uses to report failure, and when a <code>Try</code> returns <code>false</code> instead, is in <a href="public-api.html#how-a-member-reports-failure">Public API Tracking</a>.</p>
 <hr>
 <h2 id="12-nullable-reference-types">12. Nullable Reference Types</h2>
 <p>Nullable reference types are enabled solution-wide (<code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in <code>Directory.Build.props</code>). Annotations are part of the API contract: a reference type without <code>?</code> is a promise that it is never null. New and modified code must not introduce nullable warnings: annotate honestly instead of silencing.</p>
@@ -690,6 +746,18 @@ private static void ThrowIfKeyboardDisabled()
 <td>Sentinel initialization (<code>= []</code>)</td>
 <td>Fields where null and empty mean the same thing</td>
 </tr>
+<tr>
+<td><code>[NotNullWhen(true)]</code> on a <code>Try</code> method's <code>out</code></td>
+<td>The value a <code>true</code> return populates; see <a href="public-api.html#how-a-member-reports-failure">How a member reports failure</a></td>
+</tr>
+<tr>
+<td><code>[MemberNotNullWhen(true, ...)]</code> on a <code>bool Initialize()</code></td>
+<td>A <code>true</code> return that proves a static member for the caller (<code>KernelConsole.Initialize</code> and <code>Default</code>)</td>
+</tr>
+<tr>
+<td><code>T?[]</code></td>
+<td>An array whose slots can be empty (<code>IrqDelegate?[]</code>)</td>
+</tr>
 </tbody>
 </table>
 <h3 id="honest-annotations">Honest Annotations</h3>
@@ -703,12 +771,12 @@ private byte[] _window = [];                 // not: private byte[]? _window;
 </code></pre>
 <h3 id="guard-helpers">Guard Helpers</h3>
 <p>Managers with deferred initialization expose <code>ThrowIf*NotInitialized()</code> guards annotated with <code>[MemberNotNull(...)]</code> and call them at the top of public entry points (see <a href="#4-class--type-design">Managers</a>). One call proves the field non-null for the rest of the method, with no <code>!</code> and no per-line checks:</p>
-<pre><code class="lang-csharp">private static PerCpuState[]? _cpuStates;
+<pre><code class="lang-csharp">private static PerCpuState[]? s_cpuStates;
 
-[MemberNotNull(nameof(_cpuStates))]
+[MemberNotNull(nameof(s_cpuStates))]
 private static void ThrowIfCpuStateNotInitialized()
 {
-    if (_cpuStates is null)
+    if (s_cpuStates is null)
     {
         throw new InvalidOperationException($&quot;{nameof(SchedulerManager)} not initialized&quot;);
     }
@@ -718,10 +786,13 @@ public static void CreateThread(uint cpuId, Thread thread)
 {
     ThrowIfCpuStateNotInitialized();
 
-    PerCpuState state = _cpuStates[cpuId];   // no warning, no !
+    PerCpuState state = s_cpuStates[cpuId];   // no warning, no !
     // ...
 }
 </code></pre>
+<p>The same attribute family covers a <code>bool</code> initializer: <code>[MemberNotNullWhen(true, nameof(Default))]</code> on <code>KernelConsole.Initialize()</code> lets the caller read <code>KernelConsole.Default</code> inside <code>if (KernelConsole.Initialize())</code> with no guard of its own.</p>
+<h3 id="callers-of-a-try">Callers of a <code>Try</code></h3>
+<p>After an annotated <code>Try</code> returns <code>true</code>, its <code>out</code> is non-null and no call site re-tests it: <code>if (!TryOpen(path, out handle) || handle == null)</code> is written <code>if (!TryOpen(path, out handle))</code>. <code>Dictionary&lt;TKey, TValue&gt;.TryGetValue</code> is annotated by the BCL the same way, so <code>&amp;&amp; value != null</code> after it guards nothing when <code>TValue</code> is non-nullable. A redundant test is not harmless: it hides the one place where a guard is real.</p>
 <h3 id="required-values">Required Values</h3>
 <p>Use <code>?? throw</code> where a null result is a programming error:</p>
 <pre><code class="lang-csharp">Address source = IPConfig.FindNetwork(destination)
@@ -796,7 +867,34 @@ public int Priority
     get =&gt; field;
     set =&gt; field = value &gt;= 0 ? value : throw new ArgumentOutOfRangeException();
 }
+
+// Interpolation, not concatenation
+Serial.WriteString($&quot;[{Table[(int)Status]}] {packet}\n&quot;);
+
+// required members for state the constructor cannot take; derive what follows from it
+public sealed class DhcpOption
+{
+    public required byte Type { get; init; }
+    public required byte[] Data { get; init; }
+    public byte Length =&gt; (byte)Data.Length;
+}
+
+// One dictionary call carries the answer
+if (!s_clients.TryGetValue(port, out UdpClient? client))
+{
+    return;
+}
+s_registeredTypes.TryAdd(name, filesystemType);
+cache[id] = mac;                        // upsert: no ContainsKey first
+
+// readonly on every field assigned only at its declaration or in a constructor
+private readonly Canvas _canvas;
+private static readonly ArrayPool&lt;byte&gt; s_arrayPool = ArrayPool&lt;byte&gt;.Shared;
+
+// Auto-property over a field behind a pass-through accessor
+public static KernelConsole? Default { get; private set; }
 </code></pre>
+<p>Three limits on the last two. <code>readonly</code> on a field of a mutable struct type (<code>SpinLock</code>) is wrong: every method call would act on a defensive copy, and the lock would never be taken. The analyzer behind <code>dotnet_style_readonly_field</code> does not know which struct methods mutate, so its suggestion is taken for reference types and for structs with no mutating members only. A field a plug reaches by name (<code>[FieldAccess]</code>) stays a field: an auto-property's backing field has a compiler-generated name. And a static initializer that allocates is a class constructor, which runs on first touch through a lock that needs a current thread: a type read during device bring-up (<code>MACAddress.None</code> in the virtio-net driver) keeps its lazily filled statics, with a comment saying why.</p>
 <h3 id="avoid-1">Avoid</h3>
 <pre><code class="lang-csharp">// Don't use var when type isn't obvious
 var x = GetValue();           // Bad: what type is x?
@@ -822,6 +920,16 @@ if (ptr == null)                  // Bad
 if (ptr == null)                  // Good
 {
     return;
+}
+
+// Don't compare a bool to a literal
+if (applied == false)             // Bad
+if (!applied)                     // Good
+
+// Don't test a key, then index; the lookup answers once
+if (map.ContainsKey(key))         // Bad: two lookups
+{
+    device = map[key];
 }
 </code></pre>
 <blockquote>
@@ -892,8 +1000,10 @@ public static void Halt(string message) { ... }
 // Align context to 16 bytes (required for XMM operations)
 contextAddr = (contextAddr + 0xF) &amp; ~(nuint)0xF;
 </code></pre>
+<p>Commented-out code is deleted; the history keeps it. A <code>TODO</code> names what is missing and why it can wait; a doubt about the code (<code>// is this correct?</code>) is an issue, not a comment. A member with an empty body is not a placeholder: it is not written until it does something.</p>
 <h2 id="16-testing">16. Testing</h2>
 <p>For the full testing guide (unit tests, kernel integration tests, UART protocol, CI, writing test kernels), see <a href="testing.html">Testing</a>.</p>
+<p>Logic that needs no hardware (<code>Tcp</code> receive-buffer arithmetic, address parsing) is unit-tested in the host process from <code>src/tests/Cosmos.Kernel.Tests.System</code> (NUnit): one nested fixture per member under test, named after it, test names of the form <code>WhenX_AndY_ResultZ</code>, and <code>[TestCase(..., ExpectedResult = ...)]</code> for value tables. The project holds an <code>InternalsVisibleTo</code> grant from <code>Cosmos.Kernel.System</code>.</p>
 <p><strong>Code coverage:</strong> Add the <code>run-coverage</code> label to a PR to trigger the coverage CI. It runs the kernel test suites and outputs which code paths are covered by the integration tests.</p>
 <hr>
 <h2 id="17-public-api-surface">17. Public API Surface</h2>

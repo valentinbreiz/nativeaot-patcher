@@ -7728,6 +7728,15 @@ references:
   isSpec: "True"
   fullName: Cosmos.Kernel.System.Network.IPv4.Address.CompareTo
   nameWithType: Address.CompareTo
+- uid: Cosmos.Kernel.System.Network.IPv4.Address.Equals(Cosmos.Kernel.System.Network.IPv4.Address)
+  name: Equals(Address?)
+  href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Equals_Cosmos_Kernel_System_Network_IPv4_Address_
+  commentId: M:Cosmos.Kernel.System.Network.IPv4.Address.Equals(Cosmos.Kernel.System.Network.IPv4.Address)
+  name.vb: Equals(Address)
+  fullName: Cosmos.Kernel.System.Network.IPv4.Address.Equals(Cosmos.Kernel.System.Network.IPv4.Address?)
+  fullName.vb: Cosmos.Kernel.System.Network.IPv4.Address.Equals(Cosmos.Kernel.System.Network.IPv4.Address)
+  nameWithType: Address.Equals(Address?)
+  nameWithType.vb: Address.Equals(Address)
 - uid: Cosmos.Kernel.System.Network.IPv4.Address.Equals(System.Object)
   name: Equals(object?)
   href: api/Cosmos.Kernel.System.Network.IPv4.Address.html#Cosmos_Kernel_System_Network_IPv4_Address_Equals_System_Object_
