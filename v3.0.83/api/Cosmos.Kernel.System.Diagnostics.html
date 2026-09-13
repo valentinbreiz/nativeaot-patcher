@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.System.Diagnostics | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.System.Diagnostics | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Diagnostics">
+
+  <h1 id="Cosmos_Kernel_System_Diagnostics" data-uid="Cosmos.Kernel.System.Diagnostics" class="text-break">Namespace Cosmos.Kernel.System.Diagnostics</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.Log.html">Log</a></dt>
+      <dd><p>Kernel debug log, written to the platform serial port (COM1 on x64,
+PL011 on ARM64). This is the supported way for kernels to emit debug
+output that a host can capture; on QEMU the stream appears on the
+<code>-serial</code> device. Writes are synchronous, allocation-free for
+strings and numbers, and usable from the earliest phase of
+<code>BeforeRun</code> onward.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.MemoryInfo.html">MemoryInfo</a></dt>
+      <dd><p>Diagnostic view of the kernel's physical-memory and garbage-collector
+statistics, plus a forced collection. Every figure is a property, and
+each is a plain field read with no allocation, so they are safe to poll
+from a monitor loop at display refresh rate. The two collector counters
+are read independently rather than as a pair, so a collection landing
+between two reads shows up in one of them and not the other.
+Managed-heap figures beyond these counters come from the BCL
+(<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.gc.getgcmemoryinfo#system-gc-getgcmemoryinfo">GetGCMemoryInfo()</a>).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html">SchedulerInfo</a></dt>
+      <dd><p>Diagnostic view of the kernel scheduler: feature and lifecycle state,
+per-CPU thread tables, and the global thread registry, plus a request
+to terminate a thread by ID. All reads are allocation-free and safe to
+poll from a monitor loop; snapshots of threads that are being
+rescheduled concurrently may be one tick stale.</p>
+<p>
+Three shapes report "nothing there", and which one a member uses follows
+from what it is. A plain read answers with its own empty value, so
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_CpuCount">CpuCount</a>, <a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_ThreadCount">ThreadCount</a>,
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_ThreadSlotCount">ThreadSlotCount</a>, <a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_TickPeriodNs">TickPeriodNs</a>,
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_BusyCpuTimeNs">BusyCpuTimeNs</a> and <a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_GetRunQueueCount_System_UInt32_">GetRunQueueCount(uint)</a> are 0 and
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_SchedulerName">SchedulerName</a> is null before the scheduler exists, with no
+separate error channel. A read that must hand back a whole snapshot cannot
+express absence in the snapshot itself, so it is a <code>Try</code> and the bool
+carries that answer. <a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_RequestKill_System_UInt32_">RequestKill(uint)</a> is the one member that acts
+rather than reads, and a bool would not tell a caller which of five things
+happened, so it returns <a class="xref" href="Cosmos.Kernel.System.Diagnostics.ThreadKillResult.html">ThreadKillResult</a>; that enum is its
+failure channel as well, and it reports
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.ThreadKillResult.html#Cosmos_Kernel_System_Diagnostics_ThreadKillResult_NotFound">NotFound</a> rather than throwing when the
+scheduler is compiled out.
+</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.KernelThreadInfo.html">KernelThreadInfo</a></dt>
+      <dd><p>Point-in-time snapshot of one kernel thread, produced by
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html">SchedulerInfo</a>. The snapshot is taken without locking the
+scheduler, so fields of a thread that is being rescheduled concurrently
+may be one tick stale.</p>
+<p>
+This is a projection of <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a>,
+the thread control block on the experimental scheduler seam, and it is
+narrower on purpose. It carries what a monitor can render off an unlocked
+read: identity, state, and two totals. It leaves behind the saved stack
+pointer, the entry address, the stack base and the two scheduling
+timestamps, because each of those is meaningful only in a state the
+snapshot cannot guarantee it is observing, and a policy that wants them
+already holds the control block. Two names differ from the seam's, both
+to state a unit the seam leaves to its own docs:
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.KernelThreadInfo.html#Cosmos_Kernel_System_Diagnostics_KernelThreadInfo_TotalRuntimeNs">TotalRuntimeNs</a> and <a class="xref" href="Cosmos.Kernel.System.Diagnostics.KernelThreadInfo.html#Cosmos_Kernel_System_Diagnostics_KernelThreadInfo_StackSizeBytes">StackSizeBytes</a>.
+</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.KernelThreadState.html">KernelThreadState</a></dt>
+      <dd><p>Lifecycle state of a kernel thread as reported by
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html">SchedulerInfo</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.ThreadKillResult.html">ThreadKillResult</a></dt>
+      <dd><p>Outcome of <a class="xref" href="Cosmos.Kernel.System.Diagnostics.SchedulerInfo.html#Cosmos_Kernel_System_Diagnostics_SchedulerInfo_RequestKill_System_UInt32_">RequestKill(uint)</a>.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
