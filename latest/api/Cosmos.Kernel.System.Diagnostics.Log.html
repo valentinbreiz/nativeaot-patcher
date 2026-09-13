@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Log | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Log | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Kernel debug log, written to the platform serial port (COM1 on x64, PL011 on ARM64). This is the supported way for kernels to emit debug output that a host can capture; on QEMU the stream appears on the -serial device. Writes are synchronous, allocation-free for strings and numbers, and usable from the earliest phase of BeforeRun onward.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Diagnostics.Log">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Diagnostics_Log" data-uid="Cosmos.Kernel.System.Diagnostics.Log" class="text-break">
+Class Log  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Diagnostics.html">Diagnostics</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Kernel debug log, written to the platform serial port (COM1 on x64,
+PL011 on ARM64). This is the supported way for kernels to emit debug
+output that a host can capture; on QEMU the stream appears on the
+<code>-serial</code> device. Writes are synchronous, allocation-free for
+strings and numbers, and usable from the earliest phase of
+<code>BeforeRun</code> onward.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class Log</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Log</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_Write_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.Write*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_Write_System_ReadOnlySpan_System_Object__" data-uid="Cosmos.Kernel.System.Diagnostics.Log.Write(System.ReadOnlySpan{System.Object})">
+  Write(params ReadOnlySpan&lt;object?&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes each value in order: strings and characters as text, integers
+in decimal, bytes and byte arrays in hexadecimal, booleans as
+<code>true</code>/<code>false</code>, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> as <code>null</code>, and
+anything else via <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">ToString()</a>. The argument list
+itself costs nothing: the compiler builds it on the stack. A value
+type passed here is still boxed, which does allocate, so prefer
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.Log.html#Cosmos_Kernel_System_Diagnostics_Log_WriteString_System_String_">WriteString(string)</a> and the <code>WriteNumber</code> overloads on
+allocation-sensitive paths.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Write(params ReadOnlySpan&lt;object?&gt; args)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>args</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd><p>Values to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteBytes_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteBytes_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteBytes(System.ReadOnlySpan{System.Byte})">
+  WriteBytes(ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes raw bytes to the log stream as one uninterrupted sequence.
+Interrupts are masked for the duration of the write, so traces
+logged from IRQ handlers cannot interleave into the middle of the
+data. Use this for binary wire formats that share the serial port
+with text output, such as the kernel test protocol.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteBytes(ReadOnlySpan&lt;byte&gt; bytes)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>bytes</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>Bytes to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteHex_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHex*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteHex_System_UInt32_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHex(System.UInt32)">
+  WriteHex(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 32-bit number as hexadecimal digits without a
+<code>0x</code> prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHex(uint number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteHex_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHex*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteHex_System_UInt64_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHex(System.UInt64)">
+  WriteHex(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 64-bit number as hexadecimal digits without a
+<code>0x</code> prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHex(ulong number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteHexWithPrefix_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteHexWithPrefix_System_UInt32_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix(System.UInt32)">
+  WriteHexWithPrefix(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 32-bit number as hexadecimal digits with a
+<code>0x</code> prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHexWithPrefix(uint number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteHexWithPrefix_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteHexWithPrefix_System_UInt64_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteHexWithPrefix(System.UInt64)">
+  WriteHexWithPrefix(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 64-bit number as hexadecimal digits with a
+<code>0x</code> prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteHexWithPrefix(ulong number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_System_Int32_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(System.Int32)">
+  WriteNumber(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a signed 32-bit number in decimal. Negative values are
+prefixed with <code>-</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteNumber(int number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_System_Int64_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(System.Int64)">
+  WriteNumber(long)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a signed 64-bit number in decimal. Negative values are
+prefixed with <code>-</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteNumber(long number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_System_UInt32_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(System.UInt32)">
+  WriteNumber(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 32-bit number in decimal. Use
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.Log.html#Cosmos_Kernel_System_Diagnostics_Log_WriteHex_System_UInt32_">WriteHex(uint)</a> for base-16 digits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteNumber(uint number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteNumber_System_UInt64_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteNumber(System.UInt64)">
+  WriteNumber(ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unsigned 64-bit number in decimal. Use
+<a class="xref" href="Cosmos.Kernel.System.Diagnostics.Log.html#Cosmos_Kernel_System_Diagnostics_Log_WriteHex_System_UInt64_">WriteHex(ulong)</a> for base-16 digits.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteNumber(ulong number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Value to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Diagnostics_Log_WriteString_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Diagnostics_Log_WriteString_System_String_" data-uid="Cosmos.Kernel.System.Diagnostics.Log.WriteString(System.String)">
+  WriteString(string)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a string to the log without appending a line terminator.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void WriteString(string text)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>text</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Text to write.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

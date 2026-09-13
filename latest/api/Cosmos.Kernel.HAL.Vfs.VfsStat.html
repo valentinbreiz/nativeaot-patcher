@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Struct VfsStat | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Struct VfsStat | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Inode attributes for getattr / stat.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat">
+
+
+
+  <h1 id="Cosmos_Kernel_HAL_Vfs_VfsStat" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat" class="text-break">
+Struct VfsStat  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.HAL.html">HAL</a>.<a class="xref" href="Cosmos.Kernel.HAL.Vfs.html">Vfs</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.HAL.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Inode attributes for <code>getattr</code> / <code>stat</code>.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public struct VfsStat</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Atime" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Atime">
+  Atime
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Last access time (<code>st_atim</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VfsTimespec Atime</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsTimespec.html">VfsTimespec</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_BlkSize" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.BlkSize">
+  BlkSize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Preferred I/O block size in bytes (<code>st_blksize</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long BlkSize</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Blocks" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Blocks">
+  Blocks
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Number of storage blocks allocated to the inode (<code>st_blocks</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong Blocks</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Ctime" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Ctime">
+  Ctime
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Last status change time (<code>st_ctim</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VfsTimespec Ctime</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsTimespec.html">VfsTimespec</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Gid" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Gid">
+  Gid
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Owner group id (<code>st_gid</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Gid</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Ino" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Ino">
+  Ino
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Inode number, unique within the filesystem instance (<code>st_ino</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong Ino</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Mode" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Mode">
+  Mode
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>File type and permission bits (<code>st_mode</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VfsMode Mode</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Mtime" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Mtime">
+  Mtime
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Last data modification time (<code>st_mtim</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public VfsTimespec Mtime</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsTimespec.html">VfsTimespec</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_NLink" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.NLink">
+  NLink
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Number of hard links to the inode (<code>st_nlink</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint NLink</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Rdev" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Rdev">
+  Rdev
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Device id for character and block device nodes; 0 otherwise (<code>st_rdev</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong Rdev</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Size" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Size">
+  Size
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>File size in bytes (<code>st_size</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong Size</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_Uid" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.Uid">
+  Uid
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Owner user id (<code>st_uid</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Uid</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsDirectory*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsDirectory">
+  IsDirectory
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsDirectory { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The file-type nibble is an enumerated field, not a bit set. Test it with
+this helper, never with <code>Mode.HasFlag(VfsMode.Directory)</code>, which is
+also true for <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html#Cosmos_Kernel_HAL_Vfs_VfsMode_BlockDevice">BlockDevice</a> and
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html#Cosmos_Kernel_HAL_Vfs_VfsMode_Socket">Socket</a>.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsRegularFile*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsRegularFile">
+  IsRegularFile
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a regular file.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsRegularFile { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>See <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory">IsDirectory</a> for why this is not a flag test.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsSymbolicLink*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsSymbolicLink">
+  IsSymbolicLink
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a symbolic link.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsSymbolicLink { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>See <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory">IsDirectory</a> for why this is not a flag test.</p>
+</div>
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 272" role="img" aria-label="The frozen segment registry. s_frozenSegments points at Info 0, the first FrozenSegmentInfo node; Next links lead to Info 1 and then null. Each node's Start points down at a region of read-only objects such as string literals and frozen arrays. The nodes are carved from a bump-allocated metadata page.">
+  <style>
+    svg { color: #d0d7de; }
+    .bg { fill: #1c2128; }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="272"/>
+  <defs>
+    <marker id="fz-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">frozen segment registry (s_frozenSegments), one FrozenSegmentInfo node per registered region</text>
+  <rect x="10" y="28" width="430" height="200" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <text x="95" y="50" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">s_frozenSegments</text>
+  <line x1="95" y1="56" x2="95" y2="69" stroke="currentColor" stroke-width="1.4" marker-end="url(#fz-ah)"/>
+  <!-- FrozenSegmentInfo nodes -->
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="50" y="72" width="90" height="46"/>
+    <rect x="200" y="72" width="90" height="46"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
+    <text x="95" y="99">Info 0</text>
+    <text x="245" y="99">Info 1</text>
+  </g>
+  <!-- Next chain -->
+  <text x="170" y="88" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Next</text>
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="140" y1="95" x2="197" y2="95" marker-end="url(#fz-ah)"/>
+    <line x1="290" y1="95" x2="332" y2="95" marker-end="url(#fz-ah)"/>
+  </g>
+  <text x="338" y="99" font-size="12" font-style="italic" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">null</text>
+  <!-- Start pointers down to the data regions -->
+  <g stroke="currentColor" stroke-width="1.4">
+    <line x1="95" y1="118" x2="95" y2="147" marker-end="url(#fz-ah)"/>
+    <line x1="245" y1="118" x2="245" y2="147" marker-end="url(#fz-ah)"/>
+  </g>
+  <g font-size="11" fill="currentColor" fill-opacity="0.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <text x="103" y="137">Start</text>
+    <text x="253" y="137">Start</text>
+  </g>
+  <g fill="currentColor" fill-opacity="0.04" stroke="currentColor">
+    <rect x="25" y="150" width="140" height="64"/>
+    <rect x="175" y="150" width="140" height="64"/>
+  </g>
+  <g font-size="12" fill="currentColor" text-anchor="middle">
+    <text x="95" y="170">read-only objects</text>
+    <text x="245" y="176">read-only objects</text>
+  </g>
+  <g font-size="10.5" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="95" y="186">(string literals,</text>
+    <text x="95" y="200">frozen arrays, …)</text>
+    <text x="245" y="193">(emitted by ILC)</text>
+  </g>
+  <text x="225" y="250" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">FrozenSegmentInfo nodes are carved from a bump-allocated metadata page</text>
+</svg>

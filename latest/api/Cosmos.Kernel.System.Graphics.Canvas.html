@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Canvas | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Canvas | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Represents a drawing surface. Can be used directly as a virtual (buffer-backed) canvas, or subclassed for hardware-backed canvases.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Graphics.Canvas">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Graphics_Canvas" data-uid="Cosmos.Kernel.System.Graphics.Canvas" class="text-break">
+Class Canvas  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Graphics.html">Graphics</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
+canvas, or subclassed for hardware-backed canvases.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class Canvas</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Canvas</span></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist derived">
+    <dt>Derived</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+  <h2 id="Cosmos_Kernel_System_Graphics_Canvas_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>Every drawing primitive clips. A pixel outside 0..<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Width">Width</a>-1 by
+0..<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Height">Height</a>-1 is dropped, a shape that straddles an edge is drawn
+up to it, and nothing throws for a coordinate, so coordinates never need
+clamping before a call.</p>
+</div>
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas__ctor" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor">
+  Canvas()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class.
+Used by subclasses.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Canvas()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas__ctor_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor(Cosmos.Kernel.System.Graphics.Mode)">
+  Canvas(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> class with a mode.
+Used by subclasses.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected Canvas(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas__ctor_System_Int32_System_Int32_Cosmos_Kernel_System_Graphics_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.#ctor(System.Int32,System.Int32,Cosmos.Kernel.System.Graphics.ColorDepth)">
+  Canvas(int, int, ColorDepth)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a virtual (buffer-backed) canvas of the given size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Canvas(int width, int height, ColorDepth colorDepth = ColorDepth.ColorDepth32)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the canvas in pixels.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the canvas in pixels.</p>
+</dd>
+    <dt><code>colorDepth</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
+    <dd><p>The color depth (default 32-bit).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_AvailableModes_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.AvailableModes*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_AvailableModes" data-uid="Cosmos.Kernel.System.Graphics.Canvas.AvailableModes">
+  AvailableModes
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The graphics modes this canvas accepts, in the order the driver reports
+them. <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Mode">Mode</a> only accepts a mode from this list.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual IReadOnlyList&lt;Mode&gt; AvailableModes { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DefaultGraphicsMode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DefaultGraphicsMode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DefaultGraphicsMode" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DefaultGraphicsMode">
+  DefaultGraphicsMode
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The default graphics mode.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Mode DefaultGraphicsMode { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Height_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Height*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Height" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Height">
+  Height
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The height of this canvas in pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Height { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Mode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Mode" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Mode">
+  Mode
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The currently used display mode. Setting it resizes a virtual canvas'
+buffer, discarding its contents, and recomputes the pixel metrics.
+Hardware-backed canvases reprogram the device in their override.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Mode Mode { get; protected set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Graphics_Canvas_Mode_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The setter is not part of the ring: a kernel picks its mode when it
+acquires the canvas, through <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_Cosmos_Kernel_System_Graphics_Mode_">GetFullScreen(Mode)</a> or the
+virtual-canvas constructor.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Name_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Name*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Name" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Name">
+  Name
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The name of the Canvas implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual string Name { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_RefreshRate_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.RefreshRate*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_RefreshRate" data-uid="Cosmos.Kernel.System.Graphics.Canvas.RefreshRate">
+  RefreshRate
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Screen refresh rate in Hz as reported by EDID. Defaults to 60 if unavailable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int RefreshRate { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Width_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Width*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Width" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Width">
+  Width
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The width of this canvas in pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Width { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_AlphaBlend_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.AlphaBlend*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_AlphaBlend_System_Drawing_Color_System_Drawing_Color_System_Byte_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.AlphaBlend(System.Drawing.Color,System.Drawing.Color,System.Byte)">
+  AlphaBlend(Color, Color, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Blends <code class="paramref">to</code> over <code class="paramref">from</code> at the given
+<code class="paramref">alpha</code>. At alpha 255 the result is
+<code class="paramref">to</code>, at 0 it is <code class="paramref">from</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Color AlphaBlend(Color to, Color from, byte alpha)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>to</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color being laid on, weighted by <code class="paramref">alpha</code>.</p>
+</dd>
+    <dt><code>from</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color already there, weighted by the remainder.</p>
+</dd>
+    <dt><code>alpha</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>The opacity of <code class="paramref">to</code>, 0 to 255.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_CheckIfModeIsValid_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CheckIfModeIsValid*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_CheckIfModeIsValid_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CheckIfModeIsValid(Cosmos.Kernel.System.Graphics.Mode)">
+  CheckIfModeIsValid(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks if the given video mode is valid.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool CheckIfModeIsValid(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd><p>The target video mode.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Clear_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Clear" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear">
+  Clear()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears the canvas with the default color.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Clear_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Clear_System_Drawing_Color_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear(System.Drawing.Color)">
+  Clear(Color)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears the entire canvas with the specified color.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear(Color color)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to clear the screen with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Clear_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Clear_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Clear(System.Int32)">
+  Clear(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clears the entire canvas with the specified color.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Clear(int color)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The ARGB color to clear the screen with.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_CopyPixels_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CopyPixels*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_CopyPixels_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CopyPixels(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+  CopyPixels(int, int, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copies a rectangle of pixels from one position on the canvas to
+another. The rectangle is clipped so that both the source and the
+destination stay within the canvas bounds. Overlapping regions copy
+correctly and without an intermediate buffer: the copy walks away
+from the overlap, the same rule as <code>memmove</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void CopyPixels(int srcX, int srcY, int dstX, int dstY, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>srcX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the source rectangle.</p>
+</dd>
+    <dt><code>srcY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the source rectangle.</p>
+</dd>
+    <dt><code>dstX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the destination rectangle.</p>
+</dd>
+    <dt><code>dstY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the destination rectangle.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the rectangle in pixels.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the rectangle in pixels.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_CroppedDrawImage_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CroppedDrawImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_CroppedDrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.CroppedDrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">
+  CroppedDrawImage(Image, int, int, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws the given image at the specified coordinates, cropping the image to fit within the maximum width and height.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void CroppedDrawImage(Image image, int x, int y, int maxWidth, int maxHeight, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd><p>The image to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate where the image will be drawn.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate where the image will be drawn.</p>
+</dd>
+    <dt><code>maxWidth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The maximum width to display the image. If the image exceeds this width, it will be cropped.</p>
+</dd>
+    <dt><code>maxHeight</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The maximum height to display the image. If the image exceeds this height, it will be cropped.</p>
+</dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DisableFullScreen_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DisableFullScreen*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DisableFullScreen" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DisableFullScreen">
+  DisableFullScreen()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the display device to text mode and gives the screen back, so a
+later <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen">GetFullScreen()</a> builds a fresh canvas against a
+re-enabled device. Any canvas already acquired is dead after this call.
+There is no VGA text mode to fall back to on UEFI machines, where this
+is a no-op.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void DisableFullScreen()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_Display_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Display*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_Display" data-uid="Cosmos.Kernel.System.Graphics.Canvas.Display">
+  Display()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Updates the screen to display the underlying frame-buffer.
+For virtual canvases, this is a no-op.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void Display()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawArc_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArc*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawArc_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArc(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArc(Color, int, int, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an arc.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawArc(Color color, int xCenter, int yCenter, int xR, int yR, int startAngle = 0, int endAngle = 360)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color of the arc.</p>
+</dd>
+    <dt><code>xCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the arc's center.</p>
+</dd>
+    <dt><code>yCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the arc's center.</p>
+</dd>
+    <dt><code>xR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X radius of the arc.</p>
+</dd>
+    <dt><code>yR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y radius of the arc.</p>
+</dd>
+    <dt><code>startAngle</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting angle of the arc, in degrees.</p>
+</dd>
+    <dt><code>endAngle</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The ending angle of the arc, in degrees.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_System_Drawing_Color___System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray(System.Drawing.Color[],System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(Color[], int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawArray(Color[] colors, int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>colors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a>[]</dt>
+    <dd><p>The pixels to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the drawn bitmap.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>This parameter is unused.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(int[], int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawArray(int[] colors, int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>colors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>The pixels to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the drawn bitmap.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the drawn bitmap.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawArray_System_Int32___System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawArray(System.Int32[],System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawArray(int[], int, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an array of pixels to the canvas, starting at the given coordinates,
+using the given width.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawArray(int[] colors, int x, int y, int width, int height, int startIndex)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>colors</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd><p>The pixels to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the drawn bitmap.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the drawn bitmap.</p>
+</dd>
+    <dt><code>startIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>int[] colors starting position</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawCanvas_Cosmos_Kernel_System_Graphics_Canvas_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCanvas(Cosmos.Kernel.System.Graphics.Canvas,System.Int32,System.Int32)">
+  DrawCanvas(Canvas, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws another canvas onto this one at the specified position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawCanvas(Canvas canvas, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>canvas</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd><p>The source canvas to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate on this canvas.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate on this canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawChar_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawChar*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawChar_System_Char_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawChar(System.Char,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)">
+  DrawChar(char, Font, Color, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a single character using the given bitmap font.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawChar(char c, Font font, Color color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>c</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a></dt>
+    <dd><p>The character to draw.</p>
+</dd>
+    <dt><code>font</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html">Font</a></dt>
+    <dd><p>The bitmap font to use.</p>
+</dd>
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to write the character with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawCircle_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCircle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawCircle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawCircle(System.Drawing.Color,System.Int32,System.Int32,System.Int32)">
+  DrawCircle(Color, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a circle at the given coordinates with the given radius.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawCircle(Color color, int xCenter, int yCenter, int radius)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>xCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X center coordinate.</p>
+</dd>
+    <dt><code>yCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y center coordinate.</p>
+</dd>
+    <dt><code>radius</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The radius of the circle to draw.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawEllipse_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawEllipse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawEllipse_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawEllipse(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawEllipse(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an ellipse.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawEllipse(Color color, int xCenter, int yCenter, int xR, int yR)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>xCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X center coordinate.</p>
+</dd>
+    <dt><code>yCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y center coordinate.</p>
+</dd>
+    <dt><code>xR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X radius.</p>
+</dd>
+    <dt><code>yR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y radius.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledCircle_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledCircle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledCircle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledCircle(System.Drawing.Color,System.Int32,System.Int32,System.Int32)">
+  DrawFilledCircle(Color, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a filled circle at the given coordinates with the given radius.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawFilledCircle(Color color, int x0, int y0, int radius)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>x0</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X center coordinate.</p>
+</dd>
+    <dt><code>y0</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y center coordinate.</p>
+</dd>
+    <dt><code>radius</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The radius of the circle to draw.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledEllipse_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledEllipse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledEllipse_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledEllipse(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawFilledEllipse(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a filled ellipse.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawFilledEllipse(Color color, int xCenter, int yCenter, int xR, int yR)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>xCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X center coordinate.</p>
+</dd>
+    <dt><code>yCenter</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y center coordinate.</p>
+</dd>
+    <dt><code>xR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X radius.</p>
+</dd>
+    <dt><code>yR</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y radius.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledRectangle_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledRectangle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawFilledRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawFilledRectangle(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a filled rectangle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawFilledRectangle(Color color, int xStart, int yStart, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw the rectangle with.</p>
+</dd>
+    <dt><code>xStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the top-left corner.</p>
+</dd>
+    <dt><code>yStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the top-left corner.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the rectangle in pixels.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the rectangle in pixels, or -1 to
+reuse <code class="paramref">width</code> and draw a square.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Graphics_Canvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The shape is always clipped to the canvas. There is no opt-out, because
+the hardware canvases fill straight into video memory and an unclipped
+origin there is a write outside the framebuffer, not a stray pixel.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawImage_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Boolean)">
+  DrawImage(Image, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws the given image at the specified coordinates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawImage(Image image, int x, int y, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd><p>The image to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin Y coordinate.</p>
+</dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawImage_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawImage_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImage(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean)">
+  DrawImage(Image, int, int, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a bitmap, applying scaling to the given image.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawImage(Image image, int x, int y, int w, int h, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd><p>The image to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>w</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The desired width to scale the image to before drawing.</p>
+</dd>
+    <dt><code>h</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The desired height to scale the image to before drawing</p>
+</dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawImageAlpha_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImageAlpha*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawImageAlpha_Cosmos_Kernel_System_Graphics_Image_System_Int32_System_Int32_System_Boolean_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawImageAlpha(Cosmos.Kernel.System.Graphics.Image,System.Int32,System.Int32,System.Boolean)">
+  DrawImageAlpha(Image, int, int, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws an image with alpha blending.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void DrawImageAlpha(Image image, int x, int y, bool preventOffBoundPixels = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>image</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+    <dd><p>The image to draw.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+    <dt><code>preventOffBoundPixels</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Prevents drawing outside the bounds of the canvas.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawLine_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawLine*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawLine_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawLine(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawLine(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a line between the given points.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawLine(Color color, int x1, int y1, int x2, int y2)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw the line with.</p>
+</dd>
+    <dt><code>x1</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting point X coordinate.</p>
+</dd>
+    <dt><code>y1</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting point Y coordinate.</p>
+</dd>
+    <dt><code>x2</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The end point X coordinate.</p>
+</dd>
+    <dt><code>y2</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The end point Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Graphics_Canvas_DrawLine_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Both endpoints are painted, so a line from x to x is one pixel.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_System_Drawing_Color_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint(System.Drawing.Color,System.Int32,System.Int32)">
+  DrawPoint(Color, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(Color color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint(System.Int32,System.Int32,System.Int32)">
+  DrawPoint(int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>. without ToArgb()</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(int color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The color to draw with (raw argb).</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawPoint_System_UInt32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPoint(System.UInt32,System.Int32,System.Int32)">
+  DrawPoint(uint, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the pixel at the given coordinates to the specified <code class="paramref">color</code>, without unnecessary color operations.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawPoint(uint color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>The color to draw with (raw argb).</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawPolygon_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPolygon*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawPolygon_System_Drawing_Color_System_Drawing_Point___" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawPolygon(System.Drawing.Color,System.Drawing.Point[])">
+  DrawPolygon(Color, params Point[])
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a polygon.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawPolygon(Color color, params Point[] points)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>points</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.point">Point</a>[]</dt>
+    <dd><p>The vertices of the polygon.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawRectangle_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawRectangle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawRectangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawRectangle(Color, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws the outline of a rectangle, covering the same area
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawFilledRectangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_">DrawFilledRectangle(Color, int, int, int, int)</a> fills for the same arguments.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawRectangle(Color color, int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the top-left corner.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the top-left corner.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the rectangle in pixels.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the rectangle in pixels.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawString_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.Font,System.Drawing.Color,System.Int32,System.Int32)">
+  DrawString(string, Font, Color, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a string using the given bitmap font.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawString(string str, Font font, Color color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>str</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The string to draw.</p>
+</dd>
+    <dt><code>font</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html">Font</a></dt>
+    <dd><p>The bitmap font to use.</p>
+</dd>
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to write the string with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawString_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_TrueTypeFont_System_Int32_System_Drawing_Color_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawString(System.String,Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont,System.Int32,System.Drawing.Color,System.Int32,System.Int32)">
+  DrawString(string, TrueTypeFont, int, Color, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a string using the given TrueType font, with per-glyph advances,
+kerning and anti-aliased edges blended onto the existing pixels.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawString(string str, TrueTypeFont font, int sizePx, Color color, int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>str</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The string to draw.</p>
+</dd>
+    <dt><code>font</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.TrueTypeFont.html">TrueTypeFont</a></dt>
+    <dd><p>The TrueType font to use.</p>
+</dd>
+    <dt><code>sizePx</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The text size in pixels.</p>
+</dd>
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to write the string with.</p>
+</dd>
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin X coordinate (left edge of the text).</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The origin Y coordinate (top of the text line).</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_DrawTriangle_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawTriangle*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_DrawTriangle_System_Drawing_Color_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.DrawTriangle(System.Drawing.Color,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+  DrawTriangle(Color, int, int, int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Draws a triangle.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void DrawTriangle(Color color, int v1x, int v1y, int v2x, int v2y, int v3x, int v3y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>color</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd><p>The color to draw with.</p>
+</dd>
+    <dt><code>v1x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The first points X coordinate.</p>
+</dd>
+    <dt><code>v1y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The first points Y coordinate.</p>
+</dd>
+    <dt><code>v2x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The second points X coordinate.</p>
+</dd>
+    <dt><code>v2y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The second points Y coordinate.</p>
+</dd>
+    <dt><code>v3x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The third points X coordinate.</p>
+</dd>
+    <dt><code>v3y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The third points Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetBuffer_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetBuffer*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetBuffer" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetBuffer">
+  GetBuffer()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the raw pixel buffer of this canvas. Returns null for hardware-backed canvases.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int[]? GetBuffer()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen">
+  GetFullScreen()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the hardware-backed full-screen canvas using the default graphics
+mode. The first call builds it against the detected display device;
+later calls hand back the same canvas without resetting the mode, so
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Mode">Mode</a> always reports the real screen size.</p>
+<p>
+The display device decides the canvas's type. Only the VMware SVGA II
+adapter negotiates 3D, so a kernel that wants to render 3D tests the
+canvas with <code>is <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a></code>; on the UEFI framebuffer
+every documented setup uses, it never is.
+</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreen()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Graphics support is compiled out with CosmosEnableGraphics=false. Test
+<a class="xref" href="Cosmos.Kernel.System.KernelFeatures.html#Cosmos_Kernel_System_KernelFeatures_Graphics">Graphics</a> first to avoid it.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetFullScreen_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetFullScreen(Cosmos.Kernel.System.Graphics.Mode)">
+  GetFullScreen(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the hardware-backed full-screen canvas, switching the display to
+<code class="paramref">mode</code>. The UEFI framebuffer cannot change mode after
+boot, so on the GOP path the request is ignored and the canvas keeps
+reporting the resolution the bootloader set.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Canvas GetFullScreen(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd><p>The display mode to switch to; must be one of the canvas's
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_AvailableModes">AvailableModes</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Graphics support is compiled out with CosmosEnableGraphics=false.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p>The display device does not support <code class="paramref">mode</code>.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetImage_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetImage*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetImage_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetImage(System.Int32,System.Int32,System.Int32,System.Int32)">
+  GetImage(int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a bitmap by copying a portion of your canvas from the specified coordinates and dimensions.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Bitmap GetImage(int x, int y, int width, int height)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting X coordinate of the region to copy.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The starting Y coordinate of the region to copy.</p>
+</dd>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The width of the region to copy.</p>
+</dd>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The height of the region to copy.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></dt>
+    <dd><p>A new <a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a> containing the copied region.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetPointColor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetPointColor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetPointColor_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetPointColor(System.Int32,System.Int32)">
+  GetPointColor(int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the color of the pixel at the given coordinates.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual Color GetPointColor(int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.drawing.color">Color</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_GetRawPointColor_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetRawPointColor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_GetRawPointColor_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.GetRawPointColor(System.Int32,System.Int32)">
+  GetRawPointColor(int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the color of the pixel at the given coordinates in ARGB.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetRawPointColor(int x, int y)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_MovePixel_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.MovePixel*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_MovePixel_System_Int32_System_Int32_System_Int32_System_Int32_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.MovePixel(System.Int32,System.Int32,System.Int32,System.Int32)">
+  MovePixel(int, int, int, int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Moves a single pixel to a new position and clears its old position to
+black.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void MovePixel(int x, int y, int newX, int newY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate of the pixel.</p>
+</dd>
+    <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate of the pixel.</p>
+</dd>
+    <dt><code>newX</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The X coordinate to move the pixel to.</p>
+</dd>
+    <dt><code>newY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The Y coordinate to move the pixel to.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_ThrowIfModeIsNotValid_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.ThrowIfModeIsNotValid*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_ThrowIfModeIsNotValid_Cosmos_Kernel_System_Graphics_Mode_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.ThrowIfModeIsNotValid(Cosmos.Kernel.System.Graphics.Mode)">
+  ThrowIfModeIsNotValid(Mode)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Validates the given video mode, and throws an exception if the
+given value is invalid.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void ThrowIfModeIsNotValid(Mode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p>Thrown if the mode is not supported.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Canvas_TrimLine_" data-uid="Cosmos.Kernel.System.Graphics.Canvas.TrimLine*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Canvas_TrimLine_System_Int32__System_Int32__System_Int32__System_Int32__" data-uid="Cosmos.Kernel.System.Graphics.Canvas.TrimLine(System.Int32@,System.Int32@,System.Int32@,System.Int32@)">
+  TrimLine(ref int, ref int, ref int, ref int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clamps the line's two endpoints so the segment fits inside the canvas
+boundaries, preserving its slope.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void TrimLine(ref int x1, ref int y1, ref int x2, ref int y2)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>x1</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The start point X coordinate.</p>
+</dd>
+    <dt><code>y1</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The start point Y coordinate.</p>
+</dd>
+    <dt><code>x2</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The end point X coordinate.</p>
+</dd>
+    <dt><code>y2</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The end point Y coordinate.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
