@@ -126,7 +126,7 @@
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel.HAL.Interfaces</strong></td>
-<td>Pure interfaces (<code>IPlatformInitializer</code>, <code>ICpuOps</code>, <code>IKeyboardDevice</code>, etc.). No implementations.</td>
+<td>Pure interfaces, no implementations. Public: <code>IBlockDevice</code>, which kernels implement and drive directly, <code>MACAddress</code>, and <code>SoftwareTimer</code> as a read-only handle. Internal: the boot contract <code>IPlatformInitializer</code>, <code>IGraphicDevice</code>, the input, timer and network devices, and <code>SoftwareTimer</code>'s construction and tick members.</td>
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel.HAL.X64</strong></td>
@@ -162,7 +162,7 @@
 </tr>
 <tr>
 <td><strong>Cosmos.Kernel</strong></td>
-<td>Base <code>Kernel</code> version info and shared kernel constants.</td>
+<td>The aggregator every kernel references. Pulls in Boot.Limine, Core, HAL, HAL.Interfaces, Plugs and System, ships the <code>kmain</code> bootstrap C sources, and holds the library initializer that wires up the CPU exception handlers and the scheduler. No public types.</td>
 </tr>
 </tbody>
 </table>

@@ -293,7 +293,7 @@ Class MouseManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static int ScreenHeight { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static int ScreenHeight { get; }</code></pre>
   </div>
 
 
@@ -325,7 +325,7 @@ Class MouseManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static int ScreenWidth { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static int ScreenWidth { get; }</code></pre>
   </div>
 
 
@@ -410,6 +410,12 @@ assignment would zero the delta before any poller can observe it.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Mouse support is disabled.</p>
+</dd>
+  </dl>
 
 
 
@@ -481,93 +487,6 @@ assignment would zero the delta before any poller can observe it.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Mouse_MouseManager_Initialize_" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Mouse_MouseManager_Initialize" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.Initialize">
-  Initialize()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the mouse manager.
-Call RegisterMouse() after this to add mice.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Mouse_MouseManager_Poll_" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.Poll*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Mouse_MouseManager_Poll" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.Poll">
-  Poll()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Polls all registered mice for events.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Poll()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Mouse_MouseManager_RegisterMouse_" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Mouse_MouseManager_RegisterMouse_Cosmos_Kernel_HAL_Interfaces_Devices_IMouseDevice_" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.RegisterMouse(Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice)">
-  RegisterMouse(IMouseDevice)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Registers a mouse device with the manager.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RegisterMouse(IMouseDevice mouse)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>mouse</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Mouse_MouseManager_ResetScrollDelta_" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta*"></a>
 
   <h3 id="Cosmos_Kernel_System_Mouse_MouseManager_ResetScrollDelta" data-uid="Cosmos.Kernel.System.Mouse.MouseManager.ResetScrollDelta">
@@ -593,6 +512,12 @@ stale delta is not re-processed every frame until the next wheel event.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Mouse support is disabled.</p>
+</dd>
+  </dl>
 
 
 
@@ -614,9 +539,11 @@ stale delta is not re-processed every frame until the next wheel event.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>x</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>New horizontal position, clamped to the screen width.</p>
+</dd>
     <dt><code>y</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>New vertical position, clamped to the screen height.</p>
+</dd>
   </dl>
 
 
@@ -627,6 +554,12 @@ stale delta is not re-processed every frame until the next wheel event.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Mouse support is disabled.</p>
+</dd>
+  </dl>
 
 
 
@@ -648,9 +581,11 @@ stale delta is not re-processed every frame until the next wheel event.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>New screen width in pixels.</p>
+</dd>
     <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>New screen height in pixels.</p>
+</dd>
   </dl>
 
 
@@ -661,6 +596,12 @@ stale delta is not re-processed every frame until the next wheel event.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Mouse support is disabled.</p>
+</dd>
+  </dl>
 
 
 

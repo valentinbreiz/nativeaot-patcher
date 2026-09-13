@@ -416,21 +416,21 @@ support that the boot path doesn't yet ship.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Rewrite the start and end LBAs of <code class="paramref">partitionIndex</code> so
+  <div class="markdown level1 summary"><p>Rewrite the start and end LBAs of <code class="paramref">index</code> so
 the partition lives at <code class="paramref">newStartSector</code> with the same
 length. Table-level only — does not relocate data.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool MovePartition(IBlockDevice device, int partitionIndex, ulong newStartSector)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool MovePartition(IBlockDevice device, int index, ulong newStartSector)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>partitionIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
     <dt><code>newStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
@@ -465,7 +465,7 @@ GUID) are skipped.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static List&lt;Gpt.PartitionEntry&gt; Parse(IBlockDevice device)</code></pre>
+    <pre><code class="lang-csharp hljs">public static List&lt;GptPartitionEntry&gt; Parse(IBlockDevice device)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -476,7 +476,7 @@ GUID) are skipped.</p>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Gpt.html">Gpt</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.Gpt.PartitionEntry.html">PartitionEntry</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.GptPartitionEntry.html">GptPartitionEntry</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -497,7 +497,7 @@ GUID) are skipped.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Mark the <code class="paramref">partitionIndex</code>-th non-empty entry as
+  <div class="markdown level1 summary"><p>Mark the <code class="paramref">index</code>-th non-empty entry as
 deleted by zeroing the whole entry — UEFI expects unused entries
 fully zeroed, and a stale UTF-16 name would resurface when
 <a class="xref" href="Cosmos.Kernel.System.Storage.Gpt.html#Cosmos_Kernel_System_Storage_Gpt_AddPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_UInt64_System_Guid_">AddPartition(IBlockDevice, ulong, ulong, Guid)</a> reuses the slot without rewriting it.</p>
@@ -505,14 +505,14 @@ fully zeroed, and a stale UTF-16 name would resurface when
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool RemovePartition(IBlockDevice device, int partitionIndex)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool RemovePartition(IBlockDevice device, int index)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>partitionIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -539,7 +539,7 @@ fully zeroed, and a stale UTF-16 name would resurface when
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Rewrite the end LBA of <code class="paramref">partitionIndex</code> so the
+  <div class="markdown level1 summary"><p>Rewrite the end LBA of <code class="paramref">index</code> so the
 partition spans <code class="paramref">newSectorCount</code> sectors. Start LBA /
 type / partition GUID preserved. Table-level only — does not adjust
 the filesystem inside.</p>
@@ -547,14 +547,14 @@ the filesystem inside.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool ResizePartition(IBlockDevice device, int partitionIndex, ulong newSectorCount)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool ResizePartition(IBlockDevice device, int index, ulong newSectorCount)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>partitionIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
     <dt><code>newSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>

@@ -146,82 +146,8 @@ Class VfsManager.VfsMount
 
 
 
-  <h2 class="section" id="constructors">Constructors
-</h2>
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__ctor_System_String_System_String_System_String_Cosmos_Kernel_HAL_Vfs_IVfsFilesystemType_Cosmos_Kernel_HAL_Vfs_IVfsSuperblock_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.#ctor(System.String,System.String,System.String,Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType,Cosmos.Kernel.HAL.Vfs.IVfsSuperblock)">
-  VfsMount(string, string, string, IVfsFilesystemType, IVfsSuperblock)
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public VfsMount(string name, string source, string mountPoint, IVfsFilesystemType filesystemType, IVfsSuperblock superblock)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>filesystemType</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html">IVfsFilesystemType</a></dt>
-    <dd></dd>
-    <dt><code>superblock</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html">IVfsSuperblock</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <h2 class="section" id="properties">Properties
 </h2>
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_FilesystemType_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_FilesystemType" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.FilesystemType">
-  FilesystemType
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IVfsFilesystemType FilesystemType { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html">IVfsFilesystemType</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
 
 
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_MountPoint_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.MountPoint*"></a>
@@ -231,7 +157,8 @@ Class VfsManager.VfsMount
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Absolute path the filesystem is mounted at (e.g. &quot;/&quot;).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -287,6 +214,45 @@ Class VfsManager.VfsMount
 
 
 
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Partition_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Partition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Partition" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Partition">
+  Partition
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The partition this mount was given, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when it
+was mounted from a driver-specific source string instead.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Partition? Partition { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Storage.Partition.html">Partition</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Partition_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Prefer this over parsing <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html#Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Source">Source</a> back into an index: a
+rescan renumbers <code>StorageManager.Partitions</code>, so the recorded
+index can come to name a different partition, while this keeps
+naming the same range on the same disk.</p>
+</div>
+
+
+
+
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Source_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source*"></a>
 
   <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_VfsMount_Source" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.Source">
@@ -294,7 +260,7 @@ Class VfsManager.VfsMount
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Driver-specific backing-store identifier passed to <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__">TryMount(string, ReadOnlySpan&lt;char&gt;, MountFlags, string, out VfsMount?)</a> — for the FAT driver, this is the global partition index in <code>StorageManager.Partitions</code> as a decimal string.</p>
+  <div class="markdown level1 summary"><p>Driver-specific backing-store identifier passed to <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__">TryMount(string, ReadOnlySpan&lt;char&gt;, MountFlags, string, out VfsMount?)</a>. For the FAT driver this is the global partition index in <code>StorageManager.Partitions</code> as a decimal string.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -326,7 +292,8 @@ Class VfsManager.VfsMount
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The mounted filesystem instance.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">

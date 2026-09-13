@@ -194,7 +194,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Cluster size in bytes: <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html#Cosmos_Kernel_System_Filesystems_Fat_FatBootSector_BytesPerSector">BytesPerSector</a> times <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html#Cosmos_Kernel_System_Filesystems_Fat_FatBootSector_SectorsPerCluster">SectorsPerCluster</a>.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -225,7 +226,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Bytes per sector (BPB_BytsPerSec): 512, 1024, 2048 or 4096.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -256,7 +258,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Number of data clusters on the volume.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -287,7 +290,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>LBA of the first data cluster (cluster 2).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -318,7 +322,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Sectors per FAT copy (BPB_FATSz16 or BPB_FATSz32).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -349,7 +354,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>LBA of the first FAT copy.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -380,7 +386,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Number of FAT copies (BPB_NumFATs), usually 2.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -411,7 +418,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Sectors reserved before the first FAT (BPB_RsvdSecCnt).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -442,7 +450,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>First cluster of the root directory (BPB_RootClus); 0 on FAT12/16.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -473,7 +482,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Number of fixed root directory entries (BPB_RootEntCnt); 0 on FAT32.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -504,7 +514,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Sectors occupied by the fixed root directory on FAT12/16; 0 on FAT32.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -535,7 +546,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>LBA of the fixed root directory region on FAT12/16; 0 on FAT32.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -566,7 +578,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Sectors per cluster (BPB_SecPerClus): a power of two up to 128.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -597,7 +610,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Total sectors of the volume (BPB_TotSec16 or BPB_TotSec32).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -628,7 +642,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The FAT variant, derived from <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html#Cosmos_Kernel_System_Filesystems_Fat_FatBootSector_ClusterCount">ClusterCount</a>.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -700,7 +715,8 @@ All <code>*Lba</code> fields are absolute on the underlying
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Parses and validates a boot sector, deriving the volume geometry.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -710,15 +726,18 @@ All <code>*Lba</code> fields are absolute on the underlying
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>bpb</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>The raw boot sector, at least 512 bytes.</p>
+</dd>
     <dt><code>bootSector</code> <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a></dt>
-    <dd></dd>
+    <dd><p>The parsed boot sector, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when parsing fails.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the sector carries a valid, spec-legal BPB.</p>
+</dd>
   </dl>
 
 

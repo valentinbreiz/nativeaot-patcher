@@ -133,7 +133,10 @@
 &lt;/PropertyGroup&gt;
 </code></pre>
 <p>These are the <code>using</code>s the snippets below rely on:</p>
-<pre><code class="lang-csharp">using Cosmos.Kernel.System.Keyboard;
+<pre><code class="lang-csharp">using System.Drawing;
+using Cosmos.Kernel.System.Graphics;
+using Cosmos.Kernel.System.Graphics.Fonts;
+using Cosmos.Kernel.System.Keyboard;
 using Cosmos.Kernel.System.Keyboard.ScanMaps;
 </code></pre>
 <p>There is nothing to initialize by hand: at boot the kernel probes the PS/2 controller and the virtio bus, and registers every keyboard it finds with <code>KeyboardManager</code>.</p>
@@ -218,9 +221,6 @@ while (running)
             case ConsoleKeyEx.Escape: running = false; break;
         }
     }
-
-    x = Math.Clamp(x, 0, canvas.Width - 60);
-    y = Math.Clamp(y, 0, canvas.Height - 60);
 
     canvas.Clear(Color.MidnightBlue);
     canvas.DrawString(&quot;Move the square with the arrow keys&quot;, font, Color.White, 40, 40);
@@ -316,7 +316,7 @@ while (running)
 <p>The switch is visible immediately: below, the same six physical keys are typed twice, first under the US layout, then under the French one.</p>
 <!-- video: typing the six keys right of Tab under the US layout ("qwerty"), switching to FRStandardLayout, typing them again ("azerty") -->
 <p><video src="images/keyboard-layouts.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
-<p><code>KeyboardManager.GetKeyLayout()</code> returns the active scan map, and a custom layout is a class deriving from <code>ScanMapBase</code> that fills the <code>Keys</code> list with <code>KeyMapping</code> entries.</p>
+<p><code>KeyboardManager.GetKeyLayout()</code> returns the active scan map, and a custom layout is a class deriving from <code>ScanMapBase</code> that overrides <code>InitializeKeys()</code> to fill the <code>Keys</code> list with <code>KeyMapping</code> entries. The base constructor calls it, so the list is populated by the time <code>SetKeyLayout</code> sees the instance.</p>
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
 <li>Key releases are not queued: <code>KeyEvent.Type</code> has a <code>Break</code> value, but only presses reach the buffer. Releases of Shift, Ctrl and Alt update the modifier state and are otherwise dropped.</li>
@@ -324,7 +324,7 @@ while (running)
 <li>Devices are detected once at boot; there is no keyboard hotplug.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p>Every key press raises an interrupt (IRQ1 for the PS/2 keyboard on x64, a virtio-input event on ARM64). The handler feeds the raw scan code to <code>KeyboardManager.HandleScanCode</code>, which routes lock and modifier keys to the state properties and converts everything else through the active scan map into a <code>KeyEvent</code>, queued in the key buffer. <code>ReadKey()</code> halts the CPU until an interrupt delivers the next event; <code>TryReadKey()</code> just dequeues. <code>Console.ReadLine</code> and <code>Console.ReadKey</code> are plugs on top of the same queue, so console input and raw key events never conflict.</p>
+<p>Every key press raises an interrupt (IRQ1 for the PS/2 keyboard on x64, a virtio-input event on ARM64). The handler feeds the raw scan code to <code>KeyboardManager</code>, which routes lock and modifier keys to the state properties and converts everything else through the active scan map into a <code>KeyEvent</code>, queued in the key buffer. <code>ReadKey()</code> halts the CPU until an interrupt delivers the next event; <code>TryReadKey()</code> just dequeues. <code>Console.ReadLine</code> and <code>Console.ReadKey</code> are plugs on top of the same queue, so console input and raw key events never conflict.</p>
 <pre><code>Console.ReadLine / Console.ReadKey        (plugs, Cosmos.Kernel.Plugs)
         │
 KeyboardManager ── KeyEvent queue ◀── scan map (active layout)

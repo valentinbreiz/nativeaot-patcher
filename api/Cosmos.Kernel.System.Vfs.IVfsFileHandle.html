@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Interface IVfsFileHandle | Cosmos Gen 3 ">
       
-      <meta name="description" content="Managed handle for an open file with position and byte I/O.">
+      <meta name="description" content="Managed handle for an open file with position and byte I/O. Disposal is the one state the two halves of this interface report differently: every Try member answers false for a disposed handle, because that is what its bool already means, while  and  throw, having no count that means &amp;quot;the handle is gone&amp;quot; rather than &amp;quot;no bytes moved&amp;quot;.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,7 +97,13 @@ Interface IVfsFileHandle
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Managed handle for an open file with position and byte I/O.</p>
+  <div class="markdown summary"><p>Managed handle for an open file with position and byte I/O. Disposal is
+the one state the two halves of this interface report differently: every
+<code>Try</code> member answers <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle,
+because that is what its bool already means, while
+<a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_System_Span_System_Byte__">Read(Span&lt;byte&gt;)</a> and <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Write_System_ReadOnlySpan_System_Byte__">Write(ReadOnlySpan&lt;byte&gt;)</a>
+throw, having no count that means &quot;the handle is gone&quot; rather than &quot;no
+bytes moved&quot;.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -144,7 +150,8 @@ Interface IVfsFileHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The current byte offset of the file cursor.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -172,37 +179,6 @@ Interface IVfsFileHandle
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_Flush_" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_Flush" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.Flush">
-  Flush()
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool Flush()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read*"></a>
 
   <h3 id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_System_Span_System_Byte__" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.Read(System.Span{System.Byte})">
@@ -210,7 +186,8 @@ Interface IVfsFileHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Reads bytes at the current position, advancing it by the amount read.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -220,13 +197,56 @@ Interface IVfsFileHandle
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>The destination buffer.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>The number of bytes read; 0 at end of file, and also when the
+driver cannot resolve the file's storage.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.objectdisposedexception">ObjectDisposedException</a></dt>
+    <dd><p>The handle has been disposed.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_TryFlush_" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.TryFlush*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_TryFlush" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.TryFlush">
+  TryFlush()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Flushes buffered writes to the underlying device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryFlush()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the driver flushed successfully;
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle.</p>
+</dd>
   </dl>
 
 
@@ -246,7 +266,8 @@ Interface IVfsFileHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Moves the file cursor.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -256,15 +277,63 @@ Interface IVfsFileHandle
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>The offset relative to <code class="paramref">whence</code>.</p>
+</dd>
     <dt><code>whence</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SeekWhence.html">SeekWhence</a></dt>
-    <dd></dd>
+    <dd><p>The origin the offset is applied from.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the resulting position is valid;
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_TrySetAttr_" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySetAttr*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsFileHandle_TrySetAttr_Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Cosmos_Kernel_HAL_Vfs_VfsStat__" data-uid="Cosmos.Kernel.System.Vfs.IVfsFileHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)">
+  TrySetAttr(SetAttrFlags, in VfsStat)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Updates the open file's metadata. Setting
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Size">Size</a> is how a file is truncated or extended.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html">SetAttrFlags</a></dt>
+    <dd><p>Which fields of <code class="paramref">attributes</code> to apply.</p>
+</dd>
+    <dt><code>attributes</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html">VfsStat</a></dt>
+    <dd><p>The new attribute values.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the driver applied the change;
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle.</p>
+</dd>
   </dl>
 
 
@@ -284,7 +353,8 @@ Interface IVfsFileHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Writes bytes at the current position, advancing it by the amount written.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -294,13 +364,16 @@ Interface IVfsFileHandle
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>The bytes to write.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>The number of bytes written, which is short of
+<code class="paramref">buffer</code> when the volume runs out of room.</p>
+</dd>
   </dl>
 
 
@@ -310,6 +383,12 @@ Interface IVfsFileHandle
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.objectdisposedexception">ObjectDisposedException</a></dt>
+    <dd><p>The handle has been disposed.</p>
+</dd>
+  </dl>
 
 
 

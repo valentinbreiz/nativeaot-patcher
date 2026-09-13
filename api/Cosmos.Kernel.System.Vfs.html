@@ -116,12 +116,22 @@ Interfaces
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html">IVfsFileHandle</a></dt>
-      <dd><p>Managed handle for an open file with position and byte I/O.</p>
+      <dd><p>Managed handle for an open file with position and byte I/O. Disposal is
+the one state the two halves of this interface report differently: every
+<code>Try</code> member answers <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle,
+because that is what its bool already means, while
+<a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Read_System_Span_System_Byte__">Read(Span&lt;byte&gt;)</a> and <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsFileHandle.html#Cosmos_Kernel_System_Vfs_IVfsFileHandle_Write_System_ReadOnlySpan_System_Byte__">Write(ReadOnlySpan&lt;byte&gt;)</a>
+throw, having no count that means &quot;the handle is gone&quot; rather than &quot;no
+bytes moved&quot;.</p>
 </dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html">IVfsNodeHandle</a></dt>
-      <dd><p>Common surface for VFS nodes (files or directories).</p>
+      <dd><p>Common surface for VFS nodes (files or directories). The interface is
+disposable so both handle kinds work in <code>using</code> blocks, but only a
+file handle has anything to release: it owns the open-file state the
+driver keeps for a read or write position. Disposing a directory handle
+does nothing, and a directory handle stays usable afterwards.</p>
 </dd>
     </dl>
 

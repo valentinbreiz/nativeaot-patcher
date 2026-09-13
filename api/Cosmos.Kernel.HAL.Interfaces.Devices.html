@@ -95,10 +95,16 @@
 Classes
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html">MACAddress</a></dt>
+      <dd><p>A 48-bit Ethernet MAC address.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
       <dd><p>A software timer that invokes a callback after a delay, driven by the
 periodic tick of the timer device it is registered with. Callbacks run
-in interrupt context and must not block.</p>
+in interrupt context: they must not block, and an exception escaping one
+halts the kernel, because the interrupt dispatch has no handler above it.</p>
 </dd>
     </dl>
     <h3 id="interfaces">
@@ -107,54 +113,11 @@ Interfaces
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
       <dd><p>Interface for block storage devices (SATA, NVMe, virtio-blk, etc.).
-Block-level read/write only — partitioning and filesystems sit above this.</p>
+Block-level read/write only; partitioning and filesystems sit above this.</p>
 <p>Error contract: <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_ReadBlock_System_UInt64_System_UInt64_System_Span_System_Byte__">ReadBlock(ulong, ulong, Span&lt;byte&gt;)</a>, <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_WriteBlock_System_UInt64_System_UInt64_System_ReadOnlySpan_System_Byte__">WriteBlock(ulong, ulong, ReadOnlySpan&lt;byte&gt;)</a>
 and <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html#Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Flush">Flush()</a> throw on failure (device error, timeout,
 out-of-range request). A return without an exception means the
 operation completed on the device.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IGraphicDevice.html">IGraphicDevice</a></dt>
-      <dd><p>Interface for graphic devices.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html">IKeyboardDevice</a></dt>
-      <dd><p>Interface for keyboard devices.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IMouseDevice.html">IMouseDevice</a></dt>
-      <dd><p>Interface for mouse devices.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
-      <dd><p>Interface for network devices.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.ITimerDevice.html">ITimerDevice</a></dt>
-      <dd><p>Interface for timer devices.</p>
-</dd>
-    </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.KeyPressedHandler.html">KeyPressedHandler</a></dt>
-      <dd><p>Delegate for handling key press events.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.PacketReceivedHandler.html">PacketReceivedHandler</a></dt>
-      <dd><p>Delegate for handling packet received events.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.TimerTickHandler.html">TimerTickHandler</a></dt>
-      <dd><p>Delegate for handling timer tick events.</p>
 </dd>
     </dl>
 

@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class EthernetPacket | Cosmos Gen 3 ">
       
-      <meta name="description" content="Represents an Ethernet packet.">
+      <meta name="description" content="An Ethernet frame, the root of the packet hierarchy. The frame lives in ; every header property is a snapshot parsed from that buffer at construction time and is not refreshed by later writes to the buffer. Derived types lay their headers into the same buffer from their constructors, including checksums: there is no separate finalize-before-send step.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,12 +97,18 @@ Class EthernetPacket
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Represents an Ethernet packet.</p>
+  <div class="markdown summary"><p>An Ethernet frame, the root of the packet hierarchy. The frame lives in
+<a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a>; every header property is a snapshot parsed from
+that buffer at construction time and is not refreshed by later writes to
+the buffer. Derived types lay their headers into the same buffer from
+their constructors, including checksums: there is no separate
+finalize-before-send step.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class EthernetPacket</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public class EthernetPacket</code></pre>
   </div>
 
 
@@ -120,7 +126,7 @@ Class EthernetPacket
   <dl class="typelist derived">
     <dt>Derived</dt>
     <dd>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ARPPacket.html">ARPPacket</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ArpPacket.html">ArpPacket</a></div>
       <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></div>
     </dd>
   </dl>
@@ -159,50 +165,15 @@ Class EthernetPacket
 
   <a id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_Cosmos_Kernel_HAL_Devices_Network_MACAddress_Cosmos_Kernel_HAL_Devices_Network_MACAddress_System_UInt16_System_Int32_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor(Cosmos.Kernel.HAL.Devices.Network.MACAddress,Cosmos.Kernel.HAL.Devices.Network.MACAddress,System.UInt16,System.Int32)">
-  EthernetPacket(MACAddress, MACAddress, ushort, int)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a> class, with specified dsetination, source, type and size.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected EthernetPacket(MACAddress dest, MACAddress src, ushort type, int packetSize)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.MACAddress.html">MACAddress</a></dt>
-    <dd></dd>
-    <dt><code>src</code> <a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.MACAddress.html">MACAddress</a></dt>
-    <dd></dd>
-    <dt><code>type</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-    <dt><code>packetSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor*"></a>
-
   <h3 id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_System_Byte___" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor(System.Byte[])">
   EthernetPacket(byte[])
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a> class, with specified raw data.</p>
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a> class
+over existing frame bytes. The array is stored by reference, not
+copied: the caller must not reuse the buffer while the packet is
+alive.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -228,26 +199,34 @@ Class EthernetPacket
 
 
 
-  <a id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor*"></a>
+  <h2 class="section" id="properties">Properties
+</h2>
 
-  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket__ctor_System_UInt16_System_Int32_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.#ctor(System.UInt16,System.Int32)">
-  EthernetPacket(ushort, int)
+
+  <a id="Cosmos_Kernel_System_Network_EthernetPacket_DestinationMac_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.DestinationMac*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_DestinationMac" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.DestinationMac">
+  DestinationMac
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a> class, with specified type and size.</p>
+  <div class="markdown level1 summary"><p>The destination MAC address. The setter (used by the transmit path
+once ARP resolution completes) rewrites the buffer and re-parses the
+whole packet.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected EthernetPacket(ushort type, int packetSize)</code></pre>
+    <pre><code class="lang-csharp hljs">public MACAddress DestinationMac { get; }</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
+
+
+
+
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><code>type</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-    <dt><code>packetSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html">MACAddress</a></dt>
     <dd></dd>
   </dl>
 
@@ -258,33 +237,28 @@ Class EthernetPacket
 
 
 
+  <a id="Cosmos_Kernel_System_Network_EthernetPacket_EthernetType_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.EthernetType*"></a>
 
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_destMAC" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.destMAC">
-  destMAC
+  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_EthernetType" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.EthernetType">
+  EthernetType
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The EtherType of the frame (0x0800 IPv4, 0x0806 ARP).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected MACAddress destMAC</code></pre>
+    <pre><code class="lang-csharp hljs">public ushort EthernetType { get; }</code></pre>
   </div>
 
 
 
 
-  <h4 class="section">Field Value</h4>
+
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.MACAddress.html">MACAddress</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd></dd>
   </dl>
 
@@ -293,41 +267,6 @@ Class EthernetPacket
 
 
 
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_srcMAC" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.srcMAC">
-  srcMAC
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected MACAddress srcMAC</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Devices.Network.MACAddress.html">MACAddress</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="properties">Properties
-</h2>
 
 
   <a id="Cosmos_Kernel_System_Network_EthernetPacket_RawData_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.RawData*"></a>
@@ -337,7 +276,10 @@ Class EthernetPacket
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the raw data of the packet in the form of a byte array.</p>
+  <div class="markdown level1 summary"><p>The complete wire image of the frame. The property is get-only but
+the array contents are mutable; header properties parsed from it do
+not track direct writes, and checksums computed at construction are
+not recomputed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -362,35 +304,42 @@ Class EthernetPacket
 
 
 
-  <h2 class="section" id="methods">Methods
-</h2>
+  <a id="Cosmos_Kernel_System_Network_EthernetPacket_SourceMac_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.SourceMac*"></a>
 
-
-  <a id="Cosmos_Kernel_System_Network_EthernetPacket_InitializeFields_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.InitializeFields*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_InitializeFields" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.InitializeFields">
-  InitializeFields()
+  <h3 id="Cosmos_Kernel_System_Network_EthernetPacket_SourceMac" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.SourceMac">
+  SourceMac
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes all internal fields.</p>
+  <div class="markdown level1 summary"><p>The source MAC address. The setter (used by the transmit path when
+it stamps the sending device's address) rewrites the buffer and
+re-parses the whole packet.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected virtual void InitializeFields()</code></pre>
+    <pre><code class="lang-csharp hljs">public MACAddress SourceMac { get; }</code></pre>
   </div>
 
 
 
 
 
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html">MACAddress</a></dt>
+    <dd></dd>
+  </dl>
 
 
 
 
 
 
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
 
 
   <a id="Cosmos_Kernel_System_Network_EthernetPacket_ToString_" data-uid="Cosmos.Kernel.System.Network.EthernetPacket.ToString*"></a>

@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title> | Cosmos Gen 3 </title>
+      <title>Plugs | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content=" | Cosmos Gen 3 ">
+      <meta name="title" content="Plugs | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../../images/favicon.ico">
@@ -85,101 +85,93 @@
         </div>
 
         <article data-uid="">
+<h1 id="plugs">Plugs</h1>
 
-<p>A <strong>plug</strong> is a mechanism that replaces existing methods, variables, or types with custom implementations to enable platform-specific functionality (<a href="https://cosmosos.github.io/articles/Kernel/Plugs.html">what is a plug?</a>).</p>
-<h2 id="plug-related-attributes">Plug-related attributes</h2>
+<p>A plug replaces members of an existing type at IL level: the patcher (<code>cosmos-patcher</code>, built on Mono.Cecil) rewrites the target assembly before ILC compiles it, so BCL and runtime code acquire kernel-specific implementations without source changes. The mechanism, the patcher pipeline, and where plugs run in the build are covered by the build pipeline docs; this page covers writing one.</p>
+<hr>
+<h2 id="attributes">Attributes</h2>
+<p>Gen3 implements three plug-related attributes, all defined in <a href="https://github.com/valentinbreiz/nativeaot-patcher/tree/main/src/Cosmos.Build.API/Attributes">Cosmos.Build.API</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Applied to</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[Plug]</code></td>
+<td>class</td>
+<td>Marks the class as the replacement source for one target type</td>
+</tr>
+<tr>
+<td><code>[PlugMember]</code></td>
+<td>method, property, field</td>
+<td>Replaces the matching member of the target type</td>
+</tr>
+<tr>
+<td><code>[PlatformSpecific]</code></td>
+<td>class or member</td>
+<td>Keeps the element only when patching for the named architectures</td>
+</tr>
+</tbody>
+</table>
 <h3 id="plug"><code>[Plug]</code></h3>
-<p>Marks a class as the replacement for a target type. The attribute accepts the fully qualified name of the type to replace and optional flags to skip missing targets or substitute base implementations. See the definition in <a href="../../../src/Cosmos.Build.API/Attributes/PlugAttribute.cs">PlugAttribute.cs</a> for details.</p>
-<p><strong>Use when:</strong> creating a plug class that substitutes an existing type.</p>
-<p><strong>Pitfalls:</strong> mismatched <code>TargetName</code> can break builds.</p>
+<p>Names the target type, either as <code>typeof(...)</code> when the type is publicly reachable or as a fully qualified name string for internal types (<code>[Plug(&quot;Internal.Runtime.CompilerHelpers.StartupCodeHelpers&quot;)]</code>). <code>IsOptional = true</code> skips the plug silently when the target type does not exist in the compilation; a mistyped <code>TargetName</code> on a non-optional plug fails the build. See <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.API/Attributes/PlugAttribute.cs">PlugAttribute.cs</a>.</p>
 <h3 id="plugmember"><code>[PlugMember]</code></h3>
-<p>Indicates that a member should replace a member on the target type. The attribute can be applied to fields, properties, or methods. Its implementation is available in <a href="../../../src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs">PlugMemberAttribute.cs</a>.</p>
-<p><strong>Use when:</strong> you need fine‑grained control over which members of the target type are replaced.</p>
-<p><strong>Pitfalls:</strong> ensure signatures match the target member; otherwise the patcher cannot wire them up correctly.</p>
-<h3 id="expose"><code>[Expose]</code></h3>
-<p>Adds new private members to the target type so that plugs can use them. The attribute is useful for introducing fields or methods that are not part of the original type.</p>
-<p><strong>Use when:</strong> a plug requires additional private storage or logic.</p>
-<p><strong>Pitfalls:</strong> exposing members that conflict with existing names can cause unpredictable behavior.</p>
-<h3 id="fieldaccess"><code>[FieldAccess]</code></h3>
-<p>Allows a plug method to access private fields of the target type by mapping a parameter to a specific field name. The patcher rewrites the method's IL to reference the requested field (see <code>ReplaceFieldAccess</code> in <a href="../../../src/Cosmos.Patcher/PlugPatcher.cs">PlugPatcher.cs</a>).</p>
-<p><strong>Use when:</strong> accessing or modifying an object field inside a plugged method.</p>
-<p><strong>Pitfalls:</strong> incorrect field names or mismatched parameter types result in runtime failures when the patcher attempts to rewrite field accesses.</p>
-<h2 id="cosmos-gen3-plug-template">Cosmos gen3 plug template</h2>
-<p><em>Feel free to propose changes</em></p>
-<pre><code class="lang-csharp">using System.IO;
+<p>Replaces the target member that matches the plug member's name and signature. A string argument overrides the name matching, which is how constructors and property accessors are addressed: <code>[PlugMember(&quot;.ctor&quot;)]</code>, <code>[PlugMember(&quot;get_Address&quot;)]</code>. Signatures must match the target member exactly, with one addition for instance members described below; a mismatch means the patcher cannot wire the member up. See <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.API/Attributes/PlugMemberAttribute.cs">PlugMemberAttribute.cs</a>.</p>
+<h3 id="platformspecific"><code>[PlatformSpecific]</code></h3>
+<p>Filters a plug class or member to specific architectures at patch time: <code>[PlatformSpecific(PlatformArchitecture.X64)]</code>. See <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.API/Attributes/PlatformSpecificAttribute.cs">PlatformSpecificAttribute.cs</a>.</p>
+<hr>
+<h2 id="the-athis-convention">The <code>aThis</code> convention</h2>
+<p>Plug classes are static, so an instance member is plugged by a static method whose first parameter is the target instance, conventionally named <code>aThis</code>. The patcher rewires <code>this</code> references onto that parameter:</p>
+<pre><code class="lang-csharp">using System.Net;
+using Cosmos.Build.API.Attributes;
 
-namespace Cosmos.Plugs;
+namespace Cosmos.Kernel.Plugs.System.Net;
 
-[Plug(typeof(System.IO.FileStream))]
-public class FileStream
+[Plug(typeof(IPEndPoint))]
+public static class IPEndPointPlug
 {
-    /* Plug static fields from System.IO.FileStream */
+    [PlugMember(&quot;.ctor&quot;)]
+    public static void Ctor(IPEndPoint aThis, IPAddress address, int port)
+    {
+        // runs in place of the target constructor
+    }
+
+    [PlugMember(&quot;get_Address&quot;)]
+    public static IPAddress? get_Address(IPEndPoint aThis)
+    {
+        // runs in place of the property getter
+        return null;
+    }
+
     [PlugMember]
-    public static ulong StaticField
+    public static long Seek(IPEndPoint aThis, long offset)
     {
-         get; set;
+        // instance method: name and remaining signature match the target
+        return 0;
     }
 
-    /* Plug instance fields from System.IO.FileStream */
     [PlugMember]
-    public static ulong classInstanceField
-    {
-         get; set;
-    }
-
-    /* Add private static fields to plugged class */
-    [Expose]
-    private static ulong _privateStaticField;
-
-    /* Add private fields to plugged class */
-    [Expose]
-    private static ulong _privateInstanceField;
-
-    /* Add private static methods to plugged class */
-    [Expose]
-    private static void PrivateStaticMethod()
-    {
-    }
-
-    /* Add private objects methods to plugged class */
-    [Expose]
-    private static void PrivateInstanceMethod(FileStream aThis)
-    {
-        aThis.WriteByte('a');
-    }
-
-    /* Plug non static method with aThis to access fields */
-    [PlugMember]
-    public static long Seek(FileStream aThis, long offset, SeekOrigin origin)
-    {
-        PrivateMethod();
-        _privateInstanceField = 0;
-        aThis.WriteByte('a');
-        classStaticField = 0;
-        aThis.classInstanceField = 0; //or classInstanceField = 0;
-        // ...
-    }
-
-    /* Plug static method */
-    [PlugMember]
-    public static long StaticMethod()
-    {
-
-    }
-
-    /* Access private fields from plugged class */
-    [PlugMember]
-    public static long AccessFieldsMethod(FileStream aThis, [FieldAccess(Name = &quot;InstanceField2&quot;)] ulong InstanceField2)
-    {
-        InstanceField2 = 0;
-    }
-
-    /* Assembly plug for System.IO.FileStream.WriteByte */
-    [PlugMember, RuntimeImport(&quot;asm_writebyte&quot;)]
-    public static void WriteByte(FileStream aThis, byte b);
-
+    public static bool StaticMethod() =&gt; true;   // static member: no aThis
 }
 </code></pre>
+<hr>
+<h2 id="accessing-private-and-internal-state">Accessing private and internal state</h2>
+<p>Gen2's <code>[Expose]</code> (inject new private members into the target type) and <code>[FieldAccess]</code> (bind a plug-method parameter to a private field of the target) are not implemented in the gen3 patcher; porting them is tracked in <a href="https://github.com/valentinbreiz/nativeaot-patcher/issues/458">#458</a>. Until then a plug has two options:</p>
+<ul>
+<li><strong>Side storage.</strong> Keep per-instance state in the plug class itself, keyed by the instance (<a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.Plugs/System/Net/IPEndPointPlug.cs">IPEndPointPlug.cs</a> does this with dictionaries). This replaces the target's state entirely rather than reading it, so every member that touches the state must be plugged.</li>
+<li><strong><code>[UnsafeAccessor]</code> / <code>[UnsafeAccessorType]</code>.</strong> The runtime's accessor mechanism reaches private and internal members directly. It is the unsupported escape hatch of the <a href="public-api.html">public API policy</a>; see <a href="accessing-internals.html">Accessing internals</a> for what it can and cannot do (notably: it cannot byref-return a field whose type is itself inaccessible).</li>
+</ul>
+<hr>
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+<li>A plug whose <code>TargetName</code> does not resolve fails the build unless <code>IsOptional</code> is set; an optional plug that silently stops matching keeps compiling while the target runs unpatched, so prefer non-optional plugs for anything correctness-critical.</li>
+<li>A <code>[Plug]</code> class whose members lack <code>[PlugMember]</code> patches nothing, and no error is raised: the class compiles, the target runs unpatched. This has produced real silent failures (an unplugged <code>NativeMemory</code> recursed into a triple fault), so check the attribute is on every member meant to replace something.</li>
+<li>Signature mismatches (including a missing or mistyped <code>aThis</code> parameter) mean the member is not wired up.</li>
+</ul>
 
 </article>
 

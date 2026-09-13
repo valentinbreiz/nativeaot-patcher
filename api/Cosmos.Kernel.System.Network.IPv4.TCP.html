@@ -95,37 +95,24 @@
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPOption.html">TCPOption</a></dt>
-      <dd><p>TCP Option</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.html">TcpOption</a></dt>
+      <dd><p>A TCP header option parsed from a received segment.
+Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TCPPacket.html">TCPPacket</a></dt>
-      <dd><p>TCP Packet Class</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Tcp.html">Tcp</a></dt>
-      <dd><p>Used to manage the TCP state machine.
-Handle received packets according to current TCP connection Status. Also contains TCB (Transmission Control Block) information.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TransmissionControlBlock.html">TransmissionControlBlock</a></dt>
-      <dd><p>Represents a Transmission Control Block (TCB).</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.html">TcpPacket</a></dt>
+      <dd><p>Represents a TCP segment carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a>.
+Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction and are never recomputed; the checksum
+of a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.</p>
 </dd>
     </dl>
     <h3 id="enums">
 Enums
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Flags.html">Flags</a></dt>
-      <dd><p>TCP Flags</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.Status.html">Status</a></dt>
-      <dd><p>Represents a TCP connection status.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html">TcpFlags</a></dt>
+      <dd><p>TCP header control flags, as defined by RFC 793.</p>
 </dd>
     </dl>
 

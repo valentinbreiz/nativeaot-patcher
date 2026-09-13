@@ -128,7 +128,9 @@ Interface IFileOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Flush the file's data and metadata to the backing store so completed
+writes are durable (POSIX <code>fsync</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -138,13 +140,15 @@ Interface IFileOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
-    <dd></dd>
+    <dd><p>Open file to synchronize.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success.</p>
+</dd>
   </dl>
 
 
@@ -203,7 +207,9 @@ Interface IFileOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Release driver-side state when the open file is closed.
+Implementations typically flush pending writes first.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -213,7 +219,8 @@ Interface IFileOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
-    <dd></dd>
+    <dd><p>Open file being closed.</p>
+</dd>
   </dl>
 
 
@@ -234,7 +241,10 @@ Interface IFileOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Compute and apply a new file position from <code class="paramref">offset</code>
+relative to <code class="paramref">whence</code>. Positions beyond end-of-file
+are valid; a later write zero-fills the gap.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -244,19 +254,24 @@ Interface IFileOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>openFile</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsOpenFile.html">IVfsOpenFile</a></dt>
-    <dd></dd>
+    <dd><p>Open file whose position is moved.</p>
+</dd>
     <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>Byte offset relative to <code class="paramref">whence</code>.</p>
+</dd>
     <dt><code>whence</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SeekWhence.html">SeekWhence</a></dt>
-    <dd></dd>
+    <dd><p>Origin the offset is applied to.</p>
+</dd>
     <dt><code>newPosition</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>Resulting absolute position; 0 on failure.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the resulting position would be negative.</p>
+</dd>
   </dl>
 
 

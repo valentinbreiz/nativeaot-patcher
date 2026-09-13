@@ -95,33 +95,9 @@
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSAnswer.html">DNSAnswer</a></dt>
-      <dd><p>Represents a DNS answer (response).</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacket.html">DNSPacket</a></dt>
-      <dd><p>Represents a DNS packet.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAnswer.html">DNSPacketAnswer</a></dt>
-      <dd><p>Represents a DNS translation result packet.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSPacketAsk.html">DNSPacketAsk</a></dt>
-      <dd><p>Represents a DNS translation request packet.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSQuery.html">DNSQuery</a></dt>
-      <dd><p>Represents a DNS query.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DNSRecordType.html">DNSRecordType</a></dt>
-      <dd><p>DNS resource record types this stack understands (RFC 1035).</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsAnswer.html">DnsAnswer</a></dt>
+      <dd><p>A DNS resource record parsed from the answer section of a response. Instances are parse products
+created by <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.html">DnsPacketAnswer</a>, not builder inputs.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -129,12 +105,36 @@ Classes
       <dd><p>Used to manage a DNS connection to a server.</p>
 </dd>
     </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacket.html">DnsPacket</a></dt>
+      <dd><p>Represents a DNS message carried over UDP (RFC 1035). The DNS header fields (transaction ID,
+flags and section counts) are snapshots parsed from the raw buffer at construction and are never
+recomputed.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.html">DnsPacketAnswer</a></dt>
+      <dd><p>A DNS response packet. The full parse (header counts, question and answer sections, and
+compression-pointer resolution) runs inside the constructor.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketQuery.html">DnsPacketQuery</a></dt>
+      <dd><p>A DNS query packet that composes a single A/IN question for a given domain name.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.html">DnsQuery</a></dt>
+      <dd><p>A DNS question parsed from the question section of a response. Instances are parse products
+created by <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.html">DnsPacketAnswer</a>, not builder inputs.</p>
+</dd>
+    </dl>
     <h3 id="enums">
 Enums
 </h3>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.html">ReplyCode</a></dt>
-      <dd><p>ReplyCode set in Flags</p>
+      <dd><p>DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).</p>
 </dd>
     </dl>
 

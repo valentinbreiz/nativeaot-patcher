@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Interface IScheduler | Cosmos Gen 3 ">
       
-      <meta name="description" content="Interface for pluggable scheduling algorithms. Inspired by Ekiben&#39;s EkibenScheduler trait.">
+      <meta name="description" content="A scheduling policy: everything that decides which thread runs when. The mechanism around it (the thread registry, the lifecycle transitions, the timer-tick entry, the register save and restore) is fixed. Install an implementation with .  Every hook runs in the kernel&#39;s most sensitive window. Most are called with interrupts already masked, and the two scheduling hooks run inside the timer interrupt itself; each member below says which. No hook may block, park, or wait, and none may allocate on the tick path. Four get no mask from the manager (,  and the two run-queue diagnostics) and must take  themselves before touching the run structure. The spinlock around  is not a substitute: it excludes another caller, not the tick.   Several hooks have no mechanism-side caller yet, because the kernel runs on one CPU and nothing in-tree sets priorities. Implement them, but do not expect them to be exercised.   Two rules hold for every hook. Each must tolerate being called more than once for the same thread, and each must tolerate an empty  slot, because  clears it and a thread can lose its record between a tick and the hook that observes it; that is why a hook reads the slot with as and never a cast. A record written by a different policy is never handed to a hook:  re-homes every live thread through  on the outgoing policy and  on the incoming one.  Inspired by Ekiben&#39;s EkibenScheduler trait.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,13 +97,44 @@ Interface IScheduler
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Interface for pluggable scheduling algorithms.
-Inspired by Ekiben's EkibenScheduler trait.</p>
+  <div class="markdown summary"><p>A scheduling policy: everything that decides which thread runs when.
+The mechanism around it (the thread registry, the lifecycle transitions,
+the timer-tick entry, the register save and restore) is fixed.
+Install an implementation with <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>.</p>
+<p>
+Every hook runs in the kernel's most sensitive window. Most are called
+with interrupts already masked, and the two scheduling hooks run inside
+the timer interrupt itself; each member below says which. No hook may
+block, park, or wait, and none may allocate on the tick path. Four get no
+mask from the manager (<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>,
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">GetPriority(SchedulerThread)</a> and the two run-queue diagnostics) and must
+take <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a> themselves before
+touching the run structure. The spinlock around <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>
+is not a substitute: it excludes another caller, not the tick.
+</p>
+<p>
+Several hooks have no mechanism-side caller yet, because the kernel runs
+on one CPU and nothing in-tree sets priorities. Implement them, but do
+not expect them to be exercised.
+</p>
+<p>
+Two rules hold for every hook. Each must tolerate being called more than
+once for the same thread, and each must tolerate an empty
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a> slot, because
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> clears it and a thread can lose its record
+between a tick and the hook that observes it; that is why a hook reads
+the slot with <code>as</code> and never a cast. A record written by a different
+policy is never handed to a hook: <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>
+re-homes every live thread through <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> on the
+outgoing policy and <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadCreate(PerCpuState, SchedulerThread)</a> on the incoming one.
+</p>
+<p>Inspired by Ekiben's EkibenScheduler trait.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IScheduler</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0001&quot;)]
+public interface IScheduler</code></pre>
   </div>
 
 
@@ -129,7 +160,8 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Unique name for this scheduler.</p>
+  <div class="markdown level1 summary"><p>Display name for this policy, used in boot logs and reported on the
+ring as <code>SchedulerInfo.SchedulerName</code>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -165,7 +197,8 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Periodic load balancing opportunity.</p>
+  <div class="markdown level1 summary"><p>Rebalance load across CPUs, honouring <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadFlags.html#Cosmos_Kernel_Core_Scheduler_SchedulerThreadFlags_Pinned">Pinned</a>.
+Dormant until SMP lands: nothing calls it today.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -176,9 +209,11 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU asking for work, or offering it.</p>
+</dd>
     <dt><code>allCpuStates</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a>[]</dt>
-    <dd></dd>
+    <dd><p>Every CPU the scheduler manages.</p>
+</dd>
   </dl>
 
 
@@ -194,29 +229,35 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetPriority*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetPriority(Cosmos.Kernel.Core.Scheduler.Thread)">
-  GetPriority(Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.GetPriority(Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  GetPriority(SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Get thread's current priority/weight.</p>
+  <div class="markdown level1 summary"><p>Report a thread's current priority in the same policy-defined units
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a> takes. Called from thread context with no
+guard at all, on every thread snapshot the <code>SchedulerInfo</code> facade
+takes, so it must not mutate anything and must mask itself if it reads
+something a tick can be rewriting.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">long GetPriority(Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">long GetPriority(SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread to query. This hook receives no <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a>.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>The thread's priority, or 0 when the policy does not track one for it.</p>
+</dd>
   </dl>
 
 
@@ -236,7 +277,14 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Get the number of threads in the run queue.</p>
+  <div class="markdown level1 summary"><p>Report how many threads are waiting in the run structure. Read-only
+introspection for the <code>SchedulerInfo</code> facade, called from thread
+context with no guard, so guard it yourself with
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a> if a concurrent tick
+could be mutating the structure underneath it. Masking inside the hook
+makes one call atomic and no more: a caller that counts and then reads
+each index needs its own mask around the whole walk, or the tick can
+rotate the queue between the calls.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -247,13 +295,15 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU to inspect.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>The number of queued threads.</p>
+</dd>
   </dl>
 
 
@@ -273,27 +323,30 @@ Inspired by Ekiben's EkibenScheduler trait.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Get a thread from the run queue by index.
-Returns null if index is out of range.</p>
+  <div class="markdown level1 summary"><p>Report the queued thread at a position. Same calling context and same
+guarding duty as <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueCount_Cosmos_Kernel_Core_Scheduler_PerCpuState_">GetRunQueueCount(PerCpuState)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Thread GetRunQueueThread(PerCpuState cpuState, int index)</code></pre>
+    <pre><code class="lang-csharp hljs">SchedulerThread? GetRunQueueThread(PerCpuState cpuState, int index)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU to inspect.</p>
+</dd>
     <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
+    <dd><p>Queue position, from 0 to <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetRunQueueCount_Cosmos_Kernel_Core_Scheduler_PerCpuState_">GetRunQueueCount(PerCpuState)</a> exclusive.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>The queued thread, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when the index is out of range.</p>
+</dd>
   </dl>
 
 
@@ -313,8 +366,13 @@ Returns null if index is out of range.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initialize scheduler for a specific CPU.
-Create and assign PerCpuState.SchedulerData here.</p>
+  <div class="markdown level1 summary"><p>Allocate this policy's per-CPU bookkeeping into
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a> on
+<code class="paramref">cpuState</code>. Called once per CPU by
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>, in thread context with
+interrupts masked across the whole swap, so no tick observes the
+window between the outgoing policy's <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_ShutdownCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_">ShutdownCpu(PerCpuState)</a> and
+this call.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -325,7 +383,8 @@ Create and assign PerCpuState.SchedulerData here.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU whose state to attach bookkeeping to.</p>
+</dd>
   </dl>
 
 
@@ -341,25 +400,28 @@ Create and assign PerCpuState.SchedulerData here.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnPickFailed_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnPickFailed*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnPickFailed_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnPickFailed(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnPickFailed(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnPickFailed_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnPickFailed(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnPickFailed(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Called when picked thread couldn't be scheduled.</p>
+  <div class="markdown level1 summary"><p>Put back a thread the mechanism picked but could not switch to.
+Declared for completeness; nothing calls it today.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnPickFailed(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnPickFailed(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the pick was made for.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread that could not be switched to.</p>
+</dd>
   </dl>
 
 
@@ -375,26 +437,29 @@ Create and assign PerCpuState.SchedulerData here.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadBlocked_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadBlocked*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadBlocked_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadBlocked(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnThreadBlocked(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadBlocked_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadBlocked(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnThreadBlocked(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread has blocked (I/O, lock, sleep, etc.).
-Remove from run queue, save state for resume.</p>
+  <div class="markdown level1 summary"><p>Remove the thread from the run structure and save whatever must
+survive the park. Called for a block and for a timed sleep, with
+interrupts masked.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadBlocked(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadBlocked(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread was queued on.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread parking.</p>
+</dd>
   </dl>
 
 
@@ -410,26 +475,39 @@ Remove from run queue, save state for resume.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadCreate*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadCreate(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnThreadCreate(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadCreate(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnThreadCreate(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>A new thread is being added to this CPU's management.
-Create and assign Thread.SchedulerData here.</p>
+  <div class="markdown level1 summary"><p>Allocate this policy's per-thread bookkeeping into
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a> on
+<code class="paramref">thread</code>. Do not queue the thread yet:
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadReady(PerCpuState, SchedulerThread)</a> does that. Called with interrupts masked,
+once for a new thread and once for every live thread the policy
+inherits through <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>. An
+inherited thread arrives in whatever state it is in:
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.html#Cosmos_Kernel_Core_Scheduler_SchedulerThreadState_Ready">Ready</a> ones are handed to
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadReady(PerCpuState, SchedulerThread)</a> right after, blocked and sleeping ones
+come back through it when they wake, and a
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.html#Cosmos_Kernel_Core_Scheduler_SchedulerThreadState_Running">Running</a> one keeps running and must
+be accounted as runnable without being queued. The boot thread
+arrives that way at startup as well.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadCreate(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadCreate(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is being created on.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread entering this policy's management.</p>
+</dd>
   </dl>
 
 
@@ -445,26 +523,28 @@ Create and assign Thread.SchedulerData here.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadExit*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadExit(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnThreadExit(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadExit(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnThreadExit(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread is terminating.
-Cleanup Thread.SchedulerData.</p>
+  <div class="markdown level1 summary"><p>Remove the thread everywhere and drop its bookkeeping. Called with
+interrupts masked, before the mechanism unregisters the thread.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadExit(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadExit(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread was managed on.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread terminating.</p>
+</dd>
   </dl>
 
 
@@ -480,27 +560,32 @@ Cleanup Thread.SchedulerData.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadMigrate_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadMigrate*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadMigrate_Cosmos_Kernel_Core_Scheduler_Thread_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadMigrate(Cosmos.Kernel.Core.Scheduler.Thread,Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.PerCpuState)">
-  OnThreadMigrate(Thread, PerCpuState, PerCpuState)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadMigrate_Cosmos_Kernel_Core_Scheduler_SchedulerThread_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_PerCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadMigrate(Cosmos.Kernel.Core.Scheduler.SchedulerThread,Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.PerCpuState)">
+  OnThreadMigrate(SchedulerThread, PerCpuState, PerCpuState)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread is migrating between CPUs.</p>
+  <div class="markdown level1 summary"><p>Move a thread's bookkeeping, and any virtual-time base, between CPUs.
+The mechanism never calls this; a policy calls it from its own
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_Balance_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_PerCpuState___">Balance(PerCpuState, PerCpuState[])</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadMigrate(Thread thread, PerCpuState fromState, PerCpuState toState)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadMigrate(SchedulerThread thread, PerCpuState fromState, PerCpuState toState)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread being migrated.</p>
+</dd>
     <dt><code>fromState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is leaving.</p>
+</dd>
     <dt><code>toState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is joining.</p>
+</dd>
   </dl>
 
 
@@ -516,26 +601,32 @@ Cleanup Thread.SchedulerData.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadReady*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadReady(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnThreadReady(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadReady(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnThreadReady(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread is ready to run (first time or after wakeup).
-Add to run queue.</p>
+  <div class="markdown level1 summary"><p>Make the thread runnable: place it and insert it into the run
+structure. Called for a first start, for a wake, and for a sleep
+expiry, so it arrives both from thread context with interrupts masked
+and from interrupt context, either the timer tick waking a sleeper or
+a device ISR signalling a waiter. It is the hook most likely to fire
+twice for one thread, so guard against inserting it twice.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadReady(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadReady(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is queued on.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread becoming runnable.</p>
+</dd>
   </dl>
 
 
@@ -551,25 +642,32 @@ Add to run queue.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadYield*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadYield(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread)">
-  OnThreadYield(PerCpuState, Thread)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnThreadYield(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  OnThreadYield(PerCpuState, SchedulerThread)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread voluntarily yields remaining time slice.</p>
+  <div class="markdown level1 summary"><p>Re-insert a thread that gave up the CPU while still runnable. Called
+from an explicit yield in thread context with interrupts masked, and
+from the preemption path in interrupt context, where it runs
+<em>after</em> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_PickNext_Cosmos_Kernel_Core_Scheduler_PerCpuState_">PickNext(PerCpuState)</a> has already chosen the
+replacement: the outgoing thread is not a candidate for the switch it
+is being preempted by.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void OnThreadYield(PerCpuState cpuState, Thread thread)</code></pre>
+    <pre><code class="lang-csharp hljs">void OnThreadYield(PerCpuState cpuState, SchedulerThread thread)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is queued on.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread giving up the CPU.</p>
+</dd>
   </dl>
 
 
@@ -585,33 +683,42 @@ Add to run queue.</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnTick_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnTick*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnTick_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnTick(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread,System.UInt64)">
-  OnTick(PerCpuState, Thread, ulong)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_OnTick_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_UInt64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.OnTick(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread,System.UInt64)">
+  OnTick(PerCpuState, SchedulerThread, ulong)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Timer tick - update accounting, check for preemption.</p>
+  <div class="markdown level1 summary"><p>Account the elapsed time and decide whether to preempt. Called from
+the timer interrupt, on every tick, and it is the only hook that runs
+on a fixed schedule: keep it allocation-free.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool OnTick(PerCpuState cpuState, Thread current, ulong elapsedNs)</code></pre>
+    <pre><code class="lang-csharp hljs">bool OnTick(PerCpuState cpuState, SchedulerThread current, ulong elapsedNs)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>current</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU being ticked.</p>
+</dd>
+    <dt><code>current</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread running on it.</p>
+</dd>
     <dt><code>elapsedNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
+    <dd><p>The timer's configured period in nanoseconds, not a measurement of
+how long the thread actually ran. Charging it to
+<code>Thread.TotalRuntime</code> is the policy's job, and the ring's
+busy-CPU-time reading depends on the policy doing it.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>True if reschedule needed (preemption)</p>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> to request a reschedule, which runs
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_PickNext_Cosmos_Kernel_Core_Scheduler_PerCpuState_">PickNext(PerCpuState)</a> before this interrupt returns.</p>
 </dd>
   </dl>
 
@@ -632,25 +739,34 @@ Add to run queue.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Pick the next thread to run.
-Returns null if no runnable threads (run idle).</p>
+  <div class="markdown level1 summary"><p>Pick the next thread to run. Called in interrupt context, on every
+reschedule. The outgoing thread is not in the run structure at this
+point; it goes back through <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadYield(PerCpuState, SchedulerThread)</a> afterwards.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">Thread? PickNext(PerCpuState cpuState)</code></pre>
+    <pre><code class="lang-csharp hljs">SchedulerThread? PickNext(PerCpuState cpuState)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU to schedule.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>The thread to switch to, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> to fall back to the
+CPU's idle thread. Remove the thread you return from the run
+structure: the manager re-inserts the outgoing thread through
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadYield_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadYield(PerCpuState, SchedulerThread)</a> after this call, and does not remove the
+incoming one, so leaving it queued grants it a second turn. The
+manager does not check the thread's state either, so never return one
+that is dead or parked.</p>
+</dd>
   </dl>
 
 
@@ -665,33 +781,39 @@ Returns null if no runnable threads (run idle).</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_SelectCpu_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SelectCpu*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SelectCpu_Cosmos_Kernel_Core_Scheduler_Thread_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SelectCpu(Cosmos.Kernel.Core.Scheduler.Thread,System.UInt32,System.UInt32)">
-  SelectCpu(Thread, uint, uint)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SelectCpu_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SelectCpu(Cosmos.Kernel.Core.Scheduler.SchedulerThread,System.UInt32,System.UInt32)">
+  SelectCpu(SchedulerThread, uint, uint)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Select best CPU for a new or migrating thread.</p>
+  <div class="markdown level1 summary"><p>Choose a starting CPU for a new or migrating thread, honouring
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadFlags.html#Cosmos_Kernel_Core_Scheduler_SchedulerThreadFlags_Pinned">Pinned</a>. Dormant until SMP lands: nothing
+calls it today, and this hook receives no <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">uint SelectCpu(Thread thread, uint currentCpu, uint cpuCount)</code></pre>
+    <pre><code class="lang-csharp hljs">uint SelectCpu(SchedulerThread thread, uint currentCpu, uint cpuCount)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread being placed.</p>
+</dd>
     <dt><code>currentCpu</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>CPU the thread is on now.</p>
+</dd>
     <dt><code>cpuCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>Number of CPUs the scheduler manages.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dd><p>The CPU to place the thread on.</p>
+</dd>
   </dl>
 
 
@@ -706,28 +828,36 @@ Returns null if no runnable threads (run idle).</p>
 
   <a id="Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SetPriority*"></a>
 
-  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_Thread_System_Int64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SetPriority(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.Thread,System.Int64)">
-  SetPriority(PerCpuState, Thread, long)
+  <h3 id="Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_" data-uid="Cosmos.Kernel.Core.Scheduler.IScheduler.SetPriority(Cosmos.Kernel.Core.Scheduler.PerCpuState,Cosmos.Kernel.Core.Scheduler.SchedulerThread,System.Int64)">
+  SetPriority(PerCpuState, SchedulerThread, long)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Thread's priority/weight is changing.
-Interpretation is scheduler-specific.</p>
+  <div class="markdown level1 summary"><p>Change a thread's priority. The meaning is policy-defined: Stride
+reads it as a ticket count, a real-time policy would read it as a
+priority level. Reached only through
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetPriority_System_UInt32_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(uint, SchedulerThread, long)</a>, whose per-CPU spinlock
+excludes another caller but not the timer, so this hook must take
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a> itself before touching
+the run structure.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">void SetPriority(PerCpuState cpuState, Thread thread, long priority)</code></pre>
+    <pre><code class="lang-csharp hljs">void SetPriority(PerCpuState cpuState, SchedulerThread thread, long priority)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
-    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-    <dd></dd>
+    <dd><p>CPU whose state guards the update.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread to reprioritize.</p>
+</dd>
     <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
-    <dd></dd>
+    <dd><p>New policy-defined priority.</p>
+</dd>
   </dl>
 
 
@@ -748,7 +878,12 @@ Interpretation is scheduler-specific.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Cleanup when scheduler is being replaced or shutdown.</p>
+  <div class="markdown level1 summary"><p>Release the per-CPU bookkeeping, leaving a clean slot for the incoming
+policy. Called once per CPU by
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a> before the replacement is
+initialized, in thread context with interrupts masked, like
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_InitializeCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_">InitializeCpu(PerCpuState)</a>. Thread slots are not cleared here; see
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -759,7 +894,8 @@ Interpretation is scheduler-specific.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>cpuState</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
-    <dd></dd>
+    <dd><p>CPU whose state to release bookkeeping from.</p>
+</dd>
   </dl>
 
 

@@ -123,34 +123,40 @@ Interface IInodeOperations
 
   <a id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Create_" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Create_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_HAL_Vfs_IVfsInode__" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)">
-  Create(IVfsInode, ReadOnlySpan&lt;char&gt;, ModeEnum, out IVfsInode?)
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Create_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_VfsMode_Cosmos_Kernel_HAL_Vfs_IVfsInode__" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Create(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.VfsMode,Cosmos.Kernel.HAL.Vfs.IVfsInode@)">
+  Create(IVfsInode, ReadOnlySpan&lt;char&gt;, VfsMode, out IVfsInode?)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Create an empty regular file in a directory.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool Create(IVfsInode dir, ReadOnlySpan&lt;char&gt; name, ModeEnum mode, out IVfsInode? inode)</code></pre>
+    <pre><code class="lang-csharp hljs">bool Create(IVfsInode dir, ReadOnlySpan&lt;char&gt; name, VfsMode mode, out IVfsInode? inode)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Parent directory.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
-    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.ModeEnum.html">ModeEnum</a></dt>
-    <dd></dd>
+    <dd><p>Name of the new file, a single path component.</p>
+</dd>
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
+    <dd><p>Permission bits for the new inode.</p>
+</dd>
     <dt><code>inode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Created inode on success; null on failure.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the name already exists or allocation fails.</p>
+</dd>
   </dl>
 
 
@@ -170,7 +176,11 @@ Interface IInodeOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Read the inode's attributes (POSIX <code>stat</code>). The file-type nibble of
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> is mandatory: the VFS reads it to tell a
+directory from a file, and a driver that leaves it zero has every
+directory open rejected.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -180,15 +190,18 @@ Interface IInodeOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>inode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Inode to query.</p>
+</dd>
     <dt><code>stat</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html">VfsStat</a></dt>
-    <dd></dd>
+    <dd><p>Populated attributes on success.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success.</p>
+</dd>
   </dl>
 
 
@@ -208,7 +221,8 @@ Interface IInodeOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Resolve a child entry by name within a directory.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -218,17 +232,21 @@ Interface IInodeOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Directory to search.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Child name, a single path component.</p>
+</dd>
     <dt><code>child</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Resolved child inode, or null when not found.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true when the name exists in <code class="paramref">dir</code>.</p>
+</dd>
   </dl>
 
 
@@ -243,34 +261,40 @@ Interface IInodeOperations
 
   <a id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Mkdir_" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir*"></a>
 
-  <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Mkdir_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_ModeEnum_Cosmos_Kernel_HAL_Vfs_IVfsInode__" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.ModeEnum,Cosmos.Kernel.HAL.Vfs.IVfsInode@)">
-  Mkdir(IVfsInode, ReadOnlySpan&lt;char&gt;, ModeEnum, out IVfsInode?)
+  <h3 id="Cosmos_Kernel_HAL_Vfs_IInodeOperations_Mkdir_Cosmos_Kernel_HAL_Vfs_IVfsInode_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_VfsMode_Cosmos_Kernel_HAL_Vfs_IVfsInode__" data-uid="Cosmos.Kernel.HAL.Vfs.IInodeOperations.Mkdir(Cosmos.Kernel.HAL.Vfs.IVfsInode,System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.VfsMode,Cosmos.Kernel.HAL.Vfs.IVfsInode@)">
+  Mkdir(IVfsInode, ReadOnlySpan&lt;char&gt;, VfsMode, out IVfsInode?)
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Create an empty subdirectory in a directory.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">bool Mkdir(IVfsInode dir, ReadOnlySpan&lt;char&gt; name, ModeEnum mode, out IVfsInode? inode)</code></pre>
+    <pre><code class="lang-csharp hljs">bool Mkdir(IVfsInode dir, ReadOnlySpan&lt;char&gt; name, VfsMode mode, out IVfsInode? inode)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Parent directory.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
-    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.ModeEnum.html">ModeEnum</a></dt>
-    <dd></dd>
+    <dd><p>Name of the new directory, a single path component.</p>
+</dd>
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
+    <dd><p>Permission bits for the new inode.</p>
+</dd>
     <dt><code>inode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Created inode on success; null on failure.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the name already exists or allocation fails.</p>
+</dd>
   </dl>
 
 
@@ -332,7 +356,9 @@ that need to mutate must copy.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Move an entry to a new parent and/or name. Both directories belong
+to the same filesystem instance.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -342,19 +368,24 @@ that need to mutate must copy.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>oldParent</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Directory currently holding the entry.</p>
+</dd>
     <dt><code>oldName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Current name of the entry.</p>
+</dd>
     <dt><code>newParent</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Destination directory; may equal <code class="paramref">oldParent</code>.</p>
+</dd>
     <dt><code>newName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>New name for the entry.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true when the entry was moved.</p>
+</dd>
   </dl>
 
 
@@ -374,7 +405,8 @@ that need to mutate must copy.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Remove an empty child directory.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -384,15 +416,18 @@ that need to mutate must copy.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Parent directory.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Name of the directory to remove.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the name does not exist, is not a directory, or is not empty.</p>
+</dd>
   </dl>
 
 
@@ -412,7 +447,10 @@ that need to mutate must copy.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Update the inode attributes selected by <code class="paramref">flags</code>.
+Selecting <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html#Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Size">Size</a> truncates or zero-extends
+the file; fields without a corresponding flag are ignored.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -422,17 +460,21 @@ that need to mutate must copy.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>inode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Inode to modify.</p>
+</dd>
     <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html">SetAttrFlags</a></dt>
-    <dd></dd>
+    <dd><p>Which fields of <code class="paramref">attributes</code> to apply.</p>
+</dd>
     <dt><code>attributes</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html">VfsStat</a></dt>
-    <dd></dd>
+    <dd><p>Source values for the selected fields.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when a selected change is not supported.</p>
+</dd>
   </dl>
 
 
@@ -452,7 +494,8 @@ that need to mutate must copy.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Create a symbolic link pointing at <code class="paramref">target</code>.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -462,19 +505,24 @@ that need to mutate must copy.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Parent directory.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Name of the new link, a single path component.</p>
+</dd>
     <dt><code>target</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Path the link points to; stored verbatim, not resolved.</p>
+</dd>
     <dt><code>inode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Created inode on success; null on failure.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the filesystem does not support symbolic links.</p>
+</dd>
   </dl>
 
 
@@ -494,7 +542,8 @@ that need to mutate must copy.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Remove the directory entry for a non-directory child and free its storage.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -504,15 +553,18 @@ that need to mutate must copy.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dir</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a></dt>
-    <dd></dd>
+    <dd><p>Parent directory.</p>
+</dd>
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Name of the entry to remove.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success; false when the name does not exist or names a directory.</p>
+</dd>
   </dl>
 
 

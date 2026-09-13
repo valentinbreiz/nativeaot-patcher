@@ -204,49 +204,6 @@ or no slot is free.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Storage_PartitionManager_CreateLogical_" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.CreateLogical*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_PartitionManager_CreateLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Byte_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.CreateLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Byte,System.UInt64)">
-  CreateLogical(IBlockDevice, byte, ulong)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Add a logical partition to the disk's extended partition. Returns the
-new partition's absolute start LBA, or 0 on failure (no extended
-partition, no room left, or the disk is GPT).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static ulong CreateLogical(IBlockDevice device, byte systemId, ulong sectorCount)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Storage_PartitionManager_Delete_" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.Delete*"></a>
 
   <h3 id="Cosmos_Kernel_System_Storage_PartitionManager_Delete_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Cosmos_Kernel_System_Storage_PartitionManager_PartitionLocation_" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.Delete(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,Cosmos.Kernel.System.Storage.PartitionManager.PartitionLocation)">
@@ -358,6 +315,55 @@ then rewrites the table entry. Direction-aware to handle overlap.</p>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_PartitionManager_TryCreateLogical_" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.TryCreateLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_PartitionManager_TryCreateLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Byte_System_UInt64_System_UInt64__" data-uid="Cosmos.Kernel.System.Storage.PartitionManager.TryCreateLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Byte,System.UInt64,System.UInt64@)">
+  TryCreateLogical(IBlockDevice, byte, ulong, out ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Add a logical partition to the disk's extended partition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryCreateLogical(IBlockDevice device, byte systemId, ulong sectorCount, out ulong startSector)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd><p>The disk to add the logical partition to.</p>
+</dd>
+    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Partition type byte to stamp on the new logical.</p>
+</dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Length of the new logical in sectors.</p>
+</dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Absolute LBA the new logical begins at, when the call succeeds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when the disk is GPT or unpartitioned, has no
+extended container, or the container has no room left.</p>
+</dd>
   </dl>
 
 

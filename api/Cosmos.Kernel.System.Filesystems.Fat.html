@@ -102,17 +102,6 @@ All <code>*Lba</code> fields are absolute on the underlying
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html">FatDirEntry</a></dt>
-      <dd><p>Parsed FAT directory entry. <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html#Cosmos_Kernel_System_Filesystems_Fat_FatDirEntry_ByteOffset">ByteOffset</a> is the byte position of the 8.3 record within the buffer that produced it; LFN entries that contributed to <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirEntry.html#Cosmos_Kernel_System_Filesystems_Fat_FatDirEntry_Name">Name</a> precede it.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatDirectory.html">FatDirectory</a></dt>
-      <dd><p>Parser and encoder for FAT directory clusters. Operates over raw byte
-spans; no I/O is performed here.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.html">FatFilesystemType</a></dt>
       <dd><p>FAT12 / FAT16 / FAT32 driver entry point. Pluggable into the VFS via
 <code>VfsManager.RegisterFilesystem</code>. Source strings:</p>
@@ -121,28 +110,14 @@ spans; no I/O is performed here.</p>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatFormatOptions.html">FatFormatOptions</a></dt>
-      <dd><p>Parameters for FatFilesystemType.TryFormat(System.ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?).
+      <dd><p>Parameters for <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatFilesystemType.html#Cosmos_Kernel_System_Filesystems_Fat_FatFilesystemType_TryFormat_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_IVfsFormatOptions_">TryFormat(ReadOnlySpan&lt;char&gt;, IVfsFormatOptions?)</a>.
 All <code>0</code> / null fields mean &quot;let the formatter pick a sensible default
 for the requested <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a> and the device size.&quot;</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatTable.html">FatTable</a></dt>
-      <dd><p>FAT12 / FAT16 / FAT32 table accessor and chain manager. All entry
-reads and writes go through the underlying <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a>
-using <a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatBootSector.html">FatBootSector</a> geometry. Cluster numbers coming from
-on-disk metadata are untrusted: accessors treat anything outside the
-volume's data clusters as end-of-chain and never let it drive I/O.</p>
 </dd>
     </dl>
     <h3 id="enums">
 Enums
 </h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatAttr.html">FatAttr</a></dt>
-      <dd><p>FAT directory-entry attribute bits (FAT spec).</p>
-</dd>
-    </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Filesystems.Fat.FatType.html">FatType</a></dt>
       <dd><p>FAT family identifier; selected from cluster count per the FAT32 spec.</p>

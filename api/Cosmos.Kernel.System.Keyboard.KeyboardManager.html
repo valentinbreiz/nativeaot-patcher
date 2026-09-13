@@ -165,7 +165,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool AltPressed { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool AltPressed { get; }</code></pre>
   </div>
 
 
@@ -197,7 +197,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool CapsLock { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool CapsLock { get; }</code></pre>
   </div>
 
 
@@ -229,7 +229,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool ControlPressed { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool ControlPressed { get; }</code></pre>
   </div>
 
 
@@ -325,7 +325,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool NumLock { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool NumLock { get; }</code></pre>
   </div>
 
 
@@ -357,7 +357,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool ScrollLock { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool ScrollLock { get; }</code></pre>
   </div>
 
 
@@ -389,7 +389,7 @@ Class KeyboardManager
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool ShiftPressed { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool ShiftPressed { get; }</code></pre>
   </div>
 
 
@@ -413,45 +413,6 @@ Class KeyboardManager
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKey_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKey*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKey_System_Byte_Cosmos_Kernel_System_Keyboard_KeyEvent__" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKey(System.Byte,Cosmos.Kernel.System.Keyboard.KeyEvent@)">
-  GetKey(byte, out KeyEvent?)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Attempts to convert the given physical key scan-code to a KeyEvent.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool GetKey(byte scanCode, out KeyEvent? keyInfo)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>scanCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-    <dt><code>keyInfo</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKeyLayout_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKeyLayout*"></a>
 
   <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKeyLayout" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.GetKeyLayout">
@@ -459,7 +420,7 @@ Class KeyboardManager
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the currently used keyboard layout.</p>
+  <div class="markdown level1 summary"><p>Gets the scan map that turns scan codes into characters.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -471,70 +432,11 @@ Class KeyboardManager
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a></dt>
-    <dd></dd>
+    <dd><p>The active layout, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> before a keyboard
+has been registered and when keyboard support is compiled out;
+registration installs <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMaps.USStandardLayout.html">USStandardLayout</a>.</p>
+</dd>
   </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_HandleScanCode_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.HandleScanCode*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_HandleScanCode_System_Byte_System_Boolean_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.HandleScanCode(System.Byte,System.Boolean)">
-  HandleScanCode(byte, bool)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Handles a key-press by its physical key scan-code.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void HandleScanCode(byte scanCode, bool released)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>scanCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-    <dt><code>released</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Initialize_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_Initialize" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.Initialize">
-  Initialize()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the keyboard manager.
-Call RegisterKeyboard() after this to add keyboards.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
-  </div>
-
-
 
 
 
@@ -565,7 +467,8 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
-    <dd></dd>
+    <dd><p>The next pending key event, which stays in the queue.</p>
+</dd>
   </dl>
 
 
@@ -578,7 +481,8 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   <h4 class="section">Exceptions</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
-    <dd></dd>
+    <dd><p>Keyboard support is disabled, no keyboard has been registered, or the queue is empty. Check <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyboardManager.html#Cosmos_Kernel_System_Keyboard_KeyboardManager_KeyAvailable">KeyAvailable</a> first.</p>
+</dd>
   </dl>
 
 
@@ -602,7 +506,8 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
-    <dd></dd>
+    <dd><p>The next key, once one arrives.</p>
+</dd>
   </dl>
 
 
@@ -612,38 +517,16 @@ Call RegisterKeyboard() after this to add keyboards.</p>
 
 
 
-
-
-
-  <a id="Cosmos_Kernel_System_Keyboard_KeyboardManager_RegisterKeyboard_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_KeyboardManager_RegisterKeyboard_Cosmos_Kernel_HAL_Interfaces_Devices_IKeyboardDevice_" data-uid="Cosmos.Kernel.System.Keyboard.KeyboardManager.RegisterKeyboard(Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice)">
-  RegisterKeyboard(IKeyboardDevice)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Registers a keyboard device with the manager.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RegisterKeyboard(IKeyboardDevice keyboard)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
+  <h4 class="section">Exceptions</h4>
   <dl class="parameters">
-    <dt><code>keyboard</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IKeyboardDevice.html">IKeyboardDevice</a></dt>
-    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Keyboard support is disabled,
+or no keyboard has been registered. This member returns a non-nullable
+<a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a> and so has no value meaning &quot;no key&quot;, and with
+the feature off it would otherwise wait forever on an interrupt no
+keyboard will raise.</p>
+</dd>
   </dl>
-
-
-
-
-
-
-
-
-
 
 
 
@@ -654,7 +537,13 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Sets the currently used keyboard layout.</p>
+  <div class="markdown level1 summary"><p>Sets the scan map that turns scan codes into characters. This is a
+method rather than a settable property beside
+<a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyboardManager.html#Cosmos_Kernel_System_Keyboard_KeyboardManager_GetKeyLayout">GetKeyLayout()</a> because the two halves cannot share a type:
+the read is honestly nullable, while a null layout would leave the
+interrupt path with nothing to decode with. Both forms refuse null at
+run time; only a non-nullable parameter also diagnoses it at compile
+time, which a nullable property cannot.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -665,7 +554,8 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>scanMap</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a></dt>
-    <dd></dd>
+    <dd><p>The layout to use.</p>
+</dd>
   </dl>
 
 
@@ -676,6 +566,15 @@ Call RegisterKeyboard() after this to add keyboards.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Keyboard support is disabled.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
+    <dd><p><code class="paramref">scanMap</code> is null.</p>
+</dd>
+  </dl>
 
 
 
@@ -697,13 +596,18 @@ Call RegisterKeyboard() after this to add keyboards.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>key</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
-    <dd></dd>
+    <dd><p>The key that was taken off the queue.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no key is pending, no keyboard
+has been registered, or keyboard support is compiled out. This is the
+member to use when either answer is normal, since it is the only one
+here that does not throw for an empty queue.</p>
+</dd>
   </dl>
 
 

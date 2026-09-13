@@ -95,7 +95,7 @@
 Namespaces
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Conversion.html">Cosmos.Kernel.System.Conversion</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Diagnostics.html">Cosmos.Kernel.System.Diagnostics</a></dt>
       <dd></dd>
     </dl>
     <dl class="jumplist">
@@ -104,10 +104,6 @@ Namespaces
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.html">Cosmos.Kernel.System.Graphics</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.IO.html">Cosmos.Kernel.System.IO</a></dt>
       <dd></dd>
     </dl>
     <dl class="jumplist">
@@ -146,6 +142,14 @@ Classes
       <dt><a class="xref" href="Cosmos.Kernel.System.Kernel.html">Kernel</a></dt>
       <dd><p>Base class for all Cosmos user kernels.
 Provides the BeforeRun/Run/AfterRun lifecycle pattern.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.KernelFeatures.html">KernelFeatures</a></dt>
+      <dd><p>Read-only view of the kernel feature switches, one per
+<code>CosmosEnable*</code> MSBuild property. Each flag reports whether the
+corresponding subsystem is compiled into this kernel; ILC folds the
+flags to constants, so guarded code is trimmed when a feature is off.</p>
 </dd>
     </dl>
     <dl class="jumplist">

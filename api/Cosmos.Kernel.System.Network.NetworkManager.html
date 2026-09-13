@@ -224,7 +224,8 @@ Class NetworkManager
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets whether the network manager is initialized.</p>
+  <div class="markdown level1 summary"><p>Gets whether the network manager is initialized, which is what makes
+the device table exist.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -281,19 +282,22 @@ Class NetworkManager
 
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkManager_PrimaryDevice_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.PrimaryDevice*"></a>
+  <a id="Cosmos_Kernel_System_Network_NetworkManager_MacAddress_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.MacAddress*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_PrimaryDevice" data-uid="Cosmos.Kernel.System.Network.NetworkManager.PrimaryDevice">
-  PrimaryDevice
+  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_MacAddress" data-uid="Cosmos.Kernel.System.Network.NetworkManager.MacAddress">
+  MacAddress
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the primary network device.</p>
+  <div class="markdown level1 summary"><p>The primary device's MAC address, or null when there is no device. A
+device that has not finished initializing reports
+<a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html#Cosmos_Kernel_HAL_Interfaces_Devices_MACAddress_None">None</a>, the all-zero address, rather than null;
+see <a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_Ready">Ready</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static INetworkDevice? PrimaryDevice { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static MACAddress? MacAddress { get; }</code></pre>
   </div>
 
 
@@ -302,7 +306,115 @@ Class NetworkManager
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html">MACAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_NetworkManager_Name_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Name*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_Name" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Name">
+  Name
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The primary device's name, or null when there is no device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static string? Name { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_NetworkManager_Primary_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Primary*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_Primary" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Primary">
+  Primary
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The adapter the ring uses when no other is named: the target of
+<a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_Send_System_Byte___System_Int32_">Send(byte[], int)</a>, of the primary shortcuts on this class, and of
+<a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_">Enable(Address, Address, Address)</a>.
+It starts as the first device HAL enumeration registered.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static NetworkAdapter Primary { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.NetworkAdapter.html">NetworkAdapter</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Network support is disabled.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>Thrown when the assigned handle names no registered device.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_NetworkManager_Ready_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Ready*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_Ready" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Ready">
+  Ready
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the primary device finished initializing and can carry traffic.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool Ready { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
 
@@ -317,94 +429,35 @@ Class NetworkManager
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkManager_GetDevice_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.GetDevice*"></a>
+  <a id="Cosmos_Kernel_System_Network_NetworkManager_GetAdapter_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.GetAdapter*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_GetDevice_System_Int32_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.GetDevice(System.Int32)">
-  GetDevice(int)
+  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_GetAdapter_System_Int32_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.GetAdapter(System.Int32)">
+  GetAdapter(int)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets a network device by index.</p>
+  <div class="markdown level1 summary"><p>The adapter registered at <code class="paramref">index</code>. Enumerate with
+<a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_DeviceCount">DeviceCount</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static INetworkDevice? GetDevice(int index)</code></pre>
+    <pre><code class="lang-csharp hljs">public static NetworkAdapter GetAdapter(int index)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The device index.</p>
+    <dd><p>Registration index, from 0 to <a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_DeviceCount">DeviceCount</a> - 1.</p>
 </dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
-    <dd><p>The network device, or null if not found.</p>
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.NetworkAdapter.html">NetworkAdapter</a></dt>
+    <dd><p>A handle to that device, or one whose <a class="xref" href="Cosmos.Kernel.System.Network.NetworkAdapter.html#Cosmos_Kernel_System_Network_NetworkAdapter_IsValid">IsValid</a> is false when there is none.</p>
 </dd>
   </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_NetworkManager_Initialize_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_Initialize" data-uid="Cosmos.Kernel.System.Network.NetworkManager.Initialize">
-  Initialize()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the network manager.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_NetworkManager_RegisterDevice_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.RegisterDevice*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkManager_RegisterDevice_Cosmos_Kernel_HAL_Interfaces_Devices_INetworkDevice_" data-uid="Cosmos.Kernel.System.Network.NetworkManager.RegisterDevice(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice)">
-  RegisterDevice(INetworkDevice)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Registers a network device with the manager.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RegisterDevice(INetworkDevice device)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
-    <dd><p>The network device to register.</p>
-</dd>
-  </dl>
-
 
 
 
@@ -444,7 +497,8 @@ Class NetworkManager
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>True if the packet was sent successfully.</p>
+    <dd><p>True if the packet was sent successfully, false when there is
+no primary device or network support is compiled out.</p>
 </dd>
   </dl>
 

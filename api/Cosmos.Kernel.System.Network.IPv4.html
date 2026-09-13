@@ -116,23 +116,41 @@ Classes
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.ICMPClient.html">ICMPClient</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
+      <dd><p>An IPv4 packet over Ethernet. The build constructors write the complete
+IPv4 header, including the header checksum, at construction time; the
+checksum is never recomputed, so the header bytes must not be modified
+afterwards. Derive from this class to implement a custom IP protocol:
+pass the protocol number and payload length to a build constructor and
+write the payload into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from
+<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpClient.html">IcmpClient</a></dt>
       <dd><p>Used to manage the ICMP connection to a client.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.ICMPPacket.html">ICMPPacket</a></dt>
-      <dd><p>Represents an ICMP packet.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoReply.html">IcmpEchoReply</a></dt>
+      <dd><p>An ICMP echo reply packet. The identifier and sequence properties are
+snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
+time.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
-      <dd><p>Represents an IP (Internet Protocol) packet.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoRequest.html">IcmpEchoRequest</a></dt>
+      <dd><p>An ICMP echo request packet. The identifier and sequence properties are
+snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
+time.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.OutgoingBuffer.html">OutgoingBuffer</a></dt>
-      <dd><p>Represents an outgoing IPv4 buffer. for use by drivers</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpPacket.html">IcmpPacket</a></dt>
+      <dd><p>An ICMP packet carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a> (IP protocol 1).
+Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a>
+at construction time; the checksum is computed in the constructors and never
+recomputed afterward.</p>
 </dd>
     </dl>
 

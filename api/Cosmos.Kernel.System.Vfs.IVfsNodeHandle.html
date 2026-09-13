@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Interface IVfsNodeHandle | Cosmos Gen 3 ">
       
-      <meta name="description" content="Common surface for VFS nodes (files or directories).">
+      <meta name="description" content="Common surface for VFS nodes (files or directories). The interface is disposable so both handle kinds work in using blocks, but only a file handle has anything to release: it owns the open-file state the driver keeps for a read or write position. Disposing a directory handle does nothing, and a directory handle stays usable afterwards.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -97,12 +97,16 @@ Interface IVfsNodeHandle
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Common surface for VFS nodes (files or directories).</p>
+  <div class="markdown summary"><p>Common surface for VFS nodes (files or directories). The interface is
+disposable so both handle kinds work in <code>using</code> blocks, but only a
+file handle has anything to release: it owns the open-file state the
+driver keeps for a read or write position. Disposing a directory handle
+does nothing, and a directory handle stays usable afterwards.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IVfsNodeHandle</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IVfsNodeHandle : IDisposable</code></pre>
   </div>
 
 
@@ -111,6 +115,13 @@ Interface IVfsNodeHandle
 
 
 
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable.dispose">IDisposable.Dispose()</a>
+    </div>
+  </dd></dl>
 
 
 
@@ -128,7 +139,8 @@ Interface IVfsNodeHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The underlying HAL VFS inode.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -159,7 +171,8 @@ Interface IVfsNodeHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>The name of the node inside its parent directory.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -194,7 +207,8 @@ Interface IVfsNodeHandle
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Reads the node's metadata (size, timestamps, mode).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -204,13 +218,16 @@ Interface IVfsNodeHandle
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>stat</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html">VfsStat</a></dt>
-    <dd></dd>
+    <dd><p>The node's metadata when the call succeeds.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the driver produced the metadata;
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for a disposed handle.</p>
+</dd>
   </dl>
 
 

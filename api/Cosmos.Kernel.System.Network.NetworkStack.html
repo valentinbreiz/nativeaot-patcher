@@ -153,78 +153,6 @@ Class NetworkStack
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_ConfigIP_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.ConfigIP*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_ConfigIP_Cosmos_Kernel_HAL_Interfaces_Devices_INetworkDevice_Cosmos_Kernel_System_Network_Config_IPConfig_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.ConfigIP(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice,Cosmos.Kernel.System.Network.Config.IPConfig)">
-  ConfigIP(INetworkDevice, IPConfig)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Configures an IP address on the given network device using IPConfig.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ConfigIP(INetworkDevice device, IPConfig config)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
-    <dd><p>The target network device.</p>
-</dd>
-    <dt><code>config</code> <a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html">IPConfig</a></dt>
-    <dd><p>The IP configuration to apply.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_ConfigIP_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.ConfigIP*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_ConfigIP_Cosmos_Kernel_HAL_Interfaces_Devices_INetworkDevice_Cosmos_Kernel_System_Network_IPv4_Address_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.ConfigIP(Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice,Cosmos.Kernel.System.Network.IPv4.Address)">
-  ConfigIP(INetworkDevice, Address)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Configures an IP address on the given network device.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ConfigIP(INetworkDevice device, Address ipAddress)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.INetworkDevice.html">INetworkDevice</a></dt>
-    <dd><p>The target network device.</p>
-</dd>
-    <dt><code>ipAddress</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
-    <dd><p>The IP address to assign to the device.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Network_NetworkStack_HandlePacket_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.HandlePacket*"></a>
 
   <h3 id="Cosmos_Kernel_System_Network_NetworkStack_HandlePacket_System_Byte___System_Int32_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.HandlePacket(System.Byte[],System.Int32)">
@@ -232,12 +160,16 @@ Class NetworkStack
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Handle a network packet.</p>
+  <div class="markdown level1 summary"><p>Injects a received Ethernet frame into the stack: the frame is
+dispatched to the ARP or IPv4 handler by EtherType, exactly as a
+frame arriving from a network device would be. This is the receive
+entry point registered on every configured device.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void HandlePacket(byte[] packetData, int length)</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public static void HandlePacket(byte[] packetData, int length)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -261,33 +193,6 @@ Class NetworkStack
 
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_Initialize_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Initialize*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_Initialize" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Initialize">
-  Initialize()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the network stack.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Network_NetworkStack_RemoveAllConfigIP_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP*"></a>
 
   <h3 id="Cosmos_Kernel_System_Network_NetworkStack_RemoveAllConfigIP" data-uid="Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP">
@@ -295,7 +200,8 @@ Class NetworkStack
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Removes all IP configurations.</p>
+  <div class="markdown level1 summary"><p>Removes all IP configurations, clearing the stack's address and MAC
+maps with them. The counterpart of <a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_">Enable(Address, Address, Address)</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -315,22 +221,38 @@ Class NetworkStack
 
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_Update_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Update*"></a>
+  <a id="Cosmos_Kernel_System_Network_NetworkStack_Send_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Send*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_Update" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Update">
-  Update()
+  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_Send_Cosmos_Kernel_System_Network_IPv4_IPPacket_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Send(Cosmos.Kernel.System.Network.IPv4.IPPacket)">
+  Send(IPPacket)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Updates the network stack (sends pending packets).</p>
+  <div class="markdown level1 summary"><p>Transmits a packet through the stack's outgoing queue: the sending
+device is resolved from the packet's source address, the destination
+MAC is resolved by ARP for non-broadcast destinations, and the queue
+is pumped before returning.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Update()</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public static bool Send(IPPacket packet)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>packet</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
+    <dd><p>A built packet, typically created through one of the packet type constructors.</p>
+</dd>
+  </dl>
 
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>False when no configured interface matches the packet's source address; the packet is not queued in that case.</p>
+</dd>
+  </dl>
 
 
 

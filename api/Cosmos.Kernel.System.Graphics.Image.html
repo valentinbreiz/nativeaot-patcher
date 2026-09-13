@@ -162,8 +162,8 @@ Class Image
 
   <a id="Cosmos_Kernel_System_Graphics_Image__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Image.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_Image__ctor_System_UInt32_System_UInt32_Cosmos_Kernel_System_Graphics_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Image.#ctor(System.UInt32,System.UInt32,Cosmos.Kernel.System.Graphics.ColorDepth)">
-  Image(uint, uint, ColorDepth)
+  <h3 id="Cosmos_Kernel_System_Graphics_Image__ctor_System_Int32_System_Int32_Cosmos_Kernel_System_Graphics_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Image.#ctor(System.Int32,System.Int32,Cosmos.Kernel.System.Graphics.ColorDepth)">
+  Image(int, int, ColorDepth)
   
   </h3>
 
@@ -172,18 +172,18 @@ Class Image
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected Image(uint width, uint height, ColorDepth color)</code></pre>
+    <pre><code class="lang-csharp hljs">protected Image(int width, int height, ColorDepth colorDepth)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><code>width</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd><p>The width of the image.</p>
 </dd>
-    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><code>height</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd><p>The height of the image.</p>
 </dd>
-    <dt><code>color</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
+    <dt><code>colorDepth</code> <a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
     <dd><p>The color depth of each pixel.</p>
 </dd>
   </dl>
@@ -199,63 +199,24 @@ Class Image
 
 
 
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_RawData" data-uid="Cosmos.Kernel.System.Graphics.Image.RawData">
-  RawData
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The raw data of the image. This array holds all of the pixel
-values of the raster image.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public int[] RawData</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-  <h4 class="section" id="Cosmos_Kernel_System_Graphics_Image_RawData_remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><p>Must be initialized in supertype.</p>
-</div>
-
-
-
-
   <h2 class="section" id="properties">Properties
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Graphics_Image_Depth_" data-uid="Cosmos.Kernel.System.Graphics.Image.Depth*"></a>
+  <a id="Cosmos_Kernel_System_Graphics_Image_ColorDepth_" data-uid="Cosmos.Kernel.System.Graphics.Image.ColorDepth*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Graphics_Image_Depth" data-uid="Cosmos.Kernel.System.Graphics.Image.Depth">
-  Depth
+  <h3 id="Cosmos_Kernel_System_Graphics_Image_ColorDepth" data-uid="Cosmos.Kernel.System.Graphics.Image.ColorDepth">
+  ColorDepth
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The color depth of each pixel of the image - i.e, the amount
-of bits per each pixel.</p>
+  <div class="markdown level1 summary"><p>The color depth of each pixel of the image, i.e. the amount of bits
+per each pixel.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ColorDepth Depth { get; protected set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public ColorDepth ColorDepth { get; }</code></pre>
   </div>
 
 
@@ -287,7 +248,7 @@ of bits per each pixel.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Height { get; protected set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public int Height { get; }</code></pre>
   </div>
 
 
@@ -296,13 +257,53 @@ of bits per each pixel.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
 
 
 
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Image_RawData_" data-uid="Cosmos.Kernel.System.Graphics.Image.RawData*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Image_RawData" data-uid="Cosmos.Kernel.System.Graphics.Image.RawData">
+  RawData
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The raw data of the image. This array holds all of the pixel
+values of the raster image.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int[] RawData { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Graphics_Image_RawData_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Established by the concrete image type, which is why the property
+starts null despite its non-nullable type. Like the other three
+setters here it is internal: the decoders that fill an image and the
+canvases that read pixels back both live in this assembly, and
+nothing outside it derives an image.</p>
+</div>
 
 
 
@@ -319,7 +320,7 @@ of bits per each pixel.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public uint Width { get; protected set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public int Width { get; }</code></pre>
   </div>
 
 
@@ -328,7 +329,7 @@ of bits per each pixel.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 

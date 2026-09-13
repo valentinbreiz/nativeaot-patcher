@@ -160,7 +160,8 @@ Interface ISuperblockOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Read filesystem-level statistics (POSIX <code>statfs</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -170,15 +171,18 @@ Interface ISuperblockOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>superblock</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html">IVfsSuperblock</a></dt>
-    <dd></dd>
+    <dd><p>Mount to query.</p>
+</dd>
     <dt><code>statFs</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStatFs.html">VfsStatFs</a></dt>
-    <dd></dd>
+    <dd><p>Populated statistics on success.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success.</p>
+</dd>
   </dl>
 
 
@@ -198,7 +202,9 @@ Interface ISuperblockOperations
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Flush all dirty filesystem state to the backing store so completed
+writes are durable (POSIX <code>sync</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -208,13 +214,15 @@ Interface ISuperblockOperations
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>superblock</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsSuperblock.html">IVfsSuperblock</a></dt>
-    <dd></dd>
+    <dd><p>Mount to synchronize.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p>true on success.</p>
+</dd>
   </dl>
 
 

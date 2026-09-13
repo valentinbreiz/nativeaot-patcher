@@ -95,6 +95,23 @@
 Classes
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Timer.AlarmManager.html">AlarmManager</a></dt>
+      <dd><p>Runs callbacks after a delay on a dedicated kernel thread. Alarm callbacks
+run in thread context, so they may block, allocate and use scheduler
+primitives, unlike the interrupt-context callbacks of
+<a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_TimeSpan_">Schedule(Action, TimeSpan)</a>. Requires the scheduler; resolution is
+bounded by the scheduler tick.</p>
+<p>
+The scheduling calls themselves also run in thread context only. Every
+member here takes the alarm list's mutex and parks if it is held, so
+calling one from an interrupt handler, a <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html">TimerManager</a>
+callback included, parks inside the handler and hangs. The
+<a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html">TimerManager</a> members mask interrupts instead of parking and
+have no such restriction.
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html">TimerManager</a></dt>
       <dd><p>Manages system timers.</p>
 </dd>

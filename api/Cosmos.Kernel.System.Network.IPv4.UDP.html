@@ -106,21 +106,16 @@ Namespaces
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket.html">UDPPacket</a></dt>
-      <dd><p>Represents a UDP packet.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html">UdpClient</a></dt>
       <dd><p>Used to manage the UDP connection to a client.</p>
 </dd>
     </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UDPDataReceivedHandler.html">UDPDataReceivedHandler</a></dt>
-      <dd><p>Delegate for UDP data received events.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a></dt>
+      <dd><p>Represents a UDP datagram carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a>. Header properties are
+snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> when the packet is constructed;
+they are not re-read afterwards. The UDP checksum field is written as zero and never
+computed, which is legal for UDP over IPv4.</p>
 </dd>
     </dl>
 

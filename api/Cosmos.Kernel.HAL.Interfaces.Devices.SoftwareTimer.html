@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class SoftwareTimer | Cosmos Gen 3 ">
       
-      <meta name="description" content="A software timer that invokes a callback after a delay, driven by the periodic tick of the timer device it is registered with. Callbacks run in interrupt context and must not block.">
+      <meta name="description" content="A software timer that invokes a callback after a delay, driven by the periodic tick of the timer device it is registered with. Callbacks run in interrupt context: they must not block, and an exception escaping one halts the kernel, because the interrupt dispatch has no handler above it.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -99,7 +99,8 @@ Class SoftwareTimer
 
   <div class="markdown summary"><p>A software timer that invokes a callback after a delay, driven by the
 periodic tick of the timer device it is registered with. Callbacks run
-in interrupt context and must not block.</p>
+in interrupt context: they must not block, and an exception escaping one
+halts the kernel, because the interrupt dispatch has no handler above it.</p>
 </div>
   <div class="markdown conceptual"></div>
 
@@ -146,49 +147,11 @@ in interrupt context and must not block.</p>
 
 
 
-
-
-  <h2 class="section" id="constructors">Constructors
-</h2>
-
-
-  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer__ctor_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer__ctor_System_Action_System_UInt64_System_Boolean_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.#ctor(System.Action,System.UInt64,System.Boolean)">
-  SoftwareTimer(Action, ulong, bool)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes a new software timer with the specified callback and delay.</p>
+  <h2 id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>A kernel obtains one from TimerManager.Schedule or ScheduleRecurring and
+passes it back to TimerManager.Cancel. Creating one and driving its tick
+state belongs to the timer device, so those members are internal.</p>
 </div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public SoftwareTimer(Action callback, ulong timeoutNs, bool recurring)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>callback</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
-    <dd><p>The method to invoke when the timer fires.</p>
-</dd>
-    <dt><code>timeoutNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd><p>The delay before the timer fires, in nanoseconds. For recurring timers, the period between firings.</p>
-</dd>
-    <dt><code>recurring</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether the timer reloads after firing, or fires only once.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
 
 
   <h2 class="section" id="properties">Properties
@@ -284,110 +247,6 @@ timers become inactive after firing; unregistering also deactivates.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
-
-
-
-
-
-
-
-
-  <h2 class="section" id="methods">Methods
-</h2>
-
-
-  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Invoke_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Invoke" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Invoke">
-  Invoke()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Invokes the timer callback. Called by the timer device when the timer is due.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Invoke()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_SetActive_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_SetActive_System_Boolean_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.SetActive(System.Boolean)">
-  SetActive(bool)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Marks the timer active or inactive. Called by the timer device on
-registration and unregistration; activating reloads the full timeout.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void SetActive(bool active)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>active</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Tick_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick*"></a>
-
-  <h3 id="Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_Tick_System_UInt64_" data-uid="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.Tick(System.UInt64)">
-  Tick(ulong)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Advances the timer by the elapsed tick duration. Called by the timer
-device on each hardware tick.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Tick(ulong elapsedNs)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>elapsedNs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd><p>Nanoseconds elapsed since the previous tick.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>True when the timer is due; recurring timers reload automatically.</p>
-</dd>
-  </dl>
-
-
-
 
 
 

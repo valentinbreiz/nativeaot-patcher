@@ -95,8 +95,28 @@
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ARPPacket.html">ARPPacket</a></dt>
-      <dd><p>Represents an ARP (Address Resolution Protocol) packet.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ArpPacket.html">ArpPacket</a></dt>
+      <dd><p>Represents an ARP (Address Resolution Protocol) frame carried over Ethernet with EtherType 0x0806.
+The header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> once, at
+construction, and are never re-read afterwards.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ArpPacketEthernet.html">ArpPacketEthernet</a></dt>
+      <dd><p>Represents an ARP packet for IPv4 over Ethernet: hardware type 1, protocol type 0x0800,
+with 6-byte hardware and 4-byte protocol addresses. The address properties are snapshots
+parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> once, at construction, and are never
+re-read afterwards.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ArpReplyEthernet.html">ArpReplyEthernet</a></dt>
+      <dd><p>Represents an ARP reply packet (operation code 2) for IPv4 over Ethernet.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.ARP.ArpRequestEthernet.html">ArpRequestEthernet</a></dt>
+      <dd><p>Represents an ARP request packet (operation code 1) for IPv4 over Ethernet.</p>
 </dd>
     </dl>
 

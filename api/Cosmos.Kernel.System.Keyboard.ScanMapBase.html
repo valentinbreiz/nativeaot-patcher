@@ -161,59 +161,32 @@ Class ScanMapBase
 
 
 
-  <h2 class="section" id="constructors">Constructors
+  <h2 class="section" id="properties">Properties
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase__ctor_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase__ctor" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.#ctor">
-  ScanMapBase()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html">ScanMapBase</a> class.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected ScanMapBase()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
+  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase_Keys_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.Keys*"></a>
 
   <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase_Keys" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.Keys">
   Keys
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The available key mappings.</p>
+  <div class="markdown level1 summary"><p>The available key mappings. The list is created here and stays the
+same instance for the life of the layout; <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html#Cosmos_Kernel_System_Keyboard_ScanMapBase_InitializeKeys">InitializeKeys()</a>
+adds to it.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected List&lt;KeyMapping&gt; Keys</code></pre>
+    <pre><code class="lang-csharp hljs">protected List&lt;KeyMapping&gt; Keys { get; }</code></pre>
   </div>
 
 
 
 
-  <h4 class="section">Field Value</h4>
+
+  <h4 class="section">Property Value</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyMapping.html">KeyMapping</a>&gt;</dt>
     <dd></dd>
@@ -226,125 +199,28 @@ Class ScanMapBase
 
 
 
-
   <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase_ConvertScanCode_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.ConvertScanCode*"></a>
+  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase_InitializeKeys_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.InitializeKeys*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase_ConvertScanCode_System_Byte_System_Boolean_System_Boolean_System_Boolean_System_Boolean_System_Boolean_System_Boolean_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.ConvertScanCode(System.Byte,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
-  ConvertScanCode(byte, bool, bool, bool, bool, bool, bool)
+  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase_InitializeKeys" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.InitializeKeys">
+  InitializeKeys()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Converts the given scan code to a <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a> instance.</p>
+  <div class="markdown level1 summary"><p>Adds this layout's mappings to <a class="xref" href="Cosmos.Kernel.System.Keyboard.ScanMapBase.html#Cosmos_Kernel_System_Keyboard_ScanMapBase_Keys">Keys</a>. Called once, the
+first time a scan code reaches the layout, so a derived layout's own
+field initializers and constructor have already run by then.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public KeyEvent? ConvertScanCode(byte scanKey, bool ctrl, bool shift, bool alt, bool numLock, bool capsLock, bool scrollLock)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>scanKey</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>The scanned (pressed) key.</p>
-</dd>
-    <dt><code>ctrl</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether the Control (Ctrl) key is pressed.</p>
-</dd>
-    <dt><code>shift</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether the Shift key is pressed.</p>
-</dd>
-    <dt><code>alt</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether the Alt key is pressed.</p>
-</dd>
-    <dt><code>numLock</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether num-lock is active.</p>
-</dd>
-    <dt><code>capsLock</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether caps-lock is active.</p>
-</dd>
-    <dt><code>scrollLock</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Whether scroll-lock is active.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a></dt>
-    <dd><p>The translated <a class="xref" href="Cosmos.Kernel.System.Keyboard.KeyEvent.html">KeyEvent</a>.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase_InitKeys_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.InitKeys*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase_InitKeys" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.InitKeys">
-  InitKeys()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Initializes the key list.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected abstract void InitKeys()</code></pre>
+    <pre><code class="lang-csharp hljs">protected abstract void InitializeKeys()</code></pre>
   </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Keyboard_ScanMapBase_ScanCodeMatchesKey_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.ScanCodeMatchesKey*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Keyboard_ScanMapBase_ScanCodeMatchesKey_System_Byte_Cosmos_Kernel_System_Keyboard_ConsoleKeyEx_" data-uid="Cosmos.Kernel.System.Keyboard.ScanMapBase.ScanCodeMatchesKey(System.Byte,Cosmos.Kernel.System.Keyboard.ConsoleKeyEx)">
-  ScanCodeMatchesKey(byte, ConsoleKeyEx)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Checks if the given scan code matches the specified key.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool ScanCodeMatchesKey(byte scanCode, ConsoleKeyEx key)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>scanCode</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>The physical keyboard scan-code.</p>
-</dd>
-    <dt><code>key</code> <a class="xref" href="Cosmos.Kernel.System.Keyboard.ConsoleKeyEx.html">ConsoleKeyEx</a></dt>
-    <dd><p>The virtual mapping key.</p>
-</dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
 
 
 

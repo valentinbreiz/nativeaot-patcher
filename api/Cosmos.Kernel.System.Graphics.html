@@ -109,13 +109,18 @@ Classes
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
       <dd><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
-canvas, or subclassed for hardware-backed canvases (e.g. <span class="xref">Cosmos.Kernel.System.Graphics.GopCanvas</span>).</p>
+canvas, or subclassed for hardware-backed canvases.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.FullScreenCanvas.html">FullScreenCanvas</a></dt>
-      <dd><p>Provides functionality to fetch canvases that write directly to the
-underlying display device.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a></dt>
+      <dd><p>A canvas backed by a device that can render 3D primitives. On top of the
+2D <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> surface, a 3D canvas draws device-owned meshes
+(<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_CreateMesh_System_ReadOnlySpan_System_Numerics_Vector3__System_ReadOnlySpan_System_UInt32__System_ReadOnlySpan_System_UInt16__">CreateMesh(ReadOnlySpan&lt;Vector3&gt;, ReadOnlySpan&lt;uint&gt;, ReadOnlySpan&lt;ushort&gt;)</a>,
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_DrawMesh_Cosmos_Kernel_System_Graphics_Mesh_System_Numerics_Matrix4x4__">DrawMesh(Mesh, in Matrix4x4)</a>) as seen through
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_Camera">Camera</a>. A frame is composed by calling
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_ClearScene_System_Drawing_Color_System_Single_">ClearScene(Color, float)</a>, issuing draw calls, and presenting with
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Display">Display()</a>.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -131,6 +136,14 @@ Can be instantiated on any canvas (hardware or virtual).</p>
 </dd>
     </dl>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mesh.html">Mesh</a></dt>
+      <dd><p>A set of 3D primitives uploaded to a 3D device. Created with one of the
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a> <code>CreateMesh</code> overloads and drawn with
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_DrawMesh_Cosmos_Kernel_System_Graphics_Mesh_System_Numerics_Matrix4x4__">DrawMesh(Mesh, in Matrix4x4)</a>;
+dispose it to release the device memory it occupies.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a></dt>
       <dd><p>Represents a PNG image. All PNG color types are supported (grayscale,
 truecolor and palette, with or without alpha), at every legal bit depth,
@@ -140,25 +153,26 @@ Credits page of the documentation).</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.SVGAII3DCanvas.html">SVGAII3DCanvas</a></dt>
-      <dd><p>Defines a VMWare SVGAII canvas implementation.
-Please note that this implementation of <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> can only be
-used with virtualizers that implement SVGAII. This class will not work on
-regular hardware.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Texture.html">Texture</a></dt>
+      <dd><p>An image uploaded to a 3D device, ready to be mapped onto meshes. Created
+with <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_CreateTexture_Cosmos_Kernel_System_Graphics_Image_">CreateTexture(Image)</a>; dispose it to release the
+device memory it occupies.</p>
 </dd>
     </dl>
     <h3 id="structs">
 Structs
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Cell.html">Cell</a></dt>
-      <dd><p>Represents a single cell in the terminal grid.
-Each cell contains a character and its associated colors.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Camera3D.html">Camera3D</a></dt>
+      <dd><p>Describes the point of view used for 3D drawing on a <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a>.
+The aspect ratio always comes from the canvas mode, so a camera only
+carries where it stands, what it looks at, and its field of view.</p>
 </dd>
     </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
-      <dd><p>Represents a video mode, definining its width (rows), height (columns) and color depth.</p>
+      <dd><p>Represents a video mode: the width and height of the display in pixels, and
+the number of bits each pixel takes.</p>
 </dd>
     </dl>
     <h3 id="enums">
@@ -172,11 +186,6 @@ Enums
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorOrder.html">ColorOrder</a></dt>
       <dd><p>Describes the order in which the colors are stored in each pixel of an image.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ImageFormat.html">ImageFormat</a></dt>
-      <dd><p>Supported image formats.</p>
 </dd>
     </dl>
 

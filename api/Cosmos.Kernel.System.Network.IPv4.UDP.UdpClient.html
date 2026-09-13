@@ -126,7 +126,7 @@ Class UdpClient
   <dl class="typelist derived">
     <dt>Derived</dt>
     <dd>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.html">DHCPClient</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.html">DhcpClient</a></div>
       <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html">DnsClient</a></div>
     </dd>
   </dl>
@@ -241,83 +241,18 @@ Class UdpClient
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public UdpClient(int _localPort)</code></pre>
+    <pre><code class="lang-csharp hljs">public UdpClient(int localPort)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>_localPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dt><code>localPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd><p>Local port.</p>
 </dd>
   </dl>
 
 
 
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="fields">Fields
-</h2>
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_DynamicPortStart" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.DynamicPortStart">
-  DynamicPortStart
-  
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static ushort DynamicPortStart</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_rxBuffer" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.rxBuffer">
-  rxBuffer
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>The RX buffer queue.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Queue&lt;UDPPacket&gt; rxBuffer</code></pre>
-  </div>
-
-
-
-
-  <h4 class="section">Field Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.queue-1">Queue</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UDPPacket.html">UDPPacket</a>&gt;</dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -376,10 +311,10 @@ Class UdpClient
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
-    <dd><p>The _destination address.</p>
+    <dd><p>Destination address.</p>
 </dd>
     <dt><code>destPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The _destination port.</p>
+    <dd><p>Destination port.</p>
 </dd>
   </dl>
 
@@ -401,7 +336,9 @@ Class UdpClient
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</p>
+  <div class="markdown level1 summary"><p>Closes the client and retires it. Unlike <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Close">Close()</a>, which a
+client reopens by connecting again, disposal is final: every other
+member throws <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.objectdisposedexception">ObjectDisposedException</a> afterwards.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -439,51 +376,18 @@ Class UdpClient
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>tries</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_NonBlockingReceive_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.NonBlockingReceive*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_NonBlockingReceive_Cosmos_Kernel_System_Network_IPv4_EndPoint__" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.NonBlockingReceive(Cosmos.Kernel.System.Network.IPv4.EndPoint@)">
-  NonBlockingReceive(ref EndPoint)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Receives data from the given end-point (non-blocking).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte[]? NonBlockingReceive(ref EndPoint source)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-    <dd><p>The source end point.</p>
+    <dd><p>How many consecutive ports to try before giving up.</p>
 </dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
-    <dd></dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd><p>A port no live client is bound to, or 0 when
+<code class="paramref">tries</code> consecutive candidates were all taken. Zero is
+not a usable port, but it is also what an unbound client reports, so a
+caller that keeps the value must not later read it back as a binding.</p>
+</dd>
   </dl>
 
 
@@ -498,30 +402,124 @@ Class UdpClient
 
   <a id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Receive_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Receive*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Receive_Cosmos_Kernel_System_Network_IPv4_EndPoint__" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Receive(Cosmos.Kernel.System.Network.IPv4.EndPoint@)">
-  Receive(ref EndPoint)
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Receive_Cosmos_Kernel_System_Network_IPv4_EndPoint__System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Receive(Cosmos.Kernel.System.Network.IPv4.EndPoint@,System.Int32)">
+  Receive(ref EndPoint, int)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Receives data from the given end-point (blocking).</p>
+  <div class="markdown level1 summary"><p>Receives a datagram, waiting up to <code class="paramref">timeoutMs</code> for one
+to arrive.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public byte[] Receive(ref EndPoint source)</code></pre>
+    <pre><code class="lang-csharp hljs">public byte[]? Receive(ref EndPoint source, int timeoutMs = 5000)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-    <dd><p>The source end point.</p>
+    <dd><p>Carries the sender's end point back when a datagram arrives.</p>
+</dd>
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>How long to wait, in milliseconds; 0 polls and returns at once.</p>
 </dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
-    <dd></dd>
+    <dd><p>The datagram payload, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when none arrived in time.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_ReceivePacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.ReceivePacket*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_ReceivePacket_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.ReceivePacket(System.Int32)">
+  ReceivePacket(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Waits for a datagram to arrive on this client's local port and returns the parsed
+<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a> itself, without re-parsing. Unlike
+<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Receive_Cosmos_Kernel_System_Network_IPv4_EndPoint__System_Int32_">Receive(ref EndPoint, int)</a>, which returns the payload
+bytes alone, the returned packet exposes the ports, the source and destination
+addresses, and the payload. Polls the receive buffer in 10 millisecond slices.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public UdpPacket? ReceivePacket(int timeoutMs = 5000)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timeoutMs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Maximum time to wait in milliseconds; a non-positive value
+checks the receive buffer once without waiting.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a></dt>
+    <dd><p>The dequeued packet, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when the timeout elapses with
+no datagram queued.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Send*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_Cosmos_Kernel_System_Network_IPv4_UDP_UdpPacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.Send(Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket)">
+  Send(UdpPacket)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Transmits a prebuilt UDP packet through the stack's outgoing queue, including ARP
+resolution of the destination MAC address when it is not already known.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public bool Send(UdpPacket packet)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>packet</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a></dt>
+    <dd><p>The packet to transmit.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the packet was queued for transmission;
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no configured network interface matches the packet's
+source address.</p>
+</dd>
   </dl>
 
 
@@ -564,6 +562,16 @@ Class UdpClient
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.objectdisposedexception">ObjectDisposedException</a></dt>
+    <dd><p>The client has been disposed.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>No default remote host has
+been set, or no configured interface can reach it.</p>
+</dd>
+  </dl>
 
 
 
@@ -588,10 +596,10 @@ Class UdpClient
     <dd><p>The data to send.</p>
 </dd>
     <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
-    <dd><p>The _destination address.</p>
+    <dd><p>Destination address.</p>
 </dd>
     <dt><code>destPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The _destination port.</p>
+    <dd><p>Destination port.</p>
 </dd>
   </dl>
 
@@ -603,6 +611,16 @@ Class UdpClient
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.objectdisposedexception">ObjectDisposedException</a></dt>
+    <dd><p>The client has been disposed.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>No configured interface can
+reach <code class="paramref">dest</code>.</p>
+</dd>
+  </dl>
 
 
 

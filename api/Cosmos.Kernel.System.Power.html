@@ -149,6 +149,47 @@ Class Power
 
 
 
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Power_IsSupported_" data-uid="Cosmos.Kernel.System.Power.IsSupported*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Power_IsSupported" data-uid="Cosmos.Kernel.System.Power.IsSupported">
+  IsSupported
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the platform can carry out <a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Reboot">Reboot()</a> and
+<a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Shutdown">Shutdown()</a>. False before the platform HAL is initialized
+and on a platform that publishes no power operations, where both
+members fall back to <a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt">Halt()</a> and never return.
+<a class="xref" href="Cosmos.Kernel.System.Power.html#Cosmos_Kernel_System_Power_Halt">Halt()</a> itself needs no such check: it parks the CPU either
+way.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsSupported { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 

@@ -133,7 +133,56 @@
 <p>The configuration names above are what the template generates. When working on the framework repository itself, the equivalent configurations are named <strong>Debug x64 DevKernel</strong> / <strong>Debug ARM64 DevKernel</strong>.</p>
 <hr>
 <h2 id="serial-log">Serial log</h2>
-<p>Every kernel boot phase logs to the serial port (COM1); <code>cosmos run</code> and <code>make run</code> connect it to your terminal. When a kernel does not come up, or crashes before the debugger is useful, the serial log is the first thing to read; see <a href="startup.html">Kernel Startup</a> for a phase-by-phase walkthrough and how to symbolicate crash addresses.</p>
+<p>Every kernel boot phase logs to the serial port (COM1 on x64, PL011 on ARM64), which <code>cosmos run</code> connects to your terminal. When a kernel does not come up, or crashes before the debugger is useful, the serial log is the first thing to read; see <a href="startup.html">Kernel Startup</a> for a phase-by-phase walkthrough and how to symbolicate crash addresses.</p>
+<hr>
+<h2 id="writing-to-the-serial-log">Writing to the serial log</h2>
+<p><code>Log</code> puts your own output on that same stream. It is the counterpart to <code>Console.WriteLine</code>, and the difference matters in exactly the cases you reach for a log: <code>Console</code> draws onto the framebuffer canvas, so it needs graphics to be up, it repaints the screen on every write, and it allocates. <code>Log</code> writes straight to the serial port, synchronously, without allocating for strings and numbers, and works from the first line of <code>BeforeRun</code> onward, before there is a console to write to and after a crash has taken the framebuffer with it.</p>
+<pre><code class="lang-csharp">using Cosmos.Kernel.System.Diagnostics;
+using Cosmos.Kernel.System.Storage;
+
+Log.WriteString(&quot;storage: &quot;);
+Log.WriteNumber(StorageManager.DeviceCount);
+Log.WriteString(&quot; device(s), &quot;);
+Log.WriteNumber(StorageManager.Partitions.Count);
+Log.WriteString(&quot; partition(s)\n&quot;);
+</code></pre>
+<p>There is no <code>WriteLine</code>: append <code>&quot;\n&quot;</code> yourself, which is what the kernel does throughout.</p>
+<table>
+<thead>
+<tr>
+<th>Call</th>
+<th>Writes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Log.WriteString(text)</code></td>
+<td>A string. Takes a non-null argument</td>
+</tr>
+<tr>
+<td><code>Log.Write(a, b, c)</code></td>
+<td>Each argument's <code>ToString()</code>, in order. Accepts null and writes <code>null</code> for it</td>
+</tr>
+<tr>
+<td><code>Log.WriteNumber(n)</code></td>
+<td>A number in decimal. Overloads for <code>int</code>, <code>uint</code>, <code>long</code> and <code>ulong</code></td>
+</tr>
+<tr>
+<td><code>Log.WriteHex(n)</code></td>
+<td>A number in hexadecimal</td>
+</tr>
+<tr>
+<td><code>Log.WriteHexWithPrefix(n)</code></td>
+<td>The same with a leading <code>0x</code></td>
+</tr>
+<tr>
+<td><code>Log.WriteBytes(span)</code></td>
+<td>Raw bytes, unformatted</td>
+</tr>
+</tbody>
+</table>
+<p>Reach for <code>WriteString</code> and <code>WriteNumber</code> over <code>Write</code> on any path that runs often or runs early. The argument list of <code>Write</code> is built on the stack and costs nothing, but a number or a <code>bool</code> passed to it is boxed first, and that box is a heap allocation the typed overloads do not make.</p>
+<p>The serial port itself is behind the <code>CosmosEnableUART</code> feature switch. With it off the calls still return normally, but nothing reaches the serial stream, so a kernel that turns the switch off should not rely on <code>Log</code> for anything it needs to read back.</p>
 <hr>
 <h2 id="known-limitations">Known limitations</h2>
 <ul>

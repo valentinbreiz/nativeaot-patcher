@@ -91,63 +91,9 @@
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Stride.html">Cosmos.Kernel.Core.Scheduler.Stride</a></dt>
-      <dd></dd>
-    </dl>
     <h3 id="classes">
 Classes
 </h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.html">AlarmSystem</a></dt>
-      <dd><p>Runs callbacks after a delay on a dedicated kernel thread. Unlike
-interrupt-context software timers (TimerManager.Schedule), alarm callbacks
-run in thread context and may block, allocate, and use scheduler
-primitives. Requires the scheduler; resolution is bounded by the scheduler
-tick.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ConditionVariable.html">ConditionVariable</a></dt>
-      <dd><p>A condition variable primitive for coordinating scheduler threads around state changes.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ContextSwitch.html">ContextSwitch</a></dt>
-      <dd><p>Low-level context switch operations.
-Native imports live in Cosmos.Kernel.Core/Bridge/Import/ContextSwitchNative.cs.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html">InterruptEvent</a></dt>
-      <dd><p>One-shot binary completion event with auto-reset semantics, designed
-to be signaled from an ISR and waited on from a normal thread.</p>
-<p><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Wait">Wait()</a> blocks the caller via <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_BlockThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_">BlockThread(uint, Thread)</a>
-until <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> is called. <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> only walks
-internal state with the spinlock held and calls
-<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_ReadyThread_System_UInt32_Cosmos_Kernel_Core_Scheduler_Thread_">ReadyThread(uint, Thread)</a> — no allocation, no
-interface dispatch — so it is safe from interrupt context.</p>
-<p>Modeled after <a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a> but reduced to the surface
-drivers actually need (a producer ISR and a consumer thread). Multiple
-consumers can wait; <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a> wakes one. Signals are
-counted, not latched as a single bit: two <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Signal">Signal()</a>s with
-two parked waiters wake both, and signals arriving while no consumer
-waits are consumed one per subsequent <a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptEvent.html#Cosmos_Kernel_Core_Scheduler_InterruptEvent_Wait">Wait()</a>.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Monitor.html">Monitor</a></dt>
-      <dd><p>A simple monitor implementation for kernel threads.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Mutex.html">Mutex</a></dt>
-      <dd><p>A simple mutex primitive for protecting critical sections in the scheduler.</p>
-</dd>
-    </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
       <dd><p>Per-CPU scheduling state.</p>
@@ -164,43 +110,25 @@ waits are consumed one per subsequent <a class="xref" href="Cosmos.Kernel.Core.S
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.Thread.html">Thread</a></dt>
-      <dd><p>Thread Control Block for scheduling.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+      <dd><p>Thread Control Block for scheduling. A kernel that only wants to read
+thread state does not come here: <code>SchedulerInfo</code> on the ring hands
+out a <code>KernelThreadInfo</code> snapshot of the fields that survive an
+unlocked read, and reaching this type means acknowledging the seam's
+diagnostic first.</p>
 </dd>
     </dl>
     <h3 id="structs">
 Structs
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.Alarm.html">AlarmSystem.Alarm</a></dt>
-      <dd><p>A pending alarm entry.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IrqLockScope.html">IrqLockScope</a></dt>
-      <dd><p>RAII scope returned by <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>. Disables
-interrupts and acquires the lock on creation; on dispose, releases the
-lock then restores the prior interrupt state. Dispose order matters:
-the lock must be released before interrupts are re-enabled so an ISR
-firing immediately after restore never sees the lock held.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html">SpinLock</a></dt>
-      <dd><p>Simple spinlock for SMP synchronization.</p>
-<p>The plain <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Acquire">Acquire()</a> / <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_Release">Release()</a> pair is
-only safe for locks that are never taken from interrupt context. If an
-ISR can acquire the same lock as mainline code (e.g. a wait/signal
-pair where the ISR signals), use <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SpinLock.html#Cosmos_Kernel_Core_Scheduler_SpinLock_AcquireIrqSafe">AcquireIrqSafe()</a>: a single
-CPU holding the plain lock when the ISR fires will spin forever waiting
-for itself.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ThreadContext.html">ThreadContext</a></dt>
-      <dd><p>Complete thread context saved on stack during interrupt.
-This represents the full stack layout after IRQ stub saves all registers.
-RSP points to the start of this structure after save.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptMaskScope.html">InterruptMaskScope</a></dt>
+      <dd><p>Masks maskable interrupts on the current CPU for the lifetime of the
+scope and restores the previous interrupt state on dispose. Obtained
+from <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a>; use it in a
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/using">using</a> statement around scheduler entry points the
+manager does not already guard (diagnostics reads, tuning setters), so
+the timer tick cannot observe a half-mutated run structure.</p>
 </dd>
     </dl>
     <h3 id="interfaces">
@@ -208,29 +136,51 @@ Interfaces
 </h3>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html">IScheduler</a></dt>
-      <dd><p>Interface for pluggable scheduling algorithms.
-Inspired by Ekiben's EkibenScheduler trait.</p>
+      <dd><p>A scheduling policy: everything that decides which thread runs when.
+The mechanism around it (the thread registry, the lifecycle transitions,
+the timer-tick entry, the register save and restore) is fixed.
+Install an implementation with <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>.</p>
+<p>
+Every hook runs in the kernel's most sensitive window. Most are called
+with interrupts already masked, and the two scheduling hooks run inside
+the timer interrupt itself; each member below says which. No hook may
+block, park, or wait, and none may allocate on the tick path. Four get no
+mask from the manager (<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>,
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">GetPriority(SchedulerThread)</a> and the two run-queue diagnostics) and must
+take <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a> themselves before
+touching the run structure. The spinlock around <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>
+is not a substitute: it excludes another caller, not the tick.
+</p>
+<p>
+Several hooks have no mechanism-side caller yet, because the kernel runs
+on one CPU and nothing in-tree sets priorities. Implement them, but do
+not expect them to be exercised.
+</p>
+<p>
+Two rules hold for every hook. Each must tolerate being called more than
+once for the same thread, and each must tolerate an empty
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a> slot, because
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> clears it and a thread can lose its record
+between a tick and the hook that observes it; that is why a hook reads
+the slot with <code>as</code> and never a cast. A record written by a different
+policy is never handed to a hook: <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>
+re-homes every live thread through <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> on the
+outgoing policy and <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadCreate(PerCpuState, SchedulerThread)</a> on the incoming one.
+</p>
+<p>Inspired by Ekiben's EkibenScheduler trait.</p>
 </dd>
     </dl>
     <h3 id="enums">
 Enums
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ThreadFlags.html">ThreadFlags</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadFlags.html">SchedulerThreadFlags</a></dt>
       <dd><p>Thread flags.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.ThreadState.html">ThreadState</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.html">SchedulerThreadState</a></dt>
       <dd><p>Thread execution state.</p>
-</dd>
-    </dl>
-    <h3 id="delegates">
-Delegates
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.AlarmSystem.AlarmDelegate.html">AlarmSystem.AlarmDelegate</a></dt>
-      <dd><p>The method invoked when an alarm fires.</p>
 </dd>
     </dl>
 

@@ -185,6 +185,39 @@ Class StorageManager
 
 
 
+  <a id="Cosmos_Kernel_System_Storage_StorageManager_Devices_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.Devices*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_StorageManager_Devices" data-uid="Cosmos.Kernel.System.Storage.StorageManager.Devices">
+  Devices
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Every registered block device, in registration order. Empty before
+initialization and when storage support is compiled out.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IReadOnlyList&lt;IBlockDevice&gt; Devices { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_System_Storage_StorageManager_IsEnabled_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.IsEnabled*"></a>
 
   <h3 id="Cosmos_Kernel_System_Storage_StorageManager_IsEnabled" data-uid="Cosmos.Kernel.System.Storage.StorageManager.IsEnabled">
@@ -224,7 +257,8 @@ Class StorageManager
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets whether the storage manager is initialized.</p>
+  <div class="markdown level1 summary"><p>Gets whether the storage manager is initialized, which is what makes
+the device table exist.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -291,7 +325,9 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the primary block device (first one registered).</p>
+  <div class="markdown level1 summary"><p>Gets the primary block device (first one registered), or
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when storage is compiled out or no device
+registered at boot.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -345,7 +381,8 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd><p>The block device, or null if not found.</p>
+    <dd><p>The block device, or null when the index names none and when
+storage support is disabled.</p>
 </dd>
   </dl>
 
@@ -359,22 +396,36 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Storage_StorageManager_Initialize_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.Initialize*"></a>
+  <a id="Cosmos_Kernel_System_Storage_StorageManager_GetPartitions_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.GetPartitions*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Storage_StorageManager_Initialize" data-uid="Cosmos.Kernel.System.Storage.StorageManager.Initialize">
-  Initialize()
+  <h3 id="Cosmos_Kernel_System_Storage_StorageManager_GetPartitions_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.GetPartitions(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice)">
+  GetPartitions(IBlockDevice)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes the storage manager.</p>
+  <div class="markdown level1 summary"><p>The partitions discovered on one device, in on-disk order, so a kernel
+can number them per disk the way a user does. A partition's position in
+this list is its index on <code class="paramref">device</code>. Empty when the
+device has no partition table or is not registered.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void Initialize()</code></pre>
+    <pre><code class="lang-csharp hljs">public static IReadOnlyList&lt;Partition&gt; GetPartitions(IBlockDevice device)</code></pre>
   </div>
 
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd><p>The device to list the partitions of.</p>
+</dd>
+  </dl>
 
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Partition.html">Partition</a>&gt;</dt>
+    <dd></dd>
+  </dl>
 
 
 
@@ -393,7 +444,10 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Registers a block device with the manager and scans it for a GPT or
+MBR partition table. Discovered partitions are appended to
+<a class="xref" href="Cosmos.Kernel.System.Storage.StorageManager.html#Cosmos_Kernel_System_Storage_StorageManager_Partitions">Partitions</a>.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -403,7 +457,8 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
+    <dd><p>The block device to register.</p>
+</dd>
   </dl>
 
 
@@ -414,35 +469,12 @@ whether the host disk is GPT-, MBR-, or unpartitioned.</p>
 
 
 
-
-
-
-  <a id="Cosmos_Kernel_System_Storage_StorageManager_RegisterHalDevices_" data-uid="Cosmos.Kernel.System.Storage.StorageManager.RegisterHalDevices*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_StorageManager_RegisterHalDevices" data-uid="Cosmos.Kernel.System.Storage.StorageManager.RegisterHalDevices">
-  RegisterHalDevices()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Registers every block device produced by the HAL storage drivers
-(AHCI ports, NVMe namespaces). Called once during boot after the HAL
-has initialized the controllers.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RegisterHalDevices()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Storage support is disabled.</p>
+</dd>
+  </dl>
 
 
 
@@ -467,7 +499,8 @@ a clean partition list.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
+    <dd><p>The registered device to re-scan.</p>
+</dd>
   </dl>
 
 
@@ -478,6 +511,12 @@ a clean partition list.</p>
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Storage support is disabled.</p>
+</dd>
+  </dl>
 
 
 

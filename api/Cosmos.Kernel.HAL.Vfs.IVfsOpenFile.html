@@ -128,7 +128,8 @@ Interface IVfsOpenFile
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Inode this open file refers to.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -159,7 +160,8 @@ Interface IVfsOpenFile
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Byte I/O operations that service reads and writes on this open file.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -190,7 +192,10 @@ Interface IVfsOpenFile
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Current byte offset for the next read or write. The VFS layer
+advances it by the return value of <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Read_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_Span_System_Byte__">Read(IVfsOpenFile, Span&lt;byte&gt;)</a>
+and <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IFileOperations.html#Cosmos_Kernel_HAL_Vfs_IFileOperations_Write_Cosmos_Kernel_HAL_Vfs_IVfsOpenFile_System_ReadOnlySpan_System_Byte__">Write(IVfsOpenFile, ReadOnlySpan&lt;byte&gt;)</a>; implementations of those do not.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">

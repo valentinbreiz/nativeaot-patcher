@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Struct Camera3D | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Struct Camera3D | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Describes the point of view used for 3D drawing on a . The aspect ratio always comes from the canvas mode, so a camera only carries where it stands, what it looks at, and its field of view.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Graphics.Camera3D">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Graphics_Camera3D" data-uid="Cosmos.Kernel.System.Graphics.Camera3D" class="text-break">
+Struct Camera3D  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Graphics.html">Graphics</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Describes the point of view used for 3D drawing on a <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a>.
+The aspect ratio always comes from the canvas mode, so a camera only
+carries where it stands, what it looks at, and its field of view.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly struct Camera3D</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+  <h2 id="Cosmos_Kernel_System_Graphics_Camera3D_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>A default-initialized camera is still usable: <a class="xref" href="Cosmos.Kernel.System.Graphics.Camera3D.html#Cosmos_Kernel_System_Graphics_Camera3D_Up">Up</a> falls back
+to <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3.unity">UnitY</a> and <a class="xref" href="Cosmos.Kernel.System.Graphics.Camera3D.html#Cosmos_Kernel_System_Graphics_Camera3D_FovY">FovY</a> to 60 degrees when
+left unset, so object initializers may set only the members they care
+about. The members are init-only: a camera is replaced rather than
+edited, because <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_Camera">Camera</a> hands back a copy and the
+backend only reloads its transforms when the property is assigned.</p>
+</div>
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D__ctor_System_Numerics_Vector3_System_Numerics_Vector3_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.#ctor(System.Numerics.Vector3,System.Numerics.Vector3)">
+  Camera3D(Vector3, Vector3)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a camera standing at <code class="paramref">position</code> looking at
+<code class="paramref">target</code>, with the default up direction and field of
+view.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Camera3D(Vector3 position, Vector3 target)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>position</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd><p>The position of the camera in world space.</p>
+</dd>
+    <dt><code>target</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd><p>The point in world space the camera looks at.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D__ctor_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D__ctor_System_Numerics_Vector3_System_Numerics_Vector3_System_Numerics_Vector3_System_Single_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.#ctor(System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3,System.Single)">
+  Camera3D(Vector3, Vector3, Vector3, float)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a camera standing at <code class="paramref">position</code> looking at
+<code class="paramref">target</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Camera3D(Vector3 position, Vector3 target, Vector3 up, float fovY)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>position</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd><p>The position of the camera in world space.</p>
+</dd>
+    <dt><code>target</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd><p>The point in world space the camera looks at.</p>
+</dd>
+    <dt><code>up</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd><p>The up direction of the camera.</p>
+</dd>
+    <dt><code>fovY</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd><p>The vertical field of view in degrees.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D_FovY_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.FovY*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D_FovY" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.FovY">
+  FovY
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The vertical field of view in degrees. Reads as 60 while unset or
+non-positive.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public float FovY { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D_Position_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Position*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D_Position" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Position">
+  Position
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The position of the camera in world space.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector3 Position { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D_Target_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Target*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D_Target" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Target">
+  Target
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The point in world space the camera looks at.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector3 Target { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Camera3D_Up_" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Up*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Camera3D_Up" data-uid="Cosmos.Kernel.System.Graphics.Camera3D.Up">
+  Up
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The up direction of the camera. Reads as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3.unity">UnitY</a>
+while unset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector3 Up { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

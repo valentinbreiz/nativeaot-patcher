@@ -154,6 +154,61 @@ any <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html
 </h2>
 
 
+  <a id="Cosmos_Kernel_System_Storage_Mbr_AddPartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.AddPartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_AddPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt64_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Mbr.AddPartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.Byte,System.UInt64,System.UInt64)">
+  AddPartition(IBlockDevice, int, byte, ulong, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Stamp partition <code class="paramref">index</code> (0..3) with a 32-bit
+LBA-addressed entry pointing at <code class="paramref">startSector</code> /
+<code class="paramref">sectorCount</code> with the given <code class="paramref">systemId</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool AddPartition(IBlockDevice device, int index, byte systemId, ulong startSector, ulong sectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>, writing nothing, when the geometry is one
+<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_Parse_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_">Parse(IBlockDevice)</a> would drop or the range overlaps another primary.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">index</code> is not 0..3.</p>
+</dd>
+  </dl>
+
+
+
   <a id="Cosmos_Kernel_System_Storage_Mbr_Create_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Create*"></a>
 
   <h3 id="Cosmos_Kernel_System_Storage_Mbr_Create_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_" data-uid="Cosmos.Kernel.System.Storage.Mbr.Create(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice)">
@@ -163,7 +218,7 @@ any <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html
 
   <div class="markdown level1 summary"><p>Write a fresh, empty-but-signed MBR to LBA 0. No boot code, all
 four partition slots zeroed; callers add entries via
-<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_WritePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt32_System_UInt32_">WritePartition(IBlockDevice, int, byte, uint, uint)</a>. Also wipes LBA 1 (wipefs-style):
+<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html#Cosmos_Kernel_System_Storage_Mbr_AddPartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt64_System_UInt64_">AddPartition(IBlockDevice, int, byte, ulong, ulong)</a>. Also wipes LBA 1 (wipefs-style):
 Create claims the whole disk label, and a stale &quot;EFI PART&quot; header
 left there from a previous GPT layout would keep winning over this
 MBR in the partition scanner, which checks GPT first.</p>
@@ -177,40 +232,6 @@ MBR in the partition scanner, which checks GPT first.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Storage_Mbr_DeletePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.DeletePartition*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_Mbr_DeletePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.DeletePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32)">
-  DeletePartition(IBlockDevice, int)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Mark primary slot <code class="paramref">index</code> as empty by zeroing its 16-byte entry.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void DeletePartition(IBlockDevice device, int index)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -264,8 +285,8 @@ MBR in the partition scanner, which checks GPT first.</p>
 
   <a id="Cosmos_Kernel_System_Storage_Mbr_MovePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.MovePartition*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Storage_Mbr_MovePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt32)">
-  MovePartition(IBlockDevice, int, uint)
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_MovePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Mbr.MovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt64)">
+  MovePartition(IBlockDevice, int, ulong)
   
   </h3>
 
@@ -274,7 +295,7 @@ MBR in the partition scanner, which checks GPT first.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void MovePartition(IBlockDevice device, int index, uint newStartSector)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool MovePartition(IBlockDevice device, int index, ulong newStartSector)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -283,8 +304,17 @@ MBR in the partition scanner, which checks GPT first.</p>
     <dd></dd>
     <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
-    <dt><code>newStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dt><code>newStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>, writing nothing, when the slot is not a data
+partition, or when the new range starts at LBA 0, runs past the
+device, or overlaps another primary entry.</p>
+</dd>
   </dl>
 
 
@@ -294,7 +324,12 @@ MBR in the partition scanner, which checks GPT first.</p>
 
 
 
-
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">index</code> is not 0..3.</p>
+</dd>
+  </dl>
 
 
 
@@ -313,7 +348,7 @@ to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static List&lt;Mbr.PartitionEntry&gt; Parse(IBlockDevice device)</code></pre>
+    <pre><code class="lang-csharp hljs">public static List&lt;MbrPartitionEntry&gt; Parse(IBlockDevice device)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -324,7 +359,7 @@ to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html">Mbr</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.html">PartitionEntry</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.MbrPartitionEntry.html">MbrPartitionEntry</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -338,19 +373,19 @@ to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html
 
 
 
-  <a id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition*"></a>
+  <a id="Cosmos_Kernel_System_Storage_Mbr_RemovePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.RemovePartition*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt32)">
-  ResizePartition(IBlockDevice, int, uint)
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_RemovePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.RemovePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32)">
+  RemovePartition(IBlockDevice, int)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Rewrite the SectorCount field of slot <code class="paramref">index</code>, leaving systemId / startSector untouched.</p>
+  <div class="markdown level1 summary"><p>Mark primary slot <code class="paramref">index</code> as empty by zeroing its 16-byte entry.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void ResizePartition(IBlockDevice device, int index, uint newSectorCount)</code></pre>
+    <pre><code class="lang-csharp hljs">public static void RemovePartition(IBlockDevice device, int index)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -359,8 +394,6 @@ to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html
     <dd></dd>
     <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
-    <dt><code>newSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
   </dl>
 
 
@@ -371,6 +404,62 @@ to walk logicals via <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">index</code> is not 0..3.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Mbr_ResizePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Mbr.ResizePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.UInt64)">
+  ResizePartition(IBlockDevice, int, ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Rewrite the SectorCount field of slot <code class="paramref">index</code>, leaving systemId / startSector untouched.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ResizePartition(IBlockDevice device, int index, ulong newSectorCount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd></dd>
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>newSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>, writing nothing, when the slot is not a data
+partition, or when the new range is empty, runs past the device, or
+overlaps another primary entry.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">index</code> is not 0..3.</p>
+</dd>
+  </dl>
 
 
 
@@ -445,48 +534,6 @@ also returns the extended partition's sector count.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Storage_Mbr_WritePartition_" data-uid="Cosmos.Kernel.System.Storage.Mbr.WritePartition*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_Mbr_WritePartition_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_Int32_System_Byte_System_UInt32_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Mbr.WritePartition(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.Int32,System.Byte,System.UInt32,System.UInt32)">
-  WritePartition(IBlockDevice, int, byte, uint, uint)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Stamp partition <code class="paramref">index</code> (0..3) with a 32-bit
-LBA-addressed entry pointing at <code class="paramref">startSector</code> /
-<code class="paramref">sectorCount</code> with the given <code class="paramref">systemId</code>.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void WritePartition(IBlockDevice device, int index, byte systemId, uint startSector, uint sectorCount)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd></dd>
-    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
-  </dl>
-
 
 
 

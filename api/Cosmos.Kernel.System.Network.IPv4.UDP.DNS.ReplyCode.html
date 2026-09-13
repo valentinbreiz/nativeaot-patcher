@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Enum ReplyCode | Cosmos Gen 3 ">
       
-      <meta name="description" content="ReplyCode set in Flags">
+      <meta name="description" content="DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -98,12 +98,13 @@ Enum ReplyCode
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>ReplyCode set in Flags</p>
+  <div class="markdown summary"><p>DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public enum ReplyCode</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public enum ReplyCode</code></pre>
   </div>
 
 
@@ -119,22 +120,28 @@ Enum ReplyCode
   <dl class="parameters">
     <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_FormatError"><code>FormatError = 1</code></dt>
   
-  <dd></dd>
-    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_NameError"><code>NameError = 11</code></dt>
+  <dd><p>The server was unable to interpret the query.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_NameError"><code>NameError = 3</code></dt>
   
-  <dd></dd>
-    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_NotSupported"><code>NotSupported = 100</code></dt>
+  <dd><p>The domain name referenced in the query does not exist (NXDOMAIN).</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_NotSupported"><code>NotSupported = 4</code></dt>
   
-  <dd></dd>
+  <dd><p>The server does not support the requested kind of query.</p>
+</dd>
     <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_OK"><code>OK = 0</code></dt>
   
-  <dd></dd>
-    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_Refused"><code>Refused = 101</code></dt>
+  <dd><p>No error condition.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_Refused"><code>Refused = 5</code></dt>
   
-  <dd></dd>
-    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_ServerFailure"><code>ServerFailure = 10</code></dt>
+  <dd><p>The server refuses to perform the requested operation.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_ReplyCode_ServerFailure"><code>ServerFailure = 2</code></dt>
   
-  <dd></dd>
+  <dd><p>The server failed to process the query.</p>
+</dd>
   </dl>
 
 

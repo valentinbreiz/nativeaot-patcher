@@ -111,7 +111,12 @@ Classes
 </h3>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a></dt>
-      <dd><p>Represents an Ethernet packet.</p>
+      <dd><p>An Ethernet frame, the root of the packet hierarchy. The frame lives in
+<a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a>; every header property is a snapshot parsed from
+that buffer at construction time and is not refreshed by later writes to
+the buffer. Derived types lay their headers into the same buffer from
+their constructors, including checksums: there is no separate
+finalize-before-send step.</p>
 </dd>
     </dl>
     <dl class="jumplist">
@@ -122,6 +127,18 @@ Classes
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.NetworkStack.html">NetworkStack</a></dt>
       <dd><p>Manages the Cosmos networking stack.</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.NetworkAdapter.html">NetworkAdapter</a></dt>
+      <dd><p>A handle to one of the network devices HAL enumeration registered. Obtained
+from <a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_GetAdapter_System_Int32_">GetAdapter(int)</a> or
+<a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_Primary">Primary</a>, and handed back to the ring to inspect
+that device or to configure it with
+<a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_NetworkAdapter_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_">Enable(NetworkAdapter, Address, Address, Address)</a>.</p>
 </dd>
     </dl>
 

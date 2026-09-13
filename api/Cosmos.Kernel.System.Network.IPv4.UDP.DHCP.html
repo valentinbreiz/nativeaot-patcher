@@ -95,18 +95,36 @@
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPClient.html">DHCPClient</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.html">DhcpClient</a></dt>
       <dd><p>Used to manage the DHCP connection to a server.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPOption.html">DHCPOption</a></dt>
-      <dd><p>Represents a DHCP option.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpDiscover.html">DhcpDiscover</a></dt>
+      <dd><p>Represents a DHCPDISCOVER packet, broadcast to locate DHCP servers.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DHCPPacket.html">DHCPPacket</a></dt>
-      <dd><p>Represents a DHCP packet.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpOption.html">DhcpOption</a></dt>
+      <dd><p>Represents a single DHCP option parsed from the options section of a <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket.html">DhcpPacket</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket.html">DhcpPacket</a></dt>
+      <dd><p>Represents a DHCP packet carried over UDP (BOOTP client port 68, server port 67).
+Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
+and are not re-read afterwards; checksums and lengths are computed in the constructors and never
+recomputed.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRelease.html">DhcpRelease</a></dt>
+      <dd><p>Represents a DHCPRELEASE packet, sent to give an assigned address back to the server.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRequest.html">DhcpRequest</a></dt>
+      <dd><p>Represents a DHCPREQUEST packet, broadcast to request a previously offered address.</p>
 </dd>
     </dl>
 

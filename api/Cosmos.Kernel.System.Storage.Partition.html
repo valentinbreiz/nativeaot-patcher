@@ -103,7 +103,7 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class Partition : BlockDevice, IBlockDevice</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class Partition : IBlockDevice</code></pre>
   </div>
 
 
@@ -113,8 +113,6 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Device.html">Device</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html">BlockDevice</a></div>
       <div><span class="xref">Partition</span></div>
     </dd>
   </dl>
@@ -130,12 +128,6 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BlockCount">BlockDevice.BlockCount</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.HAL.Devices.Storage.BlockDevice.html#Cosmos_Kernel_HAL_Devices_Storage_BlockDevice_BlockSize">BlockDevice.BlockSize</a>
-    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -172,49 +164,12 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>host</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Storage_Partition__ctor_" data-uid="Cosmos.Kernel.System.Storage.Partition.#ctor*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_Partition__ctor_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_UInt64_System_UInt32_" data-uid="Cosmos.Kernel.System.Storage.Partition.#ctor(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.UInt64,System.UInt32)">
-  Partition(IBlockDevice, ulong, ulong, uint)
-  
-  </h3>
-
   <div class="markdown level1 summary"><p>Creates a block-device view of a partition on a host disk.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, uint index)</code></pre>
+    <pre><code class="lang-csharp hljs">public Partition(IBlockDevice host, ulong startSector, ulong sectorCount, string name)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -228,8 +183,9 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
     <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd><p>Length of the partition in sectors.</p>
 </dd>
-    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
-    <dd></dd>
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Display name for the partition.</p>
+</dd>
   </dl>
 
 
@@ -240,11 +196,81 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p>The partition would extend past the end of <code class="paramref">host</code>.</p>
+</dd>
+  </dl>
 
 
 
   <h2 class="section" id="properties">Properties
 </h2>
+
+
+  <a id="Cosmos_Kernel_System_Storage_Partition_BlockCount_" data-uid="Cosmos.Kernel.System.Storage.Partition.BlockCount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Partition_BlockCount" data-uid="Cosmos.Kernel.System.Storage.Partition.BlockCount">
+  BlockCount
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Total number of addressable blocks on the device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong BlockCount { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Partition_BlockSize_" data-uid="Cosmos.Kernel.System.Storage.Partition.BlockSize*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Partition_BlockSize" data-uid="Cosmos.Kernel.System.Storage.Partition.BlockSize">
+  BlockSize
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Block size in bytes (typically 512 or 4096).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong BlockSize { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
 
 
   <a id="Cosmos_Kernel_System_Storage_Partition_Host_" data-uid="Cosmos.Kernel.System.Storage.Partition.Host*"></a>
@@ -292,7 +318,7 @@ translated to the host LBA space by adding <a class="xref" href="Cosmos.Kernel.S
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override string Name { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public string Name { get; }</code></pre>
   </div>
 
 
@@ -361,7 +387,7 @@ writes are durable. No-op on devices without a volatile cache.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Flush()</code></pre>
+    <pre><code class="lang-csharp hljs">public void Flush()</code></pre>
   </div>
 
 
@@ -372,9 +398,6 @@ writes are durable. No-op on devices without a volatile cache.</p>
 
 
 
-  <h4 class="section" id="Cosmos_Kernel_System_Storage_Partition_Flush_remarks">Remarks</h4>
-  <div class="markdown level1 remarks"><p>Default is a no-op for devices without a volatile write cache.</p>
-</div>
 
 
 
@@ -391,7 +414,7 @@ writes are durable. No-op on devices without a volatile cache.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void ReadBlock(ulong blockNo, ulong blockCount, Span&lt;byte&gt; data)</code></pre>
+    <pre><code class="lang-csharp hljs">public void ReadBlock(ulong blockNo, ulong blockCount, Span&lt;byte&gt; data)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -432,7 +455,7 @@ power loss is only guaranteed after <a class="xref" href="Cosmos.Kernel.HAL.Inte
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan&lt;byte&gt; data)</code></pre>
+    <pre><code class="lang-csharp hljs">public void WriteBlock(ulong blockNo, ulong blockCount, ReadOnlySpan&lt;byte&gt; data)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>

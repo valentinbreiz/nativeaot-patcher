@@ -156,54 +156,6 @@ partition entry plus an optional pointer to the next EBR. Convention used:</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Storage_Ebr_AddLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.AddLogical*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Storage_Ebr_AddLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_UInt64_System_Byte_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.AddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.UInt64,System.Byte,System.UInt64)">
-  AddLogical(IBlockDevice, ulong, ulong, byte, ulong)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Append a logical partition to the chain. The new EBR is placed right
-after the prior logical's data, and the new logical's data area
-follows the new EBR (one sector for the EBR, then <code class="paramref">sectorCount</code> sectors).
-Returns the new logical's absolute start LBA, or 0 on failure.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static ulong AddLogical(IBlockDevice device, ulong extendedStartLba, ulong extendedSectorCount, byte systemId, ulong sectorCount)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
-    <dd></dd>
-    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-    <dt><code>extendedSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd></dd>
-    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Storage_Ebr_MoveLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.MoveLogical*"></a>
 
   <h3 id="Cosmos_Kernel_System_Storage_Ebr_MoveLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_Int32_System_UInt64_" data-uid="Cosmos.Kernel.System.Storage.Ebr.MoveLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.Int32,System.UInt64)">
@@ -211,27 +163,28 @@ Returns the new logical's absolute start LBA, or 0 on failure.</p>
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Rewrite the start LBA of the <code class="paramref">logicalIndex</code>-th logical
-partition. The hosting EBR sector stays put; only the relative offset
-inside the EBR changes. Caller is responsible for making sure data
+  <div class="markdown level1 summary"><p>Rewrite the start of the <code class="paramref">logicalIndex</code>-th logical
+partition so its data begins at the absolute host LBA
+<code class="paramref">newStartSector</code>. The hosting EBR sector stays put;
+only the relative offset inside the EBR changes. Caller is responsible for making sure data
 at the new range is what's expected (use
 <a class="xref" href="Cosmos.Kernel.System.Storage.PartitionManager.html#Cosmos_Kernel_System_Storage_PartitionManager_MoveWithData_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_Cosmos_Kernel_System_Storage_PartitionManager_PartitionLocation_System_UInt64_">MoveWithData(IBlockDevice, PartitionLocation, ulong)</a> for a data-copying move).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool MoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex, ulong newAbsoluteStart)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool MoveLogical(IBlockDevice device, ulong extendedStartSector, int logicalIndex, ulong newStartSector)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>extendedStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
     <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
-    <dt><code>newAbsoluteStart</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>newStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
@@ -258,27 +211,27 @@ at the new range is what's expected (use
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Walk the EBR chain rooted at <code class="paramref">extendedStartLba</code> and
+  <div class="markdown level1 summary"><p>Walk the EBR chain rooted at <code class="paramref">extendedStartSector</code> and
 return one entry per logical partition. <code>StartSector</code> values are
 absolute LBAs on <code class="paramref">device</code>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static List&lt;Mbr.PartitionEntry&gt; Parse(IBlockDevice device, ulong extendedStartLba)</code></pre>
+    <pre><code class="lang-csharp hljs">public static List&lt;MbrPartitionEntry&gt; Parse(IBlockDevice device, ulong extendedStartSector)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>extendedStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.html">Mbr</a>.<a class="xref" href="Cosmos.Kernel.System.Storage.Mbr.PartitionEntry.html">PartitionEntry</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Storage.MbrPartitionEntry.html">MbrPartitionEntry</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -305,14 +258,14 @@ the chain (0-based, in chain order).</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool RemoveLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool RemoveLogical(IBlockDevice device, ulong extendedStartSector, int logicalIndex)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>extendedStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
     <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
@@ -346,14 +299,14 @@ the chain (0-based, in chain order).</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool ResizeLogical(IBlockDevice device, ulong extendedStartLba, int logicalIndex, ulong newSectorCount)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool ResizeLogical(IBlockDevice device, ulong extendedStartSector, int logicalIndex, ulong newSectorCount)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
     <dd></dd>
-    <dt><code>extendedStartLba</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dt><code>extendedStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
     <dd></dd>
     <dt><code>logicalIndex</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
@@ -365,6 +318,64 @@ the chain (0-based, in chain order).</p>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Storage_Ebr_TryAddLogical_" data-uid="Cosmos.Kernel.System.Storage.Ebr.TryAddLogical*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Storage_Ebr_TryAddLogical_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_System_UInt64_System_Byte_System_UInt64_System_UInt64__" data-uid="Cosmos.Kernel.System.Storage.Ebr.TryAddLogical(Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice,System.UInt64,System.UInt64,System.Byte,System.UInt64,System.UInt64@)">
+  TryAddLogical(IBlockDevice, ulong, ulong, byte, ulong, out ulong)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Append a logical partition to the chain. The new EBR is placed right
+after the prior logical's data, and the new logical's data area
+follows the new EBR (one sector for the EBR, then <code class="paramref">sectorCount</code> sectors).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryAddLogical(IBlockDevice device, ulong extendedStartSector, ulong extendedSectorCount, byte systemId, ulong sectorCount, out ulong startSector)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>device</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.IBlockDevice.html">IBlockDevice</a></dt>
+    <dd><p>The disk holding the extended container.</p>
+</dd>
+    <dt><code>extendedStartSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Absolute LBA where the extended container begins.</p>
+</dd>
+    <dt><code>extendedSectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Length of the extended container in sectors.</p>
+</dd>
+    <dt><code>systemId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Partition type byte to stamp on the new logical.</p>
+</dd>
+    <dt><code>sectorCount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Length of the new logical's data area in sectors.</p>
+</dd>
+    <dt><code>startSector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd><p>Absolute LBA the new logical's data begins at, when the call succeeds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>, writing nothing, when the geometry is one this
+file's own <a class="xref" href="Cosmos.Kernel.System.Storage.Ebr.html#Cosmos_Kernel_System_Storage_Ebr_Parse_Cosmos_Kernel_HAL_Interfaces_Devices_IBlockDevice_System_UInt64_">Parse(IBlockDevice, ulong)</a> would drop or there is no room left in
+the container.</p>
+</dd>
   </dl>
 
 

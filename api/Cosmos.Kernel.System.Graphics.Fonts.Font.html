@@ -342,6 +342,159 @@ Class Font
 
 
 
+  <a id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetAdvance_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetAdvance*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetAdvance_System_Char_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetAdvance(System.Char)">
+  GetAdvance(char)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the horizontal distance in pixels to advance after drawing
+<code class="paramref">c</code>. A bitmap font is fixed pitch, so this is
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html#Cosmos_Kernel_System_Graphics_Fonts_Font_Width">Width</a> for every character.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetAdvance(char c)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>c</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a></dt>
+    <dd><p>The character to measure.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetLineHeight_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetLineHeight*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetLineHeight" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetLineHeight">
+  GetLineHeight()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the distance in pixels between the tops of two consecutive text
+lines. A bitmap font's glyphs fill their cell exactly, so this is
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.Font.html#Cosmos_Kernel_System_Graphics_Fonts_Font_Height">Height</a>; a TrueType font adds its own leading.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetLineHeight()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetMaxAdvance_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetMaxAdvance*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Fonts_Font_GetMaxAdvance" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.GetMaxAdvance">
+  GetMaxAdvance()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the widest advance any printable character needs, which is the
+width of a character cell in a grid laid out with this font.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int GetMaxAdvance()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Graphics_Fonts_Font_MeasureString_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.MeasureString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Graphics_Fonts_Font_MeasureString_System_String_" data-uid="Cosmos.Kernel.System.Graphics.Fonts.Font.MeasureString(System.String)">
+  MeasureString(string)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Measures the width in pixels that
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_DrawString_System_String_Cosmos_Kernel_System_Graphics_Fonts_Font_System_Drawing_Color_System_Int32_System_Int32_">DrawString(string, Font, Color, int, int)</a>
+would use to draw <code class="paramref">text</code> with this font.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual int MeasureString(string text)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>text</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The text to measure.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
+    <dd><p><code class="paramref">text</code> is null.</p>
+</dd>
+  </dl>
+
+
+
 
 </article>
 

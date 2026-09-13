@@ -155,38 +155,6 @@ virtual root) live in the <code>VfsManager.Paths.cs</code> partial.</p>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.CurrentDirectory">
-  CurrentDirectory
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Kernel-wide current directory; always a normalized absolute path.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static string CurrentDirectory { get; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_Mounts_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.Mounts*"></a>
 
   <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_Mounts" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.Mounts">
@@ -221,156 +189,6 @@ virtual root) live in the <code>VfsManager.Paths.cs</code> partial.</p>
 
   <h2 class="section" id="methods">Methods
 </h2>
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_GetVirtualRootEntries_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_GetVirtualRootEntries" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.GetVirtualRootEntries">
-  GetVirtualRootEntries()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>First path segments of all mount points — the directory names a
-listing of the virtual root shows while no filesystem is mounted at &quot;/&quot;.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static string[] GetVirtualRootEntries()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>[]</dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_IsMountPoint_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_IsMountPoint_System_String_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.IsMountPoint(System.String)">
-  IsMountPoint(string)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>True for &quot;/&quot; and for every active mount point.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool IsMountPoint(string fullPath)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>fullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_MakeAbsolute_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_MakeAbsolute_System_String_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.MakeAbsolute(System.String)">
-  MakeAbsolute(string?)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Anchors a relative path at <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory">CurrentDirectory</a> and strips
-trailing separators. Returns null for a null/empty input. Does not
-collapse <code>.</code>/<code>..</code> segments.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static string? MakeAbsolute(string? path)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_MountCovers_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.MountCovers*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_MountCovers_System_String_System_String_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.MountCovers(System.String,System.String)">
-  MountCovers(string, string)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>True when <code class="paramref">mountPoint</code> (normalized: leading /, no
-trailing /) covers <code class="paramref">path</code> on a path-segment boundary
-— &quot;/mnt&quot; covers &quot;/mnt&quot; and &quot;/mnt/x&quot; but not &quot;/mntx&quot;.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool MountCovers(string mountPoint, string path)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
 
 
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_RegisterFilesystem_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.RegisterFilesystem*"></a>
@@ -413,47 +231,10 @@ trailing /) covers <code class="paramref">path</code> on a path-segment boundary
 
 
 
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_SplitParentLeaf_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_SplitParentLeaf_System_String_System_String__System_String__" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.SplitParentLeaf(System.String,System.String@,System.String@)">
-  SplitParentLeaf(string, out string, out string)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Splits an absolute path into its parent path and leaf name
-(&quot;/mnt/dir/file&quot; → &quot;/mnt/dir&quot; + &quot;file&quot;; &quot;/file&quot; → &quot;/&quot; + &quot;file&quot;).</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void SplitParentLeaf(string fullPath, out string parentPath, out string leaf)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>fullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>parentPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-    <dt><code>leaf</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateDirectory_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateDirectory_System_String_Cosmos_Kernel_HAL_Vfs_ModeEnum_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)">
-  TryCreateDirectory(string, ModeEnum)
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateDirectory_System_String_Cosmos_Kernel_HAL_Vfs_VfsMode_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateDirectory(System.String,Cosmos.Kernel.HAL.Vfs.VfsMode)">
+  TryCreateDirectory(string, VfsMode)
   
   </h3>
 
@@ -463,14 +244,14 @@ directory must already exist on a mounted filesystem.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TryCreateDirectory(string fullPath, ModeEnum permissions)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool TryCreateDirectory(string fullPath, VfsMode permissions)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>fullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
-    <dt><code>permissions</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.ModeEnum.html">ModeEnum</a></dt>
+    <dt><code>permissions</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
     <dd></dd>
   </dl>
 
@@ -492,8 +273,8 @@ directory must already exist on a mounted filesystem.</p>
 
   <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateFile_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateFile_System_String_Cosmos_Kernel_HAL_Vfs_ModeEnum_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(System.String,Cosmos.Kernel.HAL.Vfs.ModeEnum)">
-  TryCreateFile(string, ModeEnum)
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryCreateFile_System_String_Cosmos_Kernel_HAL_Vfs_VfsMode_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryCreateFile(System.String,Cosmos.Kernel.HAL.Vfs.VfsMode)">
+  TryCreateFile(string, VfsMode)
   
   </h3>
 
@@ -503,14 +284,14 @@ directory must already exist on a mounted filesystem.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TryCreateFile(string fullPath, ModeEnum permissions)</code></pre>
+    <pre><code class="lang-csharp hljs">public static bool TryCreateFile(string fullPath, VfsMode permissions)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>fullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
-    <dt><code>permissions</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.ModeEnum.html">ModeEnum</a></dt>
+    <dt><code>permissions</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
     <dd></dd>
   </dl>
 
@@ -557,7 +338,57 @@ driver so it no longer mounts.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no driver is registered under
+<code class="paramref">name</code>, when that driver already has
+<code class="paramref">source</code> mounted, or when the driver itself refuses
+to wipe the signature.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryFormat_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryFormat*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryFormat_System_String_Cosmos_Kernel_System_Storage_Partition_Cosmos_Kernel_HAL_Vfs_IVfsFormatOptions_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryFormat(System.String,Cosmos.Kernel.System.Storage.Partition,Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions)">
+  TryFormat(string, Partition, IVfsFormatOptions?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Format <code class="paramref">partition</code> with a registered driver. Refused
+while the partition is mounted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryFormat(string name, Partition partition, IVfsFormatOptions? options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Registered filesystem name.</p>
+</dd>
+    <dt><code>partition</code> <a class="xref" href="Cosmos.Kernel.System.Storage.Partition.html">Partition</a></dt>
+    <dd><p>The partition to format, from <a class="xref" href="Cosmos.Kernel.System.Storage.StorageManager.html#Cosmos_Kernel_System_Storage_StorageManager_Partitions">Partitions</a>.</p>
+</dd>
+    <dt><code>options</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a></dt>
+    <dd><p>Driver-specific format options, or null for its defaults.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><code>true</code> on success, <code>false</code> if the driver is missing, the partition is not registered or mounted, or the format fails.</p>
+</dd>
   </dl>
 
 
@@ -590,17 +421,24 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Registered filesystem name.</p>
+</dd>
     <dt><code>source</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
-    <dd></dd>
+    <dd><p>Driver-specific backing-store identifier.</p>
+</dd>
     <dt><code>options</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFormatOptions.html">IVfsFormatOptions</a></dt>
-    <dd></dd>
+    <dd><p>Driver-specific format options, or null for its defaults.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no driver is registered under
+<code class="paramref">name</code>, when that driver already has
+<code class="paramref">source</code> mounted, or when the driver itself refuses
+the format.</p>
+</dd>
   </dl>
 
 
@@ -639,7 +477,9 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no mount sits at
+<code class="paramref">mountPoint</code> once it is normalized.</p>
+</dd>
   </dl>
 
 
@@ -648,6 +488,63 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
 
 
 
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryMount_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryMount*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_Cosmos_Kernel_System_Storage_Partition_Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount__" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryMount(System.String,Cosmos.Kernel.System.Storage.Partition,Cosmos.Kernel.HAL.Vfs.MountFlags,System.String,Cosmos.Kernel.System.Vfs.VfsManager.VfsMount@)">
+  TryMount(string, Partition, MountFlags, string, out VfsMount?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Mount a registered filesystem driver on <code class="paramref">partition</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryMount(string name, Partition partition, MountFlags flags, string mountPoint, out VfsManager.VfsMount? mount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Registered filesystem name.</p>
+</dd>
+    <dt><code>partition</code> <a class="xref" href="Cosmos.Kernel.System.Storage.Partition.html">Partition</a></dt>
+    <dd><p>The partition to mount, from <a class="xref" href="Cosmos.Kernel.System.Storage.StorageManager.html#Cosmos_Kernel_System_Storage_StorageManager_Partitions">Partitions</a>.</p>
+</dd>
+    <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.MountFlags.html">MountFlags</a></dt>
+    <dd><p>Mount flags.</p>
+</dd>
+    <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Mount point (normalized to leading /, no trailing /).</p>
+</dd>
+    <dt><code>mount</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html">VfsManager</a>.<a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.VfsMount.html">VfsMount</a></dt>
+    <dd><p>Resulting mount data.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><code>true</code> on success, <code>false</code> if the driver is missing, the partition is not registered, or the mount fails.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_System_Vfs_VfsManager_TryMount_System_String_Cosmos_Kernel_System_Storage_Partition_Cosmos_Kernel_HAL_Vfs_MountFlags_System_String_Cosmos_Kernel_System_Vfs_VfsManager_VfsMount___remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The driver still receives the index as its source string, because
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsFilesystemType.html">IVfsFilesystemType</a> lives in the HAL and cannot name a
+<a class="xref" href="Cosmos.Kernel.System.Storage.Partition.html">Partition</a>. Resolving it here rather than at the call site
+is what closes the window in which a rescan renumbers the list.</p>
+</div>
 
 
 
@@ -710,7 +607,8 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Open a directory at the given path and return a managed handle wrapper.</p>
+  <div class="markdown level1 summary"><p>Open a directory at the given path and return a managed handle wrapper.
+Fails when the path names something other than a directory.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -729,7 +627,10 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when <code class="paramref">path</code> does not
+resolve, when its attributes cannot be read, or when it names something
+other than a directory.</p>
+</dd>
   </dl>
 
 
@@ -768,7 +669,10 @@ etc.) and casts <code class="paramref">options</code> to its own option type.</p
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when <code class="paramref">path</code> does not
+resolve, or resolves to an inode whose driver offers no file
+operations, which is what a directory looks like from here.</p>
+</dd>
   </dl>
 
 
@@ -841,52 +745,22 @@ open goes delete-pending instead of being dropped under its handles.</p>
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>oldFullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Absolute path of the entry to move.</p>
+</dd>
     <dt><code>newFullPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
+    <dd><p>Absolute path it should have afterwards.</p>
+</dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TrySetCurrentDirectory_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TrySetCurrentDirectory_System_String_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TrySetCurrentDirectory(System.String)">
-  TrySetCurrentDirectory(string)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Sets <a class="xref" href="Cosmos.Kernel.System.Vfs.VfsManager.html#Cosmos_Kernel_System_Vfs_VfsManager_CurrentDirectory">CurrentDirectory</a>; the target must exist and be a directory.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static bool TrySetCurrentDirectory(string path)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-  <h4 class="section">Returns</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when either path is a mount point, the
+source does not exist, the destination is inside the source's own
+subtree, the two sit on different mounts, the two are of different
+kinds, the destination is a directory that is not empty, or the driver
+refuses the move. Renaming a path onto itself succeeds.</p>
+</dd>
   </dl>
 
 
@@ -928,6 +802,52 @@ root exists even on a system with nothing mounted.</p>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_VfsManager_TryStatFs_" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryStatFs*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_VfsManager_TryStatFs_System_String_Cosmos_Kernel_HAL_Vfs_VfsStatFs__" data-uid="Cosmos.Kernel.System.Vfs.VfsManager.TryStatFs(System.String,Cosmos.Kernel.HAL.Vfs.VfsStatFs@)">
+  TryStatFs(string, out VfsStatFs)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Read the filesystem-level statistics of the mount at
+<code class="paramref">mountPoint</code>: total, free and available blocks, the
+block size they are counted in, and the inode counts when the driver
+tracks them. Multiply <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_Bavail">Bavail</a> by
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStatFs.html#Cosmos_Kernel_HAL_Vfs_VfsStatFs_BlockSize">BlockSize</a> for the free space a kernel can use.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool TryStatFs(string mountPoint, out VfsStatFs stats)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mountPoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The mount point to query.</p>
+</dd>
+    <dt><code>stats</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStatFs.html">VfsStatFs</a></dt>
+    <dd><p>The statistics when the call succeeds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the mount exists and its driver produced the statistics.</p>
+</dd>
   </dl>
 
 
@@ -1006,7 +926,10 @@ removes the mount from the table.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd></dd>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> when no mount sits at
+<code class="paramref">mountPoint</code> once it is normalized. A driver whose
+Drop fails does not report it here.</p>
+</dd>
   </dl>
 
 

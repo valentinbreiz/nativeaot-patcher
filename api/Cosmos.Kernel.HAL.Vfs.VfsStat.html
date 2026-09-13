@@ -149,7 +149,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Last access time (<code>st_atim</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -179,7 +180,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Preferred I/O block size in bytes (<code>st_blksize</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -209,7 +211,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Number of storage blocks allocated to the inode (<code>st_blocks</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -239,7 +242,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Last status change time (<code>st_ctim</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -269,7 +273,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Owner group id (<code>st_gid</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -299,7 +304,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Inode number, unique within the filesystem instance (<code>st_ino</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -329,11 +335,12 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>File type and permission bits (<code>st_mode</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ModeEnum Mode</code></pre>
+    <pre><code class="lang-csharp hljs">public VfsMode Mode</code></pre>
   </div>
 
 
@@ -341,7 +348,7 @@ Struct VfsStat
 
   <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.ModeEnum.html">ModeEnum</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
     <dd></dd>
   </dl>
 
@@ -359,7 +366,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Last data modification time (<code>st_mtim</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -389,7 +397,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Number of hard links to the inode (<code>st_nlink</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -419,7 +428,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Device id for character and block device nodes; 0 otherwise (<code>st_rdev</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -449,7 +459,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>File size in bytes (<code>st_size</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -479,7 +490,8 @@ Struct VfsStat
   
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Owner user id (<code>st_uid</code>).</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
@@ -499,6 +511,118 @@ Struct VfsStat
 
 
 
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsDirectory*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsDirectory">
+  IsDirectory
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsDirectory { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>The file-type nibble is an enumerated field, not a bit set. Test it with
+this helper, never with <code>Mode.HasFlag(VfsMode.Directory)</code>, which is
+also true for <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html#Cosmos_Kernel_HAL_Vfs_VfsMode_BlockDevice">BlockDevice</a> and
+<a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html#Cosmos_Kernel_HAL_Vfs_VfsMode_Socket">Socket</a>.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsRegularFile*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsRegularFile">
+  IsRegularFile
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a regular file.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsRegularFile { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsRegularFile_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>See <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory">IsDirectory</a> for why this is not a flag test.</p>
+</div>
+
+
+
+
+  <a id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink_" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsSymbolicLink*"></a>
+
+  <h3 id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink" data-uid="Cosmos.Kernel.HAL.Vfs.VfsStat.IsSymbolicLink">
+  IsSymbolicLink
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>True when <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_Mode">Mode</a> encodes a symbolic link.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly bool IsSymbolicLink { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section" id="Cosmos_Kernel_HAL_Vfs_VfsStat_IsSymbolicLink_remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>See <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html#Cosmos_Kernel_HAL_Vfs_VfsStat_IsDirectory">IsDirectory</a> for why this is not a flag test.</p>
+</div>
 
 
 
