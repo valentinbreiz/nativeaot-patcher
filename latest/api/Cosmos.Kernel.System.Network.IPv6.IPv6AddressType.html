@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title> | Cosmos Gen 3 </title>
+      <title>Enum IPv6AddressType | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content=" | Cosmos Gen 3 ">
+      <meta name="title" content="Enum IPv6AddressType | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="The scope or role an IPv6 address has by its prefix, as  reads it.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.84/docs/api/index.md/#L1">
+      
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -39,7 +39,7 @@
 
   </head>
 
-  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
@@ -84,16 +84,92 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="">
+        <article data-uid="Cosmos.Kernel.System.Network.IPv6.IPv6AddressType">
+
+
+
+
+  <h1 id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType" data-uid="Cosmos.Kernel.System.Network.IPv6.IPv6AddressType" class="text-break">
+Enum IPv6AddressType  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv6.html">IPv6</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>The scope or role an IPv6 address has by its prefix, as <a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html#Cosmos_Kernel_System_Network_IPv6_Address6_AddressType">AddressType</a> reads it.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public enum IPv6AddressType</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_Anycast"><code>Anycast = 0</code></dt>
+  
+  <dd><p>An address assigned to several interfaces, delivered to the nearest one.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_EmbeddedIPv4"><code>EmbeddedIPv4 = 6</code></dt>
+  
+  <dd><p>An IPv4 address carried in the low 32 bits, as in <code>::ffff:192.0.2.128</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_Generic"><code>Generic = 10</code></dt>
+  
+  <dd><p>Any address no other value describes.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_GlobalUnicast"><code>GlobalUnicast = 1</code></dt>
+  
+  <dd><p>A routable address in <code>2000::/3</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_LinkLocal"><code>LinkLocal = 2</code></dt>
+  
+  <dd><p>A link-local address in <code>fe80::/10</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_Loopback"><code>Loopback = 3</code></dt>
+  
+  <dd><p>The loopback address <code>::1</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_SolicitedNode"><code>SolicitedNode = 9</code></dt>
+  
+  <dd><p>A solicited-node multicast address in <code>ff02::1:ff00:0/104</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_Transient"><code>Transient = 8</code></dt>
+  
+  <dd><p>A transient multicast address.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_UniqueLocal"><code>UniqueLocal = 5</code></dt>
+  
+  <dd><p>A unique local address in <code>fc00::/7</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_Unspecified"><code>Unspecified = 4</code></dt>
+  
+  <dd><p>The unspecified address <code>::</code>.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_IPv6_IPv6AddressType_WellKnown"><code>WellKnown = 7</code></dt>
+  
+  <dd><p>A well-known multicast address in <code>ff00::/12</code>.</p>
+</dd>
+  </dl>
+
 
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.84/docs/api/index.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
-        <div class="next-article d-print-none border-top" id="nextArticle"></div>
 
       </div>
 

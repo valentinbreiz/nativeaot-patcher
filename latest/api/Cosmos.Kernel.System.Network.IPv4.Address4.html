@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Address4 | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Address4 | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Represents a IPv4 address.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Network.IPv4.Address4">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Network_IPv4_Address4" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4" class="text-break">
+Class Address4  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents a IPv4 address.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class Address4 : Address, IComparable&lt;Address&gt;, IComparable&lt;Address4&gt;, IEquatable&lt;Address4&gt;</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></div>
+      <div><span class="xref">Address4</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a>&gt;</div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.Address.html#Cosmos_Kernel_System_Network_Address_IsIpv4">Address.IsIpv4</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.Address.html#Cosmos_Kernel_System_Network_Address_IsIpv6">Address.IsIpv6</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.Address.html#Cosmos_Kernel_System_Network_Address_AddressFamily">Address.AddressFamily</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.Address.html#Cosmos_Kernel_System_Network_Address_Parse_System_ReadOnlySpan_System_Char__">Address.Parse(ReadOnlySpan&lt;char&gt;)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.Address.html#Cosmos_Kernel_System_Network_Address_CompareTo_Cosmos_Kernel_System_Network_Address_">Address.CompareTo(Address)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_System_Byte_System_Byte_System_Byte_System_Byte_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor(System.Byte,System.Byte,System.Byte,System.Byte)">
+  Address4(byte, byte, byte, byte)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> class, with specified IP address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address4(byte first, byte second, byte third, byte fourth)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>first</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>First block of the address.</p>
+</dd>
+    <dt><code>second</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Second block of the address.</p>
+</dd>
+    <dt><code>third</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Third block of the address.</p>
+</dd>
+    <dt><code>fourth</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd><p>Fourth block of the address.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_System_Byte___System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor(System.Byte[],System.Int32)">
+  Address4(byte[], int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> class, with specified buffer and offset.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address4(byte[] buffer, int offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>Buffer.</p>
+</dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Offset.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor(System.ReadOnlySpan{System.Byte})">
+  Address4(ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> instance, with the specified byte span.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address4(ReadOnlySpan&lt;byte&gt; buffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>The four address bytes, most significant first.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">buffer</code> is not exactly four bytes long.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4__ctor_System_UInt32_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.#ctor(System.UInt32)">
+  Address4(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> class, with specified IP address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address4(uint address)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>address</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Address</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Zero" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Zero">
+  Zero
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The <code>0.0.0.0</code> IP address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly Address4 Zero</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Broadcast_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Broadcast*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Broadcast" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Broadcast">
+  Broadcast
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The broadcast address <code>(255.255.255.255)</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Address4 Broadcast { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_IsBroadcastAddress_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsBroadcastAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_IsBroadcastAddress" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsBroadcastAddress">
+  IsBroadcastAddress
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Check if this address is a broadcast address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsBroadcastAddress { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_IsLoopbackAddress_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsLoopbackAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_IsLoopbackAddress" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsLoopbackAddress">
+  IsLoopbackAddress
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether this is a loopback address, one in <code>127.0.0.0/8</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsLoopbackAddress { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_IsZero_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsZero*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_IsZero" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsZero">
+  IsZero
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether every bit of the address is zero: <code>0.0.0.0</code> or <code>::</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool IsZero { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Parts_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Parts*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Parts" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Parts">
+  Parts
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The address bytes, most significant first, indexable by octet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override MaskedAddress Parts { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Segment1_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Segment1*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Segment1" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Segment1">
+  Segment1
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The four octets packed into one number, the first octet in the most
+significant byte.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint Segment1 { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_CIDRToAddress_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.CIDRToAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_CIDRToAddress_System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.CIDRToAddress(System.Int32)">
+  CIDRToAddress(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Convert a CIDR number to an IPv4 address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Address4? CIDRToAddress(int cidr)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cidr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The CIDR number.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd><p>The subnet mask with <code class="paramref">cidr</code> leading one bits, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when it cannot be built.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_CompareTo_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.CompareTo*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_CompareTo_Cosmos_Kernel_System_Network_IPv4_Address4_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.CompareTo(Cosmos.Kernel.System.Network.IPv4.Address4)">
+  CompareTo(Address4?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Orders addresses by their numeric value (<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html#Cosmos_Kernel_System_Network_IPv4_Address4_Segment1">Segment1</a>); a
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> address sorts first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CompareTo(Address4? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd><p>The address to compare with.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Equals_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Equals*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Equals_Cosmos_Kernel_System_Network_IPv4_Address4_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Equals(Cosmos.Kernel.System.Network.IPv4.Address4)">
+  Equals(Address4?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether <code class="paramref">other</code> holds the same four bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(Address4? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd><p>The address to compare with, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> for the same four bytes; <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> otherwise and for <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Equals_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Equals*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Equals_System_Object_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Equals(System.Object)">
+  Equals(object?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determines whether the specified object is equal to the current object.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object? obj)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>The object to compare with the current object.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the specified object  is equal to the current object; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_GetHashCode_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.GetHashCode*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_GetHashCode" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.GetHashCode">
+  GetHashCode()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Serves as the default hash function.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>A hash code for the current object.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_IsAPIPA_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsAPIPA*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_IsAPIPA" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.IsAPIPA">
+  IsAPIPA()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Check if this address is an APIPA address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsAPIPA()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_OperatorBitwiseAnd_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.OperatorBitwiseAnd*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_OperatorBitwiseAnd_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.OperatorBitwiseAnd(Cosmos.Kernel.System.Network.Address)">
+  OperatorBitwiseAnd(Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Masks this address with <code class="paramref">other</code> bit by bit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override MaskedAddress OperatorBitwiseAnd(Address other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The mask, of the same family as this address.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p><code class="paramref">other</code> is not of the same family.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_Parse_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Parse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_Parse_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Network_AddressNumericStyle_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.Parse(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Network.AddressNumericStyle)">
+  Parse(ReadOnlySpan&lt;char&gt;, AddressNumericStyle)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Parses a dotted IPv4 address, such as <code>192.168.1.1</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Address4? Parse(ReadOnlySpan&lt;char&gt; addr, AddressNumericStyle style)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>addr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The address text.</p>
+</dd>
+    <dt><code>style</code> <a class="xref" href="Cosmos.Kernel.System.Network.AddressNumericStyle.html">AddressNumericStyle</a></dt>
+    <dd><p>The number base of the four octets.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
+    <dd><p>The parsed address, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> when the text is not four octets in that base.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_ToBytes_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_ToBytes" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToBytes">
+  ToBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The address bytes in network order: four for IPv4, sixteen for IPv6.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override ReadOnlySpan&lt;byte&gt; ToBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_ToString_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_ToString" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToString">
+  ToString()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Formats the address in dotted-decimal notation (e.g. <code>192.168.1.1</code>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_Address4_ToString_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToString*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_Address4_ToString_Cosmos_Kernel_System_Network_AddressNumericStyle_System_Boolean_" data-uid="Cosmos.Kernel.System.Network.IPv4.Address4.ToString(Cosmos.Kernel.System.Network.AddressNumericStyle,System.Boolean)">
+  ToString(AddressNumericStyle, bool)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Formats the address as four dotted octets in the given number base.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ToString(AddressNumericStyle numericStyle = AddressNumericStyle.Dec, bool leadingZeros = false)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>numericStyle</code> <a class="xref" href="Cosmos.Kernel.System.Network.AddressNumericStyle.html">AddressNumericStyle</a></dt>
+    <dd><p>The number base of each octet.</p>
+</dd>
+    <dt><code>leadingZeros</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Whether each octet is padded to its full width: three decimal digits or two hexadecimal ones.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">numericStyle</code> is not a known style.</p>
+</dd>
+  </dl>
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
