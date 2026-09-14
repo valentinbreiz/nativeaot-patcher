@@ -197,9 +197,9 @@ else
 <p><img src="images/network-dhcp.png" alt="DHCP"></p>
 <h3 id="manually">Manually</h3>
 <pre><code class="lang-csharp">if (!IPConfig.Enable(
-        new Address(192, 168, 1, 69),     // local address
-        new Address(255, 255, 255, 0),    // subnet mask
-        new Address(192, 168, 1, 254)))   // gateway
+        new Address4(192, 168, 1, 69),     // local address
+        new Address4(255, 255, 255, 0),    // subnet mask
+        new Address4(192, 168, 1, 254)))   // gateway
 {
     Console.WriteLine(&quot;No adapter to configure&quot;);
 }
@@ -209,9 +209,9 @@ else
 
 if (second.IsValid
     &amp;&amp; IPConfig.Enable(second,
-        new Address(192, 168, 2, 69),
-        new Address(255, 255, 255, 0),
-        new Address(192, 168, 2, 254)))
+        new Address4(192, 168, 2, 69),
+        new Address4(255, 255, 255, 0),
+        new Address4(192, 168, 2, 254)))
 {
     Console.WriteLine(&quot;Configured the second adapter&quot;);
 }
@@ -306,10 +306,10 @@ listener.Stop();
 <p><img src="images/network-tcp-server.png" alt="TCP Server"></p>
 <h2 id="dns">DNS</h2>
 <p>DNS uses the Cosmos <code>DnsClient</code> (the .NET <code>Dns</code> class is not plugged yet). Register a nameserver, query one domain, and read the answer back:</p>
-<pre><code class="lang-csharp">DnsConfig.Add(new Address(1, 1, 1, 1));   // Cloudflare public DNS
+<pre><code class="lang-csharp">DnsConfig.Add(new Address4(1, 1, 1, 1));   // Cloudflare public DNS
 
 var dnsClient = new DnsClient();
-dnsClient.Connect(new Address(1, 1, 1, 1));
+dnsClient.Connect(new Address4(1, 1, 1, 1));
 
 /* Query a single domain name */
 dnsClient.SendQuery(&quot;github.com&quot;);

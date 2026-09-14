@@ -132,7 +132,7 @@ Class DnsClient
       <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_GetDynamicPort_System_Int32_">UdpClient.GetDynamicPort(int)</a>
     </div>
     <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Connect_Cosmos_Kernel_System_Network_IPv4_Address_System_Int32_">UdpClient.Connect(Address, int)</a>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Connect_Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Connect(Address, int)</a>
     </div>
     <div>
       <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Close">UdpClient.Close()</a>
@@ -141,7 +141,7 @@ Class DnsClient
       <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_System_Byte___">UdpClient.Send(byte[])</a>
     </div>
     <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_System_Byte___Cosmos_Kernel_System_Network_IPv4_Address_System_Int32_">UdpClient.Send(byte[], Address, int)</a>
+      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_System_Byte___Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Send(byte[], Address, int)</a>
     </div>
     <div>
       <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_Cosmos_Kernel_System_Network_IPv4_UDP_UdpPacket_">UdpClient.Send(UdpPacket)</a>
@@ -217,7 +217,7 @@ Class DnsClient
 
   <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_Connect_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.Connect*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_Connect_Cosmos_Kernel_System_Network_IPv4_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.Connect(Cosmos.Kernel.System.Network.IPv4.Address)">
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_Connect_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.Connect(Cosmos.Kernel.System.Network.Address)">
   Connect(Address)
   
   </h3>
@@ -232,7 +232,7 @@ Class DnsClient
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><code>address</code> <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dt><code>address</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
     <dd><p>Destination address.</p>
 </dd>
   </dl>
@@ -272,7 +272,7 @@ Class DnsClient
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a></dt>
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
     <dd><p>The first address for the queried name, or
 <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>. The null covers every way a lookup can fail
 (no reply before the timeout, a reply for a different name, a server
@@ -316,7 +316,7 @@ itself off the seam.</p>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address.html">Address</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a>&gt;</dt>
     <dd><p>All resolved addresses, in server order, or
 <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> for any failure or timeout; see
 <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsClient_Receive_System_Int32_">Receive(int)</a> for what the null covers.</p>

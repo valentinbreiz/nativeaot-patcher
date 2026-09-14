@@ -106,9 +106,18 @@ Namespaces
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">Cosmos.Kernel.System.Network.IPv4</a></dt>
       <dd></dd>
     </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv6.html">Cosmos.Kernel.System.Network.IPv6</a></dt>
+      <dd></dd>
+    </dl>
     <h3 id="classes">
 Classes
 </h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+      <dd><p>Represents an IP address: an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> or an <a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a>.</p>
+</dd>
+    </dl>
     <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a></dt>
       <dd><p>An Ethernet frame, the root of the packet hierarchy. The frame lives in
@@ -133,12 +142,31 @@ finalize-before-send step.</p>
 Structs
 </h3>
     <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+      <dd><p>The result of masking an address: its bytes, most significant first, indexable by octet.
+A stack-only value, so it is never boxed or stored.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.NetworkAdapter.html">NetworkAdapter</a></dt>
       <dd><p>A handle to one of the network devices HAL enumeration registered. Obtained
 from <a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_GetAdapter_System_Int32_">GetAdapter(int)</a> or
 <a class="xref" href="Cosmos.Kernel.System.Network.NetworkManager.html#Cosmos_Kernel_System_Network_NetworkManager_Primary">Primary</a>, and handed back to the ring to inspect
 that device or to configure it with
-<a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_NetworkAdapter_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_Cosmos_Kernel_System_Network_IPv4_Address_">Enable(NetworkAdapter, Address, Address, Address)</a>.</p>
+<a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_NetworkAdapter_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_">Enable(NetworkAdapter, Address, Address, Address)</a>.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.AddressFamily.html">AddressFamily</a></dt>
+      <dd><p>The IP version an <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a> belongs to.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.AddressNumericStyle.html">AddressNumericStyle</a></dt>
+      <dd><p>The number base an IPv4 address is parsed from or formatted in.</p>
 </dd>
     </dl>
 

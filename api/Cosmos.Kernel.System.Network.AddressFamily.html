@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Network.IPv4 | Cosmos Gen 3 </title>
+      <title>Enum AddressFamily | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Network.IPv4 | Cosmos Gen 3 ">
+      <meta name="title" content="Enum AddressFamily | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="The IP version an  belongs to.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,75 +84,49 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4">
+        <article data-uid="Cosmos.Kernel.System.Network.AddressFamily">
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4" data-uid="Cosmos.Kernel.System.Network.IPv4" class="text-break">Namespace Cosmos.Kernel.System.Network.IPv4</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.html">Cosmos.Kernel.System.Network.IPv4.TCP</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.html">Cosmos.Kernel.System.Network.IPv4.UDP</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
-      <dd><p>Represents a IPv4 address.</p>
+
+
+  <h1 id="Cosmos_Kernel_System_Network_AddressFamily" data-uid="Cosmos.Kernel.System.Network.AddressFamily" class="text-break">
+Enum AddressFamily  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>The IP version an <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a> belongs to.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public enum AddressFamily</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="Cosmos_Kernel_System_Network_AddressFamily_IPv4"><code>IPv4 = 0</code></dt>
+  
+  <dd><p>A 32-bit IPv4 address, an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a>.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-      <dd><p>Represents an IPv4 end-point.</p>
+    <dt id="Cosmos_Kernel_System_Network_AddressFamily_IPv6"><code>IPv6 = 1</code></dt>
+  
+  <dd><p>A 128-bit IPv6 address, an <a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a>.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
-      <dd><p>An IPv4 packet over Ethernet. The build constructors write the complete
-IPv4 header, including the header checksum, at construction time; the
-checksum is never recomputed, so the header bytes must not be modified
-afterwards. Derive from this class to implement a custom IP protocol:
-pass the protocol number and payload length to a build constructor and
-write the payload into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from
-<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpClient.html">IcmpClient</a></dt>
-      <dd><p>Used to manage the ICMP connection to a client.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoReply.html">IcmpEchoReply</a></dt>
-      <dd><p>An ICMP echo reply packet. The identifier and sequence properties are
-snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
-time.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoRequest.html">IcmpEchoRequest</a></dt>
-      <dd><p>An ICMP echo request packet. The identifier and sequence properties are
-snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
-time.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpPacket.html">IcmpPacket</a></dt>
-      <dd><p>An ICMP packet carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a> (IP protocol 1).
-Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a>
-at construction time; the checksum is computed in the constructors and never
-recomputed afterward.</p>
-</dd>
-    </dl>
+  </dl>
+
 
 
 </article>

@@ -1188,6 +1188,48 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.Address.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.Address.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.Address",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.Address.yml\" sourcestartlinenumber=\"1\">Represents an IP address: an <xref href=\"Cosmos.Kernel.System.Network.IPv4.Address4\" data-throw-if-not-resolved=\"false\"></xref> or an <xref href=\"Cosmos.Kernel.System.Network.IPv6.Address6\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.AddressFamily.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.AddressFamily.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.AddressFamily",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.AddressFamily.yml\" sourcestartlinenumber=\"1\">The IP version an <xref href=\"Cosmos.Kernel.System.Network.Address\" data-throw-if-not-resolved=\"false\"></xref> belongs to.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.AddressNumericStyle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.AddressNumericStyle.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.AddressNumericStyle",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.AddressNumericStyle.yml\" sourcestartlinenumber=\"1\">The number base an IPv4 address is parsed from or formatted in.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.Config.DnsConfig.yml",
       "output": {
         ".html": {
@@ -1244,17 +1286,17 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address.yml",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address4.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address.html"
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.Address4.html"
         }
       },
       "version": "",
       "Uid": null,
       "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.Address",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.Address.yml\" sourcestartlinenumber=\"1\">Represents a IPv4 address.</p>\n"
+      "Title": "Cosmos.Kernel.System.Network.IPv4.Address4",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.Address4.yml\" sourcestartlinenumber=\"1\">Represents a IPv4 address.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1664,6 +1706,62 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv6.Address6.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv6.Address6.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv6.Address6",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv6.Address6.yml\" sourcestartlinenumber=\"1\">Represents an IPv6 address.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv6.IPv6AddressType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv6.IPv6AddressType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv6.IPv6AddressType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv6.IPv6AddressType.yml\" sourcestartlinenumber=\"1\">The scope or role an IPv6 address has by its prefix, as <xref href=\"Cosmos.Kernel.System.Network.IPv6.Address6.AddressType\" data-throw-if-not-resolved=\"false\"></xref> reads it.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv6.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv6.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv6",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.MaskedAddress.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.MaskedAddress.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.MaskedAddress",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.MaskedAddress.yml\" sourcestartlinenumber=\"1\">The result of masking an address: its bytes, most significant first, indexable by octet.\nA stack-only value, so it is never boxed or stored.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.NetworkAdapter.yml",
       "output": {
         ".html": {
@@ -1674,7 +1772,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network.NetworkAdapter",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.NetworkAdapter.yml\" sourcestartlinenumber=\"1\">A handle to one of the network devices HAL enumeration registered. Obtained\nfrom <xref href=\"Cosmos.Kernel.System.Network.NetworkManager.GetAdapter(System.Int32)\" data-throw-if-not-resolved=\"false\"></xref> or\n<xref href=\"Cosmos.Kernel.System.Network.NetworkManager.Primary\" data-throw-if-not-resolved=\"false\"></xref>, and handed back to the ring to inspect\nthat device or to configure it with\n<xref href=\"Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.NetworkAdapter%2cCosmos.Kernel.System.Network.IPv4.Address%2cCosmos.Kernel.System.Network.IPv4.Address%2cCosmos.Kernel.System.Network.IPv4.Address)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.NetworkAdapter.yml\" sourcestartlinenumber=\"1\">A handle to one of the network devices HAL enumeration registered. Obtained\nfrom <xref href=\"Cosmos.Kernel.System.Network.NetworkManager.GetAdapter(System.Int32)\" data-throw-if-not-resolved=\"false\"></xref> or\n<xref href=\"Cosmos.Kernel.System.Network.NetworkManager.Primary\" data-throw-if-not-resolved=\"false\"></xref>, and handed back to the ring to inspect\nthat device or to configure it with\n<xref href=\"Cosmos.Kernel.System.Network.Config.IPConfig.Enable(Cosmos.Kernel.System.Network.NetworkAdapter%2cCosmos.Kernel.System.Network.Address%2cCosmos.Kernel.System.Network.Address%2cCosmos.Kernel.System.Network.Address)\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
     },
     {
       "type": "ManagedReference",
