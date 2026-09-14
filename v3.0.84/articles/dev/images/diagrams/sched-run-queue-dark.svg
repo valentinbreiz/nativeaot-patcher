@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 240" role="img" aria-label="One Stride run queue: StrideCpuData.RunQueue, a List of threads kept sorted ascending by Pass. Thr A with Pass 1042 sits at index 0, where PickNext pops. Thr B with Pass 1130 follows, then an elided middle, then Thr T with Pass 1320 at the tail, where Balance steals from.">
+  <style>
+    svg { color: #d0d7de; }
+    .bg { fill: #1c2128; }
+  </style>
+  <rect class="bg" x="0" y="0" width="760" height="240"/>
+  <defs>
+    <marker id="rq-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <!-- caption + outer dashed list container -->
+  <text x="14" y="18" font-size="12.5" font-style="italic" fill="currentColor" fill-opacity="0.7">one run queue per CPU: StrideCpuData.RunQueue, a List&lt;Thread&gt; sorted ascending by Pass</text>
+  <rect x="10" y="28" width="726" height="182" rx="4" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="6 5"/>
+  <!-- index labels -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="130" y="62">[0]</text>
+    <text x="280" y="62">[1]</text>
+    <text x="590" y="62">[Count-1]</text>
+  </g>
+  <!-- thread boxes, sorted by Pass -->
+  <g fill="currentColor" fill-opacity="0.07" stroke="currentColor">
+    <rect x="85" y="68" width="90" height="46"/>
+    <rect x="235" y="68" width="90" height="46"/>
+    <rect x="545" y="68" width="90" height="46"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" fill="currentColor" text-anchor="middle">
+    <text x="130" y="87">Thr A</text>
+    <text x="280" y="87">Thr B</text>
+    <text x="590" y="87">Thr T</text>
+  </g>
+  <g font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7" text-anchor="middle">
+    <text x="130" y="103">(Pass 1042)</text>
+    <text x="280" y="103">(Pass 1130)</text>
+    <text x="590" y="103">(Pass 1320)</text>
+  </g>
+  <text x="435" y="95" text-anchor="middle" font-size="14" fill="currentColor" fill-opacity="0.7">…</text>
+  <!-- PickNext at the head -->
+  <line x1="130" y1="152" x2="130" y2="119" stroke="currentColor" stroke-width="1.4" marker-end="url(#rq-ah)"/>
+  <text x="130" y="170" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">PickNext()</text>
+  <text x="130" y="185" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(pops the head, lowest Pass)</text>
+  <!-- Balance at the tail -->
+  <line x1="590" y1="152" x2="590" y2="119" stroke="currentColor" stroke-width="1.4" marker-end="url(#rq-ah)"/>
+  <text x="590" y="170" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">Balance()</text>
+  <text x="590" y="185" text-anchor="middle" font-size="11" font-style="italic" fill="currentColor" fill-opacity="0.7">(steals the tail when a peer queue is empty)</text>
+  <!-- footer note -->
+  <text x="30" y="228" font-size="11.5" fill="currentColor" fill-opacity="0.8">the running thread is not in the queue; its Pass advances by Stride x elapsed / quantum on every tick</text>
+</svg>

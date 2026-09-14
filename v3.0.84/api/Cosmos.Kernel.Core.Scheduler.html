@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.Core.Scheduler | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.Core.Scheduler | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.Core.Scheduler">
+
+  <h1 id="Cosmos_Kernel_Core_Scheduler" data-uid="Cosmos.Kernel.Core.Scheduler" class="text-break">Namespace Cosmos.Kernel.Core.Scheduler</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+      <dd><p>Per-CPU scheduling state.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html">SchedulerExtensible</a></dt>
+      <dd><p>Base class for objects that can hold scheduler-specific extension data.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html">SchedulerManager</a></dt>
+      <dd><p>Manages scheduler lifecycle and dispatches to current scheduler.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+      <dd><p>Thread Control Block for scheduling. A kernel that only wants to read
+thread state does not come here: <code>SchedulerInfo</code> on the ring hands
+out a <code>KernelThreadInfo</code> snapshot of the fields that survive an
+unlocked read, and reaching this type means acknowledging the seam's
+diagnostic first.</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptMaskScope.html">InterruptMaskScope</a></dt>
+      <dd><p>Masks maskable interrupts on the current CPU for the lifetime of the
+scope and restores the previous interrupt state on dispose. Obtained
+from <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a>; use it in a
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/using">using</a> statement around scheduler entry points the
+manager does not already guard (diagnostics reads, tuning setters), so
+the timer tick cannot observe a half-mutated run structure.</p>
+</dd>
+    </dl>
+    <h3 id="interfaces">
+Interfaces
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html">IScheduler</a></dt>
+      <dd><p>A scheduling policy: everything that decides which thread runs when.
+The mechanism around it (the thread registry, the lifecycle transitions,
+the timer-tick entry, the register save and restore) is fixed.
+Install an implementation with <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>.</p>
+<p>
+Every hook runs in the kernel's most sensitive window. Most are called
+with interrupts already masked, and the two scheduling hooks run inside
+the timer interrupt itself; each member below says which. No hook may
+block, park, or wait, and none may allocate on the tick path. Four get no
+mask from the manager (<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>,
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">GetPriority(SchedulerThread)</a> and the two run-queue diagnostics) and must
+take <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts">MaskInterrupts()</a> themselves before
+touching the run structure. The spinlock around <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>
+is not a substitute: it excludes another caller, not the tick.
+</p>
+<p>
+Several hooks have no mechanism-side caller yet, because the kernel runs
+on one CPU and nothing in-tree sets priorities. Implement them, but do
+not expect them to be exercised.
+</p>
+<p>
+Two rules hold for every hook. Each must tolerate being called more than
+once for the same thread, and each must tolerate an empty
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerExtensible.html#Cosmos_Kernel_Core_Scheduler_SchedulerExtensible_SchedulerData">SchedulerData</a> slot, because
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> clears it and a thread can lose its record
+between a tick and the hook that observes it; that is why a hook reads
+the slot with <code>as</code> and never a cast. A record written by a different
+policy is never handed to a hook: <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a>
+re-homes every live thread through <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a> on the
+outgoing policy and <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadCreate(PerCpuState, SchedulerThread)</a> on the incoming one.
+</p>
+<p>Inspired by Ekiben's EkibenScheduler trait.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadFlags.html">SchedulerThreadFlags</a></dt>
+      <dd><p>Thread flags.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThreadState.html">SchedulerThreadState</a></dt>
+      <dd><p>Thread execution state.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
