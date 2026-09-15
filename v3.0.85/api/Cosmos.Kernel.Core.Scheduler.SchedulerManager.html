@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class SchedulerManager | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class SchedulerManager | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Manages scheduler lifecycle and dispatches to current scheduler.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager">
+
+
+
+  <h1 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager" class="text-break">
+Class SchedulerManager  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.Core.html">Core</a>.<a class="xref" href="Cosmos.Kernel.Core.Scheduler.html">Scheduler</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.Core.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Manages scheduler lifecycle and dispatches to current scheduler.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0001&quot;)]
+public static class SchedulerManager</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">SchedulerManager</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_DefaultQuantumNs" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.DefaultQuantumNs">
+  DefaultQuantumNs
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The interval the boot path asks the platform to arm the scheduler
+timer at, in nanoseconds (10 ms), and the slice the built-in Stride
+policy tunes itself against. It is a starting value, not a running
+fact: a driver can retune the timer afterwards, so read
+<span class="xref">Cosmos.Kernel.Core.Scheduler.SchedulerManager.TickPeriodNs</span> for what the kernel is actually ticking
+at. A policy is free to preempt on its own terms and need not treat
+either number as its slice.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong DefaultQuantumNs = 10000000</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_NanosecondsPerMillisecond" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.NanosecondsPerMillisecond">
+  NanosecondsPerMillisecond
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Nanoseconds per millisecond, used to convert sleep timeouts to timestamp units.
+Public so other kernel components (e.g. timer drivers) can share the unit conversion.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ulong NanosecondsPerMillisecond = 1000000</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Current_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Current*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_Current" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.Current">
+  Current
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The installed scheduler, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> before
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_">SetScheduler(IScheduler)</a> has run.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IScheduler? Current { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html">IScheduler</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_IsReady_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_IsReady" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.IsReady">
+  IsReady
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether the boot path has built the per-CPU state, which is what
+makes the rest of this class usable. Blocking primitives (and
+drivers built on them) must check this before touching
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_System_UInt32_">GetCpuState(uint)</a>: with the scheduler feature compiled out,
+or before its library initializer runs, there is exactly one
+execution context, so callers fall back to spin/polled paths
+instead of blocking.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsReady { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetCpuState_System_UInt32_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetCpuState(System.UInt32)">
+  GetCpuState(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the scheduling state of a CPU, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>
+when <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_IsReady">IsReady</a> is false.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static PerCpuState? GetCpuState(uint cpuId)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>CPU to look up. The count is on the ring as
+<code>SchedulerInfo.CpuCount</code>; a policy normally takes the state it
+needs from its hook parameters instead.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.PerCpuState.html">PerCpuState</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.indexoutofrangeexception">IndexOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">cpuId</code> is not a managed CPU and the scheduler is
+ready. Before it is ready this returns null for any value.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.GetPriority(Cosmos.Kernel.Core.Scheduler.SchedulerThread)">
+  GetPriority(SchedulerThread)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a thread's priority as reported by the installed scheduler
+(<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">GetPriority(SchedulerThread)</a>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static long GetPriority(SchedulerThread thread)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread to query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.MaskInterrupts*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_MaskInterrupts" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.MaskInterrupts">
+  MaskInterrupts()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Masks maskable interrupts on the current CPU until the returned
+scope is disposed. Schedulers use this around the entry points the
+manager does not guard: <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>,
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_GetPriority_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">GetPriority(SchedulerThread)</a>, the two run-queue diagnostics
+hooks, and any tuning setters the policy exposes of its own. The
+spinlock <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerManager.html#Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetPriority_System_UInt32_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(uint, SchedulerThread, long)</a> holds is not a substitute: it
+excludes another caller, and the tick path takes no lock at all. The
+tick hooks, the thread-lifecycle hooks and the two per-CPU lifecycle
+hooks are already called with interrupts masked.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static InterruptMaskScope MaskInterrupts()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.Core.Scheduler.InterruptMaskScope.html">InterruptMaskScope</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetPriority_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetPriority*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetPriority_System_UInt32_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetPriority(System.UInt32,Cosmos.Kernel.Core.Scheduler.SchedulerThread,System.Int64)">
+  SetPriority(uint, SchedulerThread, long)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Changes a thread's priority through the installed scheduler
+(<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_SetPriority_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_System_Int64_">SetPriority(PerCpuState, SchedulerThread, long)</a>). Interpretation is
+scheduler-specific.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetPriority(uint cpuId, SchedulerThread thread, long priority)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cpuId</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>CPU whose run structure the update rewrites.</p>
+</dd>
+    <dt><code>thread</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.SchedulerThread.html">SchedulerThread</a></dt>
+    <dd><p>Thread to reprioritize.</p>
+</dd>
+    <dt><code>priority</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd><p>New priority value.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetScheduler*"></a>
+
+  <h3 id="Cosmos_Kernel_Core_Scheduler_SchedulerManager_SetScheduler_Cosmos_Kernel_Core_Scheduler_IScheduler_" data-uid="Cosmos.Kernel.Core.Scheduler.SchedulerManager.SetScheduler(Cosmos.Kernel.Core.Scheduler.IScheduler)">
+  SetScheduler(IScheduler)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Installs a scheduling policy. Every live thread moves with it. The
+outgoing policy, if any, gets <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadExit_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadExit(PerCpuState, SchedulerThread)</a>
+for each thread it was managing and then
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_ShutdownCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_">ShutdownCpu(PerCpuState)</a> on every CPU. The incoming policy
+gets <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_InitializeCpu_Cosmos_Kernel_Core_Scheduler_PerCpuState_">InitializeCpu(PerCpuState)</a> on every CPU, then
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadCreate_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadCreate(PerCpuState, SchedulerThread)</a> for each live thread and
+<a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html#Cosmos_Kernel_Core_Scheduler_IScheduler_OnThreadReady_Cosmos_Kernel_Core_Scheduler_PerCpuState_Cosmos_Kernel_Core_Scheduler_SchedulerThread_">OnThreadReady(PerCpuState, SchedulerThread)</a> for those that were waiting in
+a run queue, so no thread is left behind in a run structure that no
+longer exists. The whole swap runs with interrupts masked, so no tick
+can land in the window where the incoming policy is installed but its
+per-CPU state does not exist yet, and every CPU reschedules on its
+next interrupt exit so the incoming policy picks from its own queue.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void SetScheduler(IScheduler scheduler)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>scheduler</code> <a class="xref" href="Cosmos.Kernel.Core.Scheduler.IScheduler.html">IScheduler</a></dt>
+    <dd><p>Scheduler to install.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

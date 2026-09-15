@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class TimerManager | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class TimerManager | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Manages system timers.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Timer.TimerManager">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Timer_TimerManager" data-uid="Cosmos.Kernel.System.Timer.TimerManager" class="text-break">
+Class TimerManager  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Timer.html">Timer</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Manages system timers.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class TimerManager</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">TimerManager</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Frequency_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Frequency*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Frequency" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Frequency">
+  Frequency
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Tick frequency of the timer device in Hz, or 0 when no device is
+registered, which <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_IsInitialized">IsInitialized</a> reports and an
+assignment made in that state does nothing. Assigning reprograms the
+device, which divides a fixed input clock, so the value read back is
+the nearest tick the divisor can express rather than the value
+assigned. A frequency the device cannot divide to at all is refused
+rather than silently dropped.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static uint Frequency { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Timer support is disabled.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p>The timer device cannot run at this frequency. Each device divides a
+fixed counter, so each accepts from that counter divided by its widest
+divisor up to the counter itself: 19 Hz to 1193180 Hz on the x64 PIT,
+and 1 Hz up to CNTFRQ_EL0 on the ARM64 generic timer.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_IsEnabled_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.IsEnabled*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_IsEnabled" data-uid="Cosmos.Kernel.System.Timer.TimerManager.IsEnabled">
+  IsEnabled
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether timer support is compiled into this kernel
+(the <code>CosmosEnableTimer</code> feature switch).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsEnabled { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_IsInitialized_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.IsInitialized*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_IsInitialized" data-uid="Cosmos.Kernel.System.Timer.TimerManager.IsInitialized">
+  IsInitialized
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets whether a timer device is registered. False when the timer is
+compiled out with CosmosEnableTimer=false, since every member of this
+class answers off that device.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool IsInitialized { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Cancel_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Cancel*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Cancel_Cosmos_Kernel_HAL_Interfaces_Devices_SoftwareTimer_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Cancel(Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer)">
+  Cancel(SoftwareTimer?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Cancels a timer returned by <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_TimeSpan_">Schedule(Action, TimeSpan)</a> or <a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_System_Action_System_TimeSpan_">ScheduleRecurring(Action, TimeSpan)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool Cancel(SoftwareTimer? timer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>timer</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>Timer to cancel.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True when the timer was pending and has been cancelled; false when it is
+null, had already fired, was already cancelled, or no timer device is
+registered.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Schedule_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Schedule*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_TimeSpan_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Schedule(System.Action,System.TimeSpan)">
+  Schedule(Action, TimeSpan)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Schedules a callback to run once after the specified delay. The callback
+runs in interrupt context, so it must not block, and it must not let an
+exception escape: nothing above the interrupt dispatch catches one and
+the kernel halts. Use <a class="xref" href="Cosmos.Kernel.System.Timer.AlarmManager.html#Cosmos_Kernel_System_Timer_AlarmManager_Schedule_System_Action_System_TimeSpan_">Schedule(Action, TimeSpan)</a> for callbacks
+that need thread context.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static SoftwareTimer? Schedule(Action callback, TimeSpan delay)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>callback</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd><p>Method to invoke when the delay expires.</p>
+</dd>
+    <dt><code>delay</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
+    <dd><p>Delay before the timer fires. The timer device's tick is the resolution,
+so a delay shorter than one tick, and a zero or negative delay, fire on
+the next tick.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>The scheduled timer, or null if no timer device is registered.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_ScheduleRecurring_System_Action_System_TimeSpan_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.ScheduleRecurring(System.Action,System.TimeSpan)">
+  ScheduleRecurring(Action, TimeSpan)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Schedules a callback to run repeatedly with the specified period. The
+callback runs in interrupt context under the same rules as
+<a class="xref" href="Cosmos.Kernel.System.Timer.TimerManager.html#Cosmos_Kernel_System_Timer_TimerManager_Schedule_System_Action_System_TimeSpan_">Schedule(Action, TimeSpan)</a>; use <a class="xref" href="Cosmos.Kernel.System.Timer.AlarmManager.html#Cosmos_Kernel_System_Timer_AlarmManager_ScheduleRecurring_System_Action_System_TimeSpan_">ScheduleRecurring(Action, TimeSpan)</a>
+for callbacks that need thread context.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static SoftwareTimer? ScheduleRecurring(Action callback, TimeSpan period)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>callback</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action">Action</a></dt>
+    <dd><p>Method to invoke each period.</p>
+</dd>
+    <dt><code>period</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
+    <dd><p>Period between firings; must be positive. The timer device's tick is the
+resolution, so a period shorter than one tick fires on every tick.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.SoftwareTimer.html">SoftwareTimer</a></dt>
+    <dd><p>The scheduled timer, or null if no timer device is registered or the
+period is not positive.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Timer_TimerManager_Wait_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Wait*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Timer_TimerManager_Wait_System_UInt32_" data-uid="Cosmos.Kernel.System.Timer.TimerManager.Wait(System.UInt32)">
+  Wait(uint)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Blocks for the specified number of milliseconds.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void Wait(uint ms)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>ms</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd><p>Milliseconds to wait.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a></dt>
+    <dd><p>Timer support is disabled.</p>
+</dd>
+  </dl>
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

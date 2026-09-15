@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Cosmos.Kernel.System.Graphics | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Graphics">
+
+  <h1 id="Cosmos_Kernel_System_Graphics" data-uid="Cosmos.Kernel.System.Graphics" class="text-break">Namespace Cosmos.Kernel.System.Graphics</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="namespaces">
+Namespaces
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Fonts.html">Cosmos.Kernel.System.Graphics.Fonts</a></dt>
+      <dd></dd>
+    </dl>
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Bitmap.html">Bitmap</a></dt>
+      <dd><p>Represents a bitmap image.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a></dt>
+      <dd><p>Represents a drawing surface. Can be used directly as a virtual (buffer-backed)
+canvas, or subclassed for hardware-backed canvases.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a></dt>
+      <dd><p>A canvas backed by a device that can render 3D primitives. On top of the
+2D <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html">Canvas</a> surface, a 3D canvas draws device-owned meshes
+(<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_CreateMesh_System_ReadOnlySpan_System_Numerics_Vector3__System_ReadOnlySpan_System_UInt32__System_ReadOnlySpan_System_UInt16__">CreateMesh(ReadOnlySpan&lt;Vector3&gt;, ReadOnlySpan&lt;uint&gt;, ReadOnlySpan&lt;ushort&gt;)</a>,
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_DrawMesh_Cosmos_Kernel_System_Graphics_Mesh_System_Numerics_Matrix4x4__">DrawMesh(Mesh, in Matrix4x4)</a>) as seen through
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_Camera">Camera</a>. A frame is composed by calling
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_ClearScene_System_Drawing_Color_System_Single_">ClearScene(Color, float)</a>, issuing draw calls, and presenting with
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas.html#Cosmos_Kernel_System_Graphics_Canvas_Display">Display()</a>.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Image.html">Image</a></dt>
+      <dd><p>Represents a raster image.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.KernelConsole.html">KernelConsole</a></dt>
+      <dd><p>Cell-based graphics console for kernel output.
+Uses a character grid (cells) similar to Aura OS for efficient terminal rendering.
+Can be instantiated on any canvas (hardware or virtual).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mesh.html">Mesh</a></dt>
+      <dd><p>A set of 3D primitives uploaded to a 3D device. Created with one of the
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a> <code>CreateMesh</code> overloads and drawn with
+<a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_DrawMesh_Cosmos_Kernel_System_Graphics_Mesh_System_Numerics_Matrix4x4__">DrawMesh(Mesh, in Matrix4x4)</a>;
+dispose it to release the device memory it occupies.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Png.html">Png</a></dt>
+      <dd><p>Represents a PNG image. All PNG color types are supported (grayscale,
+truecolor and palette, with or without alpha), at every legal bit depth,
+with or without Adam7 interlacing. Decoding is done entirely in managed
+code by the vendored BigGustave decoder and SharpZipLib inflater (see the
+Credits page of the documentation).</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Texture.html">Texture</a></dt>
+      <dd><p>An image uploaded to a 3D device, ready to be mapped onto meshes. Created
+with <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html#Cosmos_Kernel_System_Graphics_Canvas3D_CreateTexture_Cosmos_Kernel_System_Graphics_Image_">CreateTexture(Image)</a>; dispose it to release the
+device memory it occupies.</p>
+</dd>
+    </dl>
+    <h3 id="structs">
+Structs
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Camera3D.html">Camera3D</a></dt>
+      <dd><p>Describes the point of view used for 3D drawing on a <a class="xref" href="Cosmos.Kernel.System.Graphics.Canvas3D.html">Canvas3D</a>.
+The aspect ratio always comes from the canvas mode, so a camera only
+carries where it stands, what it looks at, and its field of view.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.Mode.html">Mode</a></dt>
+      <dd><p>Represents a video mode: the width and height of the display in pixels, and
+the number of bits each pixel takes.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorDepth.html">ColorDepth</a></dt>
+      <dd><p>Represents the color depth of the pixels of a graphics surface.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Graphics.ColorOrder.html">ColorOrder</a></dt>
+      <dd><p>Describes the order in which the colors are stored in each pixel of an image.</p>
+</dd>
+    </dl>
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Public API Tracking | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Public API Tracking | Cosmos Gen 3 ">
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.85/docs/articles/dev/public-api.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="public-api-tracking">Public API Tracking</h1>
+
+<p>The public surface of the kernel packages is declared in text files checked into the repository, enforced by Roslyn analyzers at build time, guarded against breaking changes at release time, and published as one frozen documentation site per release. This page states the policy that decides what is public, then the three mechanisms and the contributor workflow they impose.</p>
+<hr>
+<h2 id="the-policy">The policy</h2>
+<p>Three rules decide what is public:</p>
+<ol>
+<li><p><strong>One supported ring.</strong> <code>Cosmos.Kernel.System</code> is the API kernels program against: tracked, documented, frozen at release, with deprecation cycles applying there and only there. A contract type from another assembly rides along as public only when a kernel can obtain one or meaningfully supply one through the ring. <code>IBlockDevice</code> in <code>Cosmos.Kernel.HAL.Interfaces</code> is the one device contract that qualifies, and it qualifies on both halves: <code>StorageManager.PrimaryDevice</code>, <code>Devices</code> and <code>GetDevice</code> hand a kernel a device, DevKernel reads and writes blocks straight through it, 31 public members take one as a parameter, and the Fat and File suites each implement one of their own and drive it, holding no grant to <code>Cosmos.Kernel.HAL.Interfaces</code> (the Fat suite's grant is to the ring, which is a different question). <code>MACAddress</code> follows it because the packet seam and <code>NetworkManager.MacAddress</code> both hand one out. The VFS contracts in <code>Cosmos.Kernel.HAL.Vfs</code> qualify through <code>VfsManager.RegisterFilesystem</code> and the types the handle API returns. Everything else in those assemblies is internal, including contracts that a <code>Register</code> method happens to name: the input, timer and network devices are registered only by this assembly's own <code>LibraryInitializer</code> wiring up HAL enumeration, and a kernel reads <code>KeyboardManager.ReadKey</code>, <code>MouseManager.X</code> and <code>NetworkManager.LinkUp</code>, never the device. Nor do the platform contracts (<code>IPortIO</code>, <code>ICpuOps</code>, <code>IPowerOps</code>, <code>IInterruptController</code>, <code>IRQContext</code>), the boot contract <code>IPlatformInitializer</code> or <code>IGraphicDevice</code>, since <code>PlatformHAL</code> is internal and no kernel can register or obtain one.</p>
+<p>Beware the weaker version of this test, &quot;a ring signature names it&quot;. It passes anything somebody once wrote a <code>Register</code> overload for and fails an identical contract nobody did, which is how <code>IKeyboardDevice</code> and <code>IGraphicDevice</code> ended up on opposite sides of the same question.</p>
+<p><code>INetworkDevice</code> shows how far that weaker test can carry a type. Thirteen ring members took one, which reads as decisive until you count what a kernel does with the handle: it reads <code>Name</code>, <code>MacAddress</code>, <code>LinkUp</code> and <code>Ready</code>, and null-checks it. Across DevKernel and the network suite nothing ever called <code>Enable</code>, <code>Disable</code>, <code>Initialize</code> or <code>Send</code> on it, nothing asked for <code>GetDevice(1)</code>, and <code>RegisterDevice</code> had exactly one caller, this assembly's own <code>LibraryInitializer</code>. <code>NetworkManager</code> was already fronting <code>LinkUp</code> and <code>Send</code> off the primary device, so the facade was half built and callers were reaching past it. Adding the four missing facts finished it and the contract went internal, which is what <code>KeyboardManager</code> and <code>MouseManager</code> had done all along.</p>
+<p>Hiding a contract must not hide a capability with it. <code>INetworkDevice</code> was the only way to name a device, so the ring grew <code>NetworkAdapter</code>, a handle carrying the registration index, with <code>NetworkManager.GetAdapter</code>, a settable <code>NetworkManager.Primary</code>, an adapter overload of <code>IPConfig.Enable</code>, and <code>NetworkAdapter.IPConfig</code> for the configuration in force on one. The ring owns the handle, a kernel genuinely obtains one, and the members a kernel never called stay behind it.</p>
+<p>The test then runs again member by member, because a type earning its place does not carry its whole class with it. <code>SoftwareTimer</code> is public: <code>TimerManager.Schedule</code> returns one and <code>Cancel</code> takes it back. Its constructor, <code>SetActive</code>, <code>Tick</code> and <code>Invoke</code> are not, because every call site is the timer device that owns the registry, and a kernel calling them advances another timer's countdown, runs an interrupt-context callback from thread context, or deactivates an entry without unregistering it. What is left public, <code>TimeoutNs</code>, <code>Recurring</code> and <code>IsActive</code>, is what a caller can read off a handle without breaking the thing behind it. <code>SoftwareTimer</code> keeps its declaration in <code>Cosmos.Kernel.HAL.Interfaces</code> for a layering reason rather than a policy one: <code>TimerManager</code> constructs it, but <code>TimerDevice</code> holds the registry and ticks it from the interrupt path, and <code>HAL.Interfaces</code> cannot reference the ring.</p>
+<p>A corollary of that same rule: the ring must not document a capability it does not offer. <code>TimerManager.Schedule</code> and <code>ScheduleRecurring</code> both told kernels to use <code>AlarmSystem</code> for callbacks that need thread context, and <code>AlarmSystem</code> is internal to <code>Cosmos.Kernel.Core</code>. So the ring handed out the interrupt-context half, where a callback must not block, allocate or take a lock, and pointed at the safe half through a wall. <code>AlarmManager</code> is the ring route to it, forwarding to the internal implementation; it is a separate manager rather than three more methods on <code>TimerManager</code> because calling the wrong one deadlocks, and the manager name is what makes the context visible at the call site. Two managers that a kernel picks between by execution context must not also differ in shape, so <code>Schedule</code> and <code>ScheduleRecurring</code> take <code>(Action callback, TimeSpan delay)</code> on both and <code>Cancel</code> returns <code>true</code> on both only when the callback was still pending. Converging the shape makes the one thing that cannot converge worth stating on the ring: an alarm's own scheduling calls park on a mutex, so they may be made from thread context only, while the timer's mask interrupts and may be made from anywhere. What stays different is what each one hands back: <code>AlarmSystem</code> owns its alarms and is internal to <code>Cosmos.Kernel.Core</code>, so the ring can only return a <code>ulong</code> id for one, while the other returns the <code>SoftwareTimer</code> the device registry already holds.</p>
+<p>The same rerun deleted <code>NetworkConfigManager</code>. It read as the manager for <code>IPConfig</code>, but it held only half of it: configuring one device wrote the same config to <code>IPConfig</code>'s routing list, to the manager's device-keyed list and to its current pointer, three stores written together and cleared apart, with the two <code>Remove</code> methods that would desynchronize them both dead. The device-keyed lookup moved onto <code>NetworkAdapter.IPConfig</code>, where the ring already keeps every other per-device fact, and the routing list became the only store. <code>DnsConfig</code> keeps its own list rather than gaining a manager to match, because a nameserver list is global to the resolver while an IPv4 config belongs to one device.
+A member that cannot answer anything but one value is not a member. <code>Address.IsIpv4</code> read <code>Parts.Length == 4</code> on a type whose every constructor produces exactly four bytes, so it was a constant <code>true</code>, <code>IsIpv6</code> a constant <code>false</code>, and <code>CompareTo</code>'s &quot;not the same family&quot; throw tested the constant against itself. <code>MACAddress.IsValid</code> went the same way for the same reason. Delete these rather than rename them: a rename keeps the ring slot and proves nothing, and the same rerun deleted <code>Address.IsLoopbackAddress</code>, <code>IsAPIPA</code> and <code>CIDRToAddress</code> because nothing called them, while <code>IsBroadcastAddress</code>, <code>ToUInt32</code> and <code>ToSpan</code> went internal because something did. The ring must also not offer a third spelling of a question it already answers twice: <code>NetworkManager.HasDevice</code> was <code>DeviceCount &gt; 0</code> and <code>Primary.IsValid</code> under a third name.</p>
+<p>Acronym casing follows the .NET rule, which is worth stating because it points one way only: an acronym of two letters stays capitalised (<code>IPPacket</code>, <code>SourceIP</code>), one of three or more is Pascal-cased (<code>IcmpType</code>, <code>UdpDataLength</code>, <code>MacAddress</code>). So <code>NetworkManager.MacAddress</code> was already right and <code>EthernetPacket.DestinationMAC</code> was not. One rename in that sweep does not compile: <code>TcpPacket.TCPFlags</code> cannot become <code>TcpFlags</code>, because the enum <code>TcpFlags</code> lives in the same namespace and the class body evaluates <code>(byte)TcpFlags.SYN</code>, which a <code>byte</code>-typed property of that name shadows (CS1061). It is <code>FlagBits</code>. Wire-format field names that mirror a header keep their spelling, which is why <code>TcpFlags.ACK</code> and <code>DnsPacket.AnswerRRs</code> stay as they are.</p>
+</li>
+<li><p><strong>Chosen experimental seams.</strong> Extension points are opened deliberately and marked <code>[Experimental]</code>: public and usable now, no compatibility promise, promoted to stable by removing the attribute once proven. Referencing one is a build error until the consuming project suppresses its diagnostic ID, which is the consumer's acknowledgement of that contract. The scheduler policy seam in Core is the first, the packet seam in System is the second; a driver kit in the HAL is the planned third.</p>
+</li>
+<li><p><strong>Everything else is internal.</strong> Visibility is never the extension mechanism; seams are. First-party assemblies and the white-box test kernels reach internals through <code>InternalsVisibleTo</code>; anyone else goes through <code>[UnsafeAccessor]</code>/<code>[UnsafeAccessorType]</code> (<a href="accessing-internals.html">Accessing internals</a>) and accepts that internals change without notice.</p>
+</li>
+</ol>
+<p>The enforcement test is mechanical: <code>examples/DevKernel</code> must compile with no <code>InternalsVisibleTo</code> grant. If DevKernel needs a symbol, the symbol becomes public or gets a <code>Cosmos.Kernel.System</code> facade; if it does not, the symbol stays internal.</p>
+<table>
+<thead>
+<tr>
+<th>Assembly</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cosmos.Kernel.System</code></td>
+<td>The supported ring</td>
+</tr>
+<tr>
+<td><code>Cosmos.Kernel.HAL.Interfaces</code></td>
+<td><code>IBlockDevice</code>, <code>MACAddress</code> and <code>SoftwareTimer</code> as a read-only handle, tracked; the boot, graphics, input, timer and network contracts internal</td>
+</tr>
+<tr>
+<td><code>Cosmos.Kernel.HAL</code></td>
+<td>VFS contracts only, tracked; drivers, PCI, ports internal</td>
+</tr>
+<tr>
+<td><code>Cosmos.Kernel.Core</code></td>
+<td>The scheduler seam (<code>[Experimental]</code>) and nothing else, tracked</td>
+</tr>
+<tr>
+<td>Arch assemblies, Native, Plugs, Debug, Boot.Limine, <code>Cosmos.Kernel</code></td>
+<td>Internal, <code>InternalsVisibleTo</code> for first-party</td>
+</tr>
+</tbody>
+</table>
+<p>The last row is policy rather than tracked enforcement: those assemblies are untracked, and their remaining public types shrink as they are touched.</p>
+<p>Experimental seams carry diagnostic IDs:</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Seam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>COSMOS0001</code></td>
+<td>The scheduler policy seam: <code>IScheduler</code>, <code>SchedulerManager</code>, <code>SchedulerThread</code>, <code>PerCpuState</code>, <code>SchedulerExtensible</code>, <code>InterruptMaskScope</code>, <code>SchedulerThreadState</code>, <code>SchedulerThreadFlags</code> (<a href="scheduler-plugging.html">Scheduler - Writing a Scheduler</a>)</td>
+</tr>
+<tr>
+<td><code>COSMOS0002</code></td>
+<td>The packet seam: the protocol packet types (<code>EthernetPacket</code>, ARP, <code>InternetPacket</code>, <code>IPPacket</code>, ICMP, <code>UdpPacket</code>, DHCP, DNS, <code>TcpPacket</code>), <code>NetworkStack.Send</code>/<code>HandlePacket</code>, and the client members that take or return packets (<a href="../user/network.html#crafting-packets">Network - Crafting packets</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="behaviour-when-a-feature-is-compiled-out">Behaviour when a feature is compiled out</h2>
+<p>Every feature switch (<code>CosmosEnableStorage</code>, <code>CosmosEnableMouse</code> and the rest) can leave a ring manager with no subsystem behind it. One rule decides what its members do then:</p>
+<table>
+<thead>
+<tr>
+<th>Kind of member</th>
+<th>Behaviour with the feature off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A read that can express &quot;nothing here&quot;</td>
+<td>Returns the honest answer: <code>0</code>, <code>null</code>, <code>false</code>, an empty list, an invalid handle</td>
+</tr>
+<tr>
+<td>A <code>Try</code> method, or any member whose <code>bool</code> already means &quot;it did not happen&quot;</td>
+<td>Returns <code>false</code></td>
+</tr>
+<tr>
+<td>Anything else</td>
+<td>Throws <code>InvalidOperationException</code> naming the switch to set</td>
+</tr>
+</tbody>
+</table>
+<p>The reads answer so a kernel can branch on them, and <code>KernelFeatures</code> answers the compile-time question directly. The actions throw because the alternative is a silent no-op, which reads as a bug in the kernel rather than a switch left off in its <code>.csproj</code>. The middle row is keyed on shape rather than on the <code>Try</code> prefix: <code>TimerManager.Cancel</code> and <code>AlarmManager.Cancel</code> already return <code>false</code> for a callback that was not pending, a compiled-out subsystem is one more way it was not pending, and a cleanup path should not have to check the switch before it can run.</p>
+<p>Two members cannot follow the read half and say so in their XML docs: <code>KeyboardManager.Peek</code> and <code>ReadKey</code> return a non-nullable <code>KeyEvent</code>, so they have no value for &quot;no key&quot;, and <code>ReadKey</code> would otherwise block on an interrupt no keyboard will raise.</p>
+<hr>
+<h2 id="how-a-member-reports-failure">How a member reports failure</h2>
+<p>The compiled-out table is one case of a wider rule. A ring member has exactly one channel for saying it did not work, and which channel it is follows from the member's shape.</p>
+<table>
+<thead>
+<tr>
+<th>The member is</th>
+<th>It says so with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A read that has an empty value of its own</td>
+<td>that value: <code>0</code>, <code>null</code>, <code>false</code>, an empty list, an invalid handle</td>
+</tr>
+<tr>
+<td>An operation that fails for reasons a caller can act on</td>
+<td>a <code>bool</code>, spelled <code>Try</code> when it also has an <code>out</code></td>
+</tr>
+<tr>
+<td>An operation whose failures a caller must tell apart</td>
+<td>an outcome enum, as <code>SchedulerInfo.RequestKill</code> returns <code>ThreadKillResult</code></td>
+</tr>
+<tr>
+<td>Anything reached in a state a correct kernel cannot produce</td>
+<td>an exception, documented with <code>&lt;exception&gt;</code> and never a bare <code>Exception</code></td>
+</tr>
+</tbody>
+</table>
+<p>Four rules make that table usable.</p>
+<p><strong>A <code>Try</code> does not throw for the failure its own bool carries.</strong> <code>IVfsFileHandle</code> splits on exactly this: <code>TrySeek</code>, <code>TryFlush</code>, <code>TrySetAttr</code> and <code>TryStat</code> answer <code>false</code> for a handle that has been disposed, while <code>Read</code> and <code>Write</code> throw, because a byte count has no value that means &quot;the handle is gone&quot; rather than &quot;no bytes moved&quot;. A <code>Try</code> that reaches a <code>Dictionary</code> lookup, an indexer or a <code>Dequeue</code> on the caller's behalf owns the argument and emptiness checks that would otherwise throw through it: <code>VfsManager.TryMount</code> guards the driver name the way <code>RegisterFilesystem</code> does, and <code>KeyboardManager.TryReadKey</code> takes the key with <code>TryDequeue</code>, one call whose own bool is the answer, rather than a <code>Count</code> test followed by a <code>Dequeue</code> that throws when the test was wrong.</p>
+<p><strong>The shape decides, not the prefix.</strong> The middle row of the compiled-out table already says this, and it applies here the same way. <code>IInodeOperations</code> spells the driver side of the VFS as plain verbs, <code>Lookup</code>, <code>Create</code>, <code>Mkdir</code>, <code>Rename</code>, next to an <code>IVfsDirectoryHandle</code> that spells the consumer side as <code>TryLookup</code>, <code>TryCreateFile</code>, <code>TryCreateDirectory</code>, <code>TryRename</code>. Both are <code>Try</code> members for every rule on this page. The naming split is worth keeping, because it marks which side of the VFS a reader is on, but it buys no exemption.</p>
+<p><strong>Every nullable-reference <code>out</code> of a <code>Try</code> carries <code>[NotNullWhen(true)]</code>, and only where every true path assigns.</strong> Without it each call site pays a <code>!</code> or a redundant <code>x != null</code>, and the redundancy is invisible: the compiler cannot tell a clause that guards a real hole from one that guards nothing. The attribute is checked at the declaring method's return points, but flow analysis is not interprocedural, so a method that forwards another's <code>out</code> needs that one annotated too: <code>FatInodeOperations.Create</code> cannot prove its own postcondition until <code>FatSuperblock.AllocateDirectoryEntry</code> is annotated. Never put the attribute on an input parameter. It is legal and Roslyn honours it there, the way <code>string.IsNullOrEmpty</code> uses it, so it stops meaning &quot;the out is populated&quot; and starts asserting that the caller's argument was not null. <code>IVfsFilesystemType.TryFormat</code> shipped exactly that, four lines under a doc sentence saying <code>null</code> selects the driver's defaults.</p>
+<p><strong>A sentinel that collides with a real value needs a second member that separates them.</strong> <code>SchedulerInfo.GetRunQueueCount</code> returns <code>0</code> for an empty queue and for a CPU id past the end, and that is honest because <code>CpuCount</code> states the range; adding a <code>TryGetRunQueueCount</code> beside it would be a third spelling of a question the ring already answers. <code>MACAddress.None</code> and a null <code>MACAddress</code> are two sentinels for one question, so the members that can return either say which and point at <code>NetworkAdapter.Ready</code>.</p>
+<hr>
+<h2 id="property-or-method">Property or method</h2>
+<p>A value the ring holds is a property. An operation is a method. The surface already splits that way by a wide margin: 268 properties, 223 of them read-only, 34 carrying a setter and 11 an <code>init</code>, against three <code>Set</code> methods and two <code>Get</code> methods that hand back a stored value. The rule is worth writing down mostly for the things that look like they should force the method form and do not.</p>
+<p>Work does not. <code>KernelConsole.Font</code>'s setter masks interrupts, takes the console lock, reallocates the cell grid, homes the cursor and repaints the canvas, and it is a property. Reaching the device does not either: <code>Canvas3D.Camera</code>'s setter calls a virtual hook that the VMware backend overrides to invalidate the device state derived from it. Nor does validation: <code>NetworkManager.Primary</code> throws <code>ArgumentException</code> for a handle naming no device, <code>TimerManager.Frequency</code> throws <code>ArgumentOutOfRangeException</code> for a tick the device cannot divide to, and both are properties. Nor does a feature-switch guard, which is why <code>MouseManager.Sensitivity</code> throws from its setter for the same reason <code>TimerManager.Wait</code> throws and stays a property.</p>
+<p>Three members earn the method form on the write side, each for something an assignment cannot express.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Why it is not a property</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MouseManager.SetPosition(x, y)</code></td>
+<td>Two coordinates that must land together, then clamp against each other</td>
+</tr>
+<tr>
+<td><code>MouseManager.SetScreenSize(width, height)</code></td>
+<td>The same, and it re-clamps the pointer into the new bounds</td>
+</tr>
+<tr>
+<td><code>KeyboardManager.SetKeyLayout(scanMap)</code></td>
+<td>The two halves cannot share a type. The read is honestly <code>ScanMapBase?</code>, null until a keyboard registers and null for good with the feature compiled out, while a null layout would leave the interrupt path with nothing to decode with. Both forms refuse null at run time; only a non-nullable parameter also diagnoses it at compile time</td>
+</tr>
+</tbody>
+</table>
+<p>A get-only property does not oblige a <code>Set</code> twin, and the pairing of the two is the shape to look for. <code>TimerManager</code> held the surface's only one: a property to read the tick and a method to change it, which reads as an oversight rather than a decision, and which hid that the write was never checked. The device rejects a frequency it cannot divide to, <code>ITimerDevice.SetFrequency</code> returned <code>void</code>, so <code>SetFrequency(5)</code> returned normally having done nothing. It is one property now, and the device says whether it took the value. <code>KeyboardManager</code> is the one pair left, and it is a method on both halves rather than half of each: since the write cannot become a setter, the read stays <code>GetKeyLayout()</code> so the two spellings match.</p>
+<p>The read side takes the same test. A property hands back a value the type already holds. A method is for a read that computes it (<code>TcpPacket.GetFlags</code> builds a string, <code>TrueTypeFont.GetMaxAdvance</code> measures every printable character), allocates on every call (<code>IcmpPacket.GetIcmpData</code> and <code>UdpPacket.GetUdpData</code> each copy the payload out of the frame), or takes a parameter that selects which value (<code>NetworkManager.GetAdapter(index)</code>, <code>SchedulerInfo.GetRunQueueCount(cpuId)</code>, <code>TrueTypeFont.GetAscent(sizePx)</code>).</p>
+<p>Those two tests cut across the array-returning reads, which is worth saying because &quot;it returns an array&quot; is not the test. <code>Font.Data</code>, <code>Image.RawData</code>, <code>EthernetPacket.RawData</code>, <code>TcpOption.Data</code>, <code>DhcpOption.Data</code> and <code>DnsAnswer.Address</code> hand out an array the type stores, and they are properties. <code>IcmpPacket.GetIcmpData</code> and <code>UdpPacket.GetUdpData</code> build a fresh copy per call, and they are methods; <code>UdpData</code> was a property doing exactly that until it was renamed, so <code>packet.UdpData[i]</code> in a loop copied the whole payload once per iteration. <code>Canvas.GetBuffer</code> is the single array read that is a method for a value the type stores, and it is one because assigning <code>Canvas.Mode</code> replaces that array under a caller already holding it, so the call form says to ask again after a mode change. <code>.editorconfig</code> sets CA1819 to <code>warning</code>, which would move all of them; this rule is the narrower one and the six properties stay.</p>
+<p>An <code>out</code> parameter is not a third option. <code>MemoryInfo.GetGcStats</code> handed back two collector counters that way, among five properties, and splitting them cost nothing: they are two fields the collector writes at different moments with no lock across them, so the out-method never gave a caller a consistent pair either. <code>TrueTypeFont.GetLineMetrics(sizePx, out ascent, out descent, out lineGap)</code> keeps its group because the three values come out of one scaled read of the font's vertical metrics, and a caller wanting two of them would otherwise pay for it twice. Every other <code>out</code> on the surface belongs to a <code>Try</code> member, which the failure table above already owns.</p>
+<p>Two rules on overload sets, both about the ring not making the obvious spelling the wrong one.</p>
+<p><strong>A <code>bool</code> that switches what a member produces is a second spelling, not an option.</strong> <code>Log.WriteNumber(x, hex: true)</code> printed exactly what <code>Log.WriteHex(x)</code> prints, no call site anywhere passed it, and the parameter is gone. <code>WriteHex</code> and <code>WriteHexWithPrefix</code> are the ring's one answer for hex, split on the only distinction that is a real question.</p>
+<p><strong>A <code>params</code> overload takes a <code>ReadOnlySpan</code>, not an array.</strong> <code>Log</code> promises allocation-free writes for strings and numbers, and <code>Log.Write(&quot;text&quot;)</code> bound to <code>Write(params object?[])</code>, which allocates an array for its single argument; the plug layer paid that on every <code>Monitor</code> acquire and release, which is every <code>lock</code> in BCL code. <code>params ReadOnlySpan&lt;object?&gt;</code> is the same call at every site and the compiler builds the list on the stack, so the allocation is gone for every argument count rather than for the one a typed twin would have covered. What remains is the box around a value type, and the fix for that is the typed overload at the call site: <code>Log.WriteNumber(n)</code>, not <code>Log.Write(n)</code>.</p>
+<hr>
+<h2 id="naming">Naming</h2>
+<p>Two rules carry weight; the rest of this section records what they decided and what they deliberately left alone.</p>
+<p><strong>A ring or seam type must be nameable without a using-alias.</strong> <code>ImplicitUsings</code> is on repo-wide, so <code>System</code>, <code>System.Collections.Generic</code>, <code>System.IO</code>, <code>System.Linq</code>, <code>System.Net.Http</code>, <code>System.Threading</code> and <code>System.Threading.Tasks</code> are in scope in every kernel file whether or not the author asked for them. A public Cosmos type whose simple name matches one of theirs is not a naming preference, it is a compile error in the reader's file. The scheduler seam shipped two: <code>Thread</code> and <code>ThreadState</code>. The sample under <a href="scheduler-plugging.html#attaching-state">Attaching state</a> is three lines of hook signatures, and compiled against the ring it produced three <code>CS0104: 'Thread' is an ambiguous reference between 'Cosmos.Kernel.Core.Scheduler.Thread' and 'System.Threading.Thread'</code>. The tree had already voted with its hands: eleven first-party files carried twelve alias lines, eight writing <code>using SchedThread =</code>, two <code>using SchedulerThread =</code> and one <code>using SchedThreadState =</code>, and the in-tree example policy that <a href="scheduler-plugging.html#round-robin">the plugging guide</a> points at as &quot;exactly as a user policy would&quot; needed <code>using Thread =</code> on its third line to compile. They are <code>SchedulerThread</code> and <code>SchedulerThreadState</code> now, with <code>ThreadFlags</code> following them so the family stays one family, and all twelve aliases are deleted rather than rewritten.</p>
+<p>The name the obvious fix reaches for was the wrong one. <code>KernelThread</code> collides with nothing the compiler can see, and that is the problem: the ring already ships <code>KernelThreadInfo</code> and <code>KernelThreadState</code> in <code>Cosmos.Kernel.System.Diagnostics</code> as the projection of the seam type, so <code>KernelThread.State</code> would return <code>Core.Scheduler.ThreadState</code> while <code>KernelThreadInfo.State</code> returned <code>Diagnostics.KernelThreadState</code>, and a reader pairing the two would be wrong with nothing to tell them so. A silent confusion is worse than the loud one it replaces. <code>SchedulerThread</code> matches its namespace, matches what nine files chose unprompted, and leaves the <code>KernelThread*</code> pair unambiguously the ring's half.</p>
+<p>The other three colliding simple names on the seam are <code>Monitor</code>, <code>Mutex</code> and <code>SpinLock</code>. All three are internal, so they cost a first-party alias and nothing on the ring.</p>
+<p><strong>A member does not repeat its declaring type.</strong> <code>Image.Depth</code> was the graphics namespace's fourth spelling of one concept, beside <code>Mode.ColorDepth</code>, <code>Canvas</code>'s <code>colorDepth</code> parameter and <code>Image</code>'s own constructor parameter <code>color</code>, which named a depth in a namespace where <code>color</code> otherwise means a <code>System.Drawing.Color</code>. Both are <code>ColorDepth</code> now. Three members keep a repetition because it earns its place:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Why the repetition stays</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Canvas3D.DrawLine3D</code></td>
+<td><code>Canvas3D</code> inherits <code>Canvas.DrawLine(Color, int, int, int, int)</code>, so both are callable on one object. The suffix says which coordinate space the call is in; dropping it leaves two same-named line operations separated only by argument types</td>
+</tr>
+<tr>
+<td><code>ColorDepth.ColorDepth4</code> .. <code>ColorDepth32</code></td>
+<td>The repetition only shows in qualified position, where it is unambiguous. <code>Bpp4</code>..<code>Bpp32</code> would drop the word &quot;depth&quot;, abbreviate against the .NET guidelines, and collide in the reader's head with the <code>bytesPerPixel</code> in six files and the <code>BitsPerPixel</code> in three. Gen2 spells them the same way</td>
+</tr>
+<tr>
+<td><code>PCScreenFont.DefaultFont</code></td>
+<td><code>PCScreenFont.Default</code> is taken by the nested constant holder, and the word is a contract rather than a spelling: <code>Sdk.props</code> emits <code>Cosmos.Kernel.System.Graphics.Fonts.DefaultFont</code> as a runtime host configuration option keyed to the <code>CosmosDefaultFont</code> property, and the embedded resource is <code>DefaultFont.psf</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>One value gets one word.</strong> Storage says <code>Sector</code>: <code>StartSector</code>, <code>SectorCount</code>, <code>newStartSector</code> across <code>Gpt</code>, <code>Mbr</code>, <code>Partition</code> and <code>PartitionManager</code>. <code>Ebr</code> said <code>Lba</code>, and section 07 sharpened it into a single signature carrying both, <code>TryAddLogical(device, extendedStartLba, extendedSectorCount, systemId, sectorCount, out startSector)</code>, whose own <code>&lt;param&gt;</code> for the out described it as &quot;Absolute LBA&quot;. The parameters are <code>extendedStartSector</code> and <code>newStartSector</code> now. FAT and GPT keep <code>Lba</code> where it names a field the on-disk format names that way (<code>FatStartLba</code>, <code>PrimaryHeaderLba</code>): the rule is one word per value, not one word per assembly.</p>
+<p><strong>A member does not take the BCL's name for a different type.</strong> <code>IPConfig.IPAddress</code> returned a <code>Cosmos.Kernel.System.Network.IPv4.Address</code> in a file where <code>System.Net.IPAddress</code> is in scope and used, and <a href="../user/network.html">Network</a> showed both meanings fifteen lines apart. It is <code>IPConfig.Address</code> now, matching <code>EndPoint.Address</code> and reading as one triple beside <code>SubnetMask</code> and <code>DefaultGateway</code>.</p>
+<p><strong><code>Initialize</code>, not <code>Init</code>.</strong> 63 members across the four assemblies spelled it in full, and one member on the tracked surface abbreviated it. <code>ScanMapBase.InitKeys</code> is a protected abstract with seven overrides, implemented by any kernel writing its own keyboard layout, so it is <code>InitializeKeys</code>; the abbreviation survives on six internal helpers in <code>Cosmos.Kernel.Core</code> that the ring does not govern. An abstract member cannot be bridged with <code>[Obsolete]</code>, which makes the rename free while <code>Shipped</code> is empty and unfixable afterwards.</p>
+<p><strong>A tracked type declares a namespace its own assembly owns.</strong> <code>Cosmos.Kernel.HAL.Interfaces</code> has a root namespace of the same name, and eight of its nine files declare <code>Cosmos.Kernel.HAL.Interfaces</code> or <code>Cosmos.Kernel.HAL.Interfaces.Devices</code>. <code>MACAddress</code> declared <code>Cosmos.Kernel.HAL.Devices.Network</code>, which belongs to <code>Cosmos.Kernel.HAL</code>, where its only two neighbours are the internal <code>NetworkDevice</code> and <code>VirtioNet</code>. Nothing failed to compile, because a namespace is not a reference boundary. What it produced is a published API tree carrying a <code>Cosmos.Kernel.HAL.Devices.Network</code> branch for one type, while not one of <code>Cosmos.Kernel.HAL</code>'s own 114 surface lines sits outside <code>Cosmos.Kernel.HAL.Vfs</code>. It is <code>Cosmos.Kernel.HAL.Interfaces.Devices</code> now, so the assembly's three tracked types, <code>IBlockDevice</code>, <code>MACAddress</code> and <code>SoftwareTimer</code>, share one namespace and one <code>using</code>: nine files swap that using, six drop it, and the four that keep the old one keep it for <code>VirtioNet</code>. A namespace is part of what a release freezes, so the move is free while <code>PublicAPI.Shipped.txt</code> is still empty and a breaking change afterwards.</p>
+<p>Two things this section looked at and left alone. <code>Manager</code> means the ring's entry point for a subsystem, not that the type holds the subsystem's state: <code>AlarmManager</code> forwards to an implementation internal to <code>Cosmos.Kernel.Core</code> and is defended above on exactly that ground, so <code>PartitionManager</code> being stateless beside <code>Gpt</code>, <code>Mbr</code> and <code>Ebr</code> is the suffix working, not failing. And three ring types are nested in the type that produces them, <code>KeyEvent.KeyEventType</code>, <code>PartitionManager.PartitionLocation</code> and <code>VfsManager.VfsMount</code>; rule 1 governs whether a type is public, not where it is declared, and a name that is meaningless apart from its producer is where nesting belongs.</p>
+<hr>
+<h2 id="the-declared-surface">The declared surface</h2>
+<p>Projects opt in with <code>&lt;CosmosTrackPublicApi&gt;true&lt;/CosmosTrackPublicApi&gt;</code> in their <code>.csproj</code> (wired in <code>Directory.Build.props</code>). That covers <code>Cosmos.Kernel.System</code>, <code>Cosmos.Kernel.Core</code>, <code>Cosmos.Kernel.HAL</code>, and <code>Cosmos.Kernel.HAL.Interfaces</code>.</p>
+<p>The API site publishes those same four projects and no others: <code>docs/docfx.json</code> lists them, and an assembly that is not tracked is not published. The two lists drifted apart once already, which put <code>Cosmos.Kernel.Boot.Limine</code>'s 28 public types and <code>Cosmos.Kernel.Debug</code>'s one on the site under a policy that calls both internal, alongside two entries that emitted nothing only because they happen to declare no public type at all.</p>
+<p>The rule points one way. An untracked assembly with public types left in it is not a reason to publish it; it is the backlog the last row of the policy table describes.</p>
+<p>That backlog is not only what <code>Cosmos.Kernel</code> drags in. <code>Cosmos.Sdk</code> gives every kernel a direct <code>PackageReference</code> to <code>Cosmos.Kernel.Core.X64</code> or <code>Cosmos.Kernel.Core.ARM64</code> by architecture, so a kernel's completion list carries 13 public types on x64 (<code>ApicManager</code>, <code>Idt</code>, <code>IoApic</code>, <code>LocalApic</code>, <code>DeviceMapper</code> and the ACPI MADT records) and 7 on arm64 (the <code>GIC</code> family plus <code>AcpiGic</code> and <code>DeviceMapper</code>), reaching the user without passing through the aggregator at all. <code>Cosmos.Kernel.HAL.X64</code> and <code>Cosmos.Kernel.HAL.ARM64</code> have none, so the arch tier is half clean already.</p>
+<p>An opted-in project references <a href="https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md">Microsoft.CodeAnalysis.PublicApiAnalyzers</a>, which requires every <code>public</code> symbol to appear in one of two files next to the <code>.csproj</code>:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PublicAPI.Shipped.txt</code></td>
+<td>The surface of the last release. Frozen: it only changes when a release is cut.</td>
+</tr>
+<tr>
+<td><code>PublicAPI.Unshipped.txt</code></td>
+<td>Surface added, changed, or removed since then. Emptied into <code>Shipped</code> at release time.</td>
+</tr>
+</tbody>
+</table>
+<p>Two diagnostics enforce the contract, both raised as build errors:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RS0016</code></td>
+<td>A public symbol exists in code but is not declared in either file.</td>
+</tr>
+<tr>
+<td><code>RS0017</code></td>
+<td>A declared symbol no longer exists in code.</td>
+</tr>
+</tbody>
+</table>
+<p>The effect is that any change to the public surface, deliberate or accidental, must land in the same commit as a diff of <code>PublicAPI.Unshipped.txt</code>, where the review can see it.</p>
+<p>Three categories stay out of the files, the first two through <code>.editorconfig</code> overrides that set <code>RS0016</code>/<code>RS0017</code> to <code>none</code> under their paths:</p>
+<ul>
+<li>The vendored directories (<code>SharpZipLib</code>, the BigGustave PNG decoder, the TrueType fonts). The exemption is what let that cleanup happen without churning the declared surface; all three trees are <code>internal</code> throughout now, so it currently exempts nothing and stays as the standing rule for the next vendored tree.</li>
+<li>The generated <code>KernelVersion.g.cs</code> that carries <code>Kernel.VersionString</code>: the declared-API format records constant values, and this one changes with every version stamp.</li>
+<li><code>internal</code> symbols, including everything exposed to the test kernels through <code>InternalsVisibleTo</code>.</li>
+</ul>
+<h3 id="changing-the-public-api">Changing the public API</h3>
+<ol>
+<li>Make the code change. The build now fails with <code>RS0016</code> or <code>RS0017</code>.</li>
+<li>Run <code>make api</code> from the repository root. It rebuilds the tracked projects and applies the analyzer's code fixes to <code>PublicAPI.Unshipped.txt</code>. The IDE quick fix (&quot;Add to public API&quot;) on each diagnostic is equivalent.</li>
+<li>Commit the txt diff together with the code.</li>
+</ol>
+<p>Removing or changing a symbol that already shipped is recorded as a <code>*REMOVED*</code> line in <code>Unshipped</code>, which is exactly what it is: a breaking change, visible as such in the PR. Before the first release, while <code>Shipped</code> is empty, a removal simply drops the line.</p>
+<p>The code fix inserts a new line in sorted position and never touches the lines already there, so the file's order is whatever the last hand that edited it left behind. Its comparer is <code>OrdinalIgnoreCase</code> with an <code>Ordinal</code> tie-break, which is not what any shell sort does: a <code>LC_ALL=C sort</code> once ran over <code>Cosmos.Kernel.System/PublicAPI.Unshipped.txt</code> and left 19 lines the code fix would never have placed there, including the six <code>abstract</code> and four <code>const</code> entries that belong at the top. No analyzer reads line position, so nothing reported it and nothing will. Sort with the analyzer's own comparer, or leave the file to the code fix:</p>
+<pre><code>python3 -c &quot;p='src/Cosmos.Kernel.System/PublicAPI.Unshipped.txt'; L=open(p).read().split(chr(10)); L=[l for l in L if l]; open(p,'w').write(chr(10).join([L[0]]+sorted(L[1:],key=lambda s:(s.upper(),s)))+chr(10))&quot;
+</code></pre>
+<hr>
+<h2 id="package-validation">Package validation</h2>
+<p>The same <code>CosmosTrackPublicApi</code> flag enables <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/package-validation/overview">NuGet package validation</a> on the project, and <code>Directory.Build.props</code> holds the baseline knob:</p>
+<pre><code class="lang-xml">&lt;CosmosApiBaselineVersion&gt;&lt;/CosmosApiBaselineVersion&gt;
+</code></pre>
+<p>The property is empty until the first Gen3 release is published on NuGet.org. Once it is pinned to that version, two guards activate on their own:</p>
+<ul>
+<li><code>PackageValidationBaselineVersion</code> makes every pack compare the package against the baseline release and fail on binary breaking changes.</li>
+<li>The <code>API compatibility guard</code> step in <code>release.yml</code> downloads the baseline package from NuGet.org and runs <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/apicompat/global-tool">Microsoft.DotNet.ApiCompat.Tool</a> against the freshly built one, as a final gate before publishing.</li>
+</ul>
+<p>An intentional breaking change is recorded in a <code>CompatibilitySuppressions.xml</code> next to the project (<code>dotnet pack /p:ApiCompatGenerateSuppressionFile=true</code> generates it), so it too becomes a reviewable diff.</p>
+<hr>
+<h2 id="versioned-docs">Versioned docs</h2>
+<p>The docs site at the root of <code>gh-pages</code> follows the main branch: it is the dev documentation, rebuilt by <code>build-docs.yml</code> on every docs push. Releases get frozen copies next to it, published by the <code>publish-docs</code> job of <code>release.yml</code> when a <code>v*</code> tag is pushed:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>Dev docs, follows main.</td>
+</tr>
+<tr>
+<td><code>/vX.Y.Z/</code></td>
+<td>The docs as built from tag <code>vX.Y.Z</code>, never rebuilt.</td>
+</tr>
+<tr>
+<td><code>/latest/</code></td>
+<td>Alias of the newest release, stable URL for external links.</td>
+</tr>
+<tr>
+<td><code>/versions.json</code></td>
+<td>The release list, newest first, plus the <code>latest</code> marker.</td>
+</tr>
+</tbody>
+</table>
+<p>The version dropdown in the site navbar comes from <code>docs/templates/custom/public/main.js</code>. It reads <code>versions.json</code>, lists <code>dev</code> plus every release, and keeps the reader on the same page across versions when the page exists there. It only appears once <code>versions.json</code> exists, i.e. after the first tagged release; until then the site behaves exactly as before.</p>
+<p>The dev deploys use <code>keep_files: true</code> so they never wipe the <code>v*/</code> folders, at the cost of deleted dev pages lingering on the branch until overwritten.</p>
+<hr>
+<h2 id="release-checklist">Release checklist</h2>
+<p>What cutting a release changes in this system:</p>
+<ol>
+<li>Tag <code>vX.Y.Z</code>. CI builds the packages, runs the API compatibility guard, publishes to NuGet.org, and freezes <code>/vX.Y.Z/</code> docs.</li>
+<li>Move the contents of <code>PublicAPI.Unshipped.txt</code> into <code>PublicAPI.Shipped.txt</code> (drop the <code>*REMOVED*</code> pairs), leaving <code>Unshipped</code> empty.</li>
+<li>Set <code>CosmosApiBaselineVersion</code> in <code>Directory.Build.props</code> to <code>X.Y.Z</code> so the next cycle validates against this release.</li>
+</ol>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.85/docs/articles/dev/public-api.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
