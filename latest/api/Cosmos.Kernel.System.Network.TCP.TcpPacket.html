@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class TcpPacket | Cosmos Gen 3 ">
       
-      <meta name="description" content="Represents a TCP segment carried in an . Header properties are snapshots parsed from  at construction and are never recomputed; the checksum of a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.">
+      <meta name="description" content="A TCP segment, over IPv4 or over IPv6. The wire header is the same on both, so one class serves both: the segment composes the  that carries it rather than deriving from a version-specific packet, and reads the frame buffer, the addresses and the segment offset back through . The one part that differs by version is the checksum pseudo-header, which the internet packet supplies.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,28 +84,32 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket">
+        <article data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket" class="text-break">
+  <h1 id="Cosmos_Kernel_System_Network_TCP_TcpPacket" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket" class="text-break">
 Class TcpPacket  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.html">TCP</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.TCP.html">TCP</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Represents a TCP segment carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a>.
-Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction and are never recomputed; the checksum
-of a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.</p>
+  <div class="markdown summary"><p>A TCP segment, over IPv4 or over IPv6. The wire header is the same on
+both, so one class serves both: the segment composes the
+<a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a> that carries it rather than deriving from a
+version-specific packet, and reads the frame buffer, the addresses and
+the segment offset back through <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html#Cosmos_Kernel_System_Network_TCP_TcpPacket_Network">Network</a>. The one part that
+differs by version is the checksum pseudo-header, which the internet
+packet supplies.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
-public class TcpPacket : IPPacket</code></pre>
+public class TcpPacket</code></pre>
   </div>
 
 
@@ -115,8 +119,6 @@ public class TcpPacket : IPPacket</code></pre>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></div>
       <div><span class="xref">TcpPacket</span></div>
     </dd>
   </dl>
@@ -126,60 +128,6 @@ public class TcpPacket : IPPacket</code></pre>
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_IPVersion">IPPacket.IPVersion</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_HeaderLength">IPPacket.HeaderLength</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_TypeOfService">IPPacket.TypeOfService</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_IPLength">IPPacket.IPLength</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_FragmentID">IPPacket.FragmentID</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_IPFlags">IPPacket.IPFlags</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_FragmentOffset">IPPacket.FragmentOffset</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_TTL">IPPacket.TTL</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_Protocol">IPPacket.Protocol</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_IPCRC">IPPacket.IPCRC</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_SourceIP">IPPacket.SourceIP</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DestinationIP">IPPacket.DestinationIP</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">IPPacket.DataOffset</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataLength">IPPacket.DataLength</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">EthernetPacket.RawData</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_SourceMac">EthernetPacket.SourceMac</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_DestinationMac">EthernetPacket.DestinationMac</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_EthernetType">EthernetPacket.EthernetType</a>
-    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -203,21 +151,28 @@ public class TcpPacket : IPPacket</code></pre>
 
 
 
+  <h2 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_remarks">Remarks</h2>
+  <div class="markdown level0 remarks"><p>Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html#Cosmos_Kernel_System_Network_TCP_TcpPacket_RawData">RawData</a> at
+construction and are never recomputed; the checksum of a locally built
+segment is likewise computed once, in the constructor, so mutating the raw
+bytes afterwards leaves it stale.</p>
+</div>
 
 
   <h2 class="section" id="constructors">Constructors
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_System_UInt16_System_UInt16_System_UInt32_System_UInt32_System_UInt16_System_Byte_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address,System.UInt16,System.UInt16,System.UInt32,System.UInt32,System.UInt16,System.Byte,System.UInt16,System.UInt16)">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_System_UInt16_System_UInt16_System_UInt32_System_UInt32_System_UInt16_System_Byte_System_UInt16_System_UInt16_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address,System.UInt16,System.UInt16,System.UInt32,System.UInt32,System.UInt16,System.Byte,System.UInt16,System.UInt16)">
   TcpPacket(Address, Address, ushort, ushort, uint, uint, ushort, byte, ushort, ushort)
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Builds an empty TCP segment (header only, no payload), used for control packets such as SYN, ACK and FIN.
-The header bytes and the TCP checksum are written into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> here, in the constructor, and never recomputed.</p>
+  <div class="markdown level1 summary"><p>Builds an empty TCP segment (header only, no payload), used for control packets such as SYN, ACK and FIN,
+of the version both addresses belong to.
+The header bytes and the TCP checksum are written into <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html#Cosmos_Kernel_System_Network_TCP_TcpPacket_RawData">RawData</a> here, in the constructor, and never recomputed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -228,10 +183,10 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
-    <dd><p>Source IPv4 address.</p>
+    <dd><p>Source address.</p>
 </dd>
     <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
-    <dd><p>Destination IPv4 address.</p>
+    <dd><p>Destination address.</p>
 </dd>
     <dt><code>srcPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd><p>Source TCP port.</p>
@@ -249,7 +204,7 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
     <dd><p>TCP header length in bytes; the stack always passes 20, a header without options.</p>
 </dd>
     <dt><code>flags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>Flag bits for the header, a byte cast of combined <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html">TcpFlags</a> values.</p>
+    <dd><p>Flag bits for the header, a byte cast of combined <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpFlags.html">TcpFlags</a> values.</p>
 </dd>
     <dt><code>windowSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd><p>Receive window size to advertise.</p>
@@ -267,18 +222,25 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>The two addresses belong to different IP versions.</p>
+</dd>
+  </dl>
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_System_UInt16_System_UInt16_System_UInt32_System_UInt32_System_UInt16_System_Byte_System_UInt16_System_UInt16_System_Byte___" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address,System.UInt16,System.UInt16,System.UInt32,System.UInt32,System.UInt16,System.Byte,System.UInt16,System.UInt16,System.Byte[])">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_System_UInt16_System_UInt16_System_UInt32_System_UInt32_System_UInt16_System_Byte_System_UInt16_System_UInt16_System_Byte___" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address,System.UInt16,System.UInt16,System.UInt32,System.UInt32,System.UInt16,System.Byte,System.UInt16,System.UInt16,System.Byte[])">
   TcpPacket(Address, Address, ushort, ushort, uint, uint, ushort, byte, ushort, ushort, byte[])
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Builds a TCP segment carrying <code class="paramref">data</code> as payload.
-The header bytes and the TCP checksum are written into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> here, in the constructor, and never recomputed.</p>
+  <div class="markdown level1 summary"><p>Builds a TCP segment carrying <code class="paramref">data</code> as payload, of
+the version both addresses belong to.
+The header bytes and the TCP checksum are written into <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html#Cosmos_Kernel_System_Network_TCP_TcpPacket_RawData">RawData</a> here, in the constructor, and never recomputed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -289,10 +251,10 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>source</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
-    <dd><p>Source IPv4 address.</p>
+    <dd><p>Source address.</p>
 </dd>
     <dt><code>dest</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
-    <dd><p>Destination IPv4 address.</p>
+    <dd><p>Destination address.</p>
 </dd>
     <dt><code>srcPort</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd><p>Source TCP port.</p>
@@ -310,7 +272,7 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
     <dd><p>TCP header length in bytes; the stack always passes 20, a header without options.</p>
 </dd>
     <dt><code>flags</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
-    <dd><p>Flag bits for the header, a byte cast of combined <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html">TcpFlags</a> values.</p>
+    <dd><p>Flag bits for the header, a byte cast of combined <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpFlags.html">TcpFlags</a> values.</p>
 </dd>
     <dt><code>windowSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
     <dd><p>Receive window size to advertise.</p>
@@ -331,18 +293,26 @@ The header bytes and the TCP checksum are written into <a class="xref" href="Cos
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>The two addresses belong to different IP versions.</p>
+</dd>
+  </dl>
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket__ctor_System_Byte___" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.#ctor(System.Byte[])">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket__ctor_System_Byte___" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.#ctor(System.Byte[])">
   TcpPacket(byte[])
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Creates a TCP packet from a received frame.
-The array is aliased, not copied: the instance keeps a reference to <code class="paramref">rawData</code> and parses every header property from it once, during construction.</p>
+  <div class="markdown level1 summary"><p>Creates a TCP segment from a received frame, picking the internet
+version from the EtherType. The array is aliased, not copied: the
+instance keeps a reference to <code class="paramref">rawData</code> and parses
+every header property from it once, during construction.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -353,7 +323,7 @@ The array is aliased, not copied: the instance keeps a reference to <code class=
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>rawData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
-    <dd><p>Raw frame bytes containing the Ethernet, IPv4 and TCP headers followed by the payload.</p>
+    <dd><p>Raw frame bytes containing the Ethernet, internet and TCP headers followed by the payload.</p>
 </dd>
   </dl>
 
@@ -365,6 +335,12 @@ The array is aliased, not copied: the instance keeps a reference to <code class=
 
 
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>The frame carries neither an IPv4 nor an IPv6 header.</p>
+</dd>
+  </dl>
 
 
 
@@ -372,9 +348,9 @@ The array is aliased, not copied: the instance keeps a reference to <code class=
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_AckNumber_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.AckNumber*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_AckNumber_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.AckNumber*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_AckNumber" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.AckNumber">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_AckNumber" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.AckNumber">
   AckNumber
   
   </h3>
@@ -404,15 +380,15 @@ The array is aliased, not copied: the instance keeps a reference to <code class=
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_Checksum_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.Checksum*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Checksum_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Checksum*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_Checksum" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.Checksum">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Checksum" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Checksum">
   Checksum
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the checksum field as parsed from the header at construction.
-On locally built packets this reads zero: the computed checksum bytes are patched into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> after the parse pass, so the snapshot never sees them.</p>
+  <div class="markdown level1 summary"><p>Gets the checksum field as parsed from the header, a snapshot taken at construction.
+On a locally built segment it holds the value computed in the constructor.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -437,9 +413,41 @@ On locally built packets this reads zero: the computed checksum bytes are patche
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_DestinationPort_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.DestinationPort*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_DestinationIP_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.DestinationIP*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_DestinationPort" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.DestinationPort">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_DestinationIP" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.DestinationIP">
+  DestinationIP
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The destination address of the carrying internet packet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address DestinationIP { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_DestinationPort_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.DestinationPort*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_DestinationPort" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.DestinationPort">
   DestinationPort
   
   </h3>
@@ -469,14 +477,14 @@ On locally built packets this reads zero: the computed checksum bytes are patche
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_FlagBits_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.FlagBits*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_FlagBits_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.FlagBits*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_FlagBits" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.FlagBits">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_FlagBits" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.FlagBits">
   FlagBits
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the raw flag byte from the header, a snapshot taken at construction; see <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html">TcpFlags</a> for the bit values.</p>
+  <div class="markdown level1 summary"><p>Gets the raw flag byte from the header, a snapshot taken at construction; see <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpFlags.html">TcpFlags</a> for the bit values.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -501,9 +509,43 @@ On locally built packets this reads zero: the computed checksum bytes are patche
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_Options_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.Options*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Network_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Network*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_Options" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.Options">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Network" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Network">
+  Network
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The internet packet carrying this segment: the frame buffer, the
+addresses, and the version-specific half of the checksum. Pass it to
+<a class="xref" href="Cosmos.Kernel.System.Network.NetworkStack.html#Cosmos_Kernel_System_Network_NetworkStack_Send_Cosmos_Kernel_System_Network_InternetPacket_">Send(InternetPacket)</a> to transmit the segment.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public InternetPacket Network { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Options_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Options*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_Options" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.Options">
   Options
   
   </h3>
@@ -523,7 +565,7 @@ Options are parse products only: they are never serialized into packets this sta
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.html">TcpOption</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpOption.html">TcpOption</a>&gt;</dt>
     <dd></dd>
   </dl>
 
@@ -534,9 +576,41 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_SequenceNumber_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.SequenceNumber*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_RawData_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.RawData*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_SequenceNumber" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.SequenceNumber">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_RawData" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.RawData">
+  RawData
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The complete wire image of the frame, Ethernet header included.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte[] RawData { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SequenceNumber_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SequenceNumber*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SequenceNumber" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SequenceNumber">
   SequenceNumber
   
   </h3>
@@ -566,9 +640,41 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_SourcePort_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.SourcePort*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SourceIP_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SourceIP*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_SourcePort" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.SourcePort">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SourceIP" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SourceIP">
+  SourceIP
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The source address of the carrying internet packet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address SourceIP { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SourcePort_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SourcePort*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_SourcePort" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.SourcePort">
   SourcePort
   
   </h3>
@@ -598,14 +704,14 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_TcpDataLength_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.TcpDataLength*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_TcpDataLength_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.TcpDataLength*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_TcpDataLength" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.TcpDataLength">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_TcpDataLength" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.TcpDataLength">
   TcpDataLength
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Gets the payload length in bytes: the IP total length minus the IP header length minus the TCP header length, computed from the header snapshots.</p>
+  <div class="markdown level1 summary"><p>Gets the payload length in bytes: the length of the internet payload minus the TCP header length.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
@@ -630,9 +736,9 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_TcpHeaderLength_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.TcpHeaderLength*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_TcpHeaderLength_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.TcpHeaderLength*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_TcpHeaderLength" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.TcpHeaderLength">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_TcpHeaderLength" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.TcpHeaderLength">
   TcpHeaderLength
   
   </h3>
@@ -662,9 +768,9 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_UrgentPointer_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.UrgentPointer*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_UrgentPointer_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.UrgentPointer*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_UrgentPointer" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.UrgentPointer">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_UrgentPointer" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.UrgentPointer">
   UrgentPointer
   
   </h3>
@@ -694,9 +800,9 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_WindowSize_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.WindowSize*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_WindowSize_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.WindowSize*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_WindowSize" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.WindowSize">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_WindowSize" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.WindowSize">
   WindowSize
   
   </h3>
@@ -730,9 +836,9 @@ Options are parse products only: they are never serialized into packets this sta
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_GetFlags_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.GetFlags*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_GetFlags_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.GetFlags*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_GetFlags" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.GetFlags">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_GetFlags" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.GetFlags">
   GetFlags()
   
   </h3>
@@ -763,9 +869,9 @@ Options are parse products only: they are never serialized into packets this sta
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_ToString_" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.ToString*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_ToString_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.ToString*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_TCP_TcpPacket_ToString" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.ToString">
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_ToString" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.ToString">
   ToString()
   
   </h3>
@@ -783,6 +889,42 @@ Options are parse products only: they are never serialized into packets this sta
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd><p>A human readable summary of the segment.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpPacket_VerifyChecksum_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.VerifyChecksum*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpPacket_VerifyChecksum" data-uid="Cosmos.Kernel.System.Network.TCP.TcpPacket.VerifyChecksum">
+  VerifyChecksum()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Verifies the checksum the segment arrived with. The ones' complement
+sum over the pseudo-header and the whole segment, the checksum field
+included, is all ones when the bytes are intact, so the complement is
+zero.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool VerifyChecksum()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>True when the segment is intact.</p>
 </dd>
   </dl>
 

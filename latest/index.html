@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="">
       
       
-      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.84/docs/index.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.85/docs/index.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -110,6 +110,15 @@
 <li><a href="articles/dev/build/kernel-compilation-steps.html">Kernel Compilation Steps</a>: C# to bootable ISO, end to end.</li>
 <li><a href="articles/dev/build/asm-build.html">Cosmos.Build.Asm</a>, <a href="articles/dev/build/gcc-build.html">Cosmos.Build.GCC</a>, <a href="articles/dev/build/patcher-build.html">Cosmos.Build.Patcher</a>, <a href="articles/dev/build/ilc-build.html">Cosmos.Build.Ilc</a>: the build pipeline components.</li>
 </ul>
+<h2 id="cross-referencing">Cross-referencing</h2>
+<p>The API reference publishes a DocFX cross-reference map at <a href="https://cosmosos.github.io/xrefmap.yml"><code>/xrefmap.yml</code></a>, covering every documented namespace, type and member. Another DocFX site consumes it by adding that URL to the <code>xref</code> list of its own <code>docfx.json</code>:</p>
+<pre><code class="lang-json">{
+  &quot;build&quot;: {
+    &quot;xref&quot;: [ &quot;https://cosmosos.github.io/xrefmap.yml&quot; ]
+  }
+}
+</code></pre>
+<p>Cosmos types are then linked by UID instead of by URL, as <code>&lt;xref:Cosmos.Kernel.System.Graphics.Canvas&gt;</code> or its <code>@Cosmos.Kernel.System.Graphics.Canvas</code> shorthand. Each frozen release copy carries its own map beside it, at <code>/vX.Y.Z/xrefmap.yml</code> and <code>/latest/xrefmap.yml</code>.</p>
 <h2 id="resources">Resources</h2>
 <ul>
 <li><a href="https://valentin.bzh/posts/3">Cosmos Gen3: The NativeAOT Era and the End of IL2CPU?</a></li>
@@ -120,7 +129,7 @@
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.84/docs/index.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/v3.0.85/docs/index.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

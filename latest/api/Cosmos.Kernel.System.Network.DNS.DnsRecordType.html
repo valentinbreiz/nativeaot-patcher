@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class DhcpClient | Cosmos Gen 3 </title>
+      <title>Class DnsRecordType | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class DhcpClient | Cosmos Gen 3 ">
+      <meta name="title" content="Class DnsRecordType | Cosmos Gen 3 ">
       
-      <meta name="description" content="Used to manage the DHCP connection to a server.">
+      <meta name="description" content="The DNS resource record types this stack understands: the address record of each IP version, and the alias record that chains to them.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,27 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient">
+        <article data-uid="Cosmos.Kernel.System.Network.DNS.DnsRecordType">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient" class="text-break">
-Class DhcpClient  
+  <h1 id="Cosmos_Kernel_System_Network_DNS_DnsRecordType" data-uid="Cosmos.Kernel.System.Network.DNS.DnsRecordType" class="text-break">
+Class DnsRecordType  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.html">UDP</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.html">DHCP</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.DNS.html">DNS</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Used to manage the DHCP connection to a server.</p>
+  <div class="markdown summary"><p>The DNS resource record types this stack understands: the address record of
+each IP version, and the alias record that chains to them.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class DhcpClient : UdpClient, IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public static class DnsRecordType</code></pre>
   </div>
 
 
@@ -112,49 +114,15 @@ Class DhcpClient
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html">UdpClient</a></div>
-      <div><span class="xref">DhcpClient</span></div>
+      <div><span class="xref">DnsRecordType</span></div>
     </dd>
   </dl>
 
-  <dl class="typelist implements">
-    <dt>Implements</dt>
-    <dd>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
-    </dd>
-  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_GetDynamicPort_System_Int32_">UdpClient.GetDynamicPort(int)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Connect_Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Connect(Address, int)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Close">UdpClient.Close()</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_System_Byte___">UdpClient.Send(byte[])</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_System_Byte___Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Send(byte[], Address, int)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Send_Cosmos_Kernel_System_Network_IPv4_UDP_UdpPacket_">UdpClient.Send(UdpPacket)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Receive_Cosmos_Kernel_System_Network_IPv4_EndPoint__System_Int32_">UdpClient.Receive(ref EndPoint, int)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_ReceivePacket_System_Int32_">UdpClient.ReceivePacket(int)</a>
-    </div>
-    <div>
-      <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html#Cosmos_Kernel_System_Network_IPv4_UDP_UdpClient_Dispose">UdpClient.Dispose()</a>
-    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -166,6 +134,9 @@ Class DhcpClient
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
@@ -180,63 +151,31 @@ Class DhcpClient
 
 
 
-  <h2 class="section" id="constructors">Constructors
+  <h2 class="section" id="fields">Fields
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.#ctor*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient__ctor" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.#ctor">
-  DhcpClient()
+  <h3 id="Cosmos_Kernel_System_Network_DNS_DnsRecordType_A" data-uid="Cosmos.Kernel.System.Network.DNS.DnsRecordType.A">
+  A
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.html">DhcpClient</a> class.</p>
+  <div class="markdown level1 summary"><p>An IPv4 host address (RFC 1035), whose record data is four bytes.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public DhcpClient()</code></pre>
+    <pre><code class="lang-csharp hljs">public const ushort A = 1</code></pre>
   </div>
 
 
 
 
-
-
-
-
-
-
-
-
-
-  <h2 class="section" id="methods">Methods
-</h2>
-
-
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient_SendDiscoverPacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.SendDiscoverPacket*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient_SendDiscoverPacket" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.SendDiscoverPacket">
-  SendDiscoverPacket()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Send a packet to find the DHCP server and inform the host that we
-are requesting a new IP address.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public int SendDiscoverPacket()</code></pre>
-  </div>
-
-
-  <h4 class="section">Returns</h4>
+  <h4 class="section">Field Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>The amount of time elapsed, or -1 if a timeout has been reached.</p>
-</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
   </dl>
 
 
@@ -248,25 +187,59 @@ are requesting a new IP address.</p>
 
 
 
-
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient_SendReleasePacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.SendReleasePacket*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DHCP_DhcpClient_SendReleasePacket" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.SendReleasePacket">
-  SendReleasePacket()
+  <h3 id="Cosmos_Kernel_System_Network_DNS_DnsRecordType_AAAA" data-uid="Cosmos.Kernel.System.Network.DNS.DnsRecordType.AAAA">
+  AAAA
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Sends a packet to the DHCP server in order to make the address available again.</p>
+  <div class="markdown level1 summary"><p>An IPv6 host address (RFC 3596), whose record data is sixteen bytes.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void SendReleasePacket()</code></pre>
+    <pre><code class="lang-csharp hljs">public const ushort AAAA = 28</code></pre>
   </div>
 
 
 
 
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Cosmos_Kernel_System_Network_DNS_DnsRecordType_CNAME" data-uid="Cosmos.Kernel.System.Network.DNS.DnsRecordType.CNAME">
+  CNAME
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The canonical name behind an alias (RFC 1035), whose record data is a
+domain name that a lookup follows before it reaches an address record.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public const ushort CNAME = 5</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
 
 
 

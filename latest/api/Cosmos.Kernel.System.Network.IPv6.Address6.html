@@ -167,6 +167,82 @@ Class Address6
 
   <a id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor*"></a>
 
+  <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_System_Byte___System_Int32_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor(System.Byte[],System.Int32)">
+  Address6(byte[], int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates an address from the sixteen bytes at <code class="paramref">offset</code> in
+<code class="paramref">buffer</code>, most significant first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address6(byte[] buffer, int offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
+    <dd><p>The buffer holding the address.</p>
+</dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The offset of the first address byte.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_System_ReadOnlySpan_System_Byte__" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor(System.ReadOnlySpan{System.Byte})">
+  Address6(ReadOnlySpan&lt;byte&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates an address from its sixteen bytes, most significant first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address6(ReadOnlySpan&lt;byte&gt; buffer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>The sixteen address bytes.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
+    <dd><p><code class="paramref">buffer</code> is not exactly sixteen bytes long.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor*"></a>
+
   <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6__ctor_System_ReadOnlySpan_System_UInt16__" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.#ctor(System.ReadOnlySpan{System.UInt16})">
   Address6(ReadOnlySpan&lt;ushort&gt;)
   
@@ -893,6 +969,47 @@ Class Address6
 
 
 
+  <a id="Cosmos_Kernel_System_Network_IPv6_Address6_LinkLocalFor_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.LinkLocalFor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6_LinkLocalFor_Cosmos_Kernel_HAL_Interfaces_Devices_MACAddress_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.LinkLocalFor(Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress)">
+  LinkLocalFor(MACAddress)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The link-local address a device derives from its MAC address
+(RFC 4291 Appendix A): <code>fe80::/64</code> followed by the modified
+EUI-64 interface identifier, the MAC with <code>ff:fe</code> inserted in the
+middle and its universal/local bit inverted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Address6 LinkLocalFor(MACAddress mac)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mac</code> <a class="xref" href="Cosmos.Kernel.HAL.Interfaces.Devices.MACAddress.html">MACAddress</a></dt>
+    <dd><p>The device's MAC address.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
   <a id="Cosmos_Kernel_System_Network_IPv6_Address6_OperatorBitwiseAnd_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.OperatorBitwiseAnd*"></a>
 
   <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6_OperatorBitwiseAnd_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.OperatorBitwiseAnd(Cosmos.Kernel.System.Network.Address)">
@@ -996,6 +1113,40 @@ Class Address6
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv6_Address6_ToSolicitedNodeMulticast_" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.ToSolicitedNodeMulticast*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv6_Address6_ToSolicitedNodeMulticast" data-uid="Cosmos.Kernel.System.Network.IPv6.Address6.ToSolicitedNodeMulticast">
+  ToSolicitedNodeMulticast()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The solicited-node multicast group of this address (RFC 4291
+section 2.7.1): <code>ff02::1:ff00:0/104</code> followed by its low 24 bits.
+Neighbor Solicitations for the address are sent to this group.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Address6 ToSolicitedNodeMulticast()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a></dt>
     <dd></dd>
   </dl>
 

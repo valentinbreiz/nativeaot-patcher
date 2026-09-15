@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Network.IPv4.TCP | Cosmos Gen 3 </title>
+      <title>Enum ReplyCode | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Network.IPv4.TCP | Cosmos Gen 3 ">
+      <meta name="title" content="Enum ReplyCode | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,37 +84,66 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4.TCP">
+        <article data-uid="Cosmos.Kernel.System.Network.DNS.ReplyCode">
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4_TCP" data-uid="Cosmos.Kernel.System.Network.IPv4.TCP" class="text-break">Namespace Cosmos.Kernel.System.Network.IPv4.TCP</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.html">TcpOption</a></dt>
-      <dd><p>A TCP header option parsed from a received segment.
-Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>
+
+
+  <h1 id="Cosmos_Kernel_System_Network_DNS_ReplyCode" data-uid="Cosmos.Kernel.System.Network.DNS.ReplyCode" class="text-break">
+Enum ReplyCode  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.DNS.html">DNS</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
+public enum ReplyCode</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_FormatError"><code>FormatError = 1</code></dt>
+  
+  <dd><p>The server was unable to interpret the query.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.html">TcpPacket</a></dt>
-      <dd><p>Represents a TCP segment carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a>.
-Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction and are never recomputed; the checksum
-of a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.</p>
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_NameError"><code>NameError = 3</code></dt>
+  
+  <dd><p>The domain name referenced in the query does not exist (NXDOMAIN).</p>
 </dd>
-    </dl>
-    <h3 id="enums">
-Enums
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html">TcpFlags</a></dt>
-      <dd><p>TCP header control flags, as defined by RFC 793.</p>
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_NotSupported"><code>NotSupported = 4</code></dt>
+  
+  <dd><p>The server does not support the requested kind of query.</p>
 </dd>
-    </dl>
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_OK"><code>OK = 0</code></dt>
+  
+  <dd><p>No error condition.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_Refused"><code>Refused = 5</code></dt>
+  
+  <dd><p>The server refuses to perform the requested operation.</p>
+</dd>
+    <dt id="Cosmos_Kernel_System_Network_DNS_ReplyCode_ServerFailure"><code>ServerFailure = 2</code></dt>
+  
+  <dd><p>The server failed to process the query.</p>
+</dd>
+  </dl>
+
 
 
 </article>

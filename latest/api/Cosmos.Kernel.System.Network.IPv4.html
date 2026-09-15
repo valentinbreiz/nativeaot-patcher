@@ -95,11 +95,7 @@
 Namespaces
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.html">Cosmos.Kernel.System.Network.IPv4.TCP</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.html">Cosmos.Kernel.System.Network.IPv4.UDP</a></dt>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.DHCP.html">Cosmos.Kernel.System.Network.IPv4.DHCP</a></dt>
       <dd></dd>
     </dl>
     <h3 id="classes">
@@ -111,19 +107,17 @@ Classes
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.EndPoint.html">EndPoint</a></dt>
-      <dd><p>Represents an IPv4 end-point.</p>
-</dd>
-    </dl>
-    <dl class="jumplist">
       <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
       <dd><p>An IPv4 packet over Ethernet. The build constructors write the complete
 IPv4 header, including the header checksum, at construction time; the
 checksum is never recomputed, so the header bytes must not be modified
-afterwards. Derive from this class to implement a custom IP protocol:
-pass the protocol number and payload length to a build constructor and
-write the payload into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from
-<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.</p>
+afterwards. Derive from this class to implement a custom IP protocol that
+only IPv4 carries: pass the protocol number and payload length to a build
+constructor and write the payload into
+<a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.
+A protocol that both versions carry composes an
+<a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a> instead of deriving from this class, the way
+<a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpPacket.html">UdpPacket</a> and <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html">TcpPacket</a> do.</p>
 </dd>
     </dl>
     <dl class="jumplist">

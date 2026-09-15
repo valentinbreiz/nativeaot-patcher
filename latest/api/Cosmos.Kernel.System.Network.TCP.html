@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Network.IPv4.UDP | Cosmos Gen 3 </title>
+      <title>Namespace Cosmos.Kernel.System.Network.TCP | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Network.IPv4.UDP | Cosmos Gen 3 ">
+      <meta name="title" content="Namespace Cosmos.Kernel.System.Network.TCP | Cosmos Gen 3 ">
       
       
       <link rel="icon" href="../images/favicon.ico">
@@ -84,38 +84,39 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4.UDP">
+        <article data-uid="Cosmos.Kernel.System.Network.TCP">
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4_UDP" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP" class="text-break">Namespace Cosmos.Kernel.System.Network.IPv4.UDP</h1>
+  <h1 id="Cosmos_Kernel_System_Network_TCP" data-uid="Cosmos.Kernel.System.Network.TCP" class="text-break">Namespace Cosmos.Kernel.System.Network.TCP</h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.html">Cosmos.Kernel.System.Network.IPv4.UDP.DHCP</a></dt>
-      <dd></dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.html">Cosmos.Kernel.System.Network.IPv4.UDP.DNS</a></dt>
-      <dd></dd>
-    </dl>
     <h3 id="classes">
 Classes
 </h3>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html">UdpClient</a></dt>
-      <dd><p>Used to manage the UDP connection to a client.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpOption.html">TcpOption</a></dt>
+      <dd><p>A TCP header option parsed from a received segment.
+Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>
 </dd>
     </dl>
     <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a></dt>
-      <dd><p>Represents a UDP datagram carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a>. Header properties are
-snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> when the packet is constructed;
-they are not re-read afterwards. The UDP checksum field is written as zero and never
-computed, which is legal for UDP over IPv4.</p>
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html">TcpPacket</a></dt>
+      <dd><p>A TCP segment, over IPv4 or over IPv6. The wire header is the same on
+both, so one class serves both: the segment composes the
+<a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a> that carries it rather than deriving from a
+version-specific packet, and reads the frame buffer, the addresses and
+the segment offset back through <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html#Cosmos_Kernel_System_Network_TCP_TcpPacket_Network">Network</a>. The one part that
+differs by version is the checksum pseudo-header, which the internet
+packet supplies.</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpFlags.html">TcpFlags</a></dt>
+      <dd><p>TCP header control flags, as defined by RFC 793.</p>
 </dd>
     </dl>
 

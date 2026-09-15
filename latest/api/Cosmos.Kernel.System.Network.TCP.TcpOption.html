@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class DnsQuery | Cosmos Gen 3 </title>
+      <title>Class TcpOption | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class DnsQuery | Cosmos Gen 3 ">
+      <meta name="title" content="Class TcpOption | Cosmos Gen 3 ">
       
-      <meta name="description" content="A DNS question parsed from the question section of a response. Instances are parse products created by , not builder inputs.">
+      <meta name="description" content="A TCP header option parsed from a received segment. Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,27 +84,27 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery">
+        <article data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery" class="text-break">
-Class DnsQuery  
+  <h1 id="Cosmos_Kernel_System_Network_TCP_TcpOption" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption" class="text-break">
+Class TcpOption  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.html">UDP</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.html">DNS</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.TCP.html">TCP</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>A DNS question parsed from the question section of a response. Instances are parse products
-created by <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.html">DnsPacketAnswer</a>, not builder inputs.</p>
+  <div class="markdown summary"><p>A TCP header option parsed from a received segment.
+Options are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
-public class DnsQuery</code></pre>
+public class TcpOption</code></pre>
   </div>
 
 
@@ -114,7 +114,7 @@ public class DnsQuery</code></pre>
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">DnsQuery</span></div>
+      <div><span class="xref">TcpOption</span></div>
     </dd>
   </dl>
 
@@ -155,19 +155,19 @@ public class DnsQuery</code></pre>
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Class_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Class*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpOption_Data_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Data*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Class" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Class">
-  Class
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpOption_Data" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Data">
+  Data
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The 16-bit question class (QCLASS), 1 for the Internet class.</p>
+  <div class="markdown level1 summary"><p>Gets the option payload (the bytes after the kind and length bytes), or null when the option has no payload.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Class { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public byte[]? Data { get; }</code></pre>
   </div>
 
 
@@ -176,7 +176,7 @@ public class DnsQuery</code></pre>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
     <dd></dd>
   </dl>
 
@@ -187,21 +187,19 @@ public class DnsQuery</code></pre>
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Name_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Name*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpOption_Kind_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Kind*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Name" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Name">
-  Name
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpOption_Kind" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Kind">
+  Kind
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The queried domain name, read label by label from the question section without following
-compression pointers, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> on a query this packet built rather than
-parsed: only the parse path fills it in.</p>
+  <div class="markdown level1 summary"><p>Gets the option kind byte (for example 2 for Maximum Segment Size).</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string? Name { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Kind { get; }</code></pre>
   </div>
 
 
@@ -210,7 +208,7 @@ parsed: only the parse path fills it in.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
@@ -221,19 +219,19 @@ parsed: only the parse path fills it in.</p>
 
 
 
-  <a id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Type_" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Type*"></a>
+  <a id="Cosmos_Kernel_System_Network_TCP_TcpOption_Length_" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Length*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_IPv4_UDP_DNS_DnsQuery_Type" data-uid="Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.Type">
-  Type
+  <h3 id="Cosmos_Kernel_System_Network_TCP_TcpOption_Length" data-uid="Cosmos.Kernel.System.Network.TCP.TcpOption.Length">
+  Length
   
   </h3>
 
-  <div class="markdown level1 summary"><p>The 16-bit question type (QTYPE), for example 1 for an A record.</p>
+  <div class="markdown level1 summary"><p>Gets the total option length in bytes, including the kind and length bytes. Reads zero for options that carry no length byte.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort Type { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public byte Length { get; }</code></pre>
   </div>
 
 
@@ -242,7 +240,7 @@ parsed: only the parse path fills it in.</p>
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
     <dd></dd>
   </dl>
 
