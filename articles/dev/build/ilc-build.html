@@ -87,7 +87,7 @@
         <article data-uid="">
 
 <h2 id="overview">Overview</h2>
-<p><code>Cosmos.ilc.Build</code> integrates the native AOT <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/ilc-architecture.md">ILCompiler</a> into the MSBuild pipeline. It consumes patched assemblies emitted by <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a> and transforms them into native object files later linked with platform libraries for CosmosOS.</p>
+<p><code>Cosmos.ilc.Build</code> integrates the native AOT <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/ilc-architecture.md">ILCompiler</a> into the MSBuild pipeline. It consumes patched assemblies emitted by <a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a> and transforms them into native object files later linked with platform libraries for CosmosOS.</p>
 <hr>
 <h2 id="flow-chart">Flow chart</h2>
 <pre><code class="lang-mermaid">flowchart TD
@@ -177,9 +177,9 @@
 <hr>
 <h2 id="related-components">Related components</h2>
 <ul>
-<li><a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.Ilc"><code>Cosmos.Build.Ilc</code></a></li>
-<li><a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a></li>
-<li><a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a></li>
+<li><a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Build.Ilc"><code>Cosmos.Build.Ilc</code></a></li>
+<li><a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Build.Patcher"><code>Cosmos.Build.Patcher</code></a></li>
+<li><a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Patcher"><code>Cosmos.Patcher</code></a></li>
 </ul>
 
 </article>

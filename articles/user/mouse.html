@@ -174,7 +174,7 @@ while (true)
 </code></pre>
 <!-- video: the cursor dot following the mouse while the position readout updates and the L, M and R indicators light up as each button is pressed -->
 <p><video src="images/mouse-cursor.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
-<p>Call <code>SetScreenSize</code> once at startup: the manager clamps <code>X</code> and <code>Y</code> to those bounds (the default is 1024x768, which rarely matches the framebuffer). For a real arrow cursor, blit a small bitmap instead of the circle; the DevKernel has a ready-made one in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/examples/DevKernel/Graphics/MouseCursor.cs">MouseCursor.cs</a>.</p>
+<p>Call <code>SetScreenSize</code> once at startup: the manager clamps <code>X</code> and <code>Y</code> to those bounds (the default is 1024x768, which rarely matches the framebuffer). For a real arrow cursor, blit a small bitmap instead of the circle; the DevKernel has a ready-made one in <a href="https://github.com/CosmosOS/Cosmos/blob/gen3/examples/DevKernel/Graphics/MouseCursor.cs">MouseCursor.cs</a>.</p>
 <h2 id="painting-with-the-mouse">Painting with the mouse</h2>
 <p>Buttons are plain booleans, so a paint program is a couple of <code>if</code>s. The strokes accumulate on an off-screen canvas (see <a href="graphics.html#off-screen-canvases">Off-screen canvases</a>) so the cursor can be drawn on top without erasing them:</p>
 <pre><code class="lang-csharp">Canvas screen = Canvas.GetFullScreen();

@@ -445,7 +445,7 @@ while (true)
 </code></pre>
 <!-- video: the cube spinning above the grid, then rolling right, left, toward the camera and away as the mouse is pushed to each edge of the screen, the arrow on the ground showing the push direction -->
 <p><video src="images/graphics-3d-cube.mp4" controls autoplay muted loop playsinline style="max-width:100%"></video></p>
-<p>The full demo, cube mesh and direction arrow included, is <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/examples/DevKernel/Graphics/SpinningCubeDemo.cs">SpinningCubeDemo.cs</a>.</p>
+<p>The full demo, cube mesh and direction arrow included, is <a href="https://github.com/CosmosOS/Cosmos/blob/gen3/examples/DevKernel/Graphics/SpinningCubeDemo.cs">SpinningCubeDemo.cs</a>.</p>
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
 <li>Only 32-bit color depth is supported end to end; BMP loading additionally accepts 24-bit files.</li>
@@ -455,7 +455,7 @@ while (true)
 <li><code>Canvas.DisableFullScreen()</code> exists but there is no VGA text mode to fall back to on UEFI machines.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p><code>Canvas.GetFullScreen()</code> returns the canvas for whichever display device the kernel found. Everywhere except a VMware SVGA II adapter that is the framebuffer the <a href="https://limine-bootloader.org/">Limine</a> bootloader requests from the firmware (UEFI GOP) before handing control to the kernel; on that adapter it is the canvas driving the device, which is a <code>Canvas3D</code> when the adapter negotiates 3D (see <a href="#3d-rendering">3D rendering</a>). This is why the same code works unmodified on x64 and ARM64: the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; <code>Display()</code> copies the whole back buffer into the mapped framebuffer in one go. The kernel console (<a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs"><code>KernelConsole</code></a>) renders <code>Console</code> output onto that same canvas with the default PSF font, calling <code>Display()</code> after every write.</p>
+<p><code>Canvas.GetFullScreen()</code> returns the canvas for whichever display device the kernel found. Everywhere except a VMware SVGA II adapter that is the framebuffer the <a href="https://limine-bootloader.org/">Limine</a> bootloader requests from the firmware (UEFI GOP) before handing control to the kernel; on that adapter it is the canvas driving the device, which is a <code>Canvas3D</code> when the adapter negotiates 3D (see <a href="#3d-rendering">3D rendering</a>). This is why the same code works unmodified on x64 and ARM64: the kernel never touches a video card directly. Drawing calls land in a back buffer in ordinary memory; <code>Display()</code> copies the whole back buffer into the mapped framebuffer in one go. The kernel console (<a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Kernel.System/Graphics/KernelConsole.cs"><code>KernelConsole</code></a>) renders <code>Console</code> output onto that same canvas with the default PSF font, calling <code>Display()</code> after every write.</p>
 <pre><code>Canvas API (shapes, text, images)      (Cosmos.Kernel.System.Graphics)
         │
 Full-screen canvas ── shared with ── KernelConsole (Console output)

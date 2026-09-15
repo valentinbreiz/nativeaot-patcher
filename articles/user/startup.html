@@ -235,7 +235,7 @@ public class Kernel : Sys.Kernel
 }
 </code></pre>
 <p>A headless kernel that later wants <code>Console</code> output calls <code>KernelConsole.Initialize()</code> itself: it is the only route on the ring, <code>Console.WriteLine</code> does not bring the console up on its own. The call is idempotent, so it is safe whether or not <code>base.OnBoot()</code> already ran, and it returns <code>false</code> when graphics are compiled out.</p>
-<p>For total control you can override <code>Start()</code> itself and take over the lifecycle: the default implementation in <a href="https://github.com/valentinbreiz/nativeaot-patcher/blob/main/src/Cosmos.Kernel.System/Kernel.cs"><code>Cosmos.Kernel.System/Kernel.cs</code></a> is small and a good starting point to copy from.</p>
+<p>For total control you can override <code>Start()</code> itself and take over the lifecycle: the default implementation in <a href="https://github.com/CosmosOS/Cosmos/blob/gen3/src/Cosmos.Kernel.System/Kernel.cs"><code>Cosmos.Kernel.System/Kernel.cs</code></a> is small and a good starting point to copy from.</p>
 <h2 id="the-kernel-command-line">The kernel command line</h2>
 <p>Limine passes a command line to the kernel: the <code>cmdline:</code> entry of the <code>Bootloader/limine.conf</code> file in your kernel project. It comes out the standard way:</p>
 <pre><code class="lang-csharp">foreach (string arg in Environment.GetCommandLineArgs())
