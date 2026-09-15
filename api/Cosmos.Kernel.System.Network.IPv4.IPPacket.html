@@ -6,7 +6,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="title" content="Class IPPacket | Cosmos Gen 3 ">
       
-      <meta name="description" content="An IPv4 packet over Ethernet. The build constructors write the complete IPv4 header, including the header checksum, at construction time; the checksum is never recomputed, so the header bytes must not be modified afterwards. Derive from this class to implement a custom IP protocol: pass the protocol number and payload length to a build constructor and write the payload into  from  onward.">
+      <meta name="description" content="An IPv4 packet over Ethernet. The build constructors write the complete IPv4 header, including the header checksum, at construction time; the checksum is never recomputed, so the header bytes must not be modified afterwards. Derive from this class to implement a custom IP protocol that only IPv4 carries: pass the protocol number and payload length to a build constructor and write the payload into  from  onward. A protocol that both versions carry composes an  instead of deriving from this class, the way  and  do.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -100,16 +100,19 @@ Class IPPacket
   <div class="markdown summary"><p>An IPv4 packet over Ethernet. The build constructors write the complete
 IPv4 header, including the header checksum, at construction time; the
 checksum is never recomputed, so the header bytes must not be modified
-afterwards. Derive from this class to implement a custom IP protocol:
-pass the protocol number and payload length to a build constructor and
-write the payload into <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from
-<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.</p>
+afterwards. Derive from this class to implement a custom IP protocol that
+only IPv4 carries: pass the protocol number and payload length to a build
+constructor and write the payload into
+<a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.
+A protocol that both versions carry composes an
+<a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a> instead of deriving from this class, the way
+<a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpPacket.html">UdpPacket</a> and <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html">TcpPacket</a> do.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
-public class IPPacket : EthernetPacket</code></pre>
+public class IPPacket : InternetPacket</code></pre>
   </div>
 
 
@@ -120,6 +123,7 @@ public class IPPacket : EthernetPacket</code></pre>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
       <div><a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html">EthernetPacket</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a></div>
       <div><span class="xref">IPPacket</span></div>
     </dd>
   </dl>
@@ -129,8 +133,6 @@ public class IPPacket : EthernetPacket</code></pre>
     <dt>Derived</dt>
     <dd>
       <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpPacket.html">IcmpPacket</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.html">TcpPacket</a></div>
-      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html">UdpPacket</a></div>
     </dd>
   </dl>
 
@@ -282,7 +284,7 @@ the length fields nor the header checksum are validated.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort DataLength { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override ushort DataLength { get; }</code></pre>
   </div>
 
 
@@ -315,7 +317,7 @@ the length fields nor the header checksum are validated.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ushort DataOffset { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override ushort DataOffset { get; }</code></pre>
   </div>
 
 
@@ -347,7 +349,7 @@ the length fields nor the header checksum are validated.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Address DestinationIP { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override Address DestinationIP { get; }</code></pre>
   </div>
 
 
@@ -636,7 +638,7 @@ built packets it holds the value computed at construction.</p>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Address SourceIP { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public override Address SourceIP { get; }</code></pre>
   </div>
 
 

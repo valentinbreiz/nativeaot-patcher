@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class NetworkStack | Cosmos Gen 3 </title>
+      <title>Class DhcpClient | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class NetworkStack | Cosmos Gen 3 ">
+      <meta name="title" content="Class DhcpClient | Cosmos Gen 3 ">
       
-      <meta name="description" content="Manages the Cosmos networking stack.">
+      <meta name="description" content="Used to manage the DHCP connection to a server.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,25 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.NetworkStack">
+        <article data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient">
 
 
 
-  <h1 id="Cosmos_Kernel_System_Network_NetworkStack" data-uid="Cosmos.Kernel.System.Network.NetworkStack" class="text-break">
-Class NetworkStack  
+  <h1 id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient" class="text-break">
+Class DhcpClient  
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.html">IPv4</a>.<a class="xref" href="Cosmos.Kernel.System.Network.IPv4.DHCP.html">DHCP</a></dd></dl>
   <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Manages the Cosmos networking stack.</p>
+  <div class="markdown summary"><p>Used to manage the DHCP connection to a server.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class NetworkStack</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class DhcpClient : UdpClient, IDisposable</code></pre>
   </div>
 
 
@@ -112,15 +112,49 @@ Class NetworkStack
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">NetworkStack</span></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html">UdpClient</a></div>
+      <div><span class="xref">DhcpClient</span></div>
     </dd>
   </dl>
 
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></div>
+    </dd>
+  </dl>
 
 
   <dl class="typelist inheritedMembers">
     <dt>Inherited Members</dt>
     <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_GetDynamicPort_System_Int32_">UdpClient.GetDynamicPort(int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Connect_Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Connect(Address, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Close">UdpClient.Close()</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Send_System_Byte___">UdpClient.Send(byte[])</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Send_System_Byte___Cosmos_Kernel_System_Network_Address_System_Int32_">UdpClient.Send(byte[], Address, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Send_Cosmos_Kernel_System_Network_UDP_UdpPacket_">UdpClient.Send(UdpPacket)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Receive_Cosmos_Kernel_System_Network_EndPoint__System_Int32_">UdpClient.Receive(ref EndPoint, int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_ReceivePacket_System_Int32_">UdpClient.ReceivePacket(int)</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpClient.html#Cosmos_Kernel_System_Network_UDP_UdpClient_Dispose">UdpClient.Dispose()</a>
+    </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
     </div>
@@ -132,9 +166,6 @@ Class NetworkStack
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
-    </div>
-    <div>
-      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
     </div>
     <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
@@ -149,112 +180,91 @@ Class NetworkStack
 
 
 
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient__ctor_" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.#ctor*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient__ctor" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.#ctor">
+  DhcpClient()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.html">DhcpClient</a> class.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DhcpClient()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
   <h2 class="section" id="methods">Methods
 </h2>
 
 
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_HandlePacket_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.HandlePacket*"></a>
+  <a id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient_SendDiscoverPacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.SendDiscoverPacket*"></a>
 
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_HandlePacket_System_Byte___System_Int32_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.HandlePacket(System.Byte[],System.Int32)">
-  HandlePacket(byte[], int)
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient_SendDiscoverPacket" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.SendDiscoverPacket">
+  SendDiscoverPacket()
   
   </h3>
 
-  <div class="markdown level1 summary"><p>Injects a received Ethernet frame into the stack: the frame is
-dispatched to the ARP, IPv4 or IPv6 handler by EtherType, exactly as a
-frame arriving from a network device would be. This is the receive
-entry point registered on every configured device.</p>
+  <div class="markdown level1 summary"><p>Send a packet to find the DHCP server and inform the host that we
+are requesting a new IP address.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
-public static void HandlePacket(byte[] packetData, int length)</code></pre>
+    <pre><code class="lang-csharp hljs">public int SendDiscoverPacket()</code></pre>
   </div>
 
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>packetData</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>[]</dt>
-    <dd><p>Packet data array.</p>
-</dd>
-    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
-    <dd><p>Packet length.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_RemoveAllConfigIP_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_RemoveAllConfigIP" data-uid="Cosmos.Kernel.System.Network.NetworkStack.RemoveAllConfigIP">
-  RemoveAllConfigIP()
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Removes all IP configurations, clearing the stack's address and MAC
-maps with them. The counterpart of <a class="xref" href="Cosmos.Kernel.System.Network.Config.IPConfig.html#Cosmos_Kernel_System_Network_Config_IPConfig_Enable_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_">Enable(Address, Address, Address)</a>.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static void RemoveAllConfigIP()</code></pre>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <a id="Cosmos_Kernel_System_Network_NetworkStack_Send_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Send*"></a>
-
-  <h3 id="Cosmos_Kernel_System_Network_NetworkStack_Send_Cosmos_Kernel_System_Network_InternetPacket_" data-uid="Cosmos.Kernel.System.Network.NetworkStack.Send(Cosmos.Kernel.System.Network.InternetPacket)">
-  Send(InternetPacket)
-  
-  </h3>
-
-  <div class="markdown level1 summary"><p>Transmits a packet through the stack's outgoing queue: the sending
-device is resolved from the packet's source address, the destination
-MAC address is resolved by ARP or by Neighbor Discovery depending on
-the packet's version, and the queue is pumped before returning.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Experimental(&quot;COSMOS0002&quot;)]
-public static bool Send(InternetPacket packet)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>packet</code> <a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a></dt>
-    <dd><p>A built packet, typically created through one of the
-packet type constructors. A transport packet passes its
-<code>Network</code> property here.</p>
-</dd>
-  </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>False when no configured interface matches the packet's source address; the packet is not queued in that case.</p>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The amount of time elapsed, or -1 if a timeout has been reached.</p>
 </dd>
   </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient_SendReleasePacket_" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.SendReleasePacket*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_IPv4_DHCP_DhcpClient_SendReleasePacket" data-uid="Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.SendReleasePacket">
+  SendReleasePacket()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sends a packet to the DHCP server in order to make the address available again.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SendReleasePacket()</code></pre>
+  </div>
+
+
 
 
 

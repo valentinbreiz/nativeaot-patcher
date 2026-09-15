@@ -1272,6 +1272,146 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsAnswer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsAnswer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsAnswer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsAnswer.yml\" sourcestartlinenumber=\"1\">A DNS resource record parsed from the answer section of a response. Instances are parse products\ncreated by <xref href=\"Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer\" data-throw-if-not-resolved=\"false\"></xref>, not builder inputs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsClient.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsClient.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsClient.yml\" sourcestartlinenumber=\"1\">Used to manage a DNS connection to a server.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsPacket.yml\" sourcestartlinenumber=\"1\">Represents a DNS message carried over UDP (RFC 1035). The DNS header fields (transaction ID,\nflags and section counts) are snapshots parsed from the raw buffer at construction and are never\nrecomputed.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer.yml\" sourcestartlinenumber=\"1\">A DNS response packet. The full parse (header counts, question and answer sections, and\ncompression-pointer resolution) runs inside the constructor.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacketQuery.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsPacketQuery.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsPacketQuery",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsPacketQuery.yml\" sourcestartlinenumber=\"1\">A DNS query packet that composes a single IN-class question for a given domain name.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsQuery.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsQuery.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsQuery",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsQuery.yml\" sourcestartlinenumber=\"1\">A DNS question parsed from the question section of a response. Instances are parse products\ncreated by <xref href=\"Cosmos.Kernel.System.Network.DNS.DnsPacketAnswer\" data-throw-if-not-resolved=\"false\"></xref>, not builder inputs.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsRecordType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.DnsRecordType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.DnsRecordType",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.DnsRecordType.yml\" sourcestartlinenumber=\"1\">The DNS resource record types this stack understands: the address record of\neach IP version, and the alias record that chains to them.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.ReplyCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.ReplyCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS.ReplyCode",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.DNS.ReplyCode.yml\" sourcestartlinenumber=\"1\">DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.DNS.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.DNS.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.DNS",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.EndPoint.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.EndPoint.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.EndPoint",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.EndPoint.yml\" sourcestartlinenumber=\"1\">An address and port pair, of either IP version.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.EthernetPacket.yml",
       "output": {
         ".html": {
@@ -1300,17 +1440,101 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.EndPoint.yml",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.yml",
       "output": {
         ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.EndPoint.html"
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.html"
         }
       },
       "version": "",
       "Uid": null,
       "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.EndPoint",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.EndPoint.yml\" sourcestartlinenumber=\"1\">Represents an IPv4 end-point.</p>\n"
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpClient.yml\" sourcestartlinenumber=\"1\">Used to manage the DHCP connection to a server.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpDiscover.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpDiscover.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpDiscover",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpDiscover.yml\" sourcestartlinenumber=\"1\">Represents a DHCPDISCOVER packet, broadcast to locate DHCP servers.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpOption.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpOption.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpOption",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpOption.yml\" sourcestartlinenumber=\"1\">Represents a single DHCP option parsed from the options section of a <xref href=\"Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpPacket\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpPacket.yml\" sourcestartlinenumber=\"1\">Represents a DHCP packet carried over UDP (BOOTP client port 68, server port 67).\nHeader properties are snapshots parsed from <xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> at construction\nand are not re-read afterwards; checksums and lengths are computed in the constructors and never\nrecomputed.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRelease.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRelease.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRelease",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRelease.yml\" sourcestartlinenumber=\"1\">Represents a DHCPRELEASE packet, sent to give an assigned address back to the server.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRequest.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRequest",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.DHCP.DhcpRequest.yml\" sourcestartlinenumber=\"1\">Represents a DHCPREQUEST packet, broadcast to request a previously offered address.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.DHCP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv4.DHCP",
+      "Summary": null
     },
     {
       "type": "ManagedReference",
@@ -1324,7 +1548,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network.IPv4.IPPacket",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.IPPacket.yml\" sourcestartlinenumber=\"1\">An IPv4 packet over Ethernet. The build constructors write the complete\nIPv4 header, including the header checksum, at construction time; the\nchecksum is never recomputed, so the header bytes must not be modified\nafterwards. Derive from this class to implement a custom IP protocol:\npass the protocol number and payload length to a build constructor and\nwrite the payload into <xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> from\n<xref href=\"Cosmos.Kernel.System.Network.IPv4.IPPacket.DataOffset\" data-throw-if-not-resolved=\"false\"></xref> onward.</p>\n"
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.IPPacket.yml\" sourcestartlinenumber=\"1\">An IPv4 packet over Ethernet. The build constructors write the complete\nIPv4 header, including the header checksum, at construction time; the\nchecksum is never recomputed, so the header bytes must not be modified\nafterwards. Derive from this class to implement a custom IP protocol that\nonly IPv4 carries: pass the protocol number and payload length to a build\nconstructor and write the payload into\n<xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> from <xref href=\"Cosmos.Kernel.System.Network.IPv4.IPPacket.DataOffset\" data-throw-if-not-resolved=\"false\"></xref> onward.\nA protocol that both versions carry composes an\n<xref href=\"Cosmos.Kernel.System.Network.InternetPacket\" data-throw-if-not-resolved=\"false\"></xref> instead of deriving from this class, the way\n<xref href=\"Cosmos.Kernel.System.Network.UDP.UdpPacket\" data-throw-if-not-resolved=\"false\"></xref> and <xref href=\"Cosmos.Kernel.System.Network.TCP.TcpPacket\" data-throw-if-not-resolved=\"false\"></xref> do.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1384,314 +1608,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpFlags.yml\" sourcestartlinenumber=\"1\">TCP header control flags, as defined by RFC 793.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpOption.yml\" sourcestartlinenumber=\"1\">A TCP header option parsed from a received segment.\nOptions are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.TCP.TcpPacket.yml\" sourcestartlinenumber=\"1\">Represents a TCP segment carried in an <xref href=\"Cosmos.Kernel.System.Network.IPv4.IPPacket\" data-throw-if-not-resolved=\"false\"></xref>.\nHeader properties are snapshots parsed from <xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> at construction and are never recomputed; the checksum\nof a locally built segment is likewise computed once, in the constructor, so mutating the raw bytes afterwards leaves it stale.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.TCP.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.TCP",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpClient.yml\" sourcestartlinenumber=\"1\">Used to manage the DHCP connection to a server.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpDiscover.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpDiscover.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpDiscover",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpDiscover.yml\" sourcestartlinenumber=\"1\">Represents a DHCPDISCOVER packet, broadcast to locate DHCP servers.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpOption.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpOption.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpOption",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpOption.yml\" sourcestartlinenumber=\"1\">Represents a single DHCP option parsed from the options section of a <xref href=\"Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpPacket.yml\" sourcestartlinenumber=\"1\">Represents a DHCP packet carried over UDP (BOOTP client port 68, server port 67).\nHeader properties are snapshots parsed from <xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> at construction\nand are not re-read afterwards; checksums and lengths are computed in the constructors and never\nrecomputed.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRelease.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRelease.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRelease",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRelease.yml\" sourcestartlinenumber=\"1\">Represents a DHCPRELEASE packet, sent to give an assigned address back to the server.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRequest.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRequest",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.DhcpRequest.yml\" sourcestartlinenumber=\"1\">Represents a DHCPREQUEST packet, broadcast to request a previously offered address.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DHCP.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DHCP",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsAnswer.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsAnswer.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsAnswer",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsAnswer.yml\" sourcestartlinenumber=\"1\">A DNS resource record parsed from the answer section of a response. Instances are parse products\ncreated by <xref href=\"Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer\" data-throw-if-not-resolved=\"false\"></xref>, not builder inputs.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsClient.yml\" sourcestartlinenumber=\"1\">Used to manage a DNS connection to a server.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacket.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacket.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacket",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacket.yml\" sourcestartlinenumber=\"1\">Represents a DNS message carried over UDP (RFC 1035). The DNS header fields (transaction ID,\nflags and section counts) are snapshots parsed from the raw buffer at construction and are never\nrecomputed.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer.yml\" sourcestartlinenumber=\"1\">A DNS response packet. The full parse (header counts, question and answer sections, and\ncompression-pointer resolution) runs inside the constructor.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketQuery.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketQuery.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketQuery",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketQuery.yml\" sourcestartlinenumber=\"1\">A DNS query packet that composes a single A/IN question for a given domain name.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsQuery.yml\" sourcestartlinenumber=\"1\">A DNS question parsed from the question section of a response. Instances are parse products\ncreated by <xref href=\"Cosmos.Kernel.System.Network.IPv4.UDP.DNS.DnsPacketAnswer\" data-throw-if-not-resolved=\"false\"></xref>, not builder inputs.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.ReplyCode.yml\" sourcestartlinenumber=\"1\">DNS reply codes (RCODE), carried in the lower four bits of the DNS header flags (RFC 1035).</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.DNS.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.DNS",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpClient.yml\" sourcestartlinenumber=\"1\">Used to manage the UDP connection to a client.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket",
-      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv4.UDP.UdpPacket.yml\" sourcestartlinenumber=\"1\">Represents a UDP datagram carried in an <xref href=\"Cosmos.Kernel.System.Network.IPv4.IPPacket\" data-throw-if-not-resolved=\"false\"></xref>. Header properties are\nsnapshots parsed from <xref href=\"Cosmos.Kernel.System.Network.EthernetPacket.RawData\" data-throw-if-not-resolved=\"false\"></xref> when the packet is constructed;\nthey are not re-read afterwards. The UDP checksum field is written as zero and never\ncomputed, which is legal for UDP over IPv4.</p>\n"
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/Cosmos.Kernel.System.Network.IPv4.UDP.html"
-        }
-      },
-      "version": "",
-      "Uid": null,
-      "IsMRef": true,
-      "Title": "Cosmos.Kernel.System.Network.IPv4.UDP",
-      "Summary": null
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv4.yml",
       "output": {
         ".html": {
@@ -1734,6 +1650,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv6.Icmpv6Client.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.IPv6.Icmpv6Client.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.IPv6.Icmpv6Client",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.IPv6.Icmpv6Client.yml\" sourcestartlinenumber=\"1\">Sends ICMPv6 echo requests to one destination and receives its replies:\nthe IPv6 counterpart of <xref href=\"Cosmos.Kernel.System.Network.IPv4.IcmpClient\" data-throw-if-not-resolved=\"false\"></xref>. The destination must be\non the link; there is no IPv6 routing yet.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/Cosmos.Kernel.System.Network.IPv6.yml",
       "output": {
         ".html": {
@@ -1745,6 +1675,20 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network.IPv6",
       "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.InternetPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.InternetPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.InternetPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.InternetPacket.yml\" sourcestartlinenumber=\"1\">The internet layer of a frame: an IPv4 or an IPv6 packet. A transport\nprotocol composes one of these instead of deriving from it, which is what\nlets a single transport class serve both versions: the internet packet\nowns the frame buffer, reports where the transport section starts and how\nlong it is, computes the transport checksum with its own pseudo-header,\nand queues itself on the outgoing buffer that resolves its kind of\nneighbor address.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -1801,6 +1745,104 @@
       "IsMRef": true,
       "Title": "Cosmos.Kernel.System.Network.NetworkStack",
       "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.NetworkStack.yml\" sourcestartlinenumber=\"1\">Manages the Cosmos networking stack.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpFlags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpFlags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.TCP.TcpFlags",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.TCP.TcpFlags.yml\" sourcestartlinenumber=\"1\">TCP header control flags, as defined by RFC 793.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpOption.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpOption.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.TCP.TcpOption",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.TCP.TcpOption.yml\" sourcestartlinenumber=\"1\">A TCP header option parsed from a received segment.\nOptions are parse products only: the stack reads them from incoming segments but never serializes them into packets it builds.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.TCP.TcpPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.TCP.TcpPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.TCP.TcpPacket.yml\" sourcestartlinenumber=\"1\">A TCP segment, over IPv4 or over IPv6. The wire header is the same on\nboth, so one class serves both: the segment composes the\n<xref href=\"Cosmos.Kernel.System.Network.InternetPacket\" data-throw-if-not-resolved=\"false\"></xref> that carries it rather than deriving from a\nversion-specific packet, and reads the frame buffer, the addresses and\nthe segment offset back through <xref href=\"Cosmos.Kernel.System.Network.TCP.TcpPacket.Network\" data-throw-if-not-resolved=\"false\"></xref>. The one part that\ndiffers by version is the checksum pseudo-header, which the internet\npacket supplies.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.TCP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.TCP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.TCP",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.UDP.UdpClient.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.UDP.UdpClient.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.UDP.UdpClient",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.UDP.UdpClient.yml\" sourcestartlinenumber=\"1\">Used to manage the UDP connection to a client.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.UDP.UdpPacket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.UDP.UdpPacket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.UDP.UdpPacket",
+      "Summary": "<p sourcefile=\"api/Cosmos.Kernel.System.Network.UDP.UdpPacket.yml\" sourcestartlinenumber=\"1\">A UDP datagram, over IPv4 or over IPv6. The wire header is the same on\nboth, so one class serves both: the datagram composes the\n<xref href=\"Cosmos.Kernel.System.Network.InternetPacket\" data-throw-if-not-resolved=\"false\"></xref> that carries it rather than deriving from a\nversion-specific packet, and reads the frame buffer, the addresses and\nthe payload offset back through <xref href=\"Cosmos.Kernel.System.Network.UDP.UdpPacket.Network\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Cosmos.Kernel.System.Network.UDP.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Cosmos.Kernel.System.Network.UDP.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Cosmos.Kernel.System.Network.UDP",
+      "Summary": null
     },
     {
       "type": "ManagedReference",

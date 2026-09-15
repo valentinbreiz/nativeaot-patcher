@@ -87,7 +87,7 @@
         <article data-uid="">
 <h1 id="network">Network</h1>
 
-<p>In this article, we will discuss networking on Cosmos Gen3: how to bring the network stack up and send and receive packets. The available protocols are <strong>ARP</strong>, <strong>IPv4</strong>, <strong>UDP</strong>, <strong>TCP</strong>, <strong>DHCP</strong> and <strong>DNS</strong>.</p>
+<p>In this article, we will discuss networking on Cosmos Gen3: how to bring the network stack up and send and receive packets. The available protocols are <strong>ARP</strong>, <strong>IPv4</strong>, <strong>IPv6</strong>, <strong>UDP</strong>, <strong>TCP</strong>, <strong>DHCP</strong> and <strong>DNS</strong>.</p>
 <p>The main differences if you come from Gen2:</p>
 <table>
 <thead>
@@ -109,9 +109,14 @@
 <td>Standard <code>System.Net.Sockets.UdpClient</code> (plugged)</td>
 </tr>
 <tr>
-<td>DHCP / DNS</td>
-<td>Cosmos client classes</td>
-<td>Cosmos client classes (<code>Cosmos.Kernel.System.Network</code>)</td>
+<td>DHCP</td>
+<td>Cosmos client class</td>
+<td>Cosmos client class (<code>Cosmos.Kernel.System.Network</code>)</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>Cosmos client class</td>
+<td>Standard <code>System.Net.Dns</code> (plugged), or the Cosmos <code>DnsClient</code></td>
 </tr>
 <tr>
 <td>NIC drivers</td>
@@ -140,9 +145,9 @@ using System.Net.Sockets;
 using System.Text;
 using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
+using Cosmos.Kernel.System.Network.DNS;
 using Cosmos.Kernel.System.Network.IPv4;
-using Cosmos.Kernel.System.Network.IPv4.UDP.DHCP;
-using Cosmos.Kernel.System.Network.IPv4.UDP.DNS;
+using Cosmos.Kernel.System.Network.IPv4.DHCP;
 using Cosmos.Kernel.System.Timer;
 </code></pre>
 <h2 id="the-network-device">The network device</h2>
@@ -222,6 +227,55 @@ if (second.IsValid
 <pre><code class="lang-csharp">Console.WriteLine(NetworkManager.Primary.IPConfig?.Address.ToString());
 Console.WriteLine(NetworkManager.GetAdapter(1).IPConfig?.SubnetMask.ToString());
 </code></pre>
+<h2 id="ipv6">IPv6</h2>
+<p>The IPv4 configuration also brings up a link-local IPv6 address on the device: <code>fe80::/64</code> with the interface identifier derived from its MAC address (RFC 4291 Appendix A). On QEMU's default NIC that is <code>fe80::5054:ff:fe12:3456</code>. Neighbor Discovery resolves on-link addresses the way ARP does for IPv4, and ICMPv6 echo works in both directions.</p>
+<pre><code class="lang-csharp">Address6? linkLocal = NetworkManager.Primary.LinkLocalAddress;   // null until the device is configured
+
+Icmpv6Client ping = new();
+ping.Connect(new Address6(0xFEC0_0000, 0, 0, 2));               // QEMU user networking answers on fec0::2
+ping.SendEcho();
+
+EndPoint from = new(Address6.Zero, 0);
+int elapsedMs = ping.Receive(ref from, 5000);                  // -1 on timeout
+ping.Close();
+</code></pre>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPv4</th>
+<th>IPv6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Address</td>
+<td><code>IPConfig.Enable</code> or DHCP</td>
+<td>Link-local, derived from the MAC</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>ARP</td>
+<td>Neighbor Discovery (solicitation and advertisement)</td>
+</tr>
+<tr>
+<td>Ping</td>
+<td><code>IcmpClient</code></td>
+<td><code>Icmpv6Client</code></td>
+</tr>
+<tr>
+<td>UDP and TCP</td>
+<td><code>UdpPacket</code>, <code>TcpPacket</code></td>
+<td>The same two classes, checksummed over the IPv6 pseudo-header</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td><code>DnsClient</code>, A records</td>
+<td>The same client, AAAA records</td>
+</tr>
+</tbody>
+</table>
+<p>What IPv6 does not cover yet: addresses beyond link-local (Router Advertisements are ignored, no SLAAC or DHCPv6, so only on-link destinations are reachable), and <code>AddressFamily.InterNetworkV6</code> on the .NET socket classes.</p>
 <h2 id="udp">UDP</h2>
 <p>UDP uses the standard .NET <code>UdpClient</code>, no Cosmos-specific classes. Sends go out immediately; for receives, poll <code>Available</code> (a receive with nothing pending would block):</p>
 <pre><code class="lang-csharp">using System.Net.Sockets;
@@ -305,7 +359,14 @@ listener.Stop();
 <!-- screenshot: console showing "Listening on port 4444...", "Client connected!" and the received message -->
 <p><img src="images/network-tcp-server.png" alt="TCP Server"></p>
 <h2 id="dns">DNS</h2>
-<p>DNS uses the Cosmos <code>DnsClient</code> (the .NET <code>Dns</code> class is not plugged yet). Register a nameserver, query one domain, and read the answer back:</p>
+<p>Two APIs resolve a name: the standard <code>System.Net.Dns</code>, and the Cosmos <code>DnsClient</code>. Register a nameserver with either one, because there is no <code>resolv.conf</code> to read one from and DHCP is what normally supplies it:</p>
+<pre><code class="lang-csharp">DnsConfig.Add(new Address4(1, 1, 1, 1));   // Cloudflare public DNS
+
+IPAddress[] addresses = Dns.GetHostAddresses(&quot;github.com&quot;);
+Console.WriteLine(&quot;github.com resolved to &quot; + addresses[0].ToString());
+</code></pre>
+<p><code>System.Net.Dns</code> reaches the Cosmos resolver through a plug on the platform layer that every one of its entry points funnels into, so the blocking overloads all work from that one plug. Two details differ from a desktop runtime: a failed lookup throws <code>SocketException</code> where the Cosmos client returns null, and <code>Dns.GetHostName()</code> reports <code>DnsConfig.HostName</code>, which nothing sets for you.</p>
+<p>The Cosmos <code>DnsClient</code> is the other way in, and the one to use when you want the reply packet or the whole answer list:</p>
 <pre><code class="lang-csharp">DnsConfig.Add(new Address4(1, 1, 1, 1));   // Cloudflare public DNS
 
 var dnsClient = new DnsClient();
@@ -323,6 +384,14 @@ if (address != null)
 
 dnsClient.Close();
 </code></pre>
+<p>DNS is one protocol at both IP versions, so <code>DnsClient</code> serves both. Two things vary independently: the server address passed to <code>Connect</code> decides which version carries the query, and the record type passed to <code>SendQuery</code> decides which address family the answer holds. An IPv4 query can ask for an IPv6 address, and the reverse:</p>
+<pre><code class="lang-csharp">/* Ask for the IPv6 address, over whichever version reaches the server */
+dnsClient.SendQuery(&quot;github.com&quot;, DnsRecordType.AAAA);
+
+/* Every address record for the name, after any CNAME chain */
+List&lt;Address&gt;? all = dnsClient.ReceiveAll(5000);
+</code></pre>
+<p>DHCP is the opposite case and stays IPv4-only: DHCPv6 is a different protocol, not this one over IPv6, sharing neither its ports, its message types, nor its option codes.</p>
 <!-- screenshot: console showing github.com resolved to an IP address -->
 <p><img src="images/network-dns.png" alt="DNS"></p>
 <h2 id="crafting-packets">Crafting packets</h2>
@@ -342,11 +411,11 @@ dnsClient.Close();
 <tbody>
 <tr>
 <td>Packet types</td>
-<td><code>EthernetPacket</code>, <code>ArpRequestEthernet</code>/<code>ArpReplyEthernet</code>, <code>IPPacket</code>, <code>IcmpEchoRequest</code>/<code>IcmpEchoReply</code>, <code>UdpPacket</code>, <code>DhcpDiscover</code>/<code>DhcpRequest</code>/<code>DhcpRelease</code>, <code>DnsPacketQuery</code>/<code>DnsPacketAnswer</code>, <code>TcpPacket</code></td>
+<td><code>EthernetPacket</code>, <code>ArpRequestEthernet</code>/<code>ArpReplyEthernet</code>, <code>InternetPacket</code>, <code>IPPacket</code>, <code>IcmpEchoRequest</code>/<code>IcmpEchoReply</code>, <code>UdpPacket</code>, <code>DhcpDiscover</code>/<code>DhcpRequest</code>/<code>DhcpRelease</code>, <code>DnsPacketQuery</code>/<code>DnsPacketAnswer</code>, <code>TcpPacket</code></td>
 </tr>
 <tr>
 <td>Transmit and inject</td>
-<td><code>NetworkStack.Send(IPPacket)</code> queues a built packet with ARP resolution; <code>NetworkStack.HandlePacket</code> injects a raw frame into the receive path</td>
+<td><code>NetworkStack.Send(InternetPacket)</code> queues a built packet and resolves its neighbor address; <code>NetworkStack.HandlePacket</code> injects a raw frame into the receive path</td>
 </tr>
 <tr>
 <td>Packet-level client I/O</td>
@@ -358,6 +427,16 @@ dnsClient.Close();
 speaks, not for adding new ones: their wire fields, header checksum helpers
 and the <code>InitializeFields</code> parse hook are internal to the stack, so a kernel
 constructs a packet and reads its properties rather than deriving its own.</p>
+<p><code>UdpPacket</code> and <code>TcpPacket</code> serve both IP versions from one class. They do
+not derive from <code>IPPacket</code>; they hold the packet that carries them in a
+<code>Network</code> property, typed as the version-neutral <code>InternetPacket</code>. Build one
+by passing two addresses of the same version, and hand <code>packet.Network</code> to
+<code>NetworkStack.Send</code>:</p>
+<pre><code class="lang-csharp">UdpPacket datagram = new UdpPacket(localIp, remoteIp, 5000, 4242, payload);
+NetworkStack.Send(datagram.Network);
+</code></pre>
+<p>A mismatched pair of addresses throws <code>ArgumentException</code> rather than
+truncating one of them.</p>
 <p>A crafted echo request, correlated with its reply by the identifier and sequence number the caller chose:</p>
 <pre><code class="lang-csharp">using Cosmos.Kernel.System.Network;
 using Cosmos.Kernel.System.Network.Config;
@@ -397,26 +476,30 @@ icmp.Close();
 <li>A build constructor writes the complete frame, including lengths and checksums, at construction time; nothing is recomputed later, so header bytes must not be modified after construction.</li>
 <li>Header properties are snapshots parsed from <code>RawData</code> at construction; writing to <code>RawData</code> does not refresh them.</li>
 <li>A parse constructor (<code>new XxxPacket(byte[])</code>) aliases the caller's array without copying.</li>
-<li><code>NetworkStack.Send</code> resolves the sending device from the packet's source IP and returns <code>false</code> when no configured interface matches it; the destination MAC is resolved by ARP unless the destination is a broadcast.</li>
-<li>A custom IP protocol is a subclass of <code>IPPacket</code>: pass the protocol number and payload length to a build constructor and write the payload at <code>DataOffset</code>.</li>
+<li><code>NetworkStack.Send</code> resolves the sending device from the packet's source IP and returns <code>false</code> when no configured interface matches it; the destination MAC is resolved by ARP over IPv4 and by Neighbor Discovery over IPv6, unless the destination is a broadcast or a multicast group.</li>
+<li>The UDP checksum differs by version, and it is the one field that does. A build constructor that receives the payload writes the checksum; one that takes only a length leaves the field zero, which means &quot;not computed&quot; over IPv4 and is illegal over IPv6, so call <code>WriteChecksum()</code> once the payload is in place.</li>
+<li>A protocol only IPv4 carries is a subclass of <code>IPPacket</code>: pass the protocol number and payload length to a build constructor and write the payload at <code>DataOffset</code>. A protocol both versions carry composes an <code>InternetPacket</code> instead, the way <code>UdpPacket</code> and <code>TcpPacket</code> do.</li>
 </ul>
 <h2 id="current-limitations">Current limitations</h2>
 <ul>
-<li><code>System.Net.Dns</code> is not plugged; use the Cosmos <code>DnsClient</code> shown above.</li>
+<li><code>System.Net.Dns</code> resolves A records only. <code>IPAddress</code> holds four bytes in the plugs, so there is nothing an AAAA answer could be returned in and <code>AddressFamily.InterNetworkV6</code> is refused outright. The Cosmos <code>DnsClient</code> has no such limit and returns <code>Address6</code> for an AAAA record.</li>
+<li>Reverse lookups are not supported. <code>Dns.GetHostEntry(IPAddress)</code> needs a PTR query against <code>in-addr.arpa</code>, which the resolver does not send, so it throws rather than returning a name.</li>
+<li>The asynchronous <code>Dns</code> overloads are unverified. <code>GetHostAddressesAsync</code> and the <code>Begin</code>/<code>End</code> pairs reach the same plug, but they get there by queueing the blocking call to the thread pool, which this kernel has not been exercised against. The blocking overloads are the tested path.</li>
+<li>IPv6 stops at the link. There is a link-local address, Neighbor Discovery, ICMPv6 echo, and UDP and TCP now ride IPv6 through the same packet classes as IPv4, but there is no routing table, so every destination has to be on the link. No SLAAC or DHCPv6, no address configuration beyond the link-local address, and <code>IPAddress</code> stays IPv4-only in the socket plugs, so the standard .NET socket classes reach IPv4 only.</li>
 <li>No TLS, so no <code>HttpClient</code>/HTTPS: raw TCP only.</li>
 <li>Several NICs are registered and configured, and outbound packets are routed by matching the source address against each interface's configuration, so <code>NetworkManager.Primary</code> decides only where the unrouted helpers (<code>NetworkManager.Send</code>, the no-handle <code>IPConfig.Enable</code>) go.</li>
 <li>Half-close is not supported: <code>Close()</code> on an established TCP connection expects the peer to answer the FIN handshake within 5 seconds and throws if it keeps the connection open.</li>
 <li>On the Cosmos <code>UdpClient</code> and <code>IcmpClient</code>, <code>Close()</code> and <code>Dispose()</code> are not the same door. <code>Close()</code> stops delivery to the client and an <code>IcmpClient</code> reopens with another <code>Connect()</code>; <code>Dispose()</code> (including the one a <code>using</code> block runs) retires the client for good, and every other member throws <code>ObjectDisposedException</code> afterwards.</li>
 </ul>
 <h2 id="how-it-works">How it works</h2>
-<p>Your code calls the standard .NET socket classes, whose PAL bottoms out in <code>Socket</code>-level <a href="../dev/plugs.html">plugs</a> in <code>Cosmos.Kernel.Plugs</code> (<code>SocketPlug</code>, <code>TcpClientPlug</code>, <code>TcpListenerPlug</code>, <code>UdpClientPlug</code>, <code>NetworkStreamPlug</code>). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over IPv4, ARP and Ethernet), which sends and receives frames through the <code>NetworkDevice</code> driver registered with <code>NetworkManager</code>. The Cosmos <code>DhcpClient</code> and <code>DnsClient</code> sit directly on the Cosmos UDP layer.</p>
+<p>Your code calls the standard .NET socket classes, whose PAL bottoms out in <code>Socket</code>-level <a href="../dev/plugs.html">plugs</a> in <code>Cosmos.Kernel.Plugs</code> (<code>SocketPlug</code>, <code>TcpClientPlug</code>, <code>TcpListenerPlug</code>, <code>UdpClientPlug</code>, <code>NetworkStreamPlug</code>, and <code>NameResolutionPalPlug</code> for <code>Dns</code>). Those delegate to the Cosmos network stack (the TCP state machine and UDP layer over both IP versions, with ARP and Ethernet under IPv4 and ICMPv6 and Neighbor Discovery under IPv6), which sends and receives frames through the <code>NetworkDevice</code> driver registered with <code>NetworkManager</code>. The Cosmos <code>DhcpClient</code> and <code>DnsClient</code> sit directly on the Cosmos UDP layer, <code>DhcpClient</code> over IPv4 only.</p>
 <pre><code>TcpClient / TcpListener / UdpClient / NetworkStream     (stock BCL)
         │
 Socket plugs                                            (Cosmos.Kernel.Plugs)
         │
 Cosmos TCP state machine / UDP                          (Cosmos.Kernel.System.Network.IPv4)
         │                                    DhcpClient / DnsClient ride UDP directly
-IPv4 / ARP / Ethernet
+IPv4 / ARP and IPv6 / Neighbor Discovery / Ethernet
         │
 NetworkDevice driver                                    (Intel E1000E, virtio-net)
 </code></pre>

@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Namespace Cosmos.Kernel.System.Network.IPv4 | Cosmos Gen 3 </title>
+      <title>Enum TcpFlags | Cosmos Gen 3 </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Namespace Cosmos.Kernel.System.Network.IPv4 | Cosmos Gen 3 ">
+      <meta name="title" content="Enum TcpFlags | Cosmos Gen 3 ">
       
-      
+      <meta name="description" content="TCP header control flags, as defined by RFC 793.">
       <link rel="icon" href="../images/favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -84,69 +84,67 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="Cosmos.Kernel.System.Network.IPv4">
+        <article data-uid="Cosmos.Kernel.System.Network.TCP.TcpFlags">
 
-  <h1 id="Cosmos_Kernel_System_Network_IPv4" data-uid="Cosmos.Kernel.System.Network.IPv4" class="text-break">Namespace Cosmos.Kernel.System.Network.IPv4</h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
 
-    <h3 id="namespaces">
-Namespaces
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.DHCP.html">Cosmos.Kernel.System.Network.IPv4.DHCP</a></dt>
-      <dd></dd>
-    </dl>
-    <h3 id="classes">
-Classes
-</h3>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></dt>
-      <dd><p>Represents a IPv4 address.</p>
+
+
+  <h1 id="Cosmos_Kernel_System_Network_TCP_TcpFlags" data-uid="Cosmos.Kernel.System.Network.TCP.TcpFlags" class="text-break">
+Enum TcpFlags  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a>.<a class="xref" href="Cosmos.Kernel.System.Network.TCP.html">TCP</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>TCP header control flags, as defined by RFC 793.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Flags]
+[Experimental(&quot;COSMOS0002&quot;)]
+public enum TcpFlags : byte</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+  <h2 id="fields">Fields
+</h2>
+  <dl class="parameters">
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_ACK"><code>ACK = 16</code></dt>
+  
+  <dd><p>ACK: the acknowledgment number field is significant.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a></dt>
-      <dd><p>An IPv4 packet over Ethernet. The build constructors write the complete
-IPv4 header, including the header checksum, at construction time; the
-checksum is never recomputed, so the header bytes must not be modified
-afterwards. Derive from this class to implement a custom IP protocol that
-only IPv4 carries: pass the protocol number and payload length to a build
-constructor and write the payload into
-<a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> from <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html#Cosmos_Kernel_System_Network_IPv4_IPPacket_DataOffset">DataOffset</a> onward.
-A protocol that both versions carry composes an
-<a class="xref" href="Cosmos.Kernel.System.Network.InternetPacket.html">InternetPacket</a> instead of deriving from this class, the way
-<a class="xref" href="Cosmos.Kernel.System.Network.UDP.UdpPacket.html">UdpPacket</a> and <a class="xref" href="Cosmos.Kernel.System.Network.TCP.TcpPacket.html">TcpPacket</a> do.</p>
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_FIN"><code>FIN = 1</code></dt>
+  
+  <dd><p>FIN: no more data from sender.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpClient.html">IcmpClient</a></dt>
-      <dd><p>Used to manage the ICMP connection to a client.</p>
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_PSH"><code>PSH = 8</code></dt>
+  
+  <dd><p>PSH: push function, deliver buffered data to the application.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoReply.html">IcmpEchoReply</a></dt>
-      <dd><p>An ICMP echo reply packet. The identifier and sequence properties are
-snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
-time.</p>
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_RST"><code>RST = 4</code></dt>
+  
+  <dd><p>RST: reset the connection.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpEchoRequest.html">IcmpEchoRequest</a></dt>
-      <dd><p>An ICMP echo request packet. The identifier and sequence properties are
-snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a> at construction
-time.</p>
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_SYN"><code>SYN = 2</code></dt>
+  
+  <dd><p>SYN: synchronize sequence numbers.</p>
 </dd>
-    </dl>
-    <dl class="jumplist">
-      <dt><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IcmpPacket.html">IcmpPacket</a></dt>
-      <dd><p>An ICMP packet carried in an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.IPPacket.html">IPPacket</a> (IP protocol 1).
-Header properties are snapshots parsed from <a class="xref" href="Cosmos.Kernel.System.Network.EthernetPacket.html#Cosmos_Kernel_System_Network_EthernetPacket_RawData">RawData</a>
-at construction time; the checksum is computed in the constructors and never
-recomputed afterward.</p>
+    <dt id="Cosmos_Kernel_System_Network_TCP_TcpFlags_URG"><code>URG = 32</code></dt>
+  
+  <dd><p>URG: the urgent pointer field is significant.</p>
 </dd>
-    </dl>
+  </dl>
+
 
 
 </article>
