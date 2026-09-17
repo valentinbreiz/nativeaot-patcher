@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class Address | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class Address | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Represents an IP address: an  or an .">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Network.Address">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Network_Address" data-uid="Cosmos.Kernel.System.Network.Address" class="text-break">
+Class Address  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Network.html">Network</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Represents an IP address: an <a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a> or an <a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a>.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class Address : IComparable&lt;Address&gt;</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">Address</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a>&gt;</div>
+    </dd>
+  </dl>
+
+  <dl class="typelist derived">
+    <dt>Derived</dt>
+    <dd>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv4.Address4.html">Address4</a></div>
+      <div><a class="xref" href="Cosmos.Kernel.System.Network.IPv6.Address6.html">Address6</a></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_AddressFamily_" data-uid="Cosmos.Kernel.System.Network.Address.AddressFamily*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_AddressFamily" data-uid="Cosmos.Kernel.System.Network.Address.AddressFamily">
+  AddressFamily
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The IP version of this address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AddressFamily AddressFamily { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.AddressFamily.html">AddressFamily</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_IsBroadcastAddress_" data-uid="Cosmos.Kernel.System.Network.Address.IsBroadcastAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_IsBroadcastAddress" data-uid="Cosmos.Kernel.System.Network.Address.IsBroadcastAddress">
+  IsBroadcastAddress
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether this is the limited broadcast address <code>255.255.255.255</code>.
+Always <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> for IPv6, which has multicast instead.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool IsBroadcastAddress { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_IsIpv4_" data-uid="Cosmos.Kernel.System.Network.Address.IsIpv4*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_IsIpv4" data-uid="Cosmos.Kernel.System.Network.Address.IsIpv4">
+  IsIpv4
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether this is an IPv4 address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsIpv4 { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_IsIpv6_" data-uid="Cosmos.Kernel.System.Network.Address.IsIpv6*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_IsIpv6" data-uid="Cosmos.Kernel.System.Network.Address.IsIpv6">
+  IsIpv6
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether this is an IPv6 address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsIpv6 { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_IsLoopbackAddress_" data-uid="Cosmos.Kernel.System.Network.Address.IsLoopbackAddress*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_IsLoopbackAddress" data-uid="Cosmos.Kernel.System.Network.Address.IsLoopbackAddress">
+  IsLoopbackAddress
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Check if this address is a loopback address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool IsLoopbackAddress { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_IsZero_" data-uid="Cosmos.Kernel.System.Network.Address.IsZero*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_IsZero" data-uid="Cosmos.Kernel.System.Network.Address.IsZero">
+  IsZero
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Whether every bit of the address is zero: <code>0.0.0.0</code> or <code>::</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract bool IsZero { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_Parts_" data-uid="Cosmos.Kernel.System.Network.Address.Parts*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_Parts" data-uid="Cosmos.Kernel.System.Network.Address.Parts">
+  Parts
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The address bytes, most significant first, indexable by octet.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract MaskedAddress Parts { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_CompareTo_" data-uid="Cosmos.Kernel.System.Network.Address.CompareTo*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_CompareTo_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.Address.CompareTo(Cosmos.Kernel.System.Network.Address)">
+  CompareTo(Address?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Orders two addresses of the same family by their numeric value; a
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> address sorts first.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CompareTo(Address? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The address to compare with.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>The two addresses are not of the same family.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_OperatorBitwiseAnd_" data-uid="Cosmos.Kernel.System.Network.Address.OperatorBitwiseAnd*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_OperatorBitwiseAnd_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.Address.OperatorBitwiseAnd(Cosmos.Kernel.System.Network.Address)">
+  OperatorBitwiseAnd(Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Masks this address with <code class="paramref">other</code> bit by bit.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected abstract MaskedAddress OperatorBitwiseAnd(Address other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The mask, of the same family as this address.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p><code class="paramref">other</code> is not of the same family.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_Parse_" data-uid="Cosmos.Kernel.System.Network.Address.Parse*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_Parse_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Network.Address.Parse(System.ReadOnlySpan{System.Char})">
+  Parse(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Parses an IP address in its string representation: dotted decimal for IPv4, colon
+separated hexadecimal for IPv6.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Address? Parse(ReadOnlySpan&lt;char&gt; addr)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>addr</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The IP address as string.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The parsed address value or null when parsing fails.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_ToBytes_" data-uid="Cosmos.Kernel.System.Network.Address.ToBytes*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_ToBytes" data-uid="Cosmos.Kernel.System.Network.Address.ToBytes">
+  ToBytes()
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>The address bytes in network order: four for IPv4, sixteen for IPv6.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract ReadOnlySpan&lt;byte&gt; ToBytes()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="operators">Operators
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_op_BitwiseAnd_" data-uid="Cosmos.Kernel.System.Network.Address.op_BitwiseAnd*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_op_BitwiseAnd_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.Address.op_BitwiseAnd(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address)">
+  operator &amp;(Address, Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Masks <code class="paramref">a</code> with <code class="paramref">b</code> bit by bit, as when a subnet mask
+is applied to an address.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static MaskedAddress operator &amp;(Address a, Address b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The address to mask.</p>
+</dd>
+    <dt><code>b</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The mask.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Cosmos.Kernel.System.Network.MaskedAddress.html">MaskedAddress</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a></dt>
+    <dd><p>The two addresses are not of the same family.</p>
+</dd>
+  </dl>
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_op_Equality_" data-uid="Cosmos.Kernel.System.Network.Address.op_Equality*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_op_Equality_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.Address.op_Equality(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address)">
+  operator ==(Address, Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether two addresses hold the same bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator ==(Address a, Address b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The first address.</p>
+</dd>
+    <dt><code>b</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The second address.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Network_Address_op_Inequality_" data-uid="Cosmos.Kernel.System.Network.Address.op_Inequality*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Network_Address_op_Inequality_Cosmos_Kernel_System_Network_Address_Cosmos_Kernel_System_Network_Address_" data-uid="Cosmos.Kernel.System.Network.Address.op_Inequality(Cosmos.Kernel.System.Network.Address,Cosmos.Kernel.System.Network.Address)">
+  operator !=(Address, Address)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether two addresses hold different bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator !=(Address a, Address b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The first address.</p>
+</dd>
+    <dt><code>b</code> <a class="xref" href="Cosmos.Kernel.System.Network.Address.html">Address</a></dt>
+    <dd><p>The second address.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
