@@ -603,7 +603,7 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 <li>Add a CI job in <code>.github/workflows/kernel-tests.yml</code>:
 <ul>
 <li>Copy an existing <code>*-tests</code> job, rename it, and update the kernel path</li>
-<li>Add a corresponding <code>{name}-results</code> job for PR comments</li>
+<li>Add a corresponding <code>{name}-results</code> job, which renders the PR comment</li>
 <li>Add the new job to the <code>test-summary</code> dependencies</li>
 </ul>
 </li>
@@ -615,9 +615,9 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 <p><strong>Jobs:</strong></p>
 <ul>
 <li><code>helloworld-tests</code>: Matrix build for x64/arm64</li>
-<li><code>helloworld-results</code>: Combined PR comment</li>
+<li><code>helloworld-results</code>: Renders the combined PR comment into a <code>pr-comment-helloworld</code> artifact</li>
 <li><code>memory-tests</code>: Matrix build for x64/arm64</li>
-<li><code>memory-results</code>: Combined PR comment</li>
+<li><code>memory-results</code>: Renders the combined PR comment into a <code>pr-comment-memory</code> artifact</li>
 <li><code>test-summary</code>: Final status summary</li>
 </ul>
 <p><strong>Triggers:</strong></p>
@@ -626,7 +626,7 @@ Only the first failure per test is recorded; subsequent assertions in the same <
 <li>Pull requests (any branch)</li>
 <li>Manual dispatch with architecture selection</li>
 </ul>
-<p><strong>PR Comments:</strong> Each test suite posts a comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts.</p>
+<p><strong>PR Comments:</strong> Each test suite gets one comment with separate rows for x64 and arm64, showing test counts, duration, and links to artifacts. The <code>*-results</code> jobs only render the comment: a <code>pull_request</code> run for a pull request from a fork holds a read-only token and cannot post. <code>.github/workflows/kernel-test-comment.yml</code> runs on <code>workflow_run</code> once Kernel Tests or Kernel Coverage completes, in the base repository and with write access whatever the origin of the pull request, downloads the <code>pr-comment-*</code> artifacts and posts or updates the comments. It trusts the PR number in an artifact only when that pull request's head is the run's head commit, and GitHub runs it from the default branch, so a change to it takes effect after merge.</p>
 <p><strong>Artifacts (30-day retention):</strong></p>
 <ul>
 <li><code>test-results-{suite}-{arch}.xml</code>: JUnit XML results</li>
