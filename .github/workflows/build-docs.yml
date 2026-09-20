@@ -1,14 +1,16 @@
 name: Build Docs
 
+# The site at https://cosmosos.github.io/ is published from CosmosOS/Cosmos
+# alone, on every docs push to gen3 (the mirror of main). nativeaot-patcher
+# only builds the docs on pull requests, as a check, without publishing:
+# docfx.json names four projects by path, and the articles link into src/;
+# either can break without anything failing until the merge lands.
 on:
   push:
-    branches: [ main, gen3 ]
+    branches: [ gen3 ]
     paths:
       - 'docs/**'
       - '.github/workflows/build-docs.yml'
-  # Build on PRs too, without publishing. docfx.json names four projects by
-  # path, and the articles link into src/; either can break without anything
-  # failing until the merge lands on main.
   pull_request:
     paths:
       - 'docs/**'
@@ -34,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: read
 
     steps:
     - name: Checkout
@@ -67,23 +69,15 @@ jobs:
     - name: Verify output
       run: find docs/_site -type f | head -50
 
+    # Same mechanism as the gen2 docs CD, but authenticated with a write
+    # deploy key of the org Pages repository instead of the expired GH_PAGES
+    # PAT. The site is served at https://cosmosos.github.io/.
+    #
     # keep_files: the dev site lives at the root of the published branch, next
     # to the frozen per-release copies (v*/ subfolders, latest/, versions.json)
     # that release.yml publishes on tags. Without it every dev deploy would
     # wipe them. Tradeoff: files deleted from docs/ linger on the branch until
     # overwritten; acceptable, they are unreachable from the rebuilt site.
-    - name: Publish to GitHub Pages
-      if: github.event_name == 'push' && github.repository == 'valentinbreiz/nativeaot-patcher'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_branch: gh-pages
-        publish_dir: ./docs/_site
-        keep_files: true
-
-    # Same mechanism as the gen2 docs CD, but authenticated with a write
-    # deploy key of the org Pages repository instead of the expired GH_PAGES
-    # PAT. The site is served at https://cosmosos.github.io/.
     - name: Publish to cosmosos.github.io
       if: github.event_name == 'push' && github.repository == 'CosmosOS/Cosmos'
       uses: peaceiris/actions-gh-pages@v3

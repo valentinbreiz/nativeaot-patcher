@@ -10,10 +10,11 @@ name: Release
 #      versions.json, consumed by the version dropdown)
 #
 # The tag releases from both remotes: mirror-gen3.yml forwards `v*` to
-# CosmosOS/Cosmos, so each repository builds its own installer, GitHub release
-# and versioned docs. Step 2 is the exception: nuget.org grants the publish
-# credential to CosmosOS/Cosmos alone (see publish-nuget), so packages reach
-# nuget.org exactly once, under the CosmosOS profile.
+# CosmosOS/Cosmos, so each repository builds its own installer and GitHub
+# release. Steps 2 and 5 run on CosmosOS/Cosmos alone: nuget.org grants the
+# publish credential to that repository only (see publish-nuget), so packages
+# reach nuget.org exactly once, under the CosmosOS profile, and the docs site
+# is published from that repository only (see publish-docs).
 #
 # `workflow_dispatch` is available for manual reruns / testing; manual runs
 # only build artifacts and DO NOT publish to NuGet or create a GitHub release.
@@ -200,46 +201,38 @@ jobs:
   # Runs on v* tag pushes; dispatching with docs_tag backfills a tag released
   # before this job existed (docs built from the tag's source, current
   # templates/custom overlaid so the frozen pages carry the version dropdown).
+  #
+  # CosmosOS/Cosmos alone: the site is https://cosmosos.github.io/, the master
+  # branch of CosmosOS/cosmosos.github.io, the target build-docs.yml deploys
+  # the dev site to, and only that repository holds the deploy key.
+  # nativeaot-patcher publishes no docs.
   publish-docs:
     name: Publish Versioned Docs
-    if: startsWith(github.ref, 'refs/tags/v') || inputs.docs_tag != ''
+    if: github.repository == 'CosmosOS/Cosmos' && (startsWith(github.ref, 'refs/tags/v') || inputs.docs_tag != '')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     # One deploy at a time on the Pages branch, in the group build-docs.yml
     # uses for the dev site: two deploys that cloned the same tip race, and the
     # loser's push is rejected.
     concurrency:
       group: docs-publish
       cancel-in-progress: false
+    env:
+      PAGES_REPOSITORY: CosmosOS/cosmosos.github.io
+      PAGES_BRANCH: master
+      # The branch holding the current templates, overlaid by the backfill.
+      SOURCE_BRANCH: gen3
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.docs_tag || github.ref }}
 
-      # The one place the per-repository mapping is stated. nativeaot-patcher
-      # serves the site from its own gh-pages branch; CosmosOS/Cosmos serves it
-      # from CosmosOS/cosmosos.github.io, the target build-docs.yml already
-      # deploys the dev site to. source_branch is the branch holding the
-      # current templates, used by the backfill overlay below.
-      - name: Resolve docs target
-        id: target
-        run: |
-          if [[ "$GITHUB_REPOSITORY" == "CosmosOS/Cosmos" ]]; then
-            echo "pages_repository=CosmosOS/cosmosos.github.io" >> "$GITHUB_OUTPUT"
-            echo "pages_branch=master" >> "$GITHUB_OUTPUT"
-            echo "source_branch=gen3" >> "$GITHUB_OUTPUT"
-          else
-            echo "pages_repository=$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
-            echo "pages_branch=gh-pages" >> "$GITHUB_OUTPUT"
-            echo "source_branch=main" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Overlay current template (backfill only)
         if: inputs.docs_tag != ''
         run: |
-          git fetch origin ${{ steps.target.outputs.source_branch }} --depth=1
+          git fetch origin "$SOURCE_BRANCH" --depth=1
           git checkout FETCH_HEAD -- docs/templates/custom
 
       - name: Setup .NET
@@ -275,10 +268,10 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           mkdir -p /tmp/pages-root
-          # Both Pages targets are public, so the job token can list either.
+          # The Pages repository is public, so the job token can list it.
           # An empty listing (branch not created yet) is a valid first release.
           {
-            gh api "repos/${{ steps.target.outputs.pages_repository }}/contents?ref=${{ steps.target.outputs.pages_branch }}" \
+            gh api "repos/$PAGES_REPOSITORY/contents?ref=$PAGES_BRANCH" \
               --jq '.[] | select(.type == "dir") | .name' 2>/dev/null | grep -E '^v[0-9]' || true
             echo "$version"
           } | sort -uVr > /tmp/versions.txt
@@ -310,26 +303,17 @@ jobs:
           cp /tmp/pages-root/versions.json /tmp/pages-out/versions.json
           find /tmp/pages-out -maxdepth 1 -mindepth 1 -printf '%f\n' | sort
 
-      # keep_files: the dev site build-docs.yml publishes at the root has to
-      # survive, and so do the frozen copies of earlier releases.
-      - name: Publish to gh-pages
-        if: github.repository != 'CosmosOS/Cosmos'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: ${{ steps.target.outputs.pages_branch }}
-          publish_dir: /tmp/pages-out
-          keep_files: true
-
       # Separate repository, so the job token does not reach it: same write
       # deploy key build-docs.yml uses for the dev site.
+      #
+      # keep_files: the dev site build-docs.yml publishes at the root has to
+      # survive, and so do the frozen copies of earlier releases.
       - name: Publish to the org site
-        if: github.repository == 'CosmosOS/Cosmos'
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
-          external_repository: ${{ steps.target.outputs.pages_repository }}
-          publish_branch: ${{ steps.target.outputs.pages_branch }}
+          external_repository: ${{ env.PAGES_REPOSITORY }}
+          publish_branch: ${{ env.PAGES_BRANCH }}
           publish_dir: /tmp/pages-out
           keep_files: true
 

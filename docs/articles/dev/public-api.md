@@ -215,7 +215,7 @@ An intentional breaking change is recorded in a `CompatibilitySuppressions.xml` 
 
 ## Versioned docs
 
-The docs site at the root of `gh-pages` follows the main branch: it is the dev documentation, rebuilt by `build-docs.yml` on every docs push. Releases get frozen copies next to it, published by the `publish-docs` job of `release.yml` when a `v*` tag is pushed:
+The docs site, [cosmosos.github.io](https://cosmosos.github.io/), is the `master` branch of `CosmosOS/cosmosos.github.io`, published from CosmosOS/Cosmos alone. Its root follows `gen3`, the mirror of main: it is the dev documentation, rebuilt by `build-docs.yml` on every docs push. Releases get frozen copies next to it, published by the `publish-docs` job of `release.yml` when a `v*` tag is pushed:
 
 | Path | Contents |
 |------|----------|
