@@ -226,7 +226,7 @@ The docs site at the root of `gh-pages` follows the main branch: it is the dev d
 
 The version dropdown in the site navbar comes from `docs/templates/custom/public/main.js`. It reads `versions.json`, lists `dev` plus every release, and keeps the reader on the same page across versions when the page exists there. It only appears once `versions.json` exists, i.e. after the first tagged release; until then the site behaves exactly as before.
 
-The dev deploys use `keep_files: true` so they never wipe the `v*/` folders, at the cost of deleted dev pages lingering on the branch until overwritten.
+The dev deploys use `keep_files: true` so they never wipe the `v*/` folders, at the cost of deleted dev pages lingering on the branch until overwritten. Both jobs deploy in the `docs-publish` concurrency group, one at a time: the branch tip moves with every deploy, and a deploy that started from an older tip is rejected.
 
 ---
 

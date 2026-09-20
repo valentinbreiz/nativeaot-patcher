@@ -14,6 +14,18 @@ on:
       - 'docs/**'
       - '.github/workflows/build-docs.yml'
 
+# One deploy at a time on the Pages branch, in a group shared with the
+# publish-docs job of release.yml. peaceiris/actions-gh-pages commits on top of
+# the tip it cloned and pushes without force, so two runs that cloned the same
+# tip race and the loser's push is rejected ("cannot lock ref"). Two merges on
+# main within a minute of each other are enough to get there: the mirror
+# forwards each one to gen3 as its own push. A deploy in flight completes and
+# the newest queued one follows it. PR builds only supersede the previous build
+# of the same branch.
+concurrency:
+  group: ${{ github.event_name == 'push' && 'docs-publish' || format('docs-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
 jobs:
   build:
     # ubuntu, not windows: the deploy_key mode of peaceiris/actions-gh-pages

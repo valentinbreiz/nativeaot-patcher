@@ -206,6 +206,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # One deploy at a time on the Pages branch, in the group build-docs.yml
+    # uses for the dev site: two deploys that cloned the same tip race, and the
+    # loser's push is rejected.
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
