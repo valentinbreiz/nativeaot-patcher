@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IVfsDirectoryHandle | Cosmos Gen 3 </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IVfsDirectoryHandle | Cosmos Gen 3 ">
+      
+      <meta name="description" content="Managed handle for a directory node supporting lookup and mutation operations.">
+      <link rel="icon" href="../images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/logo.png" alt="Cosmos Gen 3">
+            Cosmos Gen 3
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle">
+
+
+
+  <h1 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle" class="text-break">
+Interface IVfsDirectoryHandle  
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Cosmos.html">Cosmos</a>.<a class="xref" href="Cosmos.Kernel.html">Kernel</a>.<a class="xref" href="Cosmos.Kernel.System.html">System</a>.<a class="xref" href="Cosmos.Kernel.System.Vfs.html">Vfs</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Cosmos.Kernel.System.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Managed handle for a directory node supporting lookup and mutation operations.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IVfsDirectoryHandle : IVfsNodeHandle, IDisposable</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Name">IVfsNodeHandle.Name</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_Inode">IVfsNodeHandle.Inode</a>
+    </div>
+    <div>
+      <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html#Cosmos_Kernel_System_Vfs_IVfsNodeHandle_TryStat_Cosmos_Kernel_HAL_Vfs_VfsStat__">IVfsNodeHandle.TryStat(out VfsStat)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable.dispose">IDisposable.Dispose()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateDirectory_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateDirectory_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_VfsMode_Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateDirectory(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.VfsMode,Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle@)">
+  TryCreateDirectory(ReadOnlySpan&lt;char&gt;, VfsMode, out IVfsDirectoryHandle?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a subdirectory in this directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryCreateDirectory(ReadOnlySpan&lt;char&gt; name, VfsMode mode, out IVfsDirectoryHandle? child)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The new directory's name.</p>
+</dd>
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
+    <dd><p>The mode bits of the new directory.</p>
+</dd>
+    <dt><code>child</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html">IVfsDirectoryHandle</a></dt>
+    <dd><p>A handle on the created directory.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the directory was created.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateFile_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryCreateFile_System_ReadOnlySpan_System_Char__Cosmos_Kernel_HAL_Vfs_VfsMode_Cosmos_Kernel_System_Vfs_IVfsNodeHandle__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryCreateFile(System.ReadOnlySpan{System.Char},Cosmos.Kernel.HAL.Vfs.VfsMode,Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)">
+  TryCreateFile(ReadOnlySpan&lt;char&gt;, VfsMode, out IVfsNodeHandle?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a file entry in this directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryCreateFile(ReadOnlySpan&lt;char&gt; name, VfsMode mode, out IVfsNodeHandle? child)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The new file's name.</p>
+</dd>
+    <dt><code>mode</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsMode.html">VfsMode</a></dt>
+    <dd><p>The mode bits of the new file.</p>
+</dd>
+    <dt><code>child</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html">IVfsNodeHandle</a></dt>
+    <dd><p>A handle on the created file.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the file was created.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryLookup_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryLookup_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsNodeHandle__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryLookup(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)">
+  TryLookup(ReadOnlySpan&lt;char&gt;, out IVfsNodeHandle?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Resolves a child entry by name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryLookup(ReadOnlySpan&lt;char&gt; name, out IVfsNodeHandle? child)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The child's name.</p>
+</dd>
+    <dt><code>child</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html">IVfsNodeHandle</a></dt>
+    <dd><p>A handle on the child when it exists.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the entry exists.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryReadDir_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryReadDir*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryReadDir_System_Collections_Generic_IReadOnlyList_Cosmos_Kernel_HAL_Vfs_IVfsInode___" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryReadDir(System.Collections.Generic.IReadOnlyList{Cosmos.Kernel.HAL.Vfs.IVfsInode}@)">
+  TryReadDir(out IReadOnlyList&lt;IVfsInode&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lists the directory's entries.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryReadDir(out IReadOnlyList&lt;IVfsInode&gt; entries)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>entries</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Cosmos.Kernel.HAL.Vfs.IVfsInode.html">IVfsInode</a>&gt;</dt>
+    <dd><p>The child inodes when the call succeeds.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the driver produced the listing.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRemoveDirectory_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRemoveDirectory_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRemoveDirectory(System.ReadOnlySpan{System.Char})">
+  TryRemoveDirectory(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Removes an empty subdirectory from this directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryRemoveDirectory(ReadOnlySpan&lt;char&gt; name)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The subdirectory's name.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the directory was removed.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRename_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryRename_System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryRename(System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle,System.ReadOnlySpan{System.Char})">
+  TryRename(ReadOnlySpan&lt;char&gt;, IVfsDirectoryHandle, ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Moves or renames an entry of this directory into <code class="paramref">newParent</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryRename(ReadOnlySpan&lt;char&gt; oldName, IVfsDirectoryHandle newParent, ReadOnlySpan&lt;char&gt; newName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>oldName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The entry's current name in this directory.</p>
+</dd>
+    <dt><code>newParent</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.html">IVfsDirectoryHandle</a></dt>
+    <dd><p>The directory receiving the entry; may be this handle.</p>
+</dd>
+    <dt><code>newName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The entry's new name.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the entry was moved.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySetAttr_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySetAttr_Cosmos_Kernel_HAL_Vfs_SetAttrFlags_Cosmos_Kernel_HAL_Vfs_VfsStat__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySetAttr(Cosmos.Kernel.HAL.Vfs.SetAttrFlags,Cosmos.Kernel.HAL.Vfs.VfsStat@)">
+  TrySetAttr(SetAttrFlags, in VfsStat)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Updates this directory's metadata.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TrySetAttr(SetAttrFlags flags, in VfsStat attributes)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>flags</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.SetAttrFlags.html">SetAttrFlags</a></dt>
+    <dd><p>Which fields of <code class="paramref">attributes</code> to apply.</p>
+</dd>
+    <dt><code>attributes</code> <a class="xref" href="Cosmos.Kernel.HAL.Vfs.VfsStat.html">VfsStat</a></dt>
+    <dd><p>The new attribute values.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the driver applied the change.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySymlink_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TrySymlink_System_ReadOnlySpan_System_Char__System_ReadOnlySpan_System_Char__Cosmos_Kernel_System_Vfs_IVfsNodeHandle__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TrySymlink(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},Cosmos.Kernel.System.Vfs.IVfsNodeHandle@)">
+  TrySymlink(ReadOnlySpan&lt;char&gt;, ReadOnlySpan&lt;char&gt;, out IVfsNodeHandle?)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a symbolic link in this directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TrySymlink(ReadOnlySpan&lt;char&gt; name, ReadOnlySpan&lt;char&gt; target, out IVfsNodeHandle? child)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The link's name.</p>
+</dd>
+    <dt><code>target</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The path the link points to.</p>
+</dd>
+    <dt><code>child</code> <a class="xref" href="Cosmos.Kernel.System.Vfs.IVfsNodeHandle.html">IVfsNodeHandle</a></dt>
+    <dd><p>A handle on the created link.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the link was created.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryUnlink_" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink*"></a>
+
+  <h3 id="Cosmos_Kernel_System_Vfs_IVfsDirectoryHandle_TryUnlink_System_ReadOnlySpan_System_Char__" data-uid="Cosmos.Kernel.System.Vfs.IVfsDirectoryHandle.TryUnlink(System.ReadOnlySpan{System.Char})">
+  TryUnlink(ReadOnlySpan&lt;char&gt;)
+  
+  </h3>
+
+  <div class="markdown level1 summary"><p>Removes a file entry from this directory.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryUnlink(ReadOnlySpan&lt;char&gt; name)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd><p>The entry's name.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when the entry was removed.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
